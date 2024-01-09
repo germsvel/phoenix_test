@@ -19,13 +19,6 @@ defmodule PhoenixTest do
     visit(conn, path)
   end
 
-  def click_button(conn, text) do
-    conn
-    |> render_html()
-    |> find("a", text)
-    |> attribute("href")
-  end
-
   def assert_has(conn, css, text) do
     found =
       conn
@@ -104,10 +97,7 @@ defmodule PhoenixTest do
   end
 
   defp all(html, selector) do
-    case Floki.find(html, selector) do
-      [] -> raise "unable to find element with selector #{inspect(selector)}"
-      elements -> elements
-    end
+    Floki.find(html, selector)
   end
 
   defp render_html(conn) do
