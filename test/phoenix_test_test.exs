@@ -48,7 +48,7 @@ defmodule PhoenixTestTest do
         conn
         |> visit("/index")
 
-      assert_raise RuntimeError, ~s(unable to find element with selector "#nonexistent-id"), fn ->
+      assert_raise RuntimeError, ~s(Could not find element with selector "#nonexistent-id"), fn ->
         conn |> assert_has("#nonexistent-id", "Main page")
       end
     end
@@ -59,7 +59,7 @@ defmodule PhoenixTestTest do
         |> visit("/index")
 
       assert_raise RuntimeError,
-                   ~s(found more than one element with selector ".multiple_links"),
+                   ~s(Found more than one element with selector ".multiple_links"),
                    fn ->
                      conn |> assert_has(".multiple_links", "Multiple links")
                    end

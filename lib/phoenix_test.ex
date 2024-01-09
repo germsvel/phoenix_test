@@ -90,9 +90,9 @@ defmodule PhoenixTest do
 
   defp find(html, selector) do
     case Floki.find(html, selector) do
-      [] -> raise "unable to find element with selector #{inspect(selector)}"
+      [] -> raise "Could not find element with selector #{inspect(selector)}"
       [element] -> element
-      [_, _ | _rest] -> raise "found more than one element with selector #{inspect(selector)}"
+      [_, _ | _rest] -> raise "Found more than one element with selector #{inspect(selector)}"
     end
   end
 
