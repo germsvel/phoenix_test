@@ -58,7 +58,7 @@ defmodule PhoenixTest do
 
   defp text_content(element), do: Floki.text(element)
 
-  def attribute(element, attr) do
+  defp attribute(element, attr) do
     element
     |> Floki.attribute(attr)
     |> hd()
