@@ -7,4 +7,9 @@ defmodule PhoenixTest.PageController do
     conn
     |> render(page <> ".html")
   end
+
+  def update(conn, _) do
+    conn
+    |> render("updated_page.html")
+  end
 end

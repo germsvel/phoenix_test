@@ -26,6 +26,7 @@ defmodule PhoenixTest.Router do
     pipe_through([:browser])
 
     get "/page/:page", PageController, :show
+    put "/page/update", PageController, :update
 
     live_session :live_pages do
       live "/live/index", IndexLive

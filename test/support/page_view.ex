@@ -13,6 +13,10 @@ defmodule PhoenixTest.PageView do
     <div class="has_extra_space">
       &nbsp; Has extra space &nbsp;
     </div>
+
+    <form action="/page/update">
+      <button>Mark as active</button>
+    </form>
     """
   end
 
@@ -25,6 +29,12 @@ defmodule PhoenixTest.PageView do
   def render("page_3.html", assigns) do
     ~H"""
     <h1>Page 3</h1>
+    """
+  end
+
+  def render("updated_page.html", assigns) do
+    ~H"""
+    <h1>Marked active!</h1>
     """
   end
 end

@@ -32,4 +32,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Page 3")
     end
   end
+
+  describe "click_button/2" do
+    test "handles a button clicks when button is a form", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Mark as active")
+      |> assert_has("h1", "Marked active!")
+    end
+  end
 end

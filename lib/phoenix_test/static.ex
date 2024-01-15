@@ -7,6 +7,7 @@ defmodule PhoenixTest.Static do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
 
   alias PhoenixTest.Html
@@ -20,6 +21,19 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> Html.attribute("href")
 
     PhoenixTest.visit(session.conn, path)
+  end
+
+  def click_button(session, text) do
+    action =
+      session
+      |> render_html()
+      |> Html.parse()
+      |> Html.find("form", text)
+      |> Html.attribute("action")
+
+    conn = put(session.conn, action)
+
+    %{session | conn: conn}
   end
 
   def render_html(%{conn: conn}) do
