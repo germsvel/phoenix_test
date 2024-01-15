@@ -1,14 +1,16 @@
-defmodule PhoenixTestTest do
+defmodule PhoenixTest.StaticTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
+  import PhoenixTest.Driver
+  import PhoenixTest.Assertions
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
   end
 
   describe "visit/2" do
-    test "navigates to given path", %{conn: conn} do
+    test "navigates to given static page", %{conn: conn} do
       conn
       |> visit("/index")
       |> assert_has("h1", "Main page")
