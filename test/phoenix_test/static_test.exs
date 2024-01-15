@@ -34,11 +34,25 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "click_button/2" do
-    test "handles a button clicks when button is a form", %{conn: conn} do
+    test "handles a button that defaults to GET", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Get record")
+      |> assert_has("h1", "Record received")
+    end
+
+    test "handles a button clicks when button PUTs data", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Mark as active")
       |> assert_has("h1", "Marked active!")
+    end
+
+    test "handles a button clicks when button DELETEs data", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Delete record")
+      |> assert_has("h1", "Record deleted")
     end
   end
 end

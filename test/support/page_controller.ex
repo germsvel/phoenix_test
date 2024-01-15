@@ -10,6 +10,11 @@ defmodule PhoenixTest.PageController do
 
   def update(conn, _) do
     conn
-    |> render("updated_page.html")
+    |> render("record_updated.html")
+  end
+
+  def delete(conn, _) do
+    conn
+    |> render("record_deleted.html")
   end
 end

@@ -24,14 +24,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_button(session, text) do
-    action =
+    form =
       session
       |> render_html()
       |> Html.parse()
       |> Html.find("form", text)
-      |> Html.attribute("action")
 
-    conn = put(session.conn, action)
+    action = Html.attribute(form, "action")
+    method = Html.attribute(form, "method") || "get"
+
+    conn = dispatch(session.conn, @endpoint, method, action)
 
     %{session | conn: conn}
   end

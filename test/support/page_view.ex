@@ -14,8 +14,16 @@ defmodule PhoenixTest.PageView do
       &nbsp; Has extra space &nbsp;
     </div>
 
-    <form action="/page/update">
+    <form action="/page/get_record">
+      <button>Get record</button>
+    </form>
+
+    <form action="/page/update_record" method="put">
       <button>Mark as active</button>
+    </form>
+
+    <form action="/page/delete_record" method="delete">
+      <button>Delete record</button>
     </form>
     """
   end
@@ -32,9 +40,21 @@ defmodule PhoenixTest.PageView do
     """
   end
 
-  def render("updated_page.html", assigns) do
+  def render("get_record.html", assigns) do
+    ~H"""
+    <h1>Record received</h1>
+    """
+  end
+
+  def render("record_updated.html", assigns) do
     ~H"""
     <h1>Marked active!</h1>
+    """
+  end
+
+  def render("record_deleted.html", assigns) do
+    ~H"""
+    <h1>Record deleted</h1>
     """
   end
 end

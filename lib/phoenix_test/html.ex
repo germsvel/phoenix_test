@@ -9,7 +9,7 @@ defmodule PhoenixTest.Html do
   def attribute(element, attr) do
     element
     |> Floki.attribute(attr)
-    |> hd()
+    |> List.first()
   end
 
   def find(html, selector, text) do
