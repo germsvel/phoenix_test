@@ -12,17 +12,27 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   import Phoenix.LiveViewTest
 
   def click_link(session, text) do
-    {:ok, view, _} =
+    result =
       session.view
       |> element("a", text)
       |> render_click()
       |> maybe_redirect(session)
 
-    %{session | view: view}
+    case result do
+      {:ok, view, _} ->
+        %{session | view: view}
+
+      {:static_view, conn, path} ->
+        PhoenixTest.visit(conn, path)
+    end
   end
 
   def render_html(%{view: view}) do
     render(view)
+  end
+
+  defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
+    {:static_view, session.conn, path}
   end
 
   defp maybe_redirect({:error, {:live_redirect, _}} = result, session) do

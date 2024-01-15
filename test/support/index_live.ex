@@ -19,6 +19,7 @@ defmodule PhoenixTest.IndexLive do
 
     <.link navigate="/live/page_2">Navigate link</.link>
     <.link patch="/live/index?details=true">Patch link</.link>
+    <.link href="/page/index">Navigate to non-liveview</.link>
 
     <h2 :if={@details}>LiveView main page details</h2>
     """

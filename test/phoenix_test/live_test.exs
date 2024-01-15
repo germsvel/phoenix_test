@@ -31,5 +31,12 @@ defmodule PhoenixTest.LiveTest do
       |> click_link("Patch link")
       |> assert_has("h2", "LiveView main page details")
     end
+
+    test "handles navigation to a non-liveview", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate to non-liveview")
+      |> assert_has("h1", "Main page")
+    end
   end
 end
