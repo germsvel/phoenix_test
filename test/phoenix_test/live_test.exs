@@ -2,6 +2,7 @@ defmodule PhoenixTest.LiveTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
+  import PhoenixTest.Driver
   import PhoenixTest.Assertions
 
   setup do
@@ -11,8 +12,17 @@ defmodule PhoenixTest.LiveTest do
   describe "visit/2" do
     test "navigates to given LiveView page", %{conn: conn} do
       conn
-      |> visit("/index_live")
-      |> assert_has("h1", "Main LiveView page")
+      |> visit("/live/index")
+      |> assert_has("h1", "LiveView main page")
+    end
+  end
+
+  describe "click_link/2" do
+    test "follows link navigate path", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Page 2")
+      |> assert_has("h1", "LiveView page 2")
     end
   end
 end

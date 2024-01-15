@@ -25,6 +25,9 @@ defmodule PhoenixTest.Router do
   scope "/", PhoenixTest do
     pipe_through([:browser])
 
-    get("/page/:page", PageController, :show)
+    get "/page/:page", PageController, :show
+
+    live "/live/index", IndexLive
+    live "/live/page_2", Page2Live
   end
 end

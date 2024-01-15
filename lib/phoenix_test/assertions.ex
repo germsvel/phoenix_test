@@ -3,9 +3,9 @@ defmodule PhoenixTest.Assertions do
 
   alias PhoenixTest.Html
 
-  def assert_has(conn, css, text) do
+  def assert_has(session, css, text) do
     found =
-      conn
+      session
       |> PhoenixTest.Driver.render_html()
       |> Html.parse()
       |> Html.find(css)
@@ -17,11 +17,11 @@ defmodule PhoenixTest.Assertions do
       raise "Expected to find #{inspect(text)} but found #{inspect(found)} instead"
     end
 
-    conn
+    session
   end
 
-  def refute_has(conn, css, text) do
-    conn
+  def refute_has(session, css, text) do
+    session
     |> PhoenixTest.Driver.render_html()
     |> Html.parse()
     |> Html.all(css)
