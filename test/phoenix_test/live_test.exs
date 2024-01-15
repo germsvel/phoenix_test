@@ -18,7 +18,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "click_link/2" do
-    test "follows link navigate path", %{conn: conn} do
+    test "follows 'navigate' links", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Navigate link")
@@ -37,6 +37,14 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> click_link("Navigate to non-liveview")
       |> assert_has("h1", "Main page")
+    end
+
+    test "raises error when there are multiple links with same text", %{conn: conn} do
+      assert_raise ArgumentError, ~r/2 of them matched the text filter/, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_link("Multiple links")
+      end
     end
   end
 end

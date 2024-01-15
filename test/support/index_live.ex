@@ -21,6 +21,9 @@ defmodule PhoenixTest.IndexLive do
     <.link patch="/live/index?details=true">Patch link</.link>
     <.link href="/page/index">Navigate to non-liveview</.link>
 
+    <.link class="multiple_links" href="/live/page_3">Multiple links</.link>
+    <.link class="multiple_links" href="/live/page_4">Multiple links</.link>
+
     <h2 :if={@details}>LiveView main page details</h2>
     """
   end
