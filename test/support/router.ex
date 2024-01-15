@@ -27,7 +27,9 @@ defmodule PhoenixTest.Router do
 
     get "/page/:page", PageController, :show
 
-    live "/live/index", IndexLive
-    live "/live/page_2", Page2Live
+    live_session :live_pages do
+      live "/live/index", IndexLive
+      live "/live/page_2", Page2Live
+    end
   end
 end

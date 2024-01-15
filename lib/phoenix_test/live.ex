@@ -29,4 +29,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     result
     |> follow_redirect(session.conn)
   end
+
+  defp maybe_redirect(html, session) when is_binary(html) do
+    {:ok, session.view, html}
+  end
 end

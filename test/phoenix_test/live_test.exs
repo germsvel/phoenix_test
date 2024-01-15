@@ -21,8 +21,15 @@ defmodule PhoenixTest.LiveTest do
     test "follows link navigate path", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> click_link("Page 2")
+      |> click_link("Navigate link")
       |> assert_has("h1", "LiveView page 2")
+    end
+
+    test "handles patches to current view", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Patch link")
+      |> assert_has("h2", "LiveView main page details")
     end
   end
 end
