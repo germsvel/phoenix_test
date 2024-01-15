@@ -23,6 +23,7 @@ defmodule PhoenixTest.MixProject do
   defp deps do
     [
       {:floki, ">= 0.30.0"},
+      {:jason, "~> 1.4"},
       {:phoenix, "~> 1.7.10"},
       {:phoenix_live_view, "~> 0.20.1"}
     ]

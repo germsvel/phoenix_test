@@ -12,7 +12,7 @@ defmodule PhoenixTest.StaticTest do
   describe "visit/2" do
     test "navigates to given static page", %{conn: conn} do
       conn
-      |> visit("/index")
+      |> visit("/page/index")
       |> assert_has("h1", "Main page")
     end
   end
@@ -20,14 +20,14 @@ defmodule PhoenixTest.StaticTest do
   describe "click_link/2" do
     test "follows link's path", %{conn: conn} do
       conn
-      |> visit("/index")
+      |> visit("/page/index")
       |> click_link("Page 2")
       |> assert_has("h1", "Page 2")
     end
 
     test "follows first link when there are multiple links with same text", %{conn: conn} do
       conn
-      |> visit("/index")
+      |> visit("/page/index")
       |> click_link("Multiple links")
       |> assert_has("h1", "Page 3")
     end
@@ -37,7 +37,7 @@ defmodule PhoenixTest.StaticTest do
     test "returns true if a single element is found with CSS selector and text", %{conn: conn} do
       conn =
         conn
-        |> visit("/index")
+        |> visit("/page/index")
 
       conn |> assert_has("h1", "Main page")
       conn |> assert_has("#title", "Main page")
@@ -48,7 +48,7 @@ defmodule PhoenixTest.StaticTest do
     test "raises an error if the element cannot be found", %{conn: conn} do
       conn =
         conn
-        |> visit("/index")
+        |> visit("/page/index")
 
       assert_raise RuntimeError, ~s(Could not find element with selector "#nonexistent-id"), fn ->
         conn |> assert_has("#nonexistent-id", "Main page")
@@ -58,7 +58,7 @@ defmodule PhoenixTest.StaticTest do
     test "raises an error if more than one element is found", %{conn: conn} do
       conn =
         conn
-        |> visit("/index")
+        |> visit("/page/index")
 
       assert_raise RuntimeError,
                    ~s(Found more than one element with selector ".multiple_links"),
@@ -72,7 +72,7 @@ defmodule PhoenixTest.StaticTest do
     test "succeeds if no element is found with CSS selector and text", %{conn: conn} do
       conn =
         conn
-        |> visit("/index")
+        |> visit("/page/index")
 
       conn |> refute_has("h1", "Not main page")
       conn |> refute_has("h2", "Main page")
@@ -83,7 +83,7 @@ defmodule PhoenixTest.StaticTest do
     test "raises an error if one element is found", %{conn: conn} do
       conn =
         conn
-        |> visit("/index")
+        |> visit("/page/index")
 
       assert_raise RuntimeError,
                    ~s(Found element with selector "#title" and text "Main page" when should not be present),
@@ -95,7 +95,7 @@ defmodule PhoenixTest.StaticTest do
     test "raises an error if multiple elements are found", %{conn: conn} do
       conn =
         conn
-        |> visit("/index")
+        |> visit("/page/index")
 
       assert_raise RuntimeError,
                    ~s(Found element with selector ".multiple_links" and text "Multiple links" when should not be present),
