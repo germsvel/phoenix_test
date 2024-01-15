@@ -31,6 +31,12 @@ defmodule PhoenixTest.AssertionsTest do
       conn |> assert_has("[data-role='title']", "LiveView main page")
     end
 
+    test "succeeds if text difference is only a matter of truncation", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has(".has_extra_space", "Has extra space")
+    end
+
     test "raises an error if the element cannot be found", %{conn: conn} do
       conn =
         conn

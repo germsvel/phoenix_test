@@ -4,7 +4,7 @@ defmodule PhoenixTest.Html do
     |> Floki.parse_document!()
   end
 
-  def text_content(element), do: Floki.text(element)
+  def text_content(element), do: Floki.text(element) |> String.trim()
 
   def attribute(element, attr) do
     element
