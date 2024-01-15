@@ -1,7 +1,12 @@
 defmodule PhoenixTest.Live do
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  import Phoenix.ConnTest
+  import Phoenix.LiveViewTest
+
   defstruct [:view, :conn]
 
-  def visit(view, conn) do
+  def build(conn) do
+    {:ok, view, _html} = live(conn)
     %__MODULE__{view: view, conn: conn}
   end
 end

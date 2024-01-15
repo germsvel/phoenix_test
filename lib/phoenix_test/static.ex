@@ -1,11 +1,8 @@
 defmodule PhoenixTest.Static do
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
-  import Phoenix.ConnTest
-
   defstruct [:conn]
 
-  def visit(conn, path) do
-    %__MODULE__{conn: get(conn, path)}
+  def build(conn) do
+    %__MODULE__{conn: conn}
   end
 end
 

@@ -13,15 +13,14 @@ defmodule PhoenixTest do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
-  import Phoenix.LiveViewTest
 
   def visit(conn, path) do
-    case live(conn, path) do
-      {:ok, view, _html} ->
-        PhoenixTest.Live.visit(view, conn)
+    case get(conn, path) do
+      %{assigns: %{live_module: _}} = conn ->
+        PhoenixTest.Live.build(conn)
 
-      {:error, _} ->
-        PhoenixTest.Static.visit(conn, path)
+      conn ->
+        PhoenixTest.Static.build(conn)
     end
   end
 end
