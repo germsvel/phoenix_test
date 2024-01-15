@@ -10,7 +10,10 @@ defmodule PhoenixTest.IndexLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :details, false)}
+    {:ok,
+     socket
+     |> assign(:details, false)
+     |> assign(:show_tab, false)}
   end
 
   def render(assigns) do
@@ -25,6 +28,16 @@ defmodule PhoenixTest.IndexLive do
     <.link class="multiple_links" href="/live/page_4">Multiple links</.link>
 
     <h2 :if={@details}>LiveView main page details</h2>
+
+    <button phx-click="show-tab">Show tab</button>
+
+    <div :if={@show_tab} id="tab">
+      <h2>Tab title</h2>
+    </div>
     """
+  end
+
+  def handle_event("show-tab", _, socket) do
+    {:noreply, assign(socket, :show_tab, true)}
   end
 end

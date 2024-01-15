@@ -47,4 +47,13 @@ defmodule PhoenixTest.LiveTest do
       end
     end
   end
+
+  describe "click_button/2" do
+    test "handles a `phx-click` button", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Show tab")
+      |> assert_has("#tab", "Tab title")
+    end
+  end
 end

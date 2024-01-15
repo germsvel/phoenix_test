@@ -32,6 +32,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
+  def click_button(session, text) do
+    result =
+      session.view
+      |> element("button", text)
+      |> render_click()
+      |> maybe_redirect(session)
+
+    case result do
+      {:ok, view, _} ->
+        %{session | view: view}
+
+      {:static_view, conn, path} ->
+        PhoenixTest.visit(conn, path)
+    end
+  end
+
   def render_html(%{view: view}) do
     render(view)
   end
