@@ -3,6 +3,14 @@ defmodule PhoenixTest do
   Documentation for `PhoenixTest`.
   """
 
+  defmacro __using__(_opts) do
+    quote do
+      import PhoenixTest
+      import PhoenixTest.Driver
+      import PhoenixTest.Assertions
+    end
+  end
+
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
