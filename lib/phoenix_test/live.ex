@@ -48,6 +48,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
+  def submit_form(session, selector, form_data) do
+    session.view
+    |> form(selector, form_data)
+    |> render_submit()
+
+    session
+  end
+
   def render_html(%{view: view}) do
     render(view)
   end

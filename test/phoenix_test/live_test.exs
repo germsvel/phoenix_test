@@ -56,4 +56,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#tab", "Tab title")
     end
   end
+
+  describe "submit_form/3" do
+    test "submits a form via phx-submit", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#email-form", %{email: "some@example.com"})
+      |> assert_has("#form-message", "Form saved!")
+    end
+  end
 end

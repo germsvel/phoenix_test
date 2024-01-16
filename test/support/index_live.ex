@@ -10,10 +10,13 @@ defmodule PhoenixTest.IndexLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:details, false)
-     |> assign(:show_tab, false)}
+    {
+      :ok,
+      socket
+      |> assign(:details, false)
+      |> assign(:show_tab, false)
+      |> assign(:form_saved, false)
+    }
   end
 
   def render(assigns) do
@@ -34,10 +37,22 @@ defmodule PhoenixTest.IndexLive do
     <div :if={@show_tab} id="tab">
       <h2>Tab title</h2>
     </div>
+
+    <form id="email-form" phx-submit="save-email">
+      <input name="email" />
+    </form>
+
+    <div :if={@form_saved} id="form-message">
+      Form saved!
+    </div>
     """
   end
 
   def handle_event("show-tab", _, socket) do
     {:noreply, assign(socket, :show_tab, true)}
+  end
+
+  def handle_event("save-email", _, socket) do
+    {:noreply, assign(socket, :form_saved, true)}
   end
 end
