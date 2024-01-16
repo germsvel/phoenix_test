@@ -57,6 +57,15 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "fill_form/3" do
+    test "triggers a phx-change event on a form (when it has one)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#email-form", %{email: nil})
+      |> assert_has("#form-errors", "Errors present")
+    end
+  end
+
   describe "submit_form/3" do
     test "submits a form via phx-submit", %{conn: conn} do
       conn

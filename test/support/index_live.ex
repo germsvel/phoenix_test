@@ -16,6 +16,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:details, false)
       |> assign(:show_tab, false)
       |> assign(:form_saved, false)
+      |> assign(:show_form_errors, false)
     }
   end
 
@@ -38,7 +39,11 @@ defmodule PhoenixTest.IndexLive do
       <h2>Tab title</h2>
     </div>
 
-    <form id="email-form" phx-submit="save-email">
+    <div :if={@show_form_errors} id="form-errors">
+      Errors present
+    </div>
+
+    <form id="email-form" phx-change="validate-email" phx-submit="save-email">
       <input name="email" />
     </form>
 
@@ -54,5 +59,15 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("save-email", _, socket) do
     {:noreply, assign(socket, :form_saved, true)}
+  end
+
+  def handle_event("validate-email", %{"email" => email}, socket) do
+    case email do
+      empty when empty == nil or empty == "" ->
+        {:noreply, assign(socket, :show_form_errors, true)}
+
+      _valid ->
+        {:noreply, socket}
+    end
   end
 end
