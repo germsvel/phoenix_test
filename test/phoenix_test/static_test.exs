@@ -55,4 +55,16 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Record deleted")
     end
   end
+
+  describe "fill_form/3" do
+    test "can submit forms with input type submit", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_form("#email-form", %{
+        email: "sample@example.com"
+      })
+      |> click_button("Save")
+      |> assert_has("#form-data", "email: sample@example.com")
+    end
+  end
 end

@@ -44,6 +44,47 @@ defmodule PhoenixTest.Html do
     end
   end
 
+  def find_one_of(html, elements) do
+    elements
+    |> Enum.map(fn
+      {selector, text} ->
+        find_with_text(html, selector, text)
+
+      selector ->
+        find_first(html, selector)
+    end)
+    |> Enum.find(fn result ->
+      result != nil
+    end)
+    |> case do
+      nil ->
+        raise """
+          expected to find one of these elements but found none
+
+        #{Enum.map_join(elements, " or \n", &inspect(&1))}
+        """
+
+      found_element ->
+        found_element
+    end
+  end
+
+  defp find_with_text(html, selector, text) do
+    elements =
+      html
+      |> all(selector)
+
+    Enum.find(elements, fn element ->
+      Floki.text(element) =~ text
+    end)
+  end
+
+  defp find_first(html, selector) do
+    html
+    |> all(selector)
+    |> List.first()
+  end
+
   def all(html, selector) do
     Floki.find(html, selector)
   end

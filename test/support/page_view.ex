@@ -25,6 +25,12 @@ defmodule PhoenixTest.PageView do
     <form action="/page/delete_record" method="delete">
       <button>Delete record</button>
     </form>
+
+    <form action="/page/create_record" method="post" id="email-form">
+      <label for="email">Email</label>
+      <input name="email" />
+      <button>Save</button>
+    </form>
     """
   end
 
@@ -43,6 +49,18 @@ defmodule PhoenixTest.PageView do
   def render("get_record.html", assigns) do
     ~H"""
     <h1>Record received</h1>
+    """
+  end
+
+  def render("record_created.html", assigns) do
+    ~H"""
+    <h1>Record created</h1>
+
+    <div id="form-data">
+      <%= for {key, value} <- @params do %>
+        <%= key %>: <%= value %>
+      <% end %>
+    </div>
     """
   end
 

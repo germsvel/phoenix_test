@@ -25,6 +25,7 @@ defmodule PhoenixTest.Router do
   scope "/", PhoenixTest do
     pipe_through([:browser])
 
+    post "/page/create_record", PageController, :create
     put "/page/update_record", PageController, :update
     delete "/page/delete_record", PageController, :delete
     get "/page/:page", PageController, :show

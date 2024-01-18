@@ -1,8 +1,22 @@
 defmodule PhoenixTest.Static do
-  defstruct [:conn]
+  defstruct conn: nil, private: %{}
 
   def build(conn) do
     %__MODULE__{conn: conn}
+  end
+
+  def get_private(%__MODULE__{private: private}, key) do
+    Map.get(private, key, :not_found)
+  end
+
+  def pop_private(%__MODULE__{private: private} = session, key) do
+    {popped, rest_private} = Map.pop(private, key, %{})
+    {popped, %{session | private: rest_private}}
+  end
+
+  def put_private(%__MODULE__{private: private} = session, key, value) do
+    updated_private = Map.put(private, key, value)
+    %{session | private: updated_private}
   end
 end
 
@@ -24,6 +38,37 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_button(session, text) do
+    if has_active_form?(session) do
+      submit_active_form(session, text)
+    else
+      single_button_form_submit(session, text)
+    end
+  end
+
+  defp has_active_form?(session) do
+    case PhoenixTest.Static.get_private(session, :active_form) do
+      :not_found -> false
+      _ -> true
+    end
+  end
+
+  defp submit_active_form(session, text) do
+    session
+    |> render_html()
+    |> Html.parse()
+    |> Html.find_one_of(["input[type=submit][value=#{text}]", {"button", text}])
+
+    {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
+    action = form["action"]
+    method = form["method"] || "get"
+    data = form["data"]
+
+    conn = dispatch(session.conn, @endpoint, method, action, data)
+
+    %{session | conn: conn}
+  end
+
+  defp single_button_form_submit(session, text) do
     form =
       session
       |> render_html()
@@ -36,6 +81,43 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     conn = dispatch(session.conn, @endpoint, method, action)
 
     %{session | conn: conn}
+  end
+
+  def fill_form(session, selector, form_data) do
+    form =
+      session
+      |> render_html()
+      |> Html.parse()
+      |> Html.find(selector)
+      |> Html.Form.parse()
+      |> Map.put("data", form_data)
+
+    verify_expected_form_data(form, form_data)
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, form)
+  end
+
+  defp verify_expected_form_data(form, form_data) do
+    action = form["action"]
+    unless action, do: raise("expected form to have an action but found none")
+
+    existing_inputs = form["inputs"]
+
+    form_data
+    |> Enum.each(fn {key, _value} ->
+      string_key = to_string(key)
+
+      if !Enum.any?(existing_inputs, fn input ->
+           input["name"] == string_key
+         end) do
+        raise """
+          Expected form to have #{inspect(string_key)} input, but found none.
+
+          Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
+        """
+      end
+    end)
   end
 
   def render_html(%{conn: conn}) do
