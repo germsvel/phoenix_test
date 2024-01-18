@@ -31,6 +31,11 @@ defmodule PhoenixTest.PageView do
       <input name="email" />
       <button>Save</button>
     </form>
+
+    <form action="/page/create_record" method="post" id="no-submit-button-form">
+      <label for="name">Name</label>
+      <input name="name" />
+    </form>
     """
   end
 

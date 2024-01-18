@@ -37,9 +37,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     PhoenixTest.visit(session.conn, path)
   end
 
+  @doc """
+  Submits parent form. Could be preceded by `fill_form` or used alone if form
+  has a single button (e.g. "Delete")
+  """
   def click_button(session, text) do
     if has_active_form?(session) do
-      submit_active_form(session, text)
+      # what happens if someone is cancelling the form? (e.g. in a modal?)
+      session
+      |> validate_submit_buttons(text)
+      |> submit_active_form()
     else
       single_button_form_submit(session, text)
     end
@@ -52,12 +59,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  defp submit_active_form(session, text) do
+  defp validate_submit_buttons(session, text) do
     session
     |> render_html()
     |> Html.parse()
     |> Html.find_one_of(["input[type=submit][value=#{text}]", {"button", text}])
 
+    session
+  end
+
+  defp submit_active_form(session) do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
     action = form["action"]
     method = form["method"] || "get"
@@ -81,6 +92,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     conn = dispatch(session.conn, @endpoint, method, action)
 
     %{session | conn: conn}
+  end
+
+  def submit_form(session, selector, form_data) do
+    session
+    |> fill_form(selector, form_data)
+    |> submit_active_form()
   end
 
   def fill_form(session, selector, form_data) do

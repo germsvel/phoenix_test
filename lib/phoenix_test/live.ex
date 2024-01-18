@@ -48,7 +48,17 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
+  @doc """
+  Fills form data, validating that fields are present.
+
+  It'll trigger phx-change events if they're present on the form.
+
+  This can be followed by a `click_button` to submit the form.
+  """
   def fill_form(session, selector, form_data) do
+    # If form has phx-change trigger it.
+    # Also, save form data in active form
+    # submit_form on click_button if active form
     session.view
     |> form(selector, form_data)
     |> render_change()
@@ -56,6 +66,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     session
   end
 
+  @doc """
+  Submits form in the same way one would do by pressing <Enter>.
+  Does not validate presence of submit button.
+  """
   def submit_form(session, selector, form_data) do
     session.view
     |> form(selector, form_data)

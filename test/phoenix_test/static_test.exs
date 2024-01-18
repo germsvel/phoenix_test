@@ -67,4 +67,15 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", "email: sample@example.com")
     end
   end
+
+  describe "submit_form/3" do
+    test "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> submit_form("#no-submit-button-form", %{
+        name: "Aragorn"
+      })
+      |> assert_has("#form-data", "name: Aragorn")
+    end
+  end
 end
