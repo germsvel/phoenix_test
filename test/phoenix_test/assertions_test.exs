@@ -31,6 +31,14 @@ defmodule PhoenixTest.AssertionsTest do
       conn |> assert_has("[data-role='title']", "LiveView main page")
     end
 
+    test "succeeds if more than one element matces selector but text narrows it down", %{
+      conn: conn
+    } do
+      conn
+      |> visit("/page/index")
+      |> assert_has("li", "Aragorn")
+    end
+
     test "succeeds if text difference is only a matter of truncation", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -42,21 +50,9 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
 
-      assert_raise RuntimeError, ~s(Could not find element with selector "#nonexistent-id"), fn ->
+      assert_raise RuntimeError, ~r/Could not find element with selector "#nonexistent-id"/, fn ->
         conn |> assert_has("#nonexistent-id", "Main page")
       end
-    end
-
-    test "raises an error if more than one element is found", %{conn: conn} do
-      conn =
-        conn
-        |> visit("/page/index")
-
-      assert_raise RuntimeError,
-                   ~s(Found more than one element with selector ".multiple_links"),
-                   fn ->
-                     conn |> assert_has(".multiple_links", "Multiple links")
-                   end
     end
   end
 

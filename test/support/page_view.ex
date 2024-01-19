@@ -10,6 +10,12 @@ defmodule PhoenixTest.PageView do
     <a class="multiple_links" href="/page/page_3">Multiple links</a>
     <a class="multiple_links" href="/page/page_4">Multiple links</a>
 
+    <ul id="multiple-items">
+      <li>Aragorn</li>
+      <li>Legolas</li>
+      <li>Gimli</li>
+    </ul>
+
     <div class="has_extra_space">
       &nbsp; Has extra space &nbsp;
     </div>

@@ -8,7 +8,7 @@ defmodule PhoenixTest.Assertions do
       session
       |> PhoenixTest.Driver.render_html()
       |> Html.parse()
-      |> Html.find(css)
+      |> Html.find(css, text)
       |> Html.text_content()
 
     if found == text do
