@@ -60,9 +60,7 @@ defmodule PhoenixTest.StaticTest do
     test "can submit forms with input type submit", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> fill_form("#email-form", %{
-        email: "sample@example.com"
-      })
+      |> fill_form("#email-form", email: "sample@example.com")
       |> click_button("Save")
       |> assert_has("#form-data", "email: sample@example.com")
     end
@@ -72,9 +70,7 @@ defmodule PhoenixTest.StaticTest do
     test "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> submit_form("#no-submit-button-form", %{
-        name: "Aragorn"
-      })
+      |> submit_form("#no-submit-button-form", name: "Aragorn")
       |> assert_has("#form-data", "name: Aragorn")
     end
   end

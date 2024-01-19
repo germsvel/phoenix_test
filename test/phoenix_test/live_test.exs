@@ -65,7 +65,7 @@ defmodule PhoenixTest.LiveTest do
 
       ending_html =
         session
-        |> fill_form("#no-phx-change-form", %{name: "Aragorn"})
+        |> fill_form("#no-phx-change-form", name: "Aragorn")
         |> render_html()
 
       assert starting_html == ending_html
@@ -74,14 +74,14 @@ defmodule PhoenixTest.LiveTest do
     test "triggers a phx-change event on a form (when it has one)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_form("#email-form", %{email: nil})
+      |> fill_form("#email-form", email: nil)
       |> assert_has("#form-errors", "Errors present")
     end
 
     test "can be combined with click_button to submit a form", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_form("#email-form", %{email: "some@example.com"})
+      |> fill_form("#email-form", email: "some@example.com")
       |> click_button("Save")
       |> assert_has("#form-data", "email: some@example.com")
     end
@@ -91,7 +91,7 @@ defmodule PhoenixTest.LiveTest do
     test "submits a form via phx-submit", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> submit_form("#email-form", %{email: "some@example.com"})
+      |> submit_form("#email-form", email: "some@example.com")
       |> assert_has("#form-data", "email: some@example.com")
     end
   end
