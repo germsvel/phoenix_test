@@ -64,6 +64,14 @@ defmodule PhoenixTest.LiveTest do
       |> fill_form("#email-form", %{email: nil})
       |> assert_has("#form-errors", "Errors present")
     end
+
+    test "can be combined with click_button to submit a form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#email-form", %{email: "some@example.com"})
+      |> click_button("Save")
+      |> assert_has("#form-data", "email: some@example.com")
+    end
   end
 
   describe "submit_form/3" do
@@ -71,7 +79,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> submit_form("#email-form", %{email: "some@example.com"})
-      |> assert_has("#form-message", "Form saved!")
+      |> assert_has("#form-data", "email: some@example.com")
     end
   end
 end
