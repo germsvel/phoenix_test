@@ -58,6 +58,19 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "fill_form/3" do
+    test "does not trigger phx-change event if one isn't present", %{conn: conn} do
+      session = conn |> visit("/live/index")
+
+      starting_html = render_html(session)
+
+      ending_html =
+        session
+        |> fill_form("#no-phx-change-form", %{name: "Aragorn"})
+        |> render_html()
+
+      assert starting_html == ending_html
+    end
+
     test "triggers a phx-change event on a form (when it has one)", %{conn: conn} do
       conn
       |> visit("/live/index")

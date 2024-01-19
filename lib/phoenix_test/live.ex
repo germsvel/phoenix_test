@@ -109,15 +109,38 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   This can be followed by a `click_button` to submit the form.
   """
   def fill_form(session, selector, form_data) do
-    # If form has phx-change trigger it.
-    # Also, save form data in active form
-    # submit_form on click_button if active form
-    session.view
-    |> form(selector, form_data)
-    |> render_change()
+    if phx_change_form?(session, selector) do
+      session.view
+      |> form(selector, form_data)
+      |> render_change()
+    else
+      validate_inputs(session, selector, form_data)
+    end
 
     session
     |> PhoenixTest.Live.put_private(:active_form, %{selector: selector, form_data: form_data})
+  end
+
+  defp validate_inputs(session, selector, form_data) do
+    html =
+      session
+      |> render_html()
+      |> Html.parse()
+
+    Enum.each(form_data, fn {name, _value} ->
+      Html.find(html, "#{selector} input[name=#{name}]")
+    end)
+  end
+
+  defp phx_change_form?(session, selector) do
+    phx_change =
+      session
+      |> render_html()
+      |> Html.parse()
+      |> Html.find(selector)
+      |> Html.attribute("phx-change")
+
+    phx_change != nil && phx_change != ""
   end
 
   @doc """

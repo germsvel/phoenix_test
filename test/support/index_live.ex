@@ -34,6 +34,11 @@ defmodule PhoenixTest.IndexLive do
         <%= key %>: <%= value %>
       <% end %>
     </div>
+
+    <form id="no-phx-change-form" phx-submit="save-email">
+      <input name="name" />
+      <button type="submit">Save</button>
+    </form>
     """
   end
 
