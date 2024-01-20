@@ -7,10 +7,13 @@
 PhoenixTest is a testing library that allows you to run your feature tests the
 same way regardless of whether your page is a LiveView or a static view.
 
-It also handles navigation between LiveView and static pages seamlessly.
+It also handles navigation between LiveView and static pages seamlessly. So, you
+don't have to worry about what type of page you're visiting. Just write the
+tests from the user's perspective.
 
-Note that PhoenixTest does not handle JavaScript. If your looking for
-something that supports JavaScript, take a look at [Wallaby](https://hexdocs.pm/wallaby/readme.html).
+Note that PhoenixTest does not handle JavaScript. If you're looking for
+something that supports JavaScript, take a look at
+[Wallaby](https://hexdocs.pm/wallaby/readme.html).
 
 Thus, you can test a flow going from static to LiveView pages and back without
 having to worry about the underlying implementation.
@@ -35,11 +38,11 @@ views/HTML modules.
 The problem is that they have _vastly different_ testing strategies.
 
 If I use LiveView, we have a great set of helpers. But if a page is static, we
-have to resort to controller testing that relies solely on `html =~ "Page
-title"` for assertions.
+have to resort to controller testing that relies solely on `html_response(conn,
+200) =~ "Page title"` for assertions.
 
-I'd like to have a unified way of testing Phoenix apps -- when they don't have
-JavaScript.
+Instead, I'd like to have a unified way of testing Phoenix apps -- when they
+don't have JavaScript.
 
 That's where `PhoenixTest` comes in.
 
@@ -47,7 +50,9 @@ It's the one way to test your Phoenix apps regardless of live or static views.
 
 ## Installation
 
-_PhoenixTest requires Phoenix `1.7.10` and LiveView `0.20.1`._
+> #### Requirements {: .neutral }
+>
+> PhoenixTest requires Phoenix `1.7.10` and LiveView `0.20.1`.
 
 Add `phoenix_test` to your list of dependencies in `mix.exs`:
 
@@ -75,7 +80,7 @@ But since each test needs a `conn` struct, you'll likely want to set up a few
 things before that.
 
 To make that easier, it's helpful to create a `FeatureCase` module that can be
-`use`d from your tests:
+used from your tests:
 
 ```elixir
 defmodule MyAppWeb.FeatureCase do

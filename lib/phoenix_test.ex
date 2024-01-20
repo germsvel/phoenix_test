@@ -1,26 +1,29 @@
 defmodule PhoenixTest do
   @moduledoc """
-  PhoenixTest is a testing library that allows you to run your feature tests the
-  same way regardless of whether your page is a LiveView or a static view.
+    PhoenixTest is a testing library that allows you to run your feature tests the
+    same way regardless of whether your page is a LiveView or a static view.
 
-  It also handles navigation between LiveView and static pages seamlessly.
+    It also handles navigation between LiveView and static pages seamlessly. So, you
+    don't have to worry about what type of page you're visiting. Just write the
+    tests from the user's perspective.
 
-  Note that PhoenixTest does not handle JavaScript. If your looking for
-  something that supports JavaScript, take a look at [Wallaby](https://hexdocs.pm/wallaby/readme.html).
+    Note that PhoenixTest does not handle JavaScript. If you're looking for
+    something that supports JavaScript, take a look at
+    [Wallaby](https://hexdocs.pm/wallaby/readme.html).
 
-  Thus, you can test a flow going from static to LiveView pages and back without
-  having to worry about the underlying implementation.
+    Thus, you can test a flow going from static to LiveView pages and back without
+    having to worry about the underlying implementation.
 
-  It could look something like this:
+    It could look something like this:
 
-  ```elixir
-  conn
-  |> visit("/")
-  |> click_link("Users")
-  |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
-  |> click_button("Create")
-  |> assert_has(".user", "Aragorn")
-  ```
+    ```elixir
+    session
+    |> visit("/")
+    |> click_link("Users")
+    |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
+    |> click_button("Create")
+    |> assert_has(".user", "Aragorn")
+    ```
   """
 
   alias PhoenixTest.Driver
