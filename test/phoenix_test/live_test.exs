@@ -2,8 +2,8 @@ defmodule PhoenixTest.LiveTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.Driver
-  import PhoenixTest.Assertions
+
+  alias PhoenixTest.Driver
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -61,12 +61,12 @@ defmodule PhoenixTest.LiveTest do
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = conn |> visit("/live/index")
 
-      starting_html = render_html(session)
+      starting_html = Driver.render_html(session)
 
       ending_html =
         session
         |> fill_form("#no-phx-change-form", name: "Aragorn")
-        |> render_html()
+        |> Driver.render_html()
 
       assert starting_html == ending_html
     end

@@ -2,7 +2,6 @@ defmodule PhoenixTest.AssertionsTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.Assertions
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}

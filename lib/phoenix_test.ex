@@ -3,13 +3,8 @@ defmodule PhoenixTest do
   Documentation for `PhoenixTest`.
   """
 
-  defmacro __using__(_opts) do
-    quote do
-      import PhoenixTest
-      import PhoenixTest.Driver
-      import PhoenixTest.Assertions
-    end
-  end
+  alias PhoenixTest.Driver
+  alias PhoenixTest.Assertions
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
@@ -23,4 +18,11 @@ defmodule PhoenixTest do
         PhoenixTest.Static.build(conn)
     end
   end
+
+  defdelegate click_link(session, text), to: Driver
+  defdelegate click_button(session, text), to: Driver
+  defdelegate fill_form(session, selector, data), to: Driver
+  defdelegate submit_form(session, selector, data), to: Driver
+  defdelegate assert_has(session, selector, text), to: Assertions
+  defdelegate refute_has(session, selector, text), to: Assertions
 end
