@@ -1,14 +1,21 @@
 defmodule PhoenixTest.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/germsvel/phoenix_test"
+
   def project do
     [
       app: :phoenix_test,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      package: package(),
+      name: "PhoenixTest",
+      source_url: @source_url,
+      docs: docs()
     ]
   end
 
@@ -32,4 +39,18 @@ defmodule PhoenixTest.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"Github" => @source_url}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["README.md": [title: "Introduction"]]
+    ]
+  end
 end
