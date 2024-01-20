@@ -1,5 +1,5 @@
 defmodule PhoenixTest.Live do
-  @doc false
+  @moduledoc false
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest

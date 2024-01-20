@@ -1,4 +1,6 @@
 defmodule PhoenixTest.Html.Form do
+  @moduledoc false
+
   def parse({"form", attrs, fields}) do
     %{}
     |> put_attributes(attrs)

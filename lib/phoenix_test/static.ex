@@ -1,5 +1,5 @@
 defmodule PhoenixTest.Static do
-  @doc false
+  @moduledoc false
   defstruct conn: nil, private: %{}
 
   def build(conn) do

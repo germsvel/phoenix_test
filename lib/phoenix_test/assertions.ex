@@ -1,4 +1,6 @@
 defmodule PhoenixTest.Assertions do
+  @moduledoc false
+
   import ExUnit.Assertions
 
   alias PhoenixTest.Html
