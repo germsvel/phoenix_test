@@ -8,8 +8,10 @@ defmodule PhoenixTest do
   Note that PhoenixTest does not handle JavaScript. If your looking for
   something that supports JavaScript, take a look at [Wallaby](https://hexdocs.pm/wallaby/readme.html).
 
+  Thus, you can test a flow going from static to LiveView pages and back without
+  having to worry about the underlying implementation.
 
-  ## Example usage
+  It could look something like this:
 
   ```elixir
   session
