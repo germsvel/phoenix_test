@@ -26,7 +26,7 @@ session
 |> assert_has(".user", "Aragorn")
 ```
 
-## Why PhoenixTest?
+### Why PhoenixTest?
 
 Lately, if I'm going to have a page that uses some JavaScript, I use LiveView.
 If the page is going to be completely static, I use regular controllers +
@@ -45,11 +45,9 @@ That's where `PhoenixTest` comes in.
 
 It's the one way to test your Phoenix apps regardless of live or static views.
 
-## Prerequisites
-
-PhoenixTest requires Phoenix `1.7.10` and LiveView `0.20.1`.
-
 ## Installation
+
+_PhoenixTest requires Phoenix `1.7.10` and LiveView `0.20.1`._
 
 Add `phoenix_test` to your list of dependencies in `mix.exs`:
 
@@ -101,5 +99,26 @@ defmodule MyAppWeb.FeatureCase do
 
       import PhoenixTest # <- here's PhoenixTest
     end
+  end
+end
+```
+
+## Usage
+
+Now, you can create your tests like this:
+
+```elixir
+# test/my_app_web/features/admin_can_create_user_test.exs
+
+defmodule MyAppWeb.AdminCanCreateUserTest do
+  use MyAppWeb.FeatureCase, async: true
+
+  test "admin can create user", %{conn: conn} do
+    conn
+    |> visit("/")
+    |> click_link("Users")
+    |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
+    |> click_button("Create")
+    |> assert_has(".user", "Aragorn")
   end
 ```

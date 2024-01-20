@@ -14,7 +14,7 @@ defmodule PhoenixTest do
   It could look something like this:
 
   ```elixir
-  session
+  conn
   |> visit("/")
   |> click_link("Users")
   |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
