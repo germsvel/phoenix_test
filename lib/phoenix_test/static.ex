@@ -1,4 +1,5 @@
 defmodule PhoenixTest.Static do
+  @doc false
   defstruct conn: nil, private: %{}
 
   def build(conn) do
@@ -37,13 +38,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     PhoenixTest.visit(session.conn, path)
   end
 
-  @doc """
-  Submits parent form. Could be preceded by `fill_form` or used alone if form
-  has a single button (e.g. "Delete")
-  """
   def click_button(session, text) do
     if has_active_form?(session) do
-      # what happens if someone is cancelling the form? (e.g. in a modal?)
       session
       |> validate_submit_buttons(text)
       |> submit_active_form()

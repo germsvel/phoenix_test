@@ -1,4 +1,5 @@
 defmodule PhoenixTest.Html do
+  @doc false
   def parse(html) do
     html
     |> Floki.parse_document!()
