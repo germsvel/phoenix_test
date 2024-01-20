@@ -6,7 +6,7 @@ defmodule PhoenixTest do
   It also handles navigation between LiveView and static pages seamlessly.
 
   Note that PhoenixTest does not handle JavaScript. If your looking for
-  something that supports JavaScript, take a look at [Wallaby].
+  something that supports JavaScript, take a look at [Wallaby](https://hexdocs.pm/wallaby/readme.html).
 
 
   ## Example usage
