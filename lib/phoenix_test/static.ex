@@ -68,6 +68,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
     action = form["action"]
     method = form["method"] || "get"
+
     data = form["data"]
 
     conn = dispatch(session.conn, @endpoint, method, action, data)
@@ -105,7 +106,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> Html.Form.parse()
       |> Map.put("data", form_data)
 
-    verify_expected_form_data(form, form_data)
+    :ok = verify_expected_form_data(form, form_data)
 
     session
     |> PhoenixTest.Static.put_private(:active_form, form)
@@ -118,19 +119,30 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     existing_inputs = form["inputs"]
 
     form_data
-    |> Enum.each(fn {key, _value} ->
-      string_key = to_string(key)
+    |> Enum.each(fn
+      {key, value} when is_binary(value) ->
+        verify_input_presence(to_string(key), existing_inputs)
 
-      if !Enum.any?(existing_inputs, fn input ->
-           input["name"] == string_key
-         end) do
-        raise """
-          Expected form to have #{inspect(string_key)} input, but found none.
-
-          Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
-        """
-      end
+      {key, values} when is_map(values) ->
+        Enum.map(values, fn {nested_key, _nested_value} ->
+          combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"
+          verify_input_presence(combined_key, existing_inputs)
+        end)
     end)
+  end
+
+  defp verify_input_presence(expected_input, existing_inputs) do
+    key = expected_input
+
+    if !Enum.any?(existing_inputs, fn input ->
+         input["name"] == key
+       end) do
+      raise """
+        Expected form to have #{inspect(key)} input, but found none.
+
+        Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
+      """
+    end
   end
 
   def render_html(%{conn: conn}) do

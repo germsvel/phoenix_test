@@ -42,6 +42,11 @@ defmodule PhoenixTest.PageView do
       <label for="name">Name</label>
       <input name="name" />
     </form>
+
+    <form id="nested-form" method="post" action="/page/create_record">
+      <label for="user[name]">Name</label>
+      <input name="user[name]" />
+    </form>
     """
   end
 
@@ -69,7 +74,7 @@ defmodule PhoenixTest.PageView do
 
     <div id="form-data">
       <%= for {key, value} <- @params do %>
-        <%= key %>: <%= value %>
+        <%= render_input_data(key, value) %>
       <% end %>
     </div>
     """
@@ -85,5 +90,15 @@ defmodule PhoenixTest.PageView do
     ~H"""
     <h1>Record deleted</h1>
     """
+  end
+
+  defp render_input_data(key, value) when is_binary(value) do
+    "#{key}: #{value}"
+  end
+
+  defp render_input_data(key, values) do
+    Enum.map_join(values, "\n", fn {nested_key, value} ->
+      render_input_data("#{key}:#{nested_key}", value)
+    end)
   end
 end

@@ -62,6 +62,14 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save")
       |> assert_has("#form-data", "email: sample@example.com")
     end
+
+    test "can submit nested forms", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_form("#nested-form", user: %{name: "Aragorn"})
+      |> click_button("Save")
+      |> assert_has("#form-data", "user:name: Aragorn")
+    end
   end
 
   describe "submit_form/3" do
