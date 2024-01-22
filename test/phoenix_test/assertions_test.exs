@@ -49,9 +49,11 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
 
-      assert_raise RuntimeError, ~r/Could not find element with selector "#nonexistent-id"/, fn ->
-        conn |> assert_has("#nonexistent-id", "Main page")
-      end
+      assert_raise ArgumentError,
+                   ~r/Could not find element with selector "#nonexistent-id"/,
+                   fn ->
+                     conn |> assert_has("#nonexistent-id", "Main page")
+                   end
     end
   end
 

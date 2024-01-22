@@ -26,7 +26,7 @@ defmodule PhoenixTest.IndexLive do
 
     <form id="email-form" phx-change="validate-email" phx-submit="save-email">
       <input name="email" />
-      <button type="submit">Save</button>
+      <button type="submit">Save email</button>
     </form>
 
     <div :if={@form_saved} id="form-data">
@@ -35,9 +35,9 @@ defmodule PhoenixTest.IndexLive do
       <% end %>
     </div>
 
-    <form id="no-phx-change-form" phx-submit="save-email">
+    <form id="no-phx-change-form" phx-submit="save-name">
       <input name="name" />
-      <button type="submit">Save</button>
+      <button type="submit">Save name</button>
     </form>
     """
   end

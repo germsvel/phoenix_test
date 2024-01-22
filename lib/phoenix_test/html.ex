@@ -30,7 +30,7 @@ defmodule PhoenixTest.Html do
           Elements with given selector found: #{inspect(Enum.map(elements, &Floki.text/1) |> Enum.join(", "))}
         """
 
-        raise msg
+        raise ArgumentError, msg
 
       element ->
         element
@@ -39,9 +39,14 @@ defmodule PhoenixTest.Html do
 
   def find(html, selector) do
     case Floki.find(html, selector) do
-      [] -> raise "Could not find element with selector #{inspect(selector)}"
-      [element] -> element
-      [_, _ | _rest] -> raise "Found more than one element with selector #{inspect(selector)}"
+      [] ->
+        raise ArgumentError, "Could not find element with selector #{inspect(selector)}"
+
+      [element] ->
+        element
+
+      [_, _ | _rest] ->
+        raise ArgumentError, "Found more than one element with selector #{inspect(selector)}"
     end
   end
 
@@ -59,7 +64,7 @@ defmodule PhoenixTest.Html do
     end)
     |> case do
       nil ->
-        raise """
+        raise ArgumentError, """
           expected to find one of these elements but found none
 
         #{Enum.map_join(elements, " or \n", &inspect(&1))}
