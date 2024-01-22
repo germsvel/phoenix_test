@@ -13,6 +13,13 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> assert_has("h1", "Main page")
     end
+
+    test "raises error if route doesn't exist", %{conn: conn} do
+      assert_raise Phoenix.Router.NoRouteError, fn ->
+        conn
+        |> visit("/non_route")
+      end
+    end
   end
 
   describe "click_link/2" do
@@ -28,6 +35,22 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_link("Multiple links")
       |> assert_has("h1", "Page 3")
+    end
+
+    test "raises an error when link element can't be found with given text", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/index")
+        |> click_link("No link")
+      end
+    end
+
+    test "raises an error when there are no links on the page", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/page_2")
+        |> click_link("No link")
+      end
     end
   end
 
@@ -52,6 +75,22 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Delete record")
       |> assert_has("h1", "Record deleted")
     end
+
+    test "raises an error when there are no buttons on page", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/page_2")
+        |> click_button("Show tab")
+      end
+    end
+
+    test "raises an error if can't find button", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/index")
+        |> click_button("No button")
+      end
+    end
   end
 
   describe "fill_form/3" do
@@ -71,14 +110,22 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", "user:name: Aragorn")
     end
 
+    test "raises an error when form cannot be found with given selector", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/index")
+        |> fill_form("#no-existing-form", name: "Aragorn")
+      end
+    end
+
     test "raises an error when form input cannot be found", %{conn: conn} do
       message = """
-      Expected form to have location[user][name] input, but found none.
+      Expected form to have "location[user][name]" input, but found none.
 
       Found inputs: user[name]
       """
 
-      assert_raise RuntimeError, message, fn ->
+      assert_raise ArgumentError, message, fn ->
         conn
         |> visit("/page/index")
         |> fill_form("#nested-form", location: %{user: %{name: "Aragorn"}})
@@ -92,6 +139,22 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> submit_form("#no-submit-button-form", name: "Aragorn")
       |> assert_has("#form-data", "name: Aragorn")
+    end
+
+    test "raises an error if the form can't be found", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/index")
+        |> submit_form("#no-existing-form", email: "some@example.com")
+      end
+    end
+
+    test "raises an error if a field can't be found", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Expected form to have "member_of_fellowship" input/, fn ->
+        conn
+        |> visit("/page/index")
+        |> submit_form("#email-form", member_of_fellowship: false)
+      end
     end
   end
 end

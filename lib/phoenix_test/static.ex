@@ -122,14 +122,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defp validate_expected_inputs(existing_inputs, form_data) do
     form_data
     |> Enum.each(fn
-      {key, value} when is_binary(value) ->
-        verify_input_presence(existing_inputs, to_string(key))
-
       {key, values} when is_map(values) ->
         Enum.each(values, fn {nested_key, nested_value} ->
           combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"
           validate_expected_inputs(existing_inputs, %{combined_key => nested_value})
         end)
+
+      {key, _value} ->
+        verify_input_presence(existing_inputs, to_string(key))
     end)
   end
 
@@ -137,8 +137,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     if Enum.all?(existing_inputs, fn input ->
          input["name"] != expected_input
        end) do
-      raise """
-      Expected form to have #{expected_input} input, but found none.
+      raise ArgumentError, """
+      Expected form to have #{inspect(expected_input)} input, but found none.
 
       Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
       """
