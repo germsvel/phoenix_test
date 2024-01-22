@@ -70,6 +70,20 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save")
       |> assert_has("#form-data", "user:name: Aragorn")
     end
+
+    test "raises an error when form input cannot be found", %{conn: conn} do
+      message = """
+      Expected form to have location[user][name] input, but found none.
+
+      Found inputs: user[name]
+      """
+
+      assert_raise RuntimeError, message, fn ->
+        conn
+        |> visit("/page/index")
+        |> fill_form("#nested-form", location: %{user: %{name: "Aragorn"}})
+      end
+    end
   end
 
   describe "submit_form/3" do

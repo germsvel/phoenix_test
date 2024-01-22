@@ -116,31 +116,31 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     action = form["action"]
     unless action, do: raise("expected form to have an action but found none")
 
-    existing_inputs = form["inputs"]
+    validate_expected_inputs(form["inputs"], form_data)
+  end
 
+  defp validate_expected_inputs(existing_inputs, form_data) do
     form_data
     |> Enum.each(fn
       {key, value} when is_binary(value) ->
-        verify_input_presence(to_string(key), existing_inputs)
+        verify_input_presence(existing_inputs, to_string(key))
 
       {key, values} when is_map(values) ->
-        Enum.map(values, fn {nested_key, _nested_value} ->
+        Enum.each(values, fn {nested_key, nested_value} ->
           combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"
-          verify_input_presence(combined_key, existing_inputs)
+          validate_expected_inputs(existing_inputs, %{combined_key => nested_value})
         end)
     end)
   end
 
-  defp verify_input_presence(expected_input, existing_inputs) do
-    key = expected_input
-
-    if !Enum.any?(existing_inputs, fn input ->
-         input["name"] == key
+  defp verify_input_presence(existing_inputs, expected_input) do
+    if Enum.all?(existing_inputs, fn input ->
+         input["name"] != expected_input
        end) do
       raise """
-        Expected form to have #{inspect(key)} input, but found none.
+      Expected form to have #{expected_input} input, but found none.
 
-        Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
+      Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
       """
     end
   end
