@@ -7,23 +7,25 @@ defmodule PhoenixTest do
     don't have to worry about what type of page you're visiting. Just write the
     tests from the user's perspective.
 
-    Note that PhoenixTest does not handle JavaScript. If you're looking for
-    something that supports JavaScript, take a look at
-    [Wallaby](https://hexdocs.pm/wallaby/readme.html).
-
     Thus, you can test a flow going from static to LiveView pages and back without
     having to worry about the underlying implementation.
 
-    It could look something like this:
+    This is a sample flow:
 
     ```elixir
-    session
-    |> visit("/")
-    |> click_link("Users")
-    |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
-    |> click_button("Create")
-    |> assert_has(".user", "Aragorn")
+    test "admin can create a user", %{conn: conn} do
+      conn
+      |> visit("/")
+      |> click_link("Users")
+      |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
+      |> click_button("Create")
+      |> assert_has(".user", "Aragorn")
+    end
     ```
+
+    Note that PhoenixTest does _not_ handle JavaScript. If you're looking for
+    something that supports JavaScript, take a look at
+    [Wallaby](https://hexdocs.pm/wallaby/readme.html).
   """
 
   alias PhoenixTest.Driver

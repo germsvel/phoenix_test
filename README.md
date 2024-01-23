@@ -11,23 +11,25 @@ It also handles navigation between LiveView and static pages seamlessly. So, you
 don't have to worry about what type of page you're visiting. Just write the
 tests from the user's perspective.
 
-Note that PhoenixTest does not handle JavaScript. If you're looking for
-something that supports JavaScript, take a look at
-[Wallaby](https://hexdocs.pm/wallaby/readme.html).
-
 Thus, you can test a flow going from static to LiveView pages and back without
 having to worry about the underlying implementation.
 
-It could look something like this:
+This is a sample flow:
 
 ```elixir
-session
-|> visit("/")
-|> click_link("Users")
-|> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
-|> click_button("Create")
-|> assert_has(".user", "Aragorn")
+test "admin can create a user", %{conn: conn} do
+  conn
+  |> visit("/")
+  |> click_link("Users")
+  |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
+  |> click_button("Create")
+  |> assert_has(".user", "Aragorn")
+end
 ```
+
+Note that PhoenixTest does not handle JavaScript. If you're looking for
+something that supports JavaScript, take a look at
+[Wallaby](https://hexdocs.pm/wallaby/readme.html).
 
 ### Why PhoenixTest?
 
@@ -48,11 +50,12 @@ That's where `PhoenixTest` comes in.
 
 It's the one way to test your Phoenix apps regardless of live or static views.
 
-## Installation
+## Setup
 
-> #### Requirements {: .neutral }
->
-> PhoenixTest requires Phoenix `1.7.10` and LiveView `0.20.1`.
+PhoenixTest requires Phoenix `1.7+` and LiveView `0.20+`. It may work with
+earlier versions, but I have not tested that.
+
+### Installation
 
 Add `phoenix_test` to your list of dependencies in `mix.exs`:
 
@@ -64,7 +67,7 @@ def deps do
 end
 ```
 
-## Configuration
+### Configuration
 
 In `config/test.exs` specify the endpoint to be used for routing requests:
 
@@ -72,15 +75,15 @@ In `config/test.exs` specify the endpoint to be used for routing requests:
 config :phoenix_test, :endpoint, MyApp.Endpoint
 ```
 
-## Setup
+### Adding a `FeatureCase`
 
-All helpers can be included via `import PhoenixTest`.
+`PhoenixTest` helpers can be included via `import PhoenixTest`.
 
-But since each test needs a `conn` struct, you'll likely want to set up a few
-things before that.
+But since each test needs a `conn` struct to get started, you'll likely want to
+set up a few things before that.
 
 To make that easier, it's helpful to create a `FeatureCase` module that can be
-used from your tests:
+used from your tests (replace `MyApp` with your app's name):
 
 ```elixir
 defmodule MyAppWeb.FeatureCase do
@@ -117,6 +120,18 @@ defmodule MyAppWeb.FeatureCase do
 end
 ```
 
+Note that we assume your Phoenix project has a
+`MyApp.DataCase.setup_sandbox(tags)` function. If it doesn't, and you want to
+use Ecto's Sandbox (highly recommended if you're testing with Ecto), update your
+`setup` to this:
+
+```elixir
+setup tags do
+  pid = Ecto.Adapters.SQL.Sandbox.start_owner!(MyApp.Repo, shared: not tags[:async])
+  on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+end
+```
+
 ## Usage
 
 Now, you can create your tests like this:
@@ -131,7 +146,7 @@ defmodule MyAppWeb.AdminCanCreateUserTest do
     conn
     |> visit("/")
     |> click_link("Users")
-    |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
+    |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedain.com")
     |> click_button("Create")
     |> assert_has(".user", "Aragorn")
   end
