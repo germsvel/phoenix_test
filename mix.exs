@@ -3,11 +3,16 @@ defmodule PhoenixTest.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/germsvel/phoenix_test"
+  @description """
+  Write beautiful, fast, and easy-to-read feature tests for your Phoenix apps --
+  regardless if pages are live views or static views.
+  """
 
   def project do
     [
       app: :phoenix_test,
       version: @version,
+      description: @description,
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
