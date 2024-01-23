@@ -37,6 +37,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Page 3")
     end
 
+    test "handles navigation to a LiveView", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("To LiveView!")
+      |> assert_has("h1", "LiveView main page")
+    end
+
     test "raises an error when link element can't be found with given text", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
         conn

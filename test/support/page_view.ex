@@ -10,6 +10,8 @@ defmodule PhoenixTest.PageView do
     <a class="multiple_links" href="/page/page_3">Multiple links</a>
     <a class="multiple_links" href="/page/page_4">Multiple links</a>
 
+    <a href="/live/index">To LiveView!</a>
+
     <ul id="multiple-items">
       <li>Aragorn</li>
       <li>Legolas</li>

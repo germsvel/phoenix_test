@@ -27,7 +27,9 @@ defmodule PhoenixTest.Html do
         msg = """
           Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
 
-          Elements with given selector found: #{inspect(Enum.map(elements, &Floki.text/1) |> Enum.join(", "))}
+          The following elements with given selector were found:
+
+          - #{Enum.map(elements, &Floki.text/1) |> Enum.join("\n  - ")}
         """
 
         raise ArgumentError, msg
