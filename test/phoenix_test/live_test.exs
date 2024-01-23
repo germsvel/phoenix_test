@@ -119,6 +119,22 @@ defmodule PhoenixTest.LiveTest do
       assert starting_html == ending_html
     end
 
+    test "can handle forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#full-form",
+        name: "Aragorn",
+        admin: "on",
+        race: "human",
+        notes: "King of Gondor"
+      )
+      |> click_button("Save")
+      |> assert_has("#form-data", "name: Aragorn")
+      |> assert_has("#form-data", "admin: on")
+      |> assert_has("#form-data", "race: human")
+      |> assert_has("#form-data", "notes: King of Gondor")
+    end
+
     test "triggers a phx-change event on a form (when it has one)", %{conn: conn} do
       conn
       |> visit("/live/index")

@@ -108,21 +108,21 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> form(selector, form_data)
       |> render_change()
     else
-      validate_inputs(session, selector, form_data)
+      validate_fields(session, selector, form_data)
     end
 
     session
     |> PhoenixTest.Live.put_private(:active_form, %{selector: selector, form_data: form_data})
   end
 
-  defp validate_inputs(session, selector, form_data) do
+  defp validate_fields(session, selector, form_data) do
     html =
       session
       |> render_html()
       |> Html.parse()
 
     Enum.each(form_data, fn {name, _value} ->
-      Html.find(html, "#{selector} input[name=#{name}]")
+      Html.find(html, "#{selector} [name=#{name}]")
     end)
   end
 

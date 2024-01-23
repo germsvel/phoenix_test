@@ -24,7 +24,7 @@ defmodule PhoenixTest.IndexLive do
       Errors present
     </div>
 
-    <form id="email-form" phx-change="validate-email" phx-submit="save-email">
+    <form id="email-form" phx-change="validate-email" phx-submit="save-form">
       <input name="email" />
       <button type="submit">Save email</button>
     </form>
@@ -38,6 +38,26 @@ defmodule PhoenixTest.IndexLive do
     <form id="no-phx-change-form" phx-submit="save-name">
       <input name="name" />
       <button type="submit">Save name</button>
+    </form>
+
+    <form id="full-form" phx-submit="save-form">
+      <label for="name">Name</label>
+      <input name="name" />
+
+      <label for="admin">Admin</label>
+      <input type="checkbox" name="admin" value="on" />
+
+      <label for="race">Race</label>
+      <select name="race">
+        <option value="human">Human</option>
+        <option value="elf">Elf</option>
+        <option value="dwarf">Dwarf</option>
+        <option value="orc">Orc</option>
+      </select>
+
+      <label for="notes">Notes</label>
+      <textarea name="notes" rows="5" cols="33">
+      </textarea>
     </form>
     """
   end
@@ -66,7 +86,7 @@ defmodule PhoenixTest.IndexLive do
     {:noreply, assign(socket, :show_tab, true)}
   end
 
-  def handle_event("save-email", form_data, socket) do
+  def handle_event("save-form", form_data, socket) do
     {
       :noreply,
       socket
