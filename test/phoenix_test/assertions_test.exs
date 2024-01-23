@@ -85,11 +85,9 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
 
-      assert_raise RuntimeError,
-                   ~s(Found element with selector "#title" and text "Main page" when should not be present),
-                   fn ->
-                     conn |> refute_has("#title", "Main page")
-                   end
+      assert_raise RuntimeError, ~r/Expected not to find an element/, fn ->
+        conn |> refute_has("#title", "Main page")
+      end
     end
 
     test "raises an error if multiple elements are found", %{conn: conn} do
@@ -97,11 +95,9 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
 
-      assert_raise RuntimeError,
-                   ~s(Found element with selector ".multiple_links" and text "Multiple links" when should not be present),
-                   fn ->
-                     conn |> refute_has(".multiple_links", "Multiple links")
-                   end
+      assert_raise RuntimeError, ~r/Expected not to find an element/, fn ->
+        conn |> refute_has(".multiple_links", "Multiple links")
+      end
     end
   end
 end

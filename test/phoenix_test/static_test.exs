@@ -110,6 +110,22 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", "user:name: Aragorn")
     end
 
+    test "can submit forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_form("#full-form",
+        name: "Aragorn",
+        admin: "on",
+        race: "human",
+        notes: "King of Gondor"
+      )
+      |> click_button("Save")
+      |> assert_has("#form-data", "name: Aragorn")
+      |> assert_has("#form-data", "admin: on")
+      |> assert_has("#form-data", "race: human")
+      |> assert_has("#form-data", "notes: King of Gondor")
+    end
+
     test "raises an error when form cannot be found with given selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
         conn
@@ -120,9 +136,11 @@ defmodule PhoenixTest.StaticTest do
 
     test "raises an error when form input cannot be found", %{conn: conn} do
       message = """
-      Expected form to have "location[user][name]" input, but found none.
+      Expected form to have "location[user][name]" field, but found none.
 
-      Found inputs: user[name]
+      Found the following fields:
+
+       - user[name]
       """
 
       assert_raise ArgumentError, message, fn ->
@@ -150,7 +168,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error if a field can't be found", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Expected form to have "member_of_fellowship" input/, fn ->
+      assert_raise ArgumentError, ~r/Expected form to have "member_of_fellowship" field/, fn ->
         conn
         |> visit("/page/index")
         |> submit_form("#email-form", member_of_fellowship: false)

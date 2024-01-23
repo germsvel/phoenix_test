@@ -13,10 +13,14 @@ defmodule PhoenixTest.Assertions do
       |> Html.find(css, text)
       |> Html.text_content()
 
-    if found == text do
+    if found =~ text do
       assert true
     else
-      raise "Expected to find #{inspect(text)} but found #{inspect(found)} instead"
+      raise """
+      Expected to find #{inspect(text)} somewhere in here:
+
+      #{found}
+      """
     end
 
     session
@@ -33,7 +37,11 @@ defmodule PhoenixTest.Assertions do
 
       elements ->
         if Enum.any?(elements, &element_with_text?(&1, text)) do
-          raise "Found element with selector #{inspect(css)} and text #{inspect(text)} when should not be present"
+          raise """
+          Expected not to find an element.
+
+          But found an element with selector #{inspect(css)} and text #{inspect(text)}.
+          """
         else
           refute false
         end

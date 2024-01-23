@@ -47,6 +47,26 @@ defmodule PhoenixTest.PageView do
       <label for="user[name]">Name</label>
       <input name="user[name]" />
     </form>
+
+    <form id="full-form" method="post" action="/page/create_record">
+      <label for="name">Name</label>
+      <input name="name" />
+
+      <label for="admin">Admin</label>
+      <input type="checkbox" name="admin" />
+
+      <label for="race">Race</label>
+      <select name="race">
+        <option value="human">Human</option>
+        <option value="elf">Elf</option>
+        <option value="dwarf">Dwarf</option>
+        <option value="orc">Orc</option>
+      </select>
+
+      <label for="notes">Notes</label>
+      <textarea name="notes" rows="5" cols="33">
+      </textarea>
+    </form>
     """
   end
 
@@ -90,6 +110,10 @@ defmodule PhoenixTest.PageView do
     ~H"""
     <h1>Record deleted</h1>
     """
+  end
+
+  defp render_input_data(key, value) when is_boolean(value) do
+    "#{key}: #{to_string(value)}"
   end
 
   defp render_input_data(key, value) when is_binary(value) do

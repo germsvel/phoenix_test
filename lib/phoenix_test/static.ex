@@ -116,31 +116,33 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     action = form["action"]
     unless action, do: raise("expected form to have an action but found none")
 
-    validate_expected_inputs(form["inputs"], form_data)
+    validate_expected_fields(form["fields"], form_data)
   end
 
-  defp validate_expected_inputs(existing_inputs, form_data) do
+  defp validate_expected_fields(existing_fields, form_data) do
     form_data
     |> Enum.each(fn
       {key, values} when is_map(values) ->
         Enum.each(values, fn {nested_key, nested_value} ->
           combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"
-          validate_expected_inputs(existing_inputs, %{combined_key => nested_value})
+          validate_expected_fields(existing_fields, %{combined_key => nested_value})
         end)
 
       {key, _value} ->
-        verify_input_presence(existing_inputs, to_string(key))
+        verify_field_presence(existing_fields, to_string(key))
     end)
   end
 
-  defp verify_input_presence(existing_inputs, expected_input) do
-    if Enum.all?(existing_inputs, fn input ->
-         input["name"] != expected_input
+  defp verify_field_presence(existing_fields, expected_field) do
+    if Enum.all?(existing_fields, fn field ->
+         field["name"] != expected_field
        end) do
       raise ArgumentError, """
-      Expected form to have #{inspect(expected_input)} input, but found none.
+      Expected form to have #{inspect(expected_field)} field, but found none.
 
-      Found inputs: #{Enum.map_join(existing_inputs, ", ", & &1["name"])}
+      Found the following fields:
+
+       - #{Enum.map_join(existing_fields, "\n - ", & &1["name"])}
       """
     end
   end
