@@ -151,3 +151,14 @@ defmodule MyAppWeb.AdminCanCreateUserTest do
     |> assert_has(".user", "Aragorn")
   end
 ```
+
+## Sponsors
+
+Made possible thanks to:
+
+<a href="https://www.elixirstreams.com">
+  <figure>
+    <img height="100" width="100" src="https://www.elixirstreams.com/assets/images/elixir-streams-logo-transparent.png">
+    <figcaption>Elixir Streams</figcaption>
+  </figure>
+</a>
