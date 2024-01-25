@@ -24,13 +24,20 @@ defmodule PhoenixTest.Html do
     end)
     |> case do
       :not_found ->
-        msg = """
-          Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
+        msg =
+          if Enum.any?(elements) do
+            """
+              Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
 
-          The following elements with given selector were found:
+              The following elements with given selector were found:
 
-          - #{Enum.map(elements, &Floki.text/1) |> Enum.join("\n  - ")}
-        """
+              - #{Enum.map(elements, &Floki.text/1) |> Enum.join("\n  - ")}
+            """
+          else
+            """
+              Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
+            """
+          end
 
         raise ArgumentError, msg
 
