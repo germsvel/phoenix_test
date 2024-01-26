@@ -1,7 +1,7 @@
 defmodule PhoenixTest do
   @moduledoc """
-    PhoenixTest is a testing library that allows you to run your feature tests the
-    same way regardless of whether your page is a LiveView or a static view.
+    PhoenixTest provides a unified way of writing feature tests -- regardless of
+    whether you're testing LiveView pages or static pages.
 
     It also handles navigation between LiveView and static pages seamlessly. So, you
     don't have to worry about what type of page you're visiting. Just write the

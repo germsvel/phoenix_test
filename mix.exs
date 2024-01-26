@@ -4,8 +4,9 @@ defmodule PhoenixTest.MixProject do
   @version "0.1.0"
   @source_url "https://github.com/germsvel/phoenix_test"
   @description """
-  Write beautiful, fast, and easy-to-read feature tests for your Phoenix apps --
-  regardless if pages are live views or static views.
+  Write pipeable, fast, and easy-to-read feature tests for your Phoenix apps in
+  a unified way -- regardless of whether you're testing LiveView pages or static
+  pages.
   """
 
   def project do
