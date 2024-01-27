@@ -1,7 +1,7 @@
 defmodule PhoenixTest.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
   @source_url "https://github.com/germsvel/phoenix_test"
   @description """
   Write pipeable, fast, and easy-to-read feature tests for your Phoenix apps in
@@ -56,7 +56,7 @@ defmodule PhoenixTest.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md": [title: "Introduction"]]
+      extras: ["README.md": [title: "Introduction"], "CHANGELOG.md": [title: "Changelog"]]
     ]
   end
 end
