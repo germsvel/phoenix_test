@@ -28,23 +28,33 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Html
 
   def click_link(session, text) do
+    click_link(session, "a", text)
+  end
+
+  def click_link(session, selector, text) do
     path =
       session
       |> render_html()
       |> Html.parse()
-      |> Html.find("a", text)
+      |> Html.find(selector, text)
       |> Html.attribute("href")
 
     PhoenixTest.visit(session.conn, path)
   end
 
   def click_button(session, text) do
+    click_button(session, "button", text)
+  end
+
+  def click_button(session, selector, text) do
     if has_active_form?(session) do
       session
-      |> validate_submit_buttons(text)
+      |> validate_submit_buttons(selector, text)
       |> submit_active_form()
     else
-      single_button_form_submit(session, text)
+      session
+      |> validate_submit_buttons(selector, text)
+      |> single_button_form_submit(text)
     end
   end
 
@@ -55,11 +65,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  defp validate_submit_buttons(session, text) do
+  defp validate_submit_buttons(session, selector, text) do
     session
     |> render_html()
     |> Html.parse()
-    |> Html.find_one_of(["input[type=submit][value=#{text}]", {"button", text}])
+    |> Html.find_one_of(["input[type=submit][value=#{text}]", {selector, text}])
 
     session
   end

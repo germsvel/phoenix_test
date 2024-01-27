@@ -66,6 +66,7 @@ defmodule PhoenixTest do
   - With live patch: it'll patch the current LiveView
   """
   defdelegate click_link(session, text), to: Driver
+  defdelegate click_link(session, selector, text), to: Driver
 
   @doc """
   Perfoms action defined by button.
@@ -96,6 +97,7 @@ defmodule PhoenixTest do
   ```
   """
   defdelegate click_button(session, text), to: Driver
+  defdelegate click_button(session, selector, text), to: Driver
 
   @doc """
   Fills form data, validating that input fields are present.

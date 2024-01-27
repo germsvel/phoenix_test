@@ -74,9 +74,11 @@ defmodule PhoenixTest.Html do
     |> case do
       nil ->
         raise ArgumentError, """
-          expected to find one of these elements but found none
+        Could not find an element with given selector.
 
-        #{Enum.map_join(elements, " or \n", &inspect(&1))}
+        I was looking for an element with one of these selectors:
+
+        #{Enum.map_join(elements, "\n", &inspect(&1))}
         """
 
       found_element ->

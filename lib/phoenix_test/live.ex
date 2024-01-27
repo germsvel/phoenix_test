@@ -35,9 +35,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Html
 
   def click_link(session, text) do
+    click_link(session, "a", text)
+  end
+
+  def click_link(session, selector, text) do
     result =
       session.view
-      |> element("a", text)
+      |> element(selector, text)
       |> render_click()
       |> maybe_redirect(session)
 
@@ -51,12 +55,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def click_button(session, text) do
+    click_button(session, "button", text)
+  end
+
+  def click_button(session, selector, text) do
     if has_active_form?(session) do
       session
-      |> validate_submit_buttons(text)
+      |> validate_submit_buttons(selector, text)
       |> submit_active_form()
     else
-      regular_click(session, text)
+      regular_click(session, selector, text)
     end
   end
 
@@ -67,11 +75,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
-  defp validate_submit_buttons(session, text) do
+  defp validate_submit_buttons(session, selector, text) do
     session
     |> render_html()
     |> Html.parse()
-    |> Html.find_one_of(["input[type=submit][value=#{text}]", {"button", text}])
+    |> Html.find_one_of(["input[type=submit][value=#{text}]", {selector, text}])
 
     session
   end
@@ -86,10 +94,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     session
   end
 
-  defp regular_click(session, text) do
+  defp regular_click(session, selector, text) do
     result =
       session.view
-      |> element("button", text)
+      |> element(selector, text)
       |> render_click()
       |> maybe_redirect(session)
 

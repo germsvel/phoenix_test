@@ -30,6 +30,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Page 2")
     end
 
+    test "accepts selector for link", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("a", "Page 2")
+      |> assert_has("h1", "Page 2")
+    end
+
     test "follows first link when there are multiple links with same text", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -69,6 +76,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Record received")
     end
 
+    test "accepts selector for button", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("button", "Get record")
+      |> assert_has("h1", "Record received")
+    end
+
     test "handles a button clicks when button PUTs data", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -84,7 +98,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+      assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
         conn
         |> visit("/page/page_2")
         |> click_button("Show tab")
@@ -92,7 +106,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error if can't find button", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+      assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
         conn
         |> visit("/page/index")
         |> click_button("No button")

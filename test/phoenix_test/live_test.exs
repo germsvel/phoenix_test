@@ -32,6 +32,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", "LiveView page 2")
     end
 
+    test "accepts click_link with selector", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("a", "Navigate link")
+      |> assert_has("h1", "LiveView page 2")
+    end
+
     test "handles patches to current view", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -96,7 +103,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if active form but can't find button", %{conn: conn} do
-      assert_raise ArgumentError, ~r/expected to find one of these elements but found none/, fn ->
+      assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
         conn
         |> visit("/live/index")
         |> fill_form("#no-phx-change-form", name: "Legolas")
