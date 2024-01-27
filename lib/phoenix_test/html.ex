@@ -59,6 +59,12 @@ defmodule PhoenixTest.Html do
     end
   end
 
+  def find_submit_buttons(html, selector, text) do
+    html
+    |> parse()
+    |> find_one_of(["input[type=submit][value=#{text}]", {selector, text}])
+  end
+
   def find_one_of(html, elements) do
     elements
     |> Enum.map(fn
