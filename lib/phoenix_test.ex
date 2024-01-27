@@ -66,6 +66,13 @@ defmodule PhoenixTest do
   - With live patch: it'll patch the current LiveView
   """
   defdelegate click_link(session, text), to: Driver
+
+  @doc """
+  Clicks a link with given CSS selector and text and performs the action.
+  selector to target the link.
+
+  See `click_link/2` for more details.
+  """
   defdelegate click_link(session, selector, text), to: Driver
 
   @doc """
@@ -76,9 +83,8 @@ defmodule PhoenixTest do
   - If the button doesn't have a `phx-click` on it, it'll submit the parent form.
 
   This function can be preceded by `fill_form` to fill out a form and
-  subsequently submit the form.
-
-  Note that `fill_form/3` + `click_button/2` works for static and live pages.
+  subsequently submit the form. Note that `fill_form/3` + `click_button/2` works
+  for both static and live pages.
 
   If `click_button/2` is used alone (without a `phx-click`), it is assumed it is a
   form with a single button (e.g. "Delete").
@@ -97,6 +103,12 @@ defmodule PhoenixTest do
   ```
   """
   defdelegate click_button(session, text), to: Driver
+
+  @doc """
+  Performs action defined by button with CSS selector.
+
+  See `click_button/2` for more details.
+  """
   defdelegate click_button(session, selector, text), to: Driver
 
   @doc """
