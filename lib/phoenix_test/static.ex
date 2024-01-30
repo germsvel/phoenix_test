@@ -26,6 +26,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   import Phoenix.ConnTest
 
   alias PhoenixTest.Html
+  alias PhoenixTest.Query
 
   def click_link(session, text) do
     click_link(session, "a", text)
@@ -35,8 +36,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     path =
       session
       |> render_html()
-      |> Html.parse()
-      |> Html.find(selector, text)
+      |> Query.find!(selector, text)
       |> Html.attribute("href")
 
     PhoenixTest.visit(session.conn, path)
@@ -50,14 +50,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     if has_active_form?(session) do
       session
       |> render_html()
-      |> Html.find_submit_buttons(selector, text)
+      |> Query.find_submit_buttons(selector, text)
 
       session
       |> submit_active_form()
     else
       session
       |> render_html()
-      |> Html.find_submit_buttons(selector, text)
+      |> Query.find_submit_buttons(selector, text)
 
       session
       |> single_button_form_submit(text)
@@ -87,8 +87,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     form =
       session
       |> render_html()
-      |> Html.parse()
-      |> Html.find("form", text)
+      |> Query.find!("form", text)
 
     action = Html.attribute(form, "action")
     method = Html.attribute(form, "method") || "get"
@@ -108,8 +107,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     form =
       session
       |> render_html()
-      |> Html.parse()
-      |> Html.find(selector)
+      |> Query.find!(selector)
       |> Html.Form.parse()
       |> Map.put("data", form_data)
 

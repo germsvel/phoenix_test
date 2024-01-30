@@ -4,14 +4,14 @@ defmodule PhoenixTest.Assertions do
   import ExUnit.Assertions
 
   alias PhoenixTest.Html
+  alias PhoenixTest.Query
 
   def assert_has(session, css, text) do
     found =
       session
       |> PhoenixTest.Driver.render_html()
-      |> Html.parse()
-      |> Html.find(css, text)
-      |> Html.text_content()
+      |> Query.find!(css, text)
+      |> Html.text()
 
     if found =~ text do
       assert true
@@ -49,6 +49,6 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp element_with_text?(el, text) do
-    Html.text_content(el) == text
+    Html.text(el) == text
   end
 end

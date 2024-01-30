@@ -2,6 +2,7 @@ defmodule PhoenixTest.Html.FormTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Html
+  alias PhoenixTest.Query
 
   describe "parse/1" do
     test "parses text inputs" do
@@ -61,7 +62,6 @@ defmodule PhoenixTest.Html.FormTest do
 
   defp form_data(html_form) do
     html_form
-    |> Html.parse()
-    |> Html.find("form")
+    |> Query.find!("form")
   end
 end

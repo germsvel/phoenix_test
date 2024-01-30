@@ -1,6 +1,7 @@
 defmodule PhoenixTest.Live do
   @moduledoc false
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 
@@ -29,10 +30,12 @@ end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 
   alias PhoenixTest.Html
+  alias PhoenixTest.Query
 
   def click_link(session, text) do
     click_link(session, "a", text)
@@ -62,7 +65,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     if has_active_form?(session) do
       session
       |> render_html()
-      |> Html.find_submit_buttons(selector, text)
+      |> Query.find_submit_buttons(selector, text)
 
       session
       |> submit_active_form()
@@ -118,13 +121,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   defp validate_fields(session, selector, form_data) do
-    html =
-      session
-      |> render_html()
-      |> Html.parse()
+    html = render_html(session)
 
     Enum.each(form_data, fn {name, _value} ->
-      Html.find(html, "#{selector} [name=#{name}]")
+      Query.find!(html, "#{selector} [name=#{name}]")
     end)
   end
 
@@ -132,8 +132,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     phx_change =
       session
       |> render_html()
-      |> Html.parse()
-      |> Html.find(selector)
+      |> Query.find!(selector)
       |> Html.attribute("phx-change")
 
     phx_change != nil && phx_change != ""
