@@ -121,7 +121,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp verify_expected_form_data(form, form_data) do
     action = form["action"]
-    unless action, do: raise("expected form to have an action but found none")
+    unless action, do: raise("Expected form to have an action but found none")
 
     validate_expected_fields(form["fields"], form_data)
   end
@@ -145,13 +145,17 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
          field["name"] != expected_field
        end) do
       raise ArgumentError, """
-      Expected form to have #{inspect(expected_field)} field, but found none.
+      Expected form to have #{inspect(expected_field)} form field, but found none.
 
       Found the following fields:
 
-       - #{Enum.map_join(existing_fields, "\n - ", & &1["name"])}
+       - #{Enum.map_join(existing_fields, "\n - ", &format_field_error/1)}
       """
     end
+  end
+
+  defp format_field_error(field) do
+    "#{field["type"]} with name=#{inspect(field["name"])}"
   end
 
   def render_html(%{conn: conn}) do

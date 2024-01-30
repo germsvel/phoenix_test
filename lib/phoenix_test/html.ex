@@ -84,12 +84,22 @@ defmodule PhoenixTest.Html do
 
         I was looking for an element with one of these selectors:
 
-        #{Enum.map_join(elements, "\n", &inspect(&1))}
+        #{format_find_one_of_elements_for_error(elements)}
         """
 
       found_element ->
         found_element
     end
+  end
+
+  defp format_find_one_of_elements_for_error(elements) do
+    Enum.map_join(elements, "\n", fn
+      {selector, text} ->
+        "Selector #{selector} and text #{text}"
+
+      element ->
+        inspect(element)
+    end)
   end
 
   defp find_with_text(html, selector, text) do
