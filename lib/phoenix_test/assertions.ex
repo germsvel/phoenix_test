@@ -3,52 +3,58 @@ defmodule PhoenixTest.Assertions do
 
   import ExUnit.Assertions
 
-  alias PhoenixTest.Html
   alias PhoenixTest.Query
 
-  def assert_has(session, css, text) do
-    found =
-      session
-      |> PhoenixTest.Driver.render_html()
-      |> Query.find!(css, text)
-      |> Html.text()
-
-    if found =~ text do
-      assert true
-    else
-      raise """
-      Expected to find #{inspect(text)} somewhere in here:
-
-      #{found}
-      """
-    end
-
-    session
-  end
-
-  def refute_has(session, css, text) do
+  def assert_has(session, selector, text) do
     session
     |> PhoenixTest.Driver.render_html()
-    |> Html.parse()
-    |> Html.all(css)
+    |> Query.find(selector, text)
     |> case do
-      [] ->
+      {:found, _found} ->
+        assert true
+
+      {:not_found, []} ->
+        raise """
+        Could not find any elements with selector #{inspect(selector)}.
+        """
+
+      {:not_found, elements_matched_selector} ->
+        raise """
+        Could not find element with text #{inspect(text)}.
+
+        Found other elements matching the selector #{inspect(selector)}:
+
+        #{format_found_elements(elements_matched_selector)}
+        """
+    end
+
+    session
+  end
+
+  def refute_has(session, selector, text) do
+    session
+    |> PhoenixTest.Driver.render_html()
+    |> Query.find(selector, text)
+    |> case do
+      {:not_found, _} ->
         refute false
 
-      elements ->
-        if Enum.any?(elements, &element_with_text?(&1, text)) do
-          raise """
-          Expected not to find an element.
+      {:found, element} ->
+        raise """
+        Expected not to find an element.
 
-          But found an element with selector #{inspect(css)} and text #{inspect(text)}.
-          """
-        else
-          refute false
-        end
+        But found an element with selector #{inspect(selector)} and text #{inspect(text)}:
+
+        #{format_found_element(element)}
+        """
     end
   end
 
-  defp element_with_text?(el, text) do
-    Html.text(el) == text
+  defp format_found_elements(elements) do
+    Enum.map_join(elements, "\n", &format_found_element/1)
+  end
+
+  defp format_found_element({tag, _attrs, [content]}) do
+    "<#{tag}> with content #{inspect(content)}"
   end
 end

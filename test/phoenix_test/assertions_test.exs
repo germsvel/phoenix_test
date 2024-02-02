@@ -44,16 +44,32 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has(".has_extra_space", "Has extra space")
     end
 
-    test "raises an error if the element cannot be found", %{conn: conn} do
-      conn =
-        conn
-        |> visit("/page/index")
+    test "raises an error if the element cannot be found at all", %{conn: conn} do
+      conn = visit(conn, "/page/index")
 
-      assert_raise ArgumentError,
-                   ~r/Could not find element with selector "#nonexistent-id"/,
-                   fn ->
-                     conn |> assert_has("#nonexistent-id", "Main page")
-                   end
+      msg = ~r/Could not find any elements with selector "#nonexistent-id"/
+
+      assert_raise RuntimeError, msg, fn ->
+        conn |> assert_has("#nonexistent-id", "Main page")
+      end
+    end
+
+    test "raises error if element cannot be found but selector matches other elements", %{
+      conn: conn
+    } do
+      conn = visit(conn, "/page/index")
+
+      msg = """
+      Could not find element with text "Super page".
+
+      Found other elements matching the selector "h1":
+
+      <h1> with content "Main page"
+      """
+
+      assert_raise RuntimeError, msg, fn ->
+        conn |> assert_has("h1", "Super page")
+      end
     end
   end
 
@@ -81,21 +97,33 @@ defmodule PhoenixTest.AssertionsTest do
     end
 
     test "raises an error if one element is found", %{conn: conn} do
-      conn =
-        conn
-        |> visit("/page/index")
+      conn = visit(conn, "/page/index")
 
-      assert_raise RuntimeError, ~r/Expected not to find an element/, fn ->
+      msg = """
+      Expected not to find an element.
+
+      But found an element with selector "#title" and text "Main page":
+
+      <h1> with content "Main page"
+      """
+
+      assert_raise RuntimeError, msg, fn ->
         conn |> refute_has("#title", "Main page")
       end
     end
 
     test "raises an error if multiple elements are found", %{conn: conn} do
-      conn =
-        conn
-        |> visit("/page/index")
+      conn = visit(conn, "/page/index")
 
-      assert_raise RuntimeError, ~r/Expected not to find an element/, fn ->
+      msg = """
+      Expected not to find an element.
+
+      But found an element with selector ".multiple_links" and text "Multiple links":
+
+      <a> with content "Multiple links"
+      """
+
+      assert_raise RuntimeError, msg, fn ->
         conn |> refute_has(".multiple_links", "Multiple links")
       end
     end

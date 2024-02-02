@@ -85,15 +85,15 @@ defmodule PhoenixTest.Query do
   end
 
   defp find_with_text(html, selector, text) do
-    elements =
+    elements_matched_selector =
       html
       |> Html.all(selector)
 
-    Enum.find(elements, :not_found, fn element ->
+    Enum.find(elements_matched_selector, :not_found, fn element ->
       Html.text(element) =~ text
     end)
     |> then(fn
-      :not_found -> {:not_found, elements}
+      :not_found -> {:not_found, elements_matched_selector}
       found -> {:found, found}
     end)
   end
