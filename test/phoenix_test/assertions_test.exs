@@ -118,9 +118,7 @@ defmodule PhoenixTest.AssertionsTest do
       msg = """
       Expected not to find an element.
 
-      But found an element with selector ".multiple_links" and text "Multiple links":
-
-      <a> with content "Multiple links"
+      But found 2 elements with selector ".multiple_links" and text "Multiple links":
       """
 
       assert_raise RuntimeError, msg, fn ->

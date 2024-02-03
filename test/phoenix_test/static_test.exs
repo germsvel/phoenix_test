@@ -37,11 +37,12 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Page 2")
     end
 
-    test "follows first link when there are multiple links with same text", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> click_link("Multiple links")
-      |> assert_has("h1", "Page 3")
+    test "raises error when there are multiple links with same text", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Found more than one element with selector/, fn ->
+        conn
+        |> visit("/page/index")
+        |> click_link("Multiple links")
+      end
     end
 
     test "handles navigation to a LiveView", %{conn: conn} do

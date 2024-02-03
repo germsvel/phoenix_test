@@ -47,6 +47,13 @@ defmodule PhoenixTest.Assertions do
 
         #{format_found_element(element)}
         """
+
+      {:found_many, elements} ->
+        raise """
+        Expected not to find an element.
+
+        But found #{Enum.count(elements)} elements with selector #{inspect(selector)} and text #{inspect(text)}:
+        """
     end
   end
 

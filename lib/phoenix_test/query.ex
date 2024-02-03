@@ -38,6 +38,14 @@ defmodule PhoenixTest.Query do
 
       {:found, element} ->
         element
+
+      {:found_many, _elements} ->
+        msg =
+          """
+          Found more than one element with selector #{inspect(selector)} and text #{inspect(text)}.
+          """
+
+        raise ArgumentError, msg
     end
   end
 
@@ -81,21 +89,10 @@ defmodule PhoenixTest.Query do
 
       {:found, found_element} ->
         found_element
+
+      {:found_many, [found_element | _]} ->
+        found_element
     end
-  end
-
-  defp find_with_text(html, selector, text) do
-    elements_matched_selector =
-      html
-      |> Html.all(selector)
-
-    Enum.find(elements_matched_selector, :not_found, fn element ->
-      Html.text(element) =~ text
-    end)
-    |> then(fn
-      :not_found -> {:not_found, elements_matched_selector}
-      found -> {:found, found}
-    end)
   end
 
   defp find_one_of(html, elements) do
@@ -110,7 +107,20 @@ defmodule PhoenixTest.Query do
     |> Enum.find({:not_found, elements}, fn
       {:not_found, _} -> false
       {:found, _} -> true
+      {:found_many, _} -> true
     end)
+  end
+
+  defp find_with_text(html, selector, text) do
+    elements_matched_selector = Html.all(html, selector)
+
+    elements_matched_selector
+    |> Enum.filter(fn element -> Html.text(element) =~ text end)
+    |> case do
+      [] -> {:not_found, elements_matched_selector}
+      [found] -> {:found, found}
+      [_ | _] = found_many -> {:found_many, found_many}
+    end
   end
 
   defp first(html, selector) do
