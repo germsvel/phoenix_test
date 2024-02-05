@@ -53,7 +53,7 @@ end
 In `config/test.exs` specify the endpoint to be used for routing requests:
 
 ```elixir
-config :phoenix_test, :endpoint, MyApp.Endpoint
+config :phoenix_test, :endpoint, MyAppWeb.Endpoint
 ```
 
 ### Adding a `FeatureCase`
