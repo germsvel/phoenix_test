@@ -66,16 +66,24 @@ defmodule PhoenixTest.Query do
   end
 
   def find(html, selector, text) do
-    html
-    |> Html.parse()
-    |> find_with_text(selector, text)
+    elements_matched_selector =
+      html
+      |> Html.parse()
+      |> Html.all(selector)
+
+    elements_matched_selector
+    |> Enum.filter(fn element -> Html.text(element) =~ text end)
+    |> case do
+      [] -> {:not_found, elements_matched_selector}
+      [found] -> {:found, found}
+      [_ | _] = found_many -> {:found_many, found_many}
+    end
   end
 
   def find_submit_buttons(html, selector, text) do
     elements = ["input[type=submit][value=#{text}]", {selector, text}]
 
     html
-    |> Html.parse()
     |> find_one_of(elements)
     |> case do
       {:not_found, elements} ->
@@ -99,34 +107,17 @@ defmodule PhoenixTest.Query do
     elements
     |> Enum.map(fn
       {selector, text} ->
-        find_with_text(html, selector, text)
+        find(html, selector, text)
 
       selector ->
-        first(html, selector)
+        find(html, selector)
     end)
     |> Enum.find({:not_found, elements}, fn
+      :not_found -> false
       {:not_found, _} -> false
       {:found, _} -> true
       {:found_many, _} -> true
     end)
-  end
-
-  defp find_with_text(html, selector, text) do
-    elements_matched_selector = Html.all(html, selector)
-
-    elements_matched_selector
-    |> Enum.filter(fn element -> Html.text(element) =~ text end)
-    |> case do
-      [] -> {:not_found, elements_matched_selector}
-      [found] -> {:found, found}
-      [_ | _] = found_many -> {:found_many, found_many}
-    end
-  end
-
-  defp first(html, selector) do
-    html
-    |> Html.all(selector)
-    |> List.first({:not_found, selector})
   end
 
   defp format_find_one_of_elements_for_error(elements) do
