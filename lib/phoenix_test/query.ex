@@ -60,7 +60,7 @@ defmodule PhoenixTest.Query do
       [element] ->
         {:found, element}
 
-      [_, _ | _rest] = elements ->
+      [_ | _] = elements ->
         {:found_many, elements}
     end
   end
