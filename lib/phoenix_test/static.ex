@@ -50,14 +50,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     if has_active_form?(session) do
       session
       |> render_html()
-      |> Query.find_submit_buttons(selector, text)
+      |> find_submit_buttons!(selector, text)
 
       session
       |> submit_active_form()
     else
       session
       |> render_html()
-      |> Query.find_submit_buttons(selector, text)
+      |> find_submit_buttons!(selector, text)
 
       session
       |> single_button_form_submit(text)
@@ -69,6 +69,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       :not_found -> false
       _ -> true
     end
+  end
+
+  defp find_submit_buttons!(html, selector, text) do
+    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
+
+    Query.find_one_of!(html, submit_buttons)
   end
 
   defp submit_active_form(session) do

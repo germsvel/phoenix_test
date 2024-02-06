@@ -80,12 +80,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_submit_buttons(html, selector, text) do
-    elements = ["input[type=submit][value=#{text}]", {selector, text}]
-
-    find_one_of!(html, elements)
-  end
-
   def find_one_of!(html, elements) do
     html
     |> find_one_of(elements)
