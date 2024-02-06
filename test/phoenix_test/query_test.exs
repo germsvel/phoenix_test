@@ -182,4 +182,112 @@ defmodule PhoenixTest.QueryTest do
       assert {"h1", [{"id", "title"}], ["Hello"]} = element
     end
   end
+
+  describe "find_one_of!/2" do
+    test "returns element when one matches" do
+      html = """
+      <h1 id="title">Hello</h1>
+      <h2 id="subtitle">Hi</h2>
+      """
+
+      element = Query.find_one_of!(html, [{"h1", "Hello"}, {"h2", "Hi"}])
+
+      assert {"h1", _, ["Hello"]} = element
+    end
+
+    test "returns first element if multiple match" do
+      html = """
+      <h2>Hello</h2>
+      <h2>Greetings</h2>
+      """
+
+      element = Query.find_one_of!(html, ["h2"])
+
+      assert {"h2", _, ["Hello"]} = element
+    end
+
+    test "raises an error when element could not be found" do
+      html = """
+      <h1>Hello</h1>
+      """
+
+      msg = """
+      Could not find an element with given selectors.
+
+      I was looking for an element with one of these selectors:
+
+      Selector "h2" with content "Hi"
+      Selector "h3"
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
+      end
+    end
+
+    test "raises error including potential matches when there are some" do
+      html = """
+      <h2>Hello</h2>
+      <h2>Greetings</h2>
+      """
+
+      msg = """
+      Could not find an element with given selectors.
+
+      I was looking for an element with one of these selectors:
+
+      Selector "h2" with content "Hi"
+      Selector "h3"
+
+      I found some elements that match the selector but not the content:
+
+      <h2> tag with content "Hello"
+      <h2> tag with content "Greetings"
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
+      end
+    end
+  end
+
+  describe "find_one_of/2" do
+    test "finds one of elements that match passed selectors" do
+      html = """
+      <h1 id="title">Hello</h1>
+      <h2 id="subtitle">Hi</h2>
+      """
+
+      {:found, element} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
+
+      assert {"h1", _, ["Hello"]} = element
+    end
+
+    test "finds elements with selector or selector and text" do
+      html = """
+      <h1 id="title">Hello</h1>
+      <h2 id="subtitle">Hi</h2>
+      """
+
+      assert {:found, _element} = Query.find_one_of(html, [{"h1", "Hello"}])
+      assert {:found, element} = Query.find_one_of(html, ["h1"])
+      assert {"h1", [{"id", "title"}], ["Hello"]} = element
+    end
+
+    test "returns :not_found when no selector matches" do
+      html = """
+      <h2>Hello</h2>
+      <h2>Greetings</h2>
+      """
+
+      assert {:not_found, []} = Query.find_one_of(html, ["h1"])
+
+      assert {:not_found, matched_selector_but_not_text} =
+               Query.find_one_of(html, [{"h2", "Hi"}])
+
+      [a, b] = matched_selector_but_not_text
+      assert {"h2", _, ["Hello"]} = a
+      assert {"h2", _, ["Greetings"]} = b
+    end
+  end
 end
