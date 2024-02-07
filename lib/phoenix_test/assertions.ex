@@ -62,6 +62,10 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp format_found_element({tag, _attrs, [content]}) do
-    "<#{tag}> with content #{inspect(content)}"
+    "<#{tag}> with content \"#{Floki.raw_html(content)}\""
+  end
+
+  defp format_found_element({tag, _attrs, content}) when is_list(content) do
+    "<#{tag}> with content:\n#{Floki.raw_html(content, pretty: true)}"
   end
 end
