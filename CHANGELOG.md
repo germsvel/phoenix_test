@@ -11,6 +11,8 @@ page](https://hex.pm/packages/phoenix_test)
 
 ### Added
 
+- Improve printing of complex nested content in assertions. Commit
+  [7151834](https://github.com/germsvel/phoenix_test/commit/7151834)
 - Better error messages in forms when multiple submit buttons/inputs are found.
   Commit [82492c6](https://github.com/germsvel/phoenix_test/commit/82492c6)
 
