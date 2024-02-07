@@ -7,26 +7,32 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
-# 0.2.0
+## Unreleased
 
-## Breaking changes
+### Added
+
+- Better error messages in forms when multiple submit buttons/inputs are found.
+  Commit [82492c6](https://github.com/germsvel/phoenix_test/commit/82492c6)
+
+## 0.2.0
+
+### Breaking changes
 
 - Update our static implementation to raise when we find many elements. That
-  brings it in line with how our LiveView implementation works. See commit
+  brings it in line with how our LiveView implementation works. Commit
   [daa4dca](https://github.com/germsvel/phoenix_test/commit/daa4dca)
 
-## Improved
+### Improved
 
-- Improves error messages in assertions. See commit
-  [c995fc1](https://github.com/germsvel/phoenix_test/commit/c995fc1)
+- Improves error messages in assertions. Commit [c995fc1](https://github.com/germsvel/phoenix_test/commit/c995fc1)
 
-# 0.1.1
+## 0.1.1
 
-## Added
+### Added
 
 - Adds `click_link/3` and `click_button/3` which allow for specifying a CSS
-  selector. See commit [c7401b6](https://github.com/germsvel/phoenix_test/commit/c7401b6).
+  selector. Commit [c7401b6](https://github.com/germsvel/phoenix_test/commit/c7401b6).
 
-# 0.1.0
+## 0.1.0
 
 - Initial version of the library.
