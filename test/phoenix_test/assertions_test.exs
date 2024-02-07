@@ -77,6 +77,34 @@ defmodule PhoenixTest.AssertionsTest do
         conn |> assert_has("h1", "Super page")
       end
     end
+
+    test "raises error if element cannot be found and selector matches a nested structure", %{
+      conn: conn
+    } do
+      conn = visit(conn, "/page/index")
+
+      msg = """
+      Could not find element with text "Frodo".
+
+      Found other elements matching the selector "#multiple-items":
+
+      <ul> with content:
+      <li>
+        Aragorn
+      </li>
+      <li>
+        Legolas
+      </li>
+      <li>
+        Gimli
+      </li>
+
+      """
+
+      assert_raise RuntimeError, msg, fn ->
+        conn |> assert_has("#multiple-items", "Frodo")
+      end
+    end
   end
 
   describe "refute_has/3" do
