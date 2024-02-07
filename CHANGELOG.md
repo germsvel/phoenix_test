@@ -14,6 +14,11 @@ page](https://hex.pm/packages/phoenix_test)
 - Better error messages in forms when multiple submit buttons/inputs are found.
   Commit [82492c6](https://github.com/germsvel/phoenix_test/commit/82492c6)
 
+### Fixes
+
+- Allow using `refute_has` in pipes in the same way `assert_has` already works.
+  Commit [0484979](https://github.com/germsvel/phoenix_test/commit/0484979)
+
 ## 0.2.0
 
 ### Breaking changes
