@@ -126,7 +126,7 @@ defmodule MyAppWeb.AdminCanCreateUserTest do
   end
 ```
 
-For full documentation, take a look at [PhoenixTest module docs](file:///Users/germanvelasco/germsvel/phoenix_test/doc/PhoenixTest.html).
+For full documentation, take a look at [PhoenixTest module docs](https://hexdocs.pm/phoenix_test/PhoenixTest.html).
 
 ## Why PhoenixTest?
 
