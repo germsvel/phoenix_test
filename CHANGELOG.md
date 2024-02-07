@@ -7,7 +7,7 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
-## Unreleased
+## 0.2.1
 
 ### Added
 
