@@ -14,8 +14,11 @@ defmodule PhoenixTest.AssertionsTest do
         |> visit("/page/index")
 
       conn |> assert_has("h1", "Main page")
-      conn |> assert_has("#title", "Main page")
-      conn |> assert_has(".title", "Main page")
+
+      conn
+      |> assert_has("#title", "Main page")
+      |> assert_has(".title", "Main page")
+
       conn |> assert_has("[data-role='title']", "Main page")
     end
 
@@ -25,8 +28,11 @@ defmodule PhoenixTest.AssertionsTest do
         |> visit("/live/index")
 
       conn |> assert_has("h1", "LiveView main page")
-      conn |> assert_has("#title", "LiveView main page")
-      conn |> assert_has(".title", "LiveView main page")
+
+      conn
+      |> assert_has("#title", "LiveView main page")
+      |> assert_has(".title", "LiveView main page")
+
       conn |> assert_has("[data-role='title']", "LiveView main page")
     end
 
@@ -80,8 +86,11 @@ defmodule PhoenixTest.AssertionsTest do
         |> visit("/page/index")
 
       conn |> refute_has("h1", "Not main page")
-      conn |> refute_has("h2", "Main page")
-      conn |> refute_has("#incorrect-id", "Main page")
+
+      conn
+      |> refute_has("h2", "Main page")
+      |> refute_has("#incorrect-id", "Main page")
+
       conn |> refute_has("#title", "Not main page")
     end
 
@@ -91,8 +100,11 @@ defmodule PhoenixTest.AssertionsTest do
         |> visit("/live/index")
 
       conn |> refute_has("h1", "Not main page")
-      conn |> refute_has("h2", "Main page")
-      conn |> refute_has("#incorrect-id", "Main page")
+
+      conn
+      |> refute_has("h2", "Main page")
+      |> refute_has("#incorrect-id", "Main page")
+
       conn |> refute_has("#title", "Not main page")
     end
 
