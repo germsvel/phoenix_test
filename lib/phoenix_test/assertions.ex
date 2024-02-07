@@ -55,6 +55,8 @@ defmodule PhoenixTest.Assertions do
         But found #{Enum.count(elements)} elements with selector #{inspect(selector)} and text #{inspect(text)}:
         """
     end
+
+    session
   end
 
   defp format_found_elements(elements) do
