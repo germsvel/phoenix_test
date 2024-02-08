@@ -68,6 +68,11 @@ defmodule PhoenixTest.PageView do
       <label for="notes">Notes</label>
       <textarea name="notes" rows="5" cols="33">
       </textarea>
+
+      <div>
+        <label for="member_of_fellowship">Member of fellowship</label>
+        <input type="checkbox" name="member_of_fellowship" />
+      </div>
     </form>
     """
   end
