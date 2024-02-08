@@ -2,8 +2,9 @@ defmodule PhoenixTest.Assertions do
   @moduledoc false
 
   import ExUnit.Assertions
-  alias ExUnit.AssertionError
 
+  alias ExUnit.AssertionError
+  alias PhoenixTest.Html
   alias PhoenixTest.Query
 
   def assert_has(session, selector, text) do
@@ -49,7 +50,7 @@ defmodule PhoenixTest.Assertions do
 
           But found an element with selector #{inspect(selector)} and text #{inspect(text)}:
 
-          #{format_found_element(element)}
+          #{format_found_elements(element)}
           """
 
       {:found_many, elements} ->
@@ -64,15 +65,9 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  defp format_found_elements(elements) do
-    Enum.map_join(elements, "\n", &format_found_element/1)
+  defp format_found_elements(elements) when is_list(elements) do
+    Enum.map_join(elements, "\n", &Html.raw/1)
   end
 
-  defp format_found_element({tag, _attrs, [content]}) do
-    "<#{tag}> with content \"#{Floki.raw_html(content)}\""
-  end
-
-  defp format_found_element({tag, _attrs, content}) when is_list(content) do
-    "<#{tag}> with content:\n#{Floki.raw_html(content, pretty: true)}"
-  end
+  defp format_found_elements(element), do: format_found_elements([element])
 end

@@ -37,7 +37,7 @@ defmodule PhoenixTest.AssertionsTest do
       conn |> assert_has("[data-role='title']", "LiveView main page")
     end
 
-    test "succeeds if more than one element matces selector but text narrows it down", %{
+    test "succeeds if more than one element matches selector but text narrows it down", %{
       conn: conn
     } do
       conn
@@ -72,7 +72,9 @@ defmodule PhoenixTest.AssertionsTest do
 
         Found other elements matching the selector "h1":
 
-        <h1> with content "Main page"
+        <h1 id="title" class="title" data-role="title">
+          Main page
+        </h1>
         """
         |> ignore_whitespace()
 
@@ -92,17 +94,17 @@ defmodule PhoenixTest.AssertionsTest do
 
         Found other elements matching the selector "#multiple-items":
 
-        <ul> with content:
-        <li>
-          Aragorn
-        </li>
-        <li>
-          Legolas
-        </li>
-        <li>
-          Gimli
-        </li>
-
+        <ul id="multiple-items">
+          <li>
+            Aragorn
+          </li>
+          <li>
+            Legolas
+          </li>
+          <li>
+            Gimli
+          </li>
+        </ul>
         """
         |> ignore_whitespace()
 
@@ -150,7 +152,9 @@ defmodule PhoenixTest.AssertionsTest do
 
         But found an element with selector "#title" and text "Main page":
 
-        <h1> with content "Main page"
+        <h1 id="title" class="title" data-role="title">
+          Main page
+        </h1>
         """
         |> ignore_whitespace()
 

@@ -17,4 +17,6 @@ defmodule PhoenixTest.Html do
   def all(html, selector) do
     Floki.find(html, selector)
   end
+
+  def raw(html_string), do: Floki.raw_html(html_string, pretty: true)
 end
