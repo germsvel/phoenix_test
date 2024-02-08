@@ -1,6 +1,8 @@
 defmodule PhoenixTest.Html.Form do
   @moduledoc false
 
+  alias PhoenixTest.Html
+
   def parse({"form", attrs, fields}) do
     %{}
     |> put_attributes(attrs)
@@ -15,9 +17,9 @@ defmodule PhoenixTest.Html.Form do
   end
 
   defp build_fields(fields) do
-    inputs = fields |> Floki.find("input")
-    selects = fields |> Floki.find("select")
-    textareas = fields |> Floki.find("textarea")
+    inputs = fields |> Html.all("input")
+    selects = fields |> Html.all("select")
+    textareas = fields |> Html.all("textarea")
 
     Enum.concat([inputs, selects, textareas])
     |> Enum.map(&create_field/1)
