@@ -104,7 +104,7 @@ end
 ```
 
 Note that we assume your Phoenix project is using Ecto and its phenomenal
-`SQL.Sanbox`. If it doesn't, feel free to remove the `SQl.Sandbox` code above.
+`SQL.Sandbox`. If it doesn't, feel free to remove the `SQL.Sandbox` code above.
 
 ## Usage
 
@@ -159,7 +159,7 @@ html =
 assert html =~ "Hello, guest!"
 ```
 
-But if we're testing a page is static, we have to resort to controller testing:
+But if we're testing a static page, we have to resort to controller testing:
 
 ```elixir
 conn = get(conn, ~p"/greet_page")
