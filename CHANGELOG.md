@@ -7,6 +7,17 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.2
+
+### Added
+
+- Raise `AssertionError` instead of `RuntimeError` in assertions for more
+  consistent ExUnit error messages. Commit
+  [117bc59](https://github.com/germsvel/phoenix_test/commit/117bc59)
+- Update `fill_form` to handle that aren't direct children of the `form`
+  element. Commit
+  [46d6229](https://github.com/germsvel/phoenix_test/commit/46d6229)
+
 ## 0.2.1
 
 ### Added
