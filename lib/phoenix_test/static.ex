@@ -133,6 +133,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defp validate_expected_fields(existing_fields, form_data) do
     form_data
     |> Enum.each(fn
+      {key, %Plug.Upload{}} ->
+        verify_field_presence(existing_fields, to_string(key))
+
       {key, values} when is_map(values) ->
         Enum.each(values, fn {nested_key, nested_value} ->
           combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"

@@ -68,6 +68,9 @@ defmodule PhoenixTest.PageView do
       <label for="notes">Notes</label>
       <textarea name="notes" rows="5" cols="33">
       </textarea>
+
+      <label for="image">Image</label>
+      <input accept="image/*" type="file" name="image" />
     </form>
     """
   end
@@ -120,6 +123,10 @@ defmodule PhoenixTest.PageView do
 
   defp render_input_data(key, value) when is_binary(value) do
     "#{key}: #{value}"
+  end
+
+  defp render_input_data(key, %Plug.Upload{filename: filename}) do
+    "#{key}: #{filename}"
   end
 
   defp render_input_data(key, values) do
