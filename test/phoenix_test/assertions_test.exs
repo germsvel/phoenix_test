@@ -2,6 +2,7 @@ defmodule PhoenixTest.AssertionsTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
+  alias ExUnit.AssertionError
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -55,7 +56,7 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg = ~r/Could not find any elements with selector "#nonexistent-id"/
 
-      assert_raise RuntimeError, msg, fn ->
+      assert_raise AssertionError, msg, fn ->
         conn |> assert_has("#nonexistent-id", "Main page")
       end
     end
@@ -65,15 +66,17 @@ defmodule PhoenixTest.AssertionsTest do
     } do
       conn = visit(conn, "/page/index")
 
-      msg = """
-      Could not find element with text "Super page".
+      msg =
+        """
+        Could not find element with text "Super page".
 
-      Found other elements matching the selector "h1":
+        Found other elements matching the selector "h1":
 
-      <h1> with content "Main page"
-      """
+        <h1> with content "Main page"
+        """
+        |> ignore_whitespace()
 
-      assert_raise RuntimeError, msg, fn ->
+      assert_raise AssertionError, msg, fn ->
         conn |> assert_has("h1", "Super page")
       end
     end
@@ -83,25 +86,27 @@ defmodule PhoenixTest.AssertionsTest do
     } do
       conn = visit(conn, "/page/index")
 
-      msg = """
-      Could not find element with text "Frodo".
+      msg =
+        """
+        Could not find element with text "Frodo".
 
-      Found other elements matching the selector "#multiple-items":
+        Found other elements matching the selector "#multiple-items":
 
-      <ul> with content:
-      <li>
-        Aragorn
-      </li>
-      <li>
-        Legolas
-      </li>
-      <li>
-        Gimli
-      </li>
+        <ul> with content:
+        <li>
+          Aragorn
+        </li>
+        <li>
+          Legolas
+        </li>
+        <li>
+          Gimli
+        </li>
 
-      """
+        """
+        |> ignore_whitespace()
 
-      assert_raise RuntimeError, msg, fn ->
+      assert_raise AssertionError, msg, fn ->
         conn |> assert_has("#multiple-items", "Frodo")
       end
     end
@@ -139,15 +144,17 @@ defmodule PhoenixTest.AssertionsTest do
     test "raises an error if one element is found", %{conn: conn} do
       conn = visit(conn, "/page/index")
 
-      msg = """
-      Expected not to find an element.
+      msg =
+        """
+        Expected not to find an element.
 
-      But found an element with selector "#title" and text "Main page":
+        But found an element with selector "#title" and text "Main page":
 
-      <h1> with content "Main page"
-      """
+        <h1> with content "Main page"
+        """
+        |> ignore_whitespace()
 
-      assert_raise RuntimeError, msg, fn ->
+      assert_raise AssertionError, msg, fn ->
         conn |> refute_has("#title", "Main page")
       end
     end
@@ -155,15 +162,28 @@ defmodule PhoenixTest.AssertionsTest do
     test "raises an error if multiple elements are found", %{conn: conn} do
       conn = visit(conn, "/page/index")
 
-      msg = """
-      Expected not to find an element.
+      msg =
+        """
+        Expected not to find an element.
 
-      But found 2 elements with selector ".multiple_links" and text "Multiple links":
-      """
+        But found 2 elements with selector ".multiple_links" and text "Multiple links":
+        """
+        |> ignore_whitespace()
 
-      assert_raise RuntimeError, msg, fn ->
+      assert_raise AssertionError, msg, fn ->
         conn |> refute_has(".multiple_links", "Multiple links")
       end
     end
+  end
+
+  # converts a multi-line string into a whitespace-forgiving regex
+  defp ignore_whitespace(string) do
+    string
+    |> String.split("\n")
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(fn s -> s == "" end)
+    |> Enum.map(fn s -> "\\s*" <> s <> "\\s*" end)
+    |> Enum.join("\n")
+    |> Regex.compile!([:dotall])
   end
 end

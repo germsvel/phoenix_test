@@ -2,6 +2,7 @@ defmodule PhoenixTest.Assertions do
   @moduledoc false
 
   import ExUnit.Assertions
+  alias ExUnit.AssertionError
 
   alias PhoenixTest.Query
 
@@ -14,18 +15,20 @@ defmodule PhoenixTest.Assertions do
         assert true
 
       {:not_found, []} ->
-        raise """
-        Could not find any elements with selector #{inspect(selector)}.
-        """
+        raise AssertionError,
+          message: """
+          Could not find any elements with selector #{inspect(selector)}.
+          """
 
       {:not_found, elements_matched_selector} ->
-        raise """
-        Could not find element with text #{inspect(text)}.
+        raise AssertionError,
+          message: """
+          Could not find element with text #{inspect(text)}.
 
-        Found other elements matching the selector #{inspect(selector)}:
+          Found other elements matching the selector #{inspect(selector)}:
 
-        #{format_found_elements(elements_matched_selector)}
-        """
+          #{format_found_elements(elements_matched_selector)}
+          """
     end
 
     session
@@ -40,20 +43,22 @@ defmodule PhoenixTest.Assertions do
         refute false
 
       {:found, element} ->
-        raise """
-        Expected not to find an element.
+        raise AssertionError,
+          message: """
+          Expected not to find an element.
 
-        But found an element with selector #{inspect(selector)} and text #{inspect(text)}:
+          But found an element with selector #{inspect(selector)} and text #{inspect(text)}:
 
-        #{format_found_element(element)}
-        """
+          #{format_found_element(element)}
+          """
 
       {:found_many, elements} ->
-        raise """
-        Expected not to find an element.
+        raise AssertionError,
+          message: """
+          Expected not to find an element.
 
-        But found #{Enum.count(elements)} elements with selector #{inspect(selector)} and text #{inspect(text)}:
-        """
+          But found #{Enum.count(elements)} elements with selector #{inspect(selector)} and text #{inspect(text)}:
+          """
     end
 
     session
