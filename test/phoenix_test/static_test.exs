@@ -139,13 +139,15 @@ defmodule PhoenixTest.StaticTest do
         name: "Aragorn",
         admin: "on",
         race: "human",
-        notes: "King of Gondor"
+        notes: "King of Gondor",
+        member_of_fellowship: "on"
       )
       |> click_button("Save")
       |> assert_has("#form-data", "name: Aragorn")
       |> assert_has("#form-data", "admin: on")
       |> assert_has("#form-data", "race: human")
       |> assert_has("#form-data", "notes: King of Gondor")
+      |> assert_has("#form-data", "member_of_fellowship: on")
     end
 
     test "raises an error when form cannot be found with given selector", %{conn: conn} do

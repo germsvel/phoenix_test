@@ -15,13 +15,11 @@ defmodule PhoenixTest.Html.Form do
   end
 
   defp build_fields(fields) do
-    fields
-    |> Enum.filter(fn
-      {"input", _, _} -> true
-      {"select", _, _} -> true
-      {"textarea", _, _} -> true
-      _ -> false
-    end)
+    inputs = fields |> Floki.find("input")
+    selects = fields |> Floki.find("select")
+    textareas = fields |> Floki.find("textarea")
+
+    Enum.concat([inputs, selects, textareas])
     |> Enum.map(&create_field/1)
   end
 

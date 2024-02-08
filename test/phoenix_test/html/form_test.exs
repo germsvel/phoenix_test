@@ -58,6 +58,24 @@ defmodule PhoenixTest.Html.FormTest do
 
       assert %{"type" => "checkbox"} = admin
     end
+
+    test "parses nested checkbox" do
+      data =
+        form_data("""
+          <form id="user-form" action="/" method="post">
+            <div>
+              <label for="admin">Admin</label>
+              <input type="checkbox" name="admin" />
+            </div>
+          </form>
+        """)
+
+      %{"fields" => fields} = Html.Form.parse(data)
+
+      admin = Enum.find(fields, &(&1["name"] == "admin"))
+
+      assert %{"type" => "checkbox"} = admin
+    end
   end
 
   defp form_data(html_form) do
