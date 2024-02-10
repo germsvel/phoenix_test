@@ -7,6 +7,20 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.3
+
+### Added
+
+- Handle form redirects (to Live and static pages) from Live pages. Commit
+  [531e5e9](https://github.com/germsvel/phoenix_test/commit/531e5e9)
+- Expand documentation on nested forms. Commit
+  [6809389](https://github.com/germsvel/phoenix_test/commit/6809389)
+
+### Fixes
+
+- Allow multiple matching elements in `assert_has`. Commit
+  [ac0e167](https://github.com/germsvel/phoenix_test/commit/ac0e167)
+
 ## 0.2.2
 
 ### Added
