@@ -98,6 +98,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Record deleted")
     end
 
+    test "can handle redirects to a LiveView", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Post and Redirect")
+      |> assert_has("h1", "LiveView main page")
+    end
+
     test "raises an error when there are no buttons on page", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
         conn
@@ -116,6 +123,32 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "fill_form/3" do
+    test "raises an error when form cannot be found with given selector", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+        conn
+        |> visit("/page/index")
+        |> fill_form("#no-existing-form", name: "Aragorn")
+      end
+    end
+
+    test "raises an error when form input cannot be found", %{conn: conn} do
+      message = """
+      Expected form to have "location[user][name]" form field, but found none.
+
+      Found the following fields:
+
+       - input with name="user[name]"
+      """
+
+      assert_raise ArgumentError, message, fn ->
+        conn
+        |> visit("/page/index")
+        |> fill_form("#nested-form", location: %{user: %{name: "Aragorn"}})
+      end
+    end
+  end
+
+  describe "fill_form + click_button" do
     test "can submit forms with input type submit", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -150,28 +183,12 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", "member_of_fellowship: on")
     end
 
-    test "raises an error when form cannot be found with given selector", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
-        conn
-        |> visit("/page/index")
-        |> fill_form("#no-existing-form", name: "Aragorn")
-      end
-    end
-
-    test "raises an error when form input cannot be found", %{conn: conn} do
-      message = """
-      Expected form to have "location[user][name]" form field, but found none.
-
-      Found the following fields:
-
-       - input with name="user[name]"
-      """
-
-      assert_raise ArgumentError, message, fn ->
-        conn
-        |> visit("/page/index")
-        |> fill_form("#nested-form", location: %{user: %{name: "Aragorn"}})
-      end
+    test "can handle redirects into a LiveView", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_form("#redirect-to-liveview-form", name: "Aragorn")
+      |> click_button("Save and Redirect to LiveView")
+      |> assert_has("h1", "LiveView main page")
     end
   end
 
@@ -181,6 +198,13 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> submit_form("#no-submit-button-form", name: "Aragorn")
       |> assert_has("#form-data", "name: Aragorn")
+    end
+
+    test "can handle redirects", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> submit_form("#no-submit-button-and-redirect", name: "Aragorn")
+      |> assert_has("h1", "LiveView main page")
     end
 
     test "raises an error if the form can't be found", %{conn: conn} do

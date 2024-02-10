@@ -29,6 +29,7 @@ defmodule PhoenixTest.Router do
     put "/page/update_record", PageController, :update
     delete "/page/delete_record", PageController, :delete
     get "/page/:page", PageController, :show
+    post "/page/redirect_to_liveview", PageController, :redirect_to_liveview
 
     live_session :live_pages do
       live "/live/index", IndexLive

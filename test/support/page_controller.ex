@@ -23,4 +23,9 @@ defmodule PhoenixTest.PageController do
     conn
     |> render("record_deleted.html")
   end
+
+  def redirect_to_liveview(conn, _) do
+    conn
+    |> redirect(to: "/live/index")
+  end
 end
