@@ -84,9 +84,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     data = form["data"]
 
-    conn = dispatch(session.conn, @endpoint, method, action, data)
-
-    %{session | conn: conn}
+    session.conn
+    |> dispatch(@endpoint, method, action, data)
+    |> maybe_redirect(session)
   end
 
   defp single_button_form_submit(session, text) do
@@ -98,9 +98,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     action = Html.attribute(form, "action")
     method = Html.attribute(form, "method") || "get"
 
-    conn = dispatch(session.conn, @endpoint, method, action)
-
-    %{session | conn: conn}
+    session.conn
+    |> dispatch(@endpoint, method, action)
+    |> maybe_redirect(session)
   end
 
   def submit_form(session, selector, form_data) do
@@ -121,6 +121,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     session
     |> PhoenixTest.Static.put_private(:active_form, form)
+  end
+
+  def render_html(%{conn: conn}) do
+    conn
+    |> html_response(200)
+  end
+
+  defp maybe_redirect(conn, session) do
+    case conn do
+      %{status: 302} ->
+        path = redirected_to(conn)
+        PhoenixTest.visit(conn, path)
+
+      %{status: _} ->
+        %{session | conn: conn}
+    end
   end
 
   defp verify_expected_form_data(form, form_data) do
@@ -144,6 +160,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end)
   end
 
+  defp verify_field_presence([], expected_field) do
+    raise ArgumentError, """
+    Expected form to have #{inspect(expected_field)} form field, but found no
+    existing fields.
+    """
+  end
+
   defp verify_field_presence(existing_fields, expected_field) do
     if Enum.all?(existing_fields, fn field ->
          field["name"] != expected_field
@@ -160,10 +183,5 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp format_field_error(field) do
     "#{field["type"]} with name=#{inspect(field["name"])}"
-  end
-
-  def render_html(%{conn: conn}) do
-    conn
-    |> html_response(200)
   end
 end

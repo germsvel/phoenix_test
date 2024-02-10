@@ -74,6 +74,21 @@ defmodule PhoenixTest.PageView do
         <input type="checkbox" name="member_of_fellowship" />
       </div>
     </form>
+
+    <form id="redirect-to-liveview-form" method="post" action="/page/redirect_to_liveview">
+      <label for="name">Name</label>
+      <input name="name" />
+      <button type="submit">Save and Redirect to LiveView</button>
+    </form>
+
+    <form method="post" action="/page/redirect_to_liveview">
+      <button>Post and Redirect</button>
+    </form>
+
+    <form id="no-submit-button-and-redirect" method="post" action="/page/redirect_to_liveview">
+      <label for="name">Name</label>
+      <input name="name" />
+    </form>
     """
   end
 
