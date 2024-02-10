@@ -126,35 +126,11 @@ defmodule PhoenixTest.LiveTest do
       assert starting_html == ending_html
     end
 
-    test "can handle forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> fill_form("#full-form",
-        name: "Aragorn",
-        admin: "on",
-        race: "human",
-        notes: "King of Gondor"
-      )
-      |> click_button("Save")
-      |> assert_has("#form-data", "name: Aragorn")
-      |> assert_has("#form-data", "admin: on")
-      |> assert_has("#form-data", "race: human")
-      |> assert_has("#form-data", "notes: King of Gondor")
-    end
-
     test "triggers a phx-change event on a form (when it has one)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_form("#email-form", email: nil)
       |> assert_has("#form-errors", "Errors present")
-    end
-
-    test "can be combined with click_button to submit a form", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> fill_form("#email-form", email: "some@example.com")
-      |> click_button("Save")
-      |> assert_has("#form-data", "email: some@example.com")
     end
 
     test "raises an error when form can't be found with selector", %{conn: conn} do
@@ -182,12 +158,68 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "fill_form + click_button" do
+    test "fill_form can be combined with click_button to submit a form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#email-form", email: "some@example.com")
+      |> click_button("Save")
+      |> assert_has("#form-data", "email: some@example.com")
+    end
+
+    test "can handle forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#full-form",
+        name: "Aragorn",
+        admin: "on",
+        race: "human",
+        notes: "King of Gondor"
+      )
+      |> click_button("Save")
+      |> assert_has("#form-data", "name: Aragorn")
+      |> assert_has("#form-data", "admin: on")
+      |> assert_has("#form-data", "race: human")
+      |> assert_has("#form-data", "notes: King of Gondor")
+    end
+
+    test "follows form's redirect to live page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#redirect-form", name: "Aragorn")
+      |> click_button("#redirect-form-submit", "Save")
+      |> assert_has("h1", "LiveView page 2")
+    end
+
+    test "follows form's redirect to static page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#redirect-form-to-static", name: "Aragorn")
+      |> click_button("#redirect-form-to-static-submit", "Save")
+      |> assert_has("h1", "Main page")
+    end
+  end
+
   describe "submit_form/3" do
     test "submits a form via phx-submit", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> submit_form("#email-form", email: "some@example.com")
       |> assert_has("#form-data", "email: some@example.com")
+    end
+
+    test "follows form's redirect to live page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#redirect-form", name: "Aragorn")
+      |> assert_has("h1", "LiveView page 2")
+    end
+
+    test "follows form's redirect to static page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#redirect-form-to-static", name: "Aragorn")
+      |> assert_has("h1", "Main page")
     end
 
     test "raises an error if the form can't be found", %{conn: conn} do

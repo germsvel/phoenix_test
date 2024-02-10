@@ -59,6 +59,22 @@ defmodule PhoenixTest.IndexLive do
       <textarea name="notes" rows="5" cols="33">
       </textarea>
     </form>
+
+    <form id="redirect-form" phx-submit="save-redirect-form">
+      <label for="name">Name</label>
+      <input name="name" />
+      <button type="submit" id="redirect-form-submit">
+        Save
+      </button>
+    </form>
+
+    <form id="redirect-form-to-static" phx-submit="save-redirect-form-to-static">
+      <label for="name">Name</label>
+      <input name="name" />
+      <button type="submit" id="redirect-form-to-static-submit">
+        Save
+      </button>
+    </form>
     """
   end
 
@@ -93,6 +109,14 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_saved, true)
       |> assign(:form_data, form_data)
     }
+  end
+
+  def handle_event("save-redirect-form", _, socket) do
+    {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_event("save-redirect-form-to-static", _, socket) do
+    {:noreply, redirect(socket, to: "/page/index")}
   end
 
   def handle_event("validate-email", %{"email" => email}, socket) do
