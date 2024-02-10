@@ -86,8 +86,8 @@ defmodule PhoenixTest do
   subsequently submit the form. Note that `fill_form/3` + `click_button/2` works
   for both static and live pages.
 
-  If `click_button/2` is used alone (without a `phx-click`), it is assumed it is a
-  form with a single button (e.g. "Delete").
+  If `click_button/2` is used alone (without a `phx-click`), it is assumed it is
+  a form with a single button (e.g. "Delete").
 
   ## Examples
 
@@ -116,23 +116,57 @@ defmodule PhoenixTest do
 
   This can be used by both static and live pages.
 
-  If it is a LiveView, and if the form has a `phx-change` attribute defined,
-  `fill_form/3` will trigger the `phx-change` event.
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `fill_form/3` will trigger the `phx-change` event.
 
   This can be followed by a `click_button/3` to submit the form.
+
+  ## Examples
+
+  ```elixir
+  session
+  |> fill_form("#user-form", name: "Aragorn")
+  |> click_button("Create")
+  ```
+
+  If your form has nested data -- for example, with an input such as `<input
+  name="user[email]">` -- you can pass a nested map as the last argument:
+
+  ```elixir
+  session
+  |> fill_form("#user-form", user: %{email: "aragorn@dunedain.com"})
+  |> click_button("Create")
+  ```
   """
   defdelegate fill_form(session, selector, data), to: Driver
 
   @doc """
   Submits form in the same way one would do by pressing `<Enter>`.
 
-  Note that this does not validate presence of the submit button.
+  _Note that this does not validate presence of the submit button._
+
+  In the case of LiveView forms, it'll submit the form with LiveView's
+  `phx-submit` event.
+
+  If it's a static form, this is equivalent to filling the form and submitting
+  it with the form's `method` and to the form's `action`.
+
+  Note: if your form has a submit button, it's recommended you test with
+  `fill_form/3` + `click_button/2` instead.
 
   ## Examples
 
   ```elixir
   session
   |> submit_form("#user-form", name: "Aragorn")
+  ```
+
+  If your form has nested data -- for example, with an input such as `<input
+  name="user[email]">` -- you can pass a nested map as the last argument:
+
+  ```elixir
+  session
+  |> submit_form("#user-form", user: %{email: "aragorn@dunedain.com"})
   ```
   """
   defdelegate submit_form(session, selector, data), to: Driver
@@ -150,7 +184,7 @@ defmodule PhoenixTest do
   Opposite of `assert_has/3` helper. Verifies that element with
   given CSS selector and `text` is _not_ present.
 
-  It'll raise an error if an element that matches selector and text is  found.
+  It'll raise an error if any elements that match selector and text are found.
   """
   defdelegate refute_has(session, selector, text), to: Assertions
 end
