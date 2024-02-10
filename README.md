@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/hexpm/l/phoenix_test.svg)](https://github.com/germsvel/phoenix_test/blob/main/LICENSE)
 
 PhoenixTest provides a unified way of writing feature tests -- regardless of
-whether you're testing LiveView pages or static pages.
+whether you're testing LiveView pages or static (non-LiveView) pages.
 
 It also handles navigation between LiveView and static pages seamlessly. So, you
 don't have to worry about what type of page you're visiting. Just write the
@@ -196,6 +196,14 @@ small typo and we have no idea!
 
 And that's where `PhoenixTest` comes in! A unified way of writing feature tests
 and improved assertions where they're needed!
+
+## What do you mean by "static" pages?
+
+We use the term _static_ as compared to LiveView pages. Thus, in PhoenixTest's
+terminology static pages are what is typically known as dynamic, server-rendered
+pages -- pages that were normal prior to the advent of LiveView and which are
+sometimes called "dead" views. Thus, we do not mean _static_ in the sense that
+static-site generators (such as Jekyll, Gatsby, etc.) mean it.
 
 ## Sponsors
 
