@@ -45,6 +45,12 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("li", "Aragorn")
     end
 
+    test "succeeds if more than one element matches selector and text", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has(".multiple_links", "Multiple links")
+    end
+
     test "succeeds if text difference is only a matter of truncation", %{conn: conn} do
       conn
       |> visit("/page/index")

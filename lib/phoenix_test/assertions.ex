@@ -15,6 +15,9 @@ defmodule PhoenixTest.Assertions do
       {:found, _found} ->
         assert true
 
+      {:found_many, _found} ->
+        assert true
+
       {:not_found, []} ->
         raise AssertionError,
           message: """
