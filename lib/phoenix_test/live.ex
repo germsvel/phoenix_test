@@ -42,19 +42,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def click_link(session, selector, text) do
-    result =
-      session.view
-      |> element(selector, text)
-      |> render_click()
-      |> maybe_redirect(session)
-
-    case result do
-      {:ok, view, _} ->
-        %{session | view: view}
-
-      {:static_view, conn, path} ->
-        PhoenixTest.visit(conn, path)
-    end
+    session.view
+    |> element(selector, text)
+    |> render_click()
+    |> maybe_redirect(session)
   end
 
   def click_button(session, text) do
@@ -93,24 +84,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     session.view
     |> form(form.selector, form.form_data)
     |> render_submit()
-
-    session
+    |> maybe_redirect(session)
   end
 
   defp regular_click(session, selector, text) do
-    result =
-      session.view
-      |> element(selector, text)
-      |> render_click()
-      |> maybe_redirect(session)
-
-    case result do
-      {:ok, view, _} ->
-        %{session | view: view}
-
-      {:static_view, conn, path} ->
-        PhoenixTest.visit(conn, path)
-    end
+    session.view
+    |> element(selector, text)
+    |> render_click()
+    |> maybe_redirect(session)
   end
 
   def fill_form(session, selector, form_data) do
@@ -148,8 +129,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     session.view
     |> form(selector, form_data)
     |> render_submit()
-
-    session
+    |> maybe_redirect(session)
   end
 
   def render_html(%{view: view}) do
@@ -157,15 +137,15 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
-    {:static_view, session.conn, path}
+    PhoenixTest.visit(session.conn, path)
   end
 
   defp maybe_redirect({:error, {:live_redirect, _}} = result, session) do
-    result
-    |> follow_redirect(session.conn)
+    {:ok, view, _} = follow_redirect(result, session.conn)
+    %{session | view: view}
   end
 
   defp maybe_redirect(html, session) when is_binary(html) do
-    {:ok, session.view, html}
+    session
   end
 end
