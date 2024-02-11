@@ -75,6 +75,22 @@ defmodule PhoenixTest.IndexLive do
         Save
       </button>
     </form>
+
+    <form id="invalid-form">
+      <label for="name">Name</label>
+      <input name="name" />
+      <button type="submit">
+        Submit Invalid Form
+      </button>
+    </form>
+
+    <form id="non-liveview-form" action="/page/redirect_to_static" method="post">
+      <label for="name">Name</label>
+      <input name="name" />
+      <button type="submit">
+        Submit Non LiveView
+      </button>
+    </form>
     """
   end
 

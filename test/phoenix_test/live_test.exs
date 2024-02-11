@@ -2,6 +2,7 @@ defmodule PhoenixTest.LiveTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
+  import PhoenixTest.TestHelpers
 
   alias PhoenixTest.Driver
 
@@ -197,6 +198,29 @@ defmodule PhoenixTest.LiveTest do
       |> fill_form("#redirect-form-to-static", name: "Aragorn")
       |> click_button("#redirect-form-to-static-submit", "Save")
       |> assert_has("h1", "Main page")
+    end
+
+    test "submits regular (non phx-submit) form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#non-liveview-form", name: "Aragorn")
+      |> click_button("Submit Non LiveView")
+      |> assert_has("h1", "Main page")
+    end
+
+    test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
+      msg =
+        """
+        Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
+        """
+        |> ignore_whitespace()
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> fill_form("#invalid-form", name: "Aragorn")
+        |> click_button("Submit Invalid Form")
+      end
     end
   end
 

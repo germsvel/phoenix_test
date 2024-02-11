@@ -28,4 +28,9 @@ defmodule PhoenixTest.PageController do
     conn
     |> redirect(to: "/live/index")
   end
+
+  def redirect_to_static(conn, _) do
+    conn
+    |> redirect(to: "/page/index")
+  end
 end

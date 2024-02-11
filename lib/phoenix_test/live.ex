@@ -81,10 +81,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defp submit_active_form(session) do
     {form, session} = PhoenixTest.Live.pop_private(session, :active_form)
 
-    session.view
-    |> form(form.selector, form.form_data)
-    |> render_submit()
-    |> maybe_redirect(session)
+    cond do
+      phx_submit_form?(session, form.selector) ->
+        session.view
+        |> form(form.selector, form.form_data)
+        |> render_submit()
+        |> maybe_redirect(session)
+
+      action_form?(session, form.selector) ->
+        session.conn
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.submit_form(form.selector, form.form_data)
+
+      true ->
+        raise ArgumentError,
+              "Expected form with selector #{inspect(form.selector)} to have a `phx-submit` or `action` defined."
+    end
   end
 
   defp regular_click(session, selector, text) do
@@ -113,6 +125,26 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     Enum.each(form_data, fn {name, _value} ->
       Query.find!(html, "#{selector} [name=#{name}]")
     end)
+  end
+
+  defp action_form?(session, selector) do
+    action =
+      session
+      |> render_html()
+      |> Query.find!(selector)
+      |> Html.attribute("action")
+
+    action != nil && action != ""
+  end
+
+  defp phx_submit_form?(session, selector) do
+    phx_submit =
+      session
+      |> render_html()
+      |> Query.find!(selector)
+      |> Html.attribute("phx-submit")
+
+    phx_submit != nil && phx_submit != ""
   end
 
   defp phx_change_form?(session, selector) do
