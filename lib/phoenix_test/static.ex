@@ -162,8 +162,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp verify_field_presence([], expected_field) do
     raise ArgumentError, """
-    Expected form to have #{inspect(expected_field)} form field, but found no
-    existing fields.
+    Expected form to have #{inspect(expected_field)} form field, but found none.
     """
   end
 
@@ -176,12 +175,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
       Found the following fields:
 
-       - #{Enum.map_join(existing_fields, "\n - ", &format_field_error/1)}
+      #{format_existing_fields_errors(existing_fields)}
       """
     end
   end
 
+  defp format_existing_fields_errors(fields) do
+    Enum.map_join(fields, "\n", &format_field_error/1)
+  end
+
   defp format_field_error(field) do
-    "#{field["type"]} with name=#{inspect(field["name"])}"
+    Html.raw({field["type"], [{"name", field["name"]}], []})
   end
 end

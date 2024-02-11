@@ -132,13 +132,14 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error when form input cannot be found", %{conn: conn} do
-      message = """
-      Expected form to have "location[user][name]" form field, but found none.
+      message =
+        """
+        Expected form to have "location[user][name]" form field, but found none.
 
-      Found the following fields:
+        Found the following fields:
 
-       - input with name="user[name]"
-      """
+        <input name="user[name]"/>\n
+        """
 
       assert_raise ArgumentError, message, fn ->
         conn

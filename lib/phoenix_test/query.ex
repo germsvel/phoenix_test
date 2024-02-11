@@ -150,18 +150,16 @@ defmodule PhoenixTest.Query do
   end
 
   defp format_potential_matches(elements) do
-    Enum.map_join(elements, "\n", fn
-      {tag, _, [content]} -> "<#{tag}> tag with content #{inspect(content)}"
-    end)
+    Enum.map_join(elements, "\n", &Html.raw/1)
   end
 
   defp format_find_one_of_elements_for_error(selectors_and_text) do
     Enum.map_join(selectors_and_text, "\n", fn
       {selector, text} ->
-        "Selector #{inspect(selector)} with content #{inspect(text)}"
+        "- #{inspect(selector)} with content #{inspect(text)}"
 
       selector ->
-        "Selector #{inspect(selector)}"
+        "- #{inspect(selector)}"
     end)
   end
 end

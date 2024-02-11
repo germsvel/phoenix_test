@@ -1,6 +1,8 @@
 defmodule PhoenixTest.QueryTest do
   use ExUnit.Case, async: true
 
+  import PhoenixTest.TestHelpers
+
   alias PhoenixTest.Query
 
   describe "find!/2" do
@@ -216,8 +218,8 @@ defmodule PhoenixTest.QueryTest do
 
       I was looking for an element with one of these selectors:
 
-      Selector "h2" with content "Hi"
-      Selector "h3"
+      - "h2" with content "Hi"
+      - "h3"
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -231,19 +233,26 @@ defmodule PhoenixTest.QueryTest do
       <h2>Greetings</h2>
       """
 
-      msg = """
-      Could not find an element with given selectors.
+      msg =
+        """
+        Could not find an element with given selectors.
 
-      I was looking for an element with one of these selectors:
+        I was looking for an element with one of these selectors:
 
-      Selector "h2" with content "Hi"
-      Selector "h3"
+        - "h2" with content "Hi"
+        - "h3"
 
-      I found some elements that match the selector but not the content:
+        I found some elements that match the selector but not the content:
 
-      <h2> tag with content "Hello"
-      <h2> tag with content "Greetings"
-      """
+        <h2>
+          Hello
+        </h2>
+
+        <h2>
+          Greetings
+        </h2>
+        """
+        |> ignore_whitespace()
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
