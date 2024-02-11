@@ -154,7 +154,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_form("#email-form", email: "sample@example.com")
-      |> click_button("Save")
+      |> click_button("#email-form", "Save")
       |> assert_has("#form-data", "email: sample@example.com")
     end
 
@@ -162,7 +162,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_form("#nested-form", user: %{name: "Aragorn"})
-      |> click_button("Save")
+      |> click_button("#nested-form", "Save")
       |> assert_has("#form-data", "user:name: Aragorn")
     end
 

@@ -48,6 +48,7 @@ defmodule PhoenixTest.PageView do
     <form id="nested-form" method="post" action="/page/create_record">
       <label for="user[name]">Name</label>
       <input name="user[name]" />
+      <button>Save</button>
     </form>
 
     <form id="full-form" method="post" action="/page/create_record">
