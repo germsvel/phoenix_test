@@ -7,6 +7,20 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.4
+
+### Added
+
+- Handle form redirects from static pages. Commit
+  [4c39920](https://github.com/germsvel/phoenix_test/commit/4c39920)
+- Handle regular form submission from LiveView pages. Commit
+  [fe755de](https://github.com/germsvel/phoenix_test/commit/fe755de)
+
+### Fixes
+
+- Use Html.raw/1 for more errors to handle nested buttons.
+  [82e7415](https://github.com/germsvel/phoenix_test/commit/82e7415)
+
 ## 0.2.3
 
 ### Added
