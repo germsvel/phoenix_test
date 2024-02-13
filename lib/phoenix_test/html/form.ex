@@ -3,15 +3,15 @@ defmodule PhoenixTest.Html.Form do
 
   alias PhoenixTest.Html
 
-  def parse({"form", attrs, fields}) do
+  def build({"form", attrs, fields}) do
     %{}
-    |> put_attributes(attrs)
+    |> Map.put("attributes", build_attributes(attrs))
     |> Map.put("fields", build_fields(fields))
   end
 
-  defp put_attributes(form, attrs) do
+  defp build_attributes(attrs) do
     attrs
-    |> Enum.reduce(form, fn {key, value}, acc ->
+    |> Enum.reduce(%{}, fn {key, value}, acc ->
       Map.put(acc, key, value)
     end)
   end
@@ -22,22 +22,22 @@ defmodule PhoenixTest.Html.Form do
     textareas = fields |> Html.all("textarea")
 
     Enum.concat([inputs, selects, textareas])
-    |> Enum.map(&create_field/1)
+    |> Enum.map(&build_field/1)
   end
 
-  defp create_field({"select", attrs, options}) do
-    %{"type" => "select"}
-    |> put_attributes(attrs)
-    |> Map.put("options", create_options(options))
+  defp build_field({"select", attrs, options}) do
+    %{"tag" => "select"}
+    |> Map.put("attributes", build_attributes(attrs))
+    |> Map.put("options", build_options(options))
   end
 
-  defp create_field({type, attrs, contents}) do
-    %{"type" => type}
-    |> put_attributes(attrs)
+  defp build_field({tag, attrs, contents}) do
+    %{"tag" => tag}
+    |> Map.put("attributes", build_attributes(attrs))
     |> Map.put("content", Enum.join(contents, " "))
   end
 
-  defp create_options(options) do
-    Enum.map(options, &create_field/1)
+  defp build_options(options) do
+    Enum.map(options, &build_field/1)
   end
 end

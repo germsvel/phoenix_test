@@ -82,8 +82,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp submit_active_form(session) do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
-    action = form["action"]
-    method = form["method"] || "get"
+    action = form["attributes"]["action"]
+    method = form["attributes"]["method"] || "get"
 
     data = form["data"]
 
@@ -111,7 +111,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       session
       |> render_html()
       |> Query.find!(selector)
-      |> Html.Form.parse()
+      |> Html.Form.build()
       |> Map.put("data", form_data)
 
     :ok = verify_expected_form_data!(form, form_data)
@@ -121,8 +121,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp verify_expected_form_data!(form, form_data) do
-    action = form["action"]
-    unless action, do: raise("Expected form to have an action but found none")
+    action = form["attributes"]["action"]
+    unless action, do: raise(ArgumentError, "Expected form to have an action but found none")
 
     validate_expected_fields!(form["fields"], form_data)
   end
@@ -149,7 +149,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp verify_field_presence!(existing_fields, expected_field) do
     if Enum.all?(existing_fields, fn field ->
-         field["name"] != expected_field
+         field["attributes"]["name"] != expected_field
        end) do
       raise ArgumentError, """
       Expected form to have #{inspect(expected_field)} form field, but found none.
@@ -166,7 +166,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp format_field_error(field) do
-    Html.raw({field["type"], [{"name", field["name"]}], []})
+    attrs = to_tuples(field["attributes"])
+    Html.raw({field["tag"], attrs, []})
+  end
+
+  defp to_tuples(map) when is_map(map) do
+    Enum.map(map, fn {_k, _v} = a -> a end)
   end
 
   def submit_form(session, selector, form_data) do
