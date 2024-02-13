@@ -28,6 +28,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  def render_html(%{conn: conn}) do
+    conn
+    |> html_response(200)
+  end
+
   def click_link(session, text) do
     click_link(session, "a", text)
   end
@@ -49,17 +54,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   def click_button(session, selector, text) do
     if has_active_form?(session) do
       session
-      |> render_html()
-      |> find_submit_buttons!(selector, text)
-
-      session
+      |> validate_submit_buttons!(selector, text)
       |> submit_active_form()
     else
       session
-      |> render_html()
-      |> find_submit_buttons!(selector, text)
-
-      session
+      |> validate_submit_buttons!(selector, text)
       |> single_button_form_submit(text)
     end
   end
@@ -71,10 +70,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  defp find_submit_buttons!(html, selector, text) do
+  defp validate_submit_buttons!(session, selector, text) do
     submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
 
-    Query.find_one_of!(html, submit_buttons)
+    session
+    |> render_html()
+    |> Query.find_one_of!(submit_buttons)
+
+    session
   end
 
   defp submit_active_form(session) do
@@ -103,12 +106,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> maybe_redirect(session)
   end
 
-  def submit_form(session, selector, form_data) do
-    session
-    |> fill_form(selector, form_data)
-    |> submit_active_form()
-  end
-
   def fill_form(session, selector, form_data) do
     form =
       session
@@ -117,56 +114,40 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> Html.Form.parse()
       |> Map.put("data", form_data)
 
-    :ok = verify_expected_form_data(form, form_data)
+    :ok = verify_expected_form_data!(form, form_data)
 
     session
     |> PhoenixTest.Static.put_private(:active_form, form)
   end
 
-  def render_html(%{conn: conn}) do
-    conn
-    |> html_response(200)
-  end
-
-  defp maybe_redirect(conn, session) do
-    case conn do
-      %{status: 302} ->
-        path = redirected_to(conn)
-        PhoenixTest.visit(conn, path)
-
-      %{status: _} ->
-        %{session | conn: conn}
-    end
-  end
-
-  defp verify_expected_form_data(form, form_data) do
+  defp verify_expected_form_data!(form, form_data) do
     action = form["action"]
     unless action, do: raise("Expected form to have an action but found none")
 
-    validate_expected_fields(form["fields"], form_data)
+    validate_expected_fields!(form["fields"], form_data)
   end
 
-  defp validate_expected_fields(existing_fields, form_data) do
+  defp validate_expected_fields!(existing_fields, form_data) do
     form_data
     |> Enum.each(fn
       {key, values} when is_map(values) ->
         Enum.each(values, fn {nested_key, nested_value} ->
           combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"
-          validate_expected_fields(existing_fields, %{combined_key => nested_value})
+          validate_expected_fields!(existing_fields, %{combined_key => nested_value})
         end)
 
       {key, _value} ->
-        verify_field_presence(existing_fields, to_string(key))
+        verify_field_presence!(existing_fields, to_string(key))
     end)
   end
 
-  defp verify_field_presence([], expected_field) do
+  defp verify_field_presence!([], expected_field) do
     raise ArgumentError, """
     Expected form to have #{inspect(expected_field)} form field, but found none.
     """
   end
 
-  defp verify_field_presence(existing_fields, expected_field) do
+  defp verify_field_presence!(existing_fields, expected_field) do
     if Enum.all?(existing_fields, fn field ->
          field["name"] != expected_field
        end) do
@@ -186,5 +167,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp format_field_error(field) do
     Html.raw({field["type"], [{"name", field["name"]}], []})
+  end
+
+  def submit_form(session, selector, form_data) do
+    session
+    |> fill_form(selector, form_data)
+    |> submit_active_form()
+  end
+
+  defp maybe_redirect(conn, session) do
+    case conn do
+      %{status: 302} ->
+        path = redirected_to(conn)
+        PhoenixTest.visit(conn, path)
+
+      %{status: _} ->
+        %{session | conn: conn}
+    end
   end
 end

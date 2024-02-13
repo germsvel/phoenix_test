@@ -37,6 +37,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  def render_html(%{view: view}) do
+    render(view)
+  end
+
   def click_link(session, text) do
     click_link(session, "a", text)
   end
@@ -55,10 +59,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   def click_button(session, selector, text) do
     if has_active_form?(session) do
       session
-      |> render_html()
-      |> find_submit_buttons!(selector, text)
-
-      session
+      |> validate_submit_buttons!(selector, text)
       |> submit_active_form()
     else
       regular_click(session, selector, text)
@@ -72,10 +73,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
-  defp find_submit_buttons!(html, selector, text) do
+  defp validate_submit_buttons!(session, selector, text) do
     submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
 
-    Query.find_one_of!(html, submit_buttons)
+    session
+    |> render_html()
+    |> Query.find_one_of!(submit_buttons)
+
+    session
   end
 
   defp submit_active_form(session) do
@@ -112,14 +117,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> form(selector, form_data)
       |> render_change()
     else
-      validate_fields(session, selector, form_data)
+      validate_form_fields!(session, selector, form_data)
     end
 
     session
     |> PhoenixTest.Live.put_private(:active_form, %{selector: selector, form_data: form_data})
   end
 
-  defp validate_fields(session, selector, form_data) do
+  defp validate_form_fields!(session, selector, form_data) do
     html = render_html(session)
 
     Enum.each(form_data, fn {name, _value} ->
@@ -162,10 +167,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     |> form(selector, form_data)
     |> render_submit()
     |> maybe_redirect(session)
-  end
-
-  def render_html(%{view: view}) do
-    render(view)
   end
 
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
