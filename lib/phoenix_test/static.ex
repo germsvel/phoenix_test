@@ -82,13 +82,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp submit_active_form(session) do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
-    action = form["attributes"]["action"]
-    method = form["attributes"]["method"] || "get"
-
-    data = form["data"]
+    action = form.built["attributes"]["action"]
+    method = form.built["attributes"]["method"] || "get"
 
     session.conn
-    |> dispatch(@endpoint, method, action, data)
+    |> dispatch(@endpoint, method, action, form.form_data)
     |> maybe_redirect(session)
   end
 
@@ -112,12 +110,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> render_html()
       |> Query.find!(selector)
       |> Html.Form.build()
-      |> Map.put("data", form_data)
 
     :ok = verify_expected_form_data!(form, form_data)
 
+    active_form = %{selector: selector, form_data: form_data, built: form}
+
     session
-    |> PhoenixTest.Static.put_private(:active_form, form)
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
   end
 
   defp verify_expected_form_data!(form, form_data) do
