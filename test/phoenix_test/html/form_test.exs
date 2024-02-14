@@ -95,6 +95,106 @@ defmodule PhoenixTest.Html.FormTest do
     end
   end
 
+  describe "validate_form_data!" do
+    test "returns :ok with valid form" do
+      data =
+        form_data("""
+          <form id="user-form" action="/" method="post">
+            <div>
+              <label for="admin">Admin</label>
+              <input type="checkbox" name="admin" />
+            </div>
+          </form>
+        """)
+
+      form = Html.Form.build(data)
+
+      assert :ok = Html.Form.validate_form_data!(form, %{admin: "on"})
+    end
+
+    test "raises when form doesn't have an action" do
+      data =
+        form_data("""
+          <form>
+          </form>
+        """)
+
+      form = Html.Form.build(data)
+
+      assert_raise ArgumentError, "Expected form to have an action but found none", fn ->
+        Html.Form.validate_form_data!(form, %{})
+      end
+    end
+  end
+
+  describe "validate_form_fields!" do
+    test "returns :ok with valid form fields" do
+      form =
+        """
+          <form id="user-form" action="/" method="post">
+            <div>
+              <label for="admin">Admin</label>
+              <input type="checkbox" name="admin" />
+            </div>
+          </form>
+        """
+        |> form_data()
+        |> Html.Form.build()
+
+      fields = form["fields"]
+
+      assert :ok = Html.Form.validate_form_fields!(fields, %{admin: "on"})
+    end
+
+    test "raises when there are no form fields but some are expected" do
+      expected_fields = %{admin: "on", name: "Fred"}
+
+      form =
+        """
+          <form id="user-form" action="/" method="post">
+          </form>
+        """
+        |> form_data()
+        |> Html.Form.build()
+
+      msg = """
+      Expected form to have "name" form field, but found none.
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Html.Form.validate_form_fields!(form["fields"], expected_fields)
+      end
+    end
+
+    test "raises when expected field isn't found on form" do
+      expected_fields = %{admin: "on", name: "Fred"}
+
+      form =
+        """
+          <form id="user-form" action="/" method="post">
+            <div>
+              <label for="admin">Admin</label>
+              <input type="checkbox" name="admin" />
+            </div>
+          </form>
+        """
+        |> form_data()
+        |> Html.Form.build()
+
+      msg = """
+      Expected form to have "name" form field, but found none.
+
+      Found the following fields:
+
+      <input name="admin" type="checkbox"/>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Html.Form.validate_form_fields!(form["fields"], expected_fields)
+      end
+    end
+  end
+
   defp form_data(html_form) do
     html_form
     |> Query.find!("form")

@@ -42,7 +42,7 @@ defmodule PhoenixTest.Html.Form do
   end
 
   def validate_form_data!(form, form_data) do
-    action = form["attributes"]["action"]
+    action = get_in(form, ["attributes", "action"])
     unless action, do: raise(ArgumentError, "Expected form to have an action but found none")
 
     validate_form_fields!(form["fields"], form_data)
