@@ -192,6 +192,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", "notes: King of Gondor")
     end
 
+    test "can submit nested forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#nested-form", user: %{name: "Aragorn"})
+      |> click_button("#nested-form", "Save")
+      |> assert_has("#form-data", "user:name: Aragorn")
+    end
+
     test "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")
