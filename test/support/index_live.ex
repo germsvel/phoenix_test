@@ -31,13 +31,18 @@ defmodule PhoenixTest.IndexLive do
 
     <div :if={@form_saved} id="form-data">
       <%= for {key, value} <- @form_data do %>
-        <%= key %>: <%= value %>
+        <%= render_input_data(key, value) %>
       <% end %>
     </div>
 
     <form id="no-phx-change-form" phx-submit="save-name">
       <input name="name" />
       <button type="submit">Save name</button>
+    </form>
+
+    <form id="nested-form" phx-submit="save-form">
+      <input name="user[name]" />
+      <button type="submit">Save</button>
     </form>
 
     <form id="full-form" phx-submit="save-form">
@@ -143,5 +148,15 @@ defmodule PhoenixTest.IndexLive do
       _valid ->
         {:noreply, socket}
     end
+  end
+
+  defp render_input_data(key, value) when is_binary(value) do
+    "#{key}: #{value}"
+  end
+
+  defp render_input_data(key, values) do
+    Enum.map_join(values, "\n", fn {nested_key, value} ->
+      render_input_data("#{key}:#{nested_key}", value)
+    end)
   end
 end
