@@ -151,7 +151,15 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error when inputs aren't found in form without phx-change", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
+      msg = """
+      Expected form to have "member_of_fellowship" form field, but found none.
+
+      Found the following fields:
+
+      <input name="name"/>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/live/index")
         |> fill_form("#no-phx-change-form", member_of_fellowship: false)

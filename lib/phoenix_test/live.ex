@@ -117,19 +117,17 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> form(selector, form_data)
       |> render_change()
     else
-      validate_form_fields!(session, selector, form_data)
+      session
+      |> render_html()
+      |> Query.find!(selector)
+      |> Html.Form.build()
+      |> then(fn form ->
+        :ok = Html.Form.validate_form_fields!(form["fields"], form_data)
+      end)
     end
 
     session
     |> PhoenixTest.Live.put_private(:active_form, %{selector: selector, form_data: form_data})
-  end
-
-  defp validate_form_fields!(session, selector, form_data) do
-    html = render_html(session)
-
-    Enum.each(form_data, fn {name, _value} ->
-      Query.find!(html, "#{selector} [name=#{name}]")
-    end)
   end
 
   defp action_form?(session, selector) do

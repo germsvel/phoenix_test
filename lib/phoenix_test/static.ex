@@ -82,8 +82,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp submit_active_form(session) do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
-    action = form.built["attributes"]["action"]
-    method = form.built["attributes"]["method"] || "get"
+    action = form.parsed["attributes"]["action"]
+    method = form.parsed["attributes"]["method"] || "get"
 
     session.conn
     |> dispatch(@endpoint, method, action, form.form_data)
@@ -111,66 +111,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> Query.find!(selector)
       |> Html.Form.build()
 
-    :ok = verify_expected_form_data!(form, form_data)
+    :ok = Html.Form.validate_form_data!(form, form_data)
 
-    active_form = %{selector: selector, form_data: form_data, built: form}
+    active_form = %{selector: selector, form_data: form_data, parsed: form}
 
     session
     |> PhoenixTest.Static.put_private(:active_form, active_form)
-  end
-
-  defp verify_expected_form_data!(form, form_data) do
-    action = form["attributes"]["action"]
-    unless action, do: raise(ArgumentError, "Expected form to have an action but found none")
-
-    validate_expected_fields!(form["fields"], form_data)
-  end
-
-  defp validate_expected_fields!(existing_fields, form_data) do
-    form_data
-    |> Enum.each(fn
-      {key, values} when is_map(values) ->
-        Enum.each(values, fn {nested_key, nested_value} ->
-          combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"
-          validate_expected_fields!(existing_fields, %{combined_key => nested_value})
-        end)
-
-      {key, _value} ->
-        verify_field_presence!(existing_fields, to_string(key))
-    end)
-  end
-
-  defp verify_field_presence!([], expected_field) do
-    raise ArgumentError, """
-    Expected form to have #{inspect(expected_field)} form field, but found none.
-    """
-  end
-
-  defp verify_field_presence!(existing_fields, expected_field) do
-    if Enum.all?(existing_fields, fn field ->
-         field["attributes"]["name"] != expected_field
-       end) do
-      raise ArgumentError, """
-      Expected form to have #{inspect(expected_field)} form field, but found none.
-
-      Found the following fields:
-
-      #{format_existing_fields_errors(existing_fields)}
-      """
-    end
-  end
-
-  defp format_existing_fields_errors(fields) do
-    Enum.map_join(fields, "\n", &format_field_error/1)
-  end
-
-  defp format_field_error(field) do
-    attrs = to_tuples(field["attributes"])
-    Html.raw({field["tag"], attrs, []})
-  end
-
-  defp to_tuples(map) when is_map(map) do
-    Enum.map(map, fn {_k, _v} = a -> a end)
   end
 
   def submit_form(session, selector, form_data) do
