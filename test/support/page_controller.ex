@@ -1,7 +1,13 @@
 defmodule PhoenixTest.PageController do
   use Phoenix.Controller
 
-  plug(:put_layout, false)
+  plug(:put_layout, {PhoenixTest.PageView, :layout})
+
+  def show(conn, %{"page" => "index_no_layout"}) do
+    conn
+    |> put_layout({PhoenixTest.PageView, :empty_layout})
+    |> render("index.html")
+  end
 
   def show(conn, %{"page" => page}) do
     conn

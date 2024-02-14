@@ -7,6 +7,26 @@ defmodule PhoenixTest.StaticTest do
     %{conn: Phoenix.ConnTest.build_conn()}
   end
 
+  describe "render_page_title/1" do
+    test "renders the page title", %{conn: conn} do
+      title =
+        conn
+        |> visit("/page/index")
+        |> PhoenixTest.Driver.render_page_title()
+
+      assert title == "PhoenixTest is the best!"
+    end
+
+    test "renders nil if there's no page title", %{conn: conn} do
+      title =
+        conn
+        |> visit("/page/index_no_layout")
+        |> PhoenixTest.Driver.render_page_title()
+
+      assert title == nil
+    end
+  end
+
   describe "visit/2" do
     test "navigates to given static page", %{conn: conn} do
       conn

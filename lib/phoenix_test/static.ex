@@ -28,6 +28,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  def render_page_title(session) do
+    session
+    |> render_html()
+    |> Query.find("title")
+    |> case do
+      {:found, element} -> Html.text(element)
+      _ -> nil
+    end
+  end
+
   def render_html(%{conn: conn}) do
     conn
     |> html_response(200)

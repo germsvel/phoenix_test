@@ -7,6 +7,19 @@ defmodule PhoenixTest.Assertions do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  def assert_has(session, "title", text) do
+    title = PhoenixTest.Driver.render_page_title(session)
+
+    if title == text do
+      assert true
+    else
+      raise AssertionError,
+        message: """
+        Expected title to be #{inspect(text)} but got #{inspect(title)}
+        """
+    end
+  end
+
   def assert_has(session, selector, text) do
     session
     |> PhoenixTest.Driver.render_html()
@@ -36,6 +49,19 @@ defmodule PhoenixTest.Assertions do
     end
 
     session
+  end
+
+  def refute_has(session, "title", text) do
+    title = PhoenixTest.Driver.render_page_title(session)
+
+    if title == text do
+      raise AssertionError,
+        message: """
+        Expected title not to be #{inspect(text)}
+        """
+    else
+      refute false
+    end
   end
 
   def refute_has(session, selector, text) do
