@@ -29,6 +29,11 @@ defmodule PhoenixTest.IndexLive do
       <button type="submit">Save email</button>
     </form>
 
+    <form id="nested-form" phx-submit="save-nested-form">
+      <input name="user[email]" />
+      <button type="submit">Save nested</button>
+    </form>
+
     <div :if={@form_saved} id="form-data">
       <%= for {key, value} <- @form_data do %>
         <%= key %>: <%= value %>

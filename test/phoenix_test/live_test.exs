@@ -168,6 +168,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", "email: some@example.com")
     end
 
+    test "nested form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#nested-form", user: %{email: "some@example.com"})
+      |> click_button("Save nested")
+      |> assert_has("#form-data", "email: some@example.com")
+    end
+
     test "can handle forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
       conn
       |> visit("/live/index")
