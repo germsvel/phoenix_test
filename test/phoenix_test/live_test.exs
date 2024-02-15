@@ -10,6 +10,36 @@ defmodule PhoenixTest.LiveTest do
     %{conn: Phoenix.ConnTest.build_conn()}
   end
 
+  describe "render_page_title/1" do
+    test "renders the page title", %{conn: conn} do
+      title =
+        conn
+        |> visit("/live/index")
+        |> PhoenixTest.Driver.render_page_title()
+
+      assert title == "PhoenixTest is the best!"
+    end
+
+    test "renders updated page title", %{conn: conn} do
+      title =
+        conn
+        |> visit("/live/index")
+        |> click_button("Change page title")
+        |> PhoenixTest.Driver.render_page_title()
+
+      assert title == "Title changed!"
+    end
+
+    test "returns nil if page title isn't found", %{conn: conn} do
+      title =
+        conn
+        |> visit("/live/index_no_layout")
+        |> PhoenixTest.Driver.render_page_title()
+
+      assert title == nil
+    end
+  end
+
   describe "visit/2" do
     test "navigates to given LiveView page", %{conn: conn} do
       conn

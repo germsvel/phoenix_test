@@ -1,6 +1,25 @@
 defmodule PhoenixTest.PageView do
   use Phoenix.Component
 
+  def render("empty_layout.html", assigns) do
+    ~H"""
+    <%= @inner_content %>
+    """
+  end
+
+  def render("layout.html", assigns) do
+    ~H"""
+    <html lang="en">
+      <head>
+        <title><%= assigns[:page_title] || "PhoenixTest is the best!" %></title>
+      </head>
+      <body>
+        <%= @inner_content %>
+      </body>
+    </html>
+    """
+  end
+
   def render("index.html", assigns) do
     ~H"""
     <h1 id="title" class="title" data-role="title">Main page</h1>

@@ -37,6 +37,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  def render_page_title(%{view: view}) do
+    page_title(view)
+  end
+
   def render_html(%{view: view}) do
     render(view)
   end

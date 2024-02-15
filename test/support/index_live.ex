@@ -14,6 +14,8 @@ defmodule PhoenixTest.IndexLive do
 
     <h2 :if={@details}>LiveView main page details</h2>
 
+    <button phx-click="change-page-title">Change page title</button>
+
     <button phx-click="show-tab">Show tab</button>
 
     <div :if={@show_tab} id="tab">
@@ -117,6 +119,10 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_data, %{})
       |> assign(:show_form_errors, false)
     }
+  end
+
+  def handle_event("change-page-title", _, socket) do
+    {:noreply, assign(socket, :page_title, "Title changed!")}
   end
 
   def handle_event("show-tab", _, socket) do

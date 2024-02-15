@@ -32,9 +32,11 @@ defmodule PhoenixTest.Router do
     post "/page/redirect_to_liveview", PageController, :redirect_to_liveview
     post "/page/redirect_to_static", PageController, :redirect_to_static
 
-    live_session :live_pages do
+    live_session :live_pages, root_layout: {PhoenixTest.PageView, :layout} do
       live "/live/index", IndexLive
       live "/live/page_2", Page2Live
     end
+
+    live "/live/index_no_layout", IndexLive
   end
 end

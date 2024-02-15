@@ -1,5 +1,6 @@
 defprotocol PhoenixTest.Driver do
   @moduledoc false
+  def render_page_title(session)
   def render_html(session)
   def click_link(session, text)
   def click_link(session, selector, text)
