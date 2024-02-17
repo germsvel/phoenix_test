@@ -333,4 +333,21 @@ defmodule PhoenixTest.LiveTest do
       end
     end
   end
+
+  describe "open_browser" do
+    setup do
+      open_fun = fn view ->
+        assert %Phoenix.LiveViewTest.View{} = view
+      end
+
+      %{open_fun: open_fun}
+    end
+
+    test "opens the browser", %{conn: conn, open_fun: open_fun} do
+      conn
+      |> visit("/live/index")
+      |> open_browser(open_fun)
+      |> assert_has("h1", "LiveView main page")
+    end
+  end
 end
