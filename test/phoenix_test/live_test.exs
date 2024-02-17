@@ -292,13 +292,34 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", "Main page")
     end
 
+    test "submits regular (non phx-submit) form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#non-liveview-form", name: "Aragorn")
+      |> assert_has("h1", "Main page")
+    end
+
     test "raises an error if the form can't be found", %{conn: conn} do
-      message = ~r/expected selector "#no-existing-form" to return a single element/
+      message = ~r/Could not find element with selector "#no-existing-form"/
 
       assert_raise ArgumentError, message, fn ->
         conn
         |> visit("/live/index")
         |> submit_form("#no-existing-form", email: "some@example.com")
+      end
+    end
+
+    test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
+      msg =
+        """
+        Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
+        """
+        |> ignore_whitespace()
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> submit_form("#invalid-form", name: "Aragorn")
       end
     end
 
