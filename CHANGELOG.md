@@ -7,14 +7,27 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.5
+
+### Added
+
+- Introduce ability to assert and refute on page title. Commit 8552ec7.
+- Handle regular form submission from LiveView pages when using `submit_form`.
+  Commit fc4d3ef.
+
+### Fixes
+
+- Improve Live validation of form fields to properly handle nested fields in
+  forms. Commits 180dc0d and c275c0c.
+
 ## 0.2.4
 
 ### Added
 
 - Handle form redirects from static pages. Commit
   [4c39920](https://github.com/germsvel/phoenix_test/commit/4c39920)
-- Handle regular form submission from LiveView pages. Commit
-  [fe755de](https://github.com/germsvel/phoenix_test/commit/fe755de)
+- Handle regular form submission from LiveView pages with `fill_form` +
+  `click_button`. Commit [fe755de](https://github.com/germsvel/phoenix_test/commit/fe755de)
 
 ### Fixes
 
