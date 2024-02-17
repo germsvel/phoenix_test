@@ -11,14 +11,19 @@ page](https://hex.pm/packages/phoenix_test)
 
 ### Added
 
-- Introduce ability to assert and refute on page title. Commit 8552ec7.
+- Introduce ability to assert and refute on page title. Commit [8552ec7].
 - Handle regular form submission from LiveView pages when using `submit_form`.
-  Commit fc4d3ef.
+  Commit [fc4d3ef].
 
 ### Fixes
 
 - Improve Live validation of form fields to properly handle nested fields in
-  forms. Commits 180dc0d and c275c0c.
+  forms. Commits [180dc0d] and [c275c0c].
+
+[8552ec7]: https://github.com/germsvel/phoenix_test/commit/8552ec7
+[fc4d3ef]: https://github.com/germsvel/phoenix_test/commit/fc4d3ef
+[180dc0d]: https://github.com/germsvel/phoenix_test/commit/180dc0d
+[c275c0c]: https://github.com/germsvel/phoenix_test/commit/c275c0c
 
 ## 0.2.4
 
