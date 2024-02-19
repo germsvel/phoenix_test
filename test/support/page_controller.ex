@@ -20,8 +20,9 @@ defmodule PhoenixTest.PageController do
     |> render("record_created.html")
   end
 
-  def update(conn, _) do
+  def update(conn, params) do
     conn
+    |> assign(:params, params)
     |> render("record_updated.html")
   end
 

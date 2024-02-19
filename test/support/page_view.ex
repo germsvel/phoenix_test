@@ -45,11 +45,13 @@ defmodule PhoenixTest.PageView do
       <button>Get record</button>
     </form>
 
-    <form action="/page/update_record" method="put">
+    <form action="/page/update_record" method="post">
+      <input name="_method" type="hidden" value="put" />
       <button>Mark as active</button>
     </form>
 
-    <form action="/page/delete_record" method="delete">
+    <form action="/page/delete_record" method="post">
+      <input name="_method" type="hidden" value="delete" />
       <button>Delete record</button>
     </form>
 
@@ -57,6 +59,12 @@ defmodule PhoenixTest.PageView do
       <label for="email">Email</label>
       <input name="email" />
       <button>Save</button>
+    </form>
+
+    <form id="update-form" action="/page/update_record" method="post">
+      <input name="_method" type="hidden" value="put" />
+      <label for="name">Name</label>
+      <input name="name" />
     </form>
 
     <form action="/page/create_record" method="post" id="no-submit-button-form">
@@ -144,7 +152,13 @@ defmodule PhoenixTest.PageView do
 
   def render("record_updated.html", assigns) do
     ~H"""
-    <h1>Marked active!</h1>
+    <h1>Record updated</h1>
+
+    <div id="form-data">
+      <%= for {key, value} <- @params do %>
+        <%= render_input_data(key, value) %>
+      <% end %>
+    </div>
     """
   end
 

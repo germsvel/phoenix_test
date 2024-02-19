@@ -4,7 +4,44 @@ defmodule PhoenixTest.Html.FormTest do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
-  describe "parse/1" do
+  describe "build/1" do
+    test "sets get as the form's operative_method by default" do
+      data =
+        form_data("""
+          <form id="user-form" action="/">
+          </form>
+        """)
+
+      %{"operative_method" => method} = Html.Form.build(data)
+
+      assert method == "get"
+    end
+
+    test "sets form method as operative_method if present" do
+      data =
+        form_data("""
+          <form id="user-form" action="/" method="post">
+          </form>
+        """)
+
+      %{"operative_method" => method} = Html.Form.build(data)
+
+      assert method == "post"
+    end
+
+    test "sets operative_method based on hidden input if available" do
+      data =
+        form_data("""
+          <form id="user-form" action="/" method="post">
+            <input type="hidden" name="_method" value="put"/>
+          </form>
+        """)
+
+      %{"operative_method" => method} = Html.Form.build(data)
+
+      assert method == "put"
+    end
+
     test "includes attributes" do
       data =
         form_data("""

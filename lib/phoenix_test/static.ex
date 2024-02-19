@@ -73,6 +73,27 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
+  def fill_form(session, selector, form_data) do
+    form =
+      session
+      |> render_html()
+      |> Query.find!(selector)
+      |> Html.Form.build()
+
+    :ok = Html.Form.validate_form_data!(form, form_data)
+
+    active_form = %{selector: selector, form_data: form_data, parsed: form}
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
+  end
+
+  def submit_form(session, selector, form_data) do
+    session
+    |> fill_form(selector, form_data)
+    |> submit_active_form()
+  end
+
   defp has_active_form?(session) do
     case PhoenixTest.Static.get_private(session, :active_form) do
       :not_found -> false
@@ -93,7 +114,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defp submit_active_form(session) do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
     action = form.parsed["attributes"]["action"]
-    method = form.parsed["attributes"]["method"] || "get"
+    method = form.parsed["operative_method"]
 
     session.conn
     |> dispatch(@endpoint, method, action, form.form_data)
@@ -105,34 +126,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       session
       |> render_html()
       |> Query.find!("form", text)
+      |> Html.Form.build()
 
-    action = Html.attribute(form, "action")
-    method = Html.attribute(form, "method") || "get"
+    action = form["attributes"]["action"]
+    method = form["operative_method"]
 
     session.conn
     |> dispatch(@endpoint, method, action)
     |> maybe_redirect(session)
-  end
-
-  def fill_form(session, selector, form_data) do
-    form =
-      session
-      |> render_html()
-      |> Query.find!(selector)
-      |> Html.Form.build()
-
-    :ok = Html.Form.validate_form_data!(form, form_data)
-
-    active_form = %{selector: selector, form_data: form_data, parsed: form}
-
-    session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
-  end
-
-  def submit_form(session, selector, form_data) do
-    session
-    |> fill_form(selector, form_data)
-    |> submit_active_form()
   end
 
   defp maybe_redirect(conn, session) do

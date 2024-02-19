@@ -7,6 +7,7 @@ defmodule PhoenixTest.Html.Form do
     %{}
     |> Map.put("attributes", build_attributes(attrs))
     |> Map.put("fields", build_fields(fields))
+    |> put_operative_method()
   end
 
   defp build_attributes(attrs) do
@@ -39,6 +40,23 @@ defmodule PhoenixTest.Html.Form do
 
   defp build_options(options) do
     Enum.map(options, &build_field/1)
+  end
+
+  defp put_operative_method(form) do
+    method = hidden_input_method_value(form["fields"]) || form["attributes"]["method"] || "get"
+
+    Map.put(form, "operative_method", method)
+  end
+
+  defp hidden_input_method_value(fields) do
+    fields
+    |> Enum.find(:no_method_input, fn field ->
+      field["tag"] == "input" && field["attributes"]["name"] == "_method"
+    end)
+    |> case do
+      :no_method_input -> nil
+      field -> field["attributes"]["value"]
+    end
   end
 
   def validate_form_data!(form, form_data) do

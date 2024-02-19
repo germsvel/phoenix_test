@@ -104,14 +104,14 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Record received")
     end
 
-    test "handles a button clicks when button PUTs data", %{conn: conn} do
+    test "handles a button clicks when button PUTs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Mark as active")
-      |> assert_has("h1", "Marked active!")
+      |> assert_has("h1", "Record updated")
     end
 
-    test "handles a button clicks when button DELETEs data", %{conn: conn} do
+    test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Delete record")
@@ -226,6 +226,20 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> submit_form("#no-submit-button-and-redirect", name: "Aragorn")
       |> assert_has("h1", "LiveView main page")
+    end
+
+    test "handles when form PUTs data through hidden input", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> submit_form("#update-form", name: "Aragorn")
+      |> assert_has("#form-data", "name: Aragorn")
+    end
+
+    test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Delete record")
+      |> assert_has("h1", "Record deleted")
     end
 
     test "raises an error if the form can't be found", %{conn: conn} do
