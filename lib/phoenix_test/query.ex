@@ -22,11 +22,11 @@ defmodule PhoenixTest.Query do
         msg =
           if Enum.any?(elements) do
             """
-              Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
+            Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
 
-              The following elements with given selector were found:
+            The following elements matching the selector were found:
 
-              - #{Enum.map(elements, &Html.text/1) |> Enum.join("\n  - ")}
+            #{Enum.map_join(elements, "\n", &Html.raw/1)}
             """
           else
             """
