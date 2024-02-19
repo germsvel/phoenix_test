@@ -1,8 +1,26 @@
 defmodule PhoenixTest.Query do
-  @moduledoc false
+  @moduledoc """
+  Module for querying HTML content and extracting elements based on CSS selectors and text content.
+  """
 
   alias PhoenixTest.Html
 
+  @doc """
+  Finds the first element in the HTML content with the specified CSS selector.
+
+  ## Parameters
+
+  - `html`: The HTML content to search within.
+  - `selector`: The CSS selector for the element.
+
+  ## Returns
+
+  - `element`: If a the element is found.
+
+  ## Raises
+
+  Raises `ArgumentError` if no element is found with the given selector or if multiple elements are found.
+  """
   def find!(html, selector) do
     case find(html, selector) do
       :not_found ->
@@ -16,6 +34,23 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  @doc """
+  Finds the first element in the HTML content with the specified CSS selector and text.
+
+  ## Parameters
+
+  - `html`: The HTML content to search within.
+  - `selector`: The CSS selector for the element.
+  - `text`: The text for the element.
+
+  ## Returns
+
+  - `element`: If a the element is found.
+
+  ## Raises
+
+  Raises `ArgumentError` if no element is found with the given selector or if multiple elements are found.
+  """
   def find!(html, selector, text) do
     case find(html, selector, text) do
       {:not_found, elements} ->
@@ -49,6 +84,21 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  @doc """
+  Finds the first element in the HTML content with the specified CSS selector.
+
+  ## Parameters
+
+  - `html`: The HTML content to search within.
+  - `selector`: The CSS selector for the element.
+  - `text`: The text for the element.
+
+  ## Returns
+
+  - `{:found, element}`: If a single element is found.
+  - `:not_found`: If no elements are found.
+  - `{:found_many, elements}`: If more than one element is found.
+  """
   def find(html, selector) do
     html
     |> Html.parse()
@@ -65,6 +115,20 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  @doc """
+  Finds the first element in the HTML content with the specified CSS selector and text.
+
+  ## Parameters
+
+  - `html`: The HTML content to search within.
+  - `selector`: The CSS selector for the element.
+
+  ## Returns
+
+  - `{:found, element}`: If a single element is found.
+  - `{:not_found, elements_matched_selector}`: If no elements are found.
+  - `{:found_many, elements}`: If more than one element is found.
+  """
   def find(html, selector, text) do
     elements_matched_selector =
       html
@@ -80,6 +144,23 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  @doc """
+  Finds one element from the given list of selectors in the HTML content, raising an error if not found.
+
+  ## Parameters
+
+  - `html`: The HTML content to search within.
+  - `elements`: A list of tuples where each tuple contains a CSS selector and optional text content.
+
+  ## Returns
+
+  - `found_element`: The found element.
+  - `found_element`: In case a list of possible matches, returns the first one.
+
+  ## Raises
+
+  Raises `ArgumentError` if no element is found with the given selectors or if multiple elements are found.
+  """
   def find_one_of!(html, elements) do
     html
     |> find_one_of(elements)
@@ -114,6 +195,20 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  @doc """
+  Finds one element from the given list of selectors in the HTML content.
+
+  ## Parameters
+
+  - `html`: The HTML content to search within.
+  - `elements`: A list of tuples where each tuple contains a CSS selector and optional text content.
+
+  ## Returns
+
+  - `found`: If a single element is found.
+  - `found`: If a many elements are found.
+  - `{:not_found, potential_matches}`: If no elements match the content criteria but elements match the selector.
+  """
   def find_one_of(html, elements) do
     results =
       elements
