@@ -41,6 +41,23 @@ defmodule PhoenixTest.PageView do
       &nbsp; Has extra space &nbsp;
     </div>
 
+    <a href="/users/2" data-method="delete">Incomplete data-method Delete</a>
+
+    <a
+      href="/page/delete_record"
+      data-method="delete"
+      data-to="/page/delete_record"
+      data-csrf="sometoken"
+    >
+      Data-method Delete
+    </a>
+
+    <button data-method="delete">Incomplete data-method Delete</button>
+
+    <button data-method="delete" data-to="/page/delete_record" data-csrf="sometoken">
+      Data-method Delete
+    </button>
+
     <form action="/page/get_record">
       <button>Get record</button>
     </form>

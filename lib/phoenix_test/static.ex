@@ -48,13 +48,26 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_link(session, selector, text) do
-    path =
-      session
-      |> render_html()
-      |> Query.find!(selector, text)
-      |> Html.attribute("href")
+    if data_attribute_form?(session, selector, text) do
+      form =
+        session
+        |> render_html()
+        |> Query.find!(selector, text)
+        |> Html.DataAttributeForm.build()
+        |> Html.DataAttributeForm.validate!(selector, text)
 
-    PhoenixTest.visit(session.conn, path)
+      session.conn
+      |> dispatch(@endpoint, form.method, form.action, form.data)
+      |> maybe_redirect(session)
+    else
+      path =
+        session
+        |> render_html()
+        |> Query.find!(selector, text)
+        |> Html.attribute("href")
+
+      PhoenixTest.visit(session.conn, path)
+    end
   end
 
   def click_button(session, text) do
@@ -62,14 +75,28 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_button(session, selector, text) do
-    if has_active_form?(session) do
-      session
-      |> validate_submit_buttons!(selector, text)
-      |> submit_active_form()
-    else
-      session
-      |> validate_submit_buttons!(selector, text)
-      |> single_button_form_submit(text)
+    cond do
+      has_active_form?(session) ->
+        session
+        |> validate_submit_buttons!(selector, text)
+        |> submit_active_form()
+
+      data_attribute_form?(session, selector, text) ->
+        form =
+          session
+          |> render_html()
+          |> Query.find!(selector, text)
+          |> Html.DataAttributeForm.build()
+          |> Html.DataAttributeForm.validate!(selector, text)
+
+        session.conn
+        |> dispatch(@endpoint, form.method, form.action, form.data)
+        |> maybe_redirect(session)
+
+      true ->
+        session
+        |> validate_submit_buttons!(selector, text)
+        |> single_button_form_submit(text)
     end
   end
 
@@ -92,6 +119,20 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     session
     |> fill_form(selector, form_data)
     |> submit_active_form()
+  end
+
+  defp data_attribute_form?(session, selector, text) do
+    session
+    |> render_html()
+    |> Query.find(selector, text)
+    |> case do
+      {:found, element} ->
+        method = Html.attribute(element, "data-method")
+        method != "" && method != nil
+
+      _ ->
+        false
+    end
   end
 
   defp has_active_form?(session) do

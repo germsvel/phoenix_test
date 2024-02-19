@@ -2,6 +2,7 @@ defmodule PhoenixTest.StaticTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
+  import PhoenixTest.TestHelpers
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -57,19 +58,57 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Page 2")
     end
 
+    test "handles navigation to a LiveView", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("To LiveView!")
+      |> assert_has("h1", "LiveView main page")
+    end
+
+    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("Data-method Delete")
+      |> assert_has("h1", "Record deleted")
+    end
+
+    test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
+      msg =
+        """
+        Tried submitting form via `data-method` but some data attributes are
+        missing.
+
+        I expected "a" with text "Incomplete data-method Delete" to include
+        data-method, data-to, and data-csrf.
+
+        I found:
+
+        <a href="/users/2" data-method="delete">
+          Incomplete data-method Delete
+        </a>
+
+        It seems these are missing: data-to, data-csrf.
+
+        NOTE: `data-method` form submissions happen through JavaScript. Tests
+        emulate that, but be sure to verify you're including Phoenix.HTML.js!
+
+        See: https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
+        """
+        |> ignore_whitespace()
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> click_link("Incomplete data-method Delete")
+      end
+    end
+
     test "raises error when there are multiple links with same text", %{conn: conn} do
       assert_raise ArgumentError, ~r/Found more than one element with selector/, fn ->
         conn
         |> visit("/page/index")
         |> click_link("Multiple links")
       end
-    end
-
-    test "handles navigation to a LiveView", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> click_link("To LiveView!")
-      |> assert_has("h1", "LiveView main page")
     end
 
     test "raises an error when link element can't be found with given text", %{conn: conn} do
@@ -123,6 +162,44 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_button("Post and Redirect")
       |> assert_has("h1", "LiveView main page")
+    end
+
+    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Data-method Delete")
+      |> assert_has("h1", "Record deleted")
+    end
+
+    test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
+      msg =
+        """
+        Tried submitting form via `data-method` but some data attributes are
+        missing.
+
+        I expected "button" with text "Incomplete data-method Delete" to include
+        data-method, data-to, and data-csrf.
+
+        I found:
+
+        <button data-method="delete">
+          Incomplete data-method Delete
+        </button>
+
+        It seems these are missing: data-to, data-csrf.
+
+        NOTE: `data-method` form submissions happen through JavaScript. Tests
+        emulate that, but be sure to verify you're including Phoenix.HTML.js!
+
+        See: https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
+        """
+        |> ignore_whitespace()
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> click_button("Incomplete data-method Delete")
+      end
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
