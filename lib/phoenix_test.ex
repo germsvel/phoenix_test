@@ -286,6 +286,9 @@ defmodule PhoenixTest do
   |> submit_form("#user-form", name: "Aragorn")
   ```
   """
+  defdelegate open_browser(session), to: Driver
+
+  @doc false
   defdelegate open_browser(session, open_fun), to: Driver
 
   @doc """
