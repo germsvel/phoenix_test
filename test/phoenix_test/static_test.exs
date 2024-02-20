@@ -337,4 +337,35 @@ defmodule PhoenixTest.StaticTest do
                    end
     end
   end
+
+  describe "open_browser" do
+    setup do
+      open_fun = fn path ->
+        assert content = File.read!(path)
+
+        assert content =~
+                 ~r[<link rel="stylesheet" href="file:.*phoenix_test\/priv\/assets\/app\.css"\/>]
+
+        assert content =~ "<link rel=\"stylesheet\" href=\"//example.com/cool-styles.css\"/>"
+        assert content =~ "body { font-size: 12px; }"
+
+        assert content =~ ~r/<h1.*Main page/
+
+        refute content =~ "<script>"
+        refute content =~ "console.log(\"Hey, I'm some JavaScript!\")"
+        refute content =~ "</script>"
+
+        path
+      end
+
+      %{open_fun: open_fun}
+    end
+
+    test "opens the browser ", %{conn: conn, open_fun: open_fun} do
+      conn
+      |> visit("/page/index")
+      |> open_browser(open_fun)
+      |> assert_has("h1", "Main page")
+    end
+  end
 end

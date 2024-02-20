@@ -172,6 +172,12 @@ defmodule PhoenixTest do
   defdelegate submit_form(session, selector, data), to: Driver
 
   @doc """
+  Open the default browser to display current HTML of `session`.
+  """
+  defdelegate open_browser(session), to: Driver
+  defdelegate open_browser(session, open_fun), to: Driver
+
+  @doc """
   Assert helper to ensure an element with given CSS selector and `text` is
   present.
 

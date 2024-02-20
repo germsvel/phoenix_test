@@ -27,6 +27,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+  alias PhoenixTest.OpenBrowser
 
   def render_page_title(session) do
     session
@@ -175,6 +176,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     session.conn
     |> dispatch(@endpoint, method, action)
     |> maybe_redirect(session)
+  end
+
+  def open_browser(session, open_fun \\ &OpenBrowser.open_with_system_cmd/1) do
+    path = Path.join([System.tmp_dir!(), "phx-test#{System.unique_integer([:monotonic])}.html"])
+
+    html =
+      session.conn.resp_body
+      |> Floki.parse_document!()
+      |> Floki.traverse_and_update(&OpenBrowser.prefix_static_paths(&1, @endpoint))
+      |> Floki.raw_html()
+
+    File.write!(path, html)
+
+    open_fun.(path)
+
+    session
   end
 
   defp maybe_redirect(conn, session) do
