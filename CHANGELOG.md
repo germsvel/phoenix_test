@@ -7,6 +7,24 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.6
+
+### Added
+
+- Adds `open_browser/1` function to both Live and Static implementations.
+  Commit [b9d8347].
+- Handle forms that use `data` attributes and `Phoenix.HTML.js` to submit forms.
+  Commit [d699792].
+
+### Fixes
+
+- Correctly handles forms that PUT/DELETE (through hidden inputs). Commit
+  [3efa4c0].
+
+[b9d8347]: https://github.com/germsvel/phoenix_test/commit/b9d8347
+[3efa4c0]: https://github.com/germsvel/phoenix_test/commit/3efa4c0
+[d699792]: https://github.com/germsvel/phoenix_test/commit/d699792
+
 ## 0.2.5
 
 ### Added
