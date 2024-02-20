@@ -173,8 +173,16 @@ defmodule PhoenixTest do
 
   @doc """
   Open the default browser to display current HTML of `session`.
+
+  ## Examples
+
+  ```elixir
+  session
+  |> visit("/")
+  |> open_browser()
+  |> submit_form("#user-form", name: "Aragorn")
+  ```
   """
-  defdelegate open_browser(session), to: Driver
   defdelegate open_browser(session, open_fun), to: Driver
 
   @doc """
