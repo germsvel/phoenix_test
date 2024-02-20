@@ -7,6 +7,14 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.7
+
+### Fixes
+
+- Fixes `open_browser/1` not existing. Commit [7407b19].
+
+[7407b19]: https://github.com/germsvel/phoenix_test/commit/7407b19
+
 ## 0.2.6
 
 ### Added
