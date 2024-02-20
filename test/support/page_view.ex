@@ -12,8 +12,8 @@ defmodule PhoenixTest.PageView do
     <html lang="en">
       <head>
         <title><%= assigns[:page_title] || "PhoenixTest is the best!" %></title>
-        <link rel="stylesheet" href="/assets/app.css">
-        <link rel="stylesheet" href="//example.com/cool-styles.css">
+        <link rel="stylesheet" href="/assets/app.css" />
+        <link rel="stylesheet" href="//example.com/cool-styles.css" />
         <script>
           console.log("Hey, I'm some JavaScript!")
         </script>
