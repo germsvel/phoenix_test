@@ -61,9 +61,60 @@ defmodule PhoenixTest do
   Here's how it handles different types of `a` tags:
 
   - With `href`: follows it to the next page
-  - With `phx-submit`: it'll send the event to the appropriate LiveView
+  - With `phx-click`: it'll send the event to the appropriate LiveView
   - With live redirect: it'll follow the live navigation to the next LiveView
   - With live patch: it'll patch the current LiveView
+
+  ## Examples
+
+  ```heex
+  <.link href="/page/2">Page 2</.link>
+  <.link phx-click="next-page">Next Page</.link>
+  <.link navigate="next-liveview">Next LiveView</.link>
+  <.link patch="page/details">Page Details</.link>
+  ```
+
+  ```elixir
+  session
+  |> click_link("Page 2") # <- follows to next page
+
+  session
+  |> click_link("Next Page") # <- sends "next-page" event to LiveView
+
+  session
+  |> click_link("Next LiveView") # <- follows to next LiveView
+
+  session
+  |> click_link("Page Details") # <- applies live patch
+  ```
+
+
+  ## Submitting forms
+
+  Phoenix allows for submitting forms on links via Phoenix.HTML's `data-method`,
+  `data-to`, and `data-csrf`.
+
+  We can use `click_link` to emulate Phoenix.HTML.js and submit the
+  form via data attributes.
+
+  But note that this _doesn't guarantee_ the JavaScript that handles form
+  submissions via `data` attributes is loaded. The test emulates the behavior
+  but you must make sure the JavaScript is loaded.
+
+  For more on that, see https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
+
+  ### Example
+
+  ```heex
+  <a href="/users/2" data-method="delete" data-to="/users/2" data-csrf="token">
+    Delete
+  </a>
+  ```
+
+  ```elixir
+  session
+  |> click_link("Delete") # <- will submit form like Phoenix.HTML.js does
+  ```
   """
   defdelegate click_link(session, text), to: Driver
 
@@ -76,30 +127,82 @@ defmodule PhoenixTest do
   defdelegate click_link(session, selector, text), to: Driver
 
   @doc """
-  Perfoms action defined by button.
+  Perfoms action defined by button (and based on attributes present).
 
-  - If the button has a `phx-click` on it, it'll send the event to the LiveView.
+  This can be used in a number of ways.
 
-  - If the button doesn't have a `phx-click` on it, it'll submit the parent form.
+  ## Button with `phx-click`
 
-  This function can be preceded by `fill_form` to fill out a form and
-  subsequently submit the form. Note that `fill_form/3` + `click_button/2` works
-  for both static and live pages.
+  If the button has a `phx-click` on it, it'll send the event to the LiveView.
 
-  If `click_button/2` is used alone (without a `phx-click`), it is assumed it is
-  a form with a single button (e.g. "Delete").
+  ### Example
 
-  ## Examples
+  ```heex
+  <button phx-click="save">Save</button>
+  ```
 
   ```elixir
-  # form with single button or button with `phx-click`
   session
-  |> click_button("Delete")
+  |> click_button("Save") # <- will send "save" event to LiveView
+  ```
 
-  # fill out form and then submit
+  ## Button relying on Phoenix.HTML.js
+
+  If the button acts as a form via Phoenix.HTML's `data-method`, `data-to`, and
+  `data-csrf`, this will emulate Phoenix.HTML.js and submit the form via data
+  attributes.
+
+  But note that this _doesn't guarantee_ the JavaScript that handles form
+  submissions via `data` attributes is loaded. The test emulates the behavior
+  but you must make sure the JavaScript is loaded.
+
+  For more on that, see https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
+
+  ### Example
+
+  ```heex
+  <button data-method="delete" data-to="/users/2" data-csrf="token">Delete</button>
+  ```
+
+  ```elixir
+  session
+  |> click_button("Delete") # <- will submit form like Phoenix.HTML.js does
+  ```
+
+  ## Combined with `fill_form/3`
+
+  This function can be preceded by `fill_form` to fill out a form and
+  subsequently submit the form.
+
+  Note that `fill_form/3` + `click_button/2` works for both static and live
+  pages.
+
+  ### Example
+
+  ```elixir
   session
   |> fill_form("#user-form", name: "Aragorn")
   |> click_button("Create")
+  ```
+
+  ## Single-button form
+
+  If `click_button/2` is used alone (without `phx-click`, `data-*` attrs, or
+  `fill_form/3`), it is assumed it is a form with a single button (e.g.
+  "Delete").
+
+  ### Example
+
+  ```heex
+  <form method="post" action="/users/2">
+    <input type="hidden" name="_method" value="delete" />
+    <button>Delete</button>
+  </form>
+  ```
+
+  ```elixir
+  session
+  |> click_button("Delete") # <- Triggers full form delete
   ```
   """
   defdelegate click_button(session, text), to: Driver
