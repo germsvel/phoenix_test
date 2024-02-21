@@ -21,7 +21,6 @@ defmodule PhoenixTest.Html.Form do
   - `"fields"`: A list of maps representing form fields.
   - `"operative_method"`: A string representing the form's method, extracted from hidden input or defaulting to "get".
   """
-  @spec build(tuple()) :: map()
   def build({"form", attrs, fields}) do
     %{}
     |> Map.put("attributes", build_attributes(attrs))
@@ -93,7 +92,6 @@ defmodule PhoenixTest.Html.Form do
 
   Raises `ArgumentError` if the form data does not match the expected structure.
   """
-  @spec validate_form_data!(nil | maybe_improper_list() | map(), any()) :: :ok
   def validate_form_data!(form, form_data) do
     action = get_in(form, ["attributes", "action"])
     unless action, do: raise(ArgumentError, "Expected form to have an action but found none")
@@ -116,7 +114,6 @@ defmodule PhoenixTest.Html.Form do
 
   Raises `ArgumentError` if the form data does not match the expected structure.
   """
-  @spec validate_form_fields!(any(), any()) :: :ok
   def validate_form_fields!(form_fields, form_data) do
     form_data
     |> Enum.each(fn
