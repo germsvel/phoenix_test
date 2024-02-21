@@ -1,9 +1,5 @@
 defmodule PhoenixTest.Html.Form do
-  @moduledoc """
-  Utility module for building and validating HTML forms.
-
-  This module provides functions to build HTML form structures and validate form data.
-  """
+  @moduledoc false
 
   alias PhoenixTest.Html
 

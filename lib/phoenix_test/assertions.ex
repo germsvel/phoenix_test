@@ -1,9 +1,5 @@
 defmodule PhoenixTest.Assertions do
-  @moduledoc """
-  Module for asserting HTML content in Phoenix Framework tests.
-
-  This module provides functions for asserting the presence or absence of elements with specific selectors and text content in the rendered HTML within a test session.
-  """
+  @moduledoc false
 
   import ExUnit.Assertions
 

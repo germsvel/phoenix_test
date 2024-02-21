@@ -1,7 +1,5 @@
 defmodule PhoenixTest.Query do
-  @moduledoc """
-  Module for querying HTML content and extracting elements based on CSS selectors and text content.
-  """
+  @moduledoc false
 
   alias PhoenixTest.Html
 
