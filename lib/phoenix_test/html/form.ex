@@ -3,6 +3,24 @@ defmodule PhoenixTest.Html.Form do
 
   alias PhoenixTest.Html
 
+  @doc """
+  Builds an HTML form structure.
+
+  This function takes a tuple representation of a form and converts it into a map structure.
+
+  ## Parameters
+
+  - `{"form", attrs, fields}`: Tuple representing the form structure.
+    - `attrs`: A map containing form attributes (e.g., action, method).
+    - `fields`: A list of tuples representing form fields.
+
+  ## Returns
+
+  A map representing the HTML form structure with the following keys:
+  - `"attributes"`: A map containing form attributes.
+  - `"fields"`: A list of maps representing form fields.
+  - `"operative_method"`: A string representing the form's method, extracted from hidden input or defaulting to "get".
+  """
   def build({"form", attrs, fields}) do
     %{}
     |> Map.put("attributes", build_attributes(attrs))
@@ -59,6 +77,21 @@ defmodule PhoenixTest.Html.Form do
     end
   end
 
+  @doc """
+  Validates the form data against the expected structure of a form.
+
+  This function ensures that the provided form data matches the structure expected by the form.
+  It checks for the presence of required fields and raises an error if the structure is not as expected.
+
+  ## Parameters
+
+  - `form`: A map representing the HTML form structure.
+  - `form_data`: A map containing the form data to be validated.
+
+  ## Raises
+
+  Raises `ArgumentError` if the form data does not match the expected structure.
+  """
   def validate_form_data!(form, form_data) do
     action = get_in(form, ["attributes", "action"])
     unless action, do: raise(ArgumentError, "Expected form to have an action but found none")
@@ -66,6 +99,21 @@ defmodule PhoenixTest.Html.Form do
     validate_form_fields!(form["fields"], form_data)
   end
 
+  @doc """
+  Validates the form fields against the provided form data.
+
+  This function checks if the provided form data matches the expected structure of the form fields.
+  It recursively validates nested maps within the form data and raises an error if the structure is not as expected.
+
+  ## Parameters
+
+  - `form_fields`: A list representing the HTML form fields.
+  - `form_data`: A map containing the form data to be validated.
+
+  ## Raises
+
+  Raises `ArgumentError` if the form data does not match the expected structure.
+  """
   def validate_form_fields!(form_fields, form_data) do
     form_data
     |> Enum.each(fn

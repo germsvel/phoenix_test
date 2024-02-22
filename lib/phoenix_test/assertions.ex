@@ -7,6 +7,20 @@ defmodule PhoenixTest.Assertions do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  @doc """
+  Asserts that the rendered HTML content within the given session contains an element
+  matching the specified selector and text.
+
+  ## Parameters
+
+  - `session`: The test session.
+  - `selector`: The CSS selector to search for.
+  - `text`: The expected text content of the element.
+
+  ## Raises
+
+  Raises `AssertionError` if no element is found with the given selector and text.
+  """
   def assert_has(session, "title", text) do
     title = PhoenixTest.Driver.render_page_title(session)
 
@@ -51,6 +65,19 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
+  @doc """
+  Asserts that the rendered HTML within the given session does not contain an element matching the specified selector and text.
+
+  ## Parameters
+
+  - `session`: The test session.
+  - `selector`: The CSS selector for the element.
+  - `text`: The text that the element is expected not to contain.
+
+  ## Raises
+
+  Raises `AssertionError` if an element matching the selector and text is found.
+  """
   def refute_has(session, "title", text) do
     title = PhoenixTest.Driver.render_page_title(session)
 
