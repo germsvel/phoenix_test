@@ -64,7 +64,7 @@ defmodule PhoenixTest.OpenBrowser do
           {"open", [path]}
 
         {:unix, _} ->
-          if System.find_executable("cmd.exe") do
+          if wsl?(path) do
             {"cmd.exe", ["/c", "start", path]}
           else
             {"xdg-open", [path]}
@@ -72,5 +72,9 @@ defmodule PhoenixTest.OpenBrowser do
       end
 
     System.cmd(cmd, args)
+  end
+
+  defp wsl?(path) do
+    path =~ "\\" and System.find_executable("cmd.exe") != nil
   end
 end
