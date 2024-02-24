@@ -193,6 +193,12 @@ defmodule PhoenixTest.PageView do
     """
   end
 
+  def render("unauthorized.html", assigns) do
+    ~H"""
+    <h1>Unauthorized</h1>
+    """
+  end
+
   defp render_input_data(key, value) when is_boolean(value) do
     "#{key}: #{to_string(value)}"
   end

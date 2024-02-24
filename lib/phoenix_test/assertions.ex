@@ -34,9 +34,9 @@ defmodule PhoenixTest.Assertions do
     end
   end
 
-  def assert_has(session, selector, text) do
+  def assert_has(session, selector, text, status \\ 200) do
     session
-    |> PhoenixTest.Driver.render_html()
+    |> PhoenixTest.Driver.render_html(status)
     |> Query.find(selector, text)
     |> case do
       {:found, _found} ->
@@ -91,9 +91,9 @@ defmodule PhoenixTest.Assertions do
     end
   end
 
-  def refute_has(session, selector, text) do
+  def refute_has(session, selector, text, status \\ 200) do
     session
-    |> PhoenixTest.Driver.render_html()
+    |> PhoenixTest.Driver.render_html(status)
     |> Query.find(selector, text)
     |> case do
       {:not_found, _} ->

@@ -40,4 +40,10 @@ defmodule PhoenixTest.PageController do
     conn
     |> redirect(to: "/page/index")
   end
+
+  def unauthorized(conn, _) do
+    conn
+    |> put_status(:unauthorized)
+    |> render("unauthorized.html")
+  end
 end

@@ -39,9 +39,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  def render_html(%{conn: conn}) do
+  def render_html(%{conn: conn}, status \\ 200) do
     conn
-    |> html_response(200)
+    |> html_response(status)
   end
 
   def click_link(session, text) do
