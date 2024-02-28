@@ -52,17 +52,7 @@ defmodule PhoenixTest.AssertionsTest do
     test "succeeds when a non-200 status code is returned", %{conn: conn} do
       conn
       |> visit("/page/unauthorized")
-      |> assert_has("h1", "Unauthorized", 401)
-    end
-
-    test "raises an error when an unexpected status code is returned", %{conn: conn} do
-      conn = visit(conn, "/page/unauthorized")
-
-      msg = ~r/expected response with status 200, got: 401/
-
-      assert_raise RuntimeError, msg, fn ->
-        conn |> assert_has("h1", "Unauthorized", 200)
-      end
+      |> assert_has("h1", "Unauthorized")
     end
 
     test "raises an error if the element cannot be found at all", %{conn: conn} do

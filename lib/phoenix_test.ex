@@ -301,26 +301,10 @@ defmodule PhoenixTest do
   defdelegate assert_has(session, selector, text), to: Assertions
 
   @doc """
-  Performs the same assertions as above, but passes the specified status
-  code to the underlying Phoenix html rendering functions.
-
-  Useful when your application returns a non-200 response code.
-  """
-  defdelegate assert_has(session, selector, text, status), to: Assertions
-
-  @doc """
   Opposite of `assert_has/3` helper. Verifies that element with
   given CSS selector and `text` is _not_ present.
 
   It'll raise an error if any elements that match selector and text are found.
   """
   defdelegate refute_has(session, selector, text), to: Assertions
-
-  @doc """
-  Performs the same refutions as above, but passes the specified status
-  code to the underlying Phoenix html rendering functions.
-
-  Useful when your application returns a non-200 response code.
-  """
-  defdelegate refute_has(session, selector, text, status), to: Assertions
 end

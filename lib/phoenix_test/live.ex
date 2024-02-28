@@ -41,7 +41,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     page_title(view)
   end
 
-  def render_html(%{view: view}, _ \\ nil) do
+  def render_html(%{view: view}) do
     render(view)
   end
 
