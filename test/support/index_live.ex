@@ -98,6 +98,13 @@ defmodule PhoenixTest.IndexLive do
         Submit Non LiveView
       </button>
     </form>
+
+    <form id="hidden-inputs-form" phx-submit="save-form">
+      <label for="user[email]">Email</label>
+      <input type="text" name="user[email]" />
+
+      <input type="hidden" name="user[hidden_active]" value="true" />
+    </form>
     """
   end
 

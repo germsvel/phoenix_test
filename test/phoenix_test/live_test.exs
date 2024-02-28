@@ -278,6 +278,16 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", "email: some@example.com")
     end
 
+    test "submits a form with hidden inputs", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#hidden-inputs-form",
+        user: %{email: "some@example.com", hidden_active: true}
+      )
+      |> assert_has("#form-data", "user:email: some@example.com")
+      |> assert_has("#form-data", "user:hidden_active: true")
+    end
+
     test "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")
