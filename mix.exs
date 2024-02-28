@@ -14,7 +14,7 @@ defmodule PhoenixTest.MixProject do
       app: :phoenix_test,
       version: @version,
       description: @description,
-      elixir: "~> 1.16",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
