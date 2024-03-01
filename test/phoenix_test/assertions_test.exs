@@ -49,6 +49,12 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has(".has_extra_space", "Has extra space")
     end
 
+    test "succeeds when a non-200 status code is returned", %{conn: conn} do
+      conn
+      |> visit("/page/unauthorized")
+      |> assert_has("h1", "Unauthorized")
+    end
+
     test "raises an error if the element cannot be found at all", %{conn: conn} do
       conn = visit(conn, "/page/index")
 

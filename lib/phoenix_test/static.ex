@@ -41,7 +41,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   def render_html(%{conn: conn}) do
     conn
-    |> html_response(200)
+    |> html_response(conn.status)
   end
 
   def click_link(session, text) do
