@@ -7,6 +7,18 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.8
+
+### Added
+
+- Adds WSL2 for `open_browser/2`. Commit [b852014].
+- Relax Elixir version requirement to 1.15. Commit [3cb9586]
+- Support visiting non-200 pages in Static implementation. Commit [4964ab2].
+
+[b852014]: https://github.com/germsvel/phoenix_test/commit/b852014
+[3cb9586]: https://github.com/germsvel/phoenix_test/commit/3cb9586
+[4964ab2]: https://github.com/germsvel/phoenix_test/commit/4964ab2
+
 ## 0.2.7
 
 ### Fixes
