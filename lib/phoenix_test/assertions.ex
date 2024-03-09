@@ -8,19 +8,55 @@ defmodule PhoenixTest.Assertions do
   alias PhoenixTest.Query
 
   @doc """
-  Asserts that the rendered HTML content within the given session contains an element
-  matching the specified selector and text.
+  Asserts that the rendered HTML content within the given session contains an
+  element matching the specified selector and (optional) text.
 
   ## Parameters
 
   - `session`: The test session.
   - `selector`: The CSS selector to search for.
-  - `text`: The expected text content of the element.
+  - `text` (optional): The expected text content of the element.
 
   ## Raises
 
   Raises `AssertionError` if no element is found with the given selector and text.
   """
+  def assert_has(session, "title") do
+    title = PhoenixTest.Driver.render_page_title(session)
+
+    if is_nil(title) || title == "" do
+      raise AssertionError,
+        message: """
+        Expected title to be present but could not find it.
+        """
+    else
+      assert true
+    end
+
+    session
+  end
+
+  def assert_has(session, selector) do
+    session
+    |> PhoenixTest.Driver.render_html()
+    |> Query.find(selector)
+    |> case do
+      {:found, _found} ->
+        assert true
+
+      {:found_many, _found} ->
+        assert true
+
+      :not_found ->
+        raise AssertionError,
+          message: """
+          Could not find any elements with selector #{inspect(selector)}.
+          """
+    end
+
+    session
+  end
+
   def assert_has(session, "title", text) do
     title = PhoenixTest.Driver.render_page_title(session)
 
@@ -32,6 +68,8 @@ defmodule PhoenixTest.Assertions do
         Expected title to be #{inspect(text)} but got #{inspect(title)}
         """
     end
+
+    session
   end
 
   def assert_has(session, selector, text) do

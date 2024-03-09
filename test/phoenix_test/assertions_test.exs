@@ -10,6 +10,36 @@ defmodule PhoenixTest.AssertionsTest do
     %{conn: Phoenix.ConnTest.build_conn()}
   end
 
+  describe "assert_has/2" do
+    test "succeeds if single element is found with CSS selector", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("[data-role='title']")
+    end
+
+    test "raises an error if the element cannot be found at all", %{conn: conn} do
+      conn = visit(conn, "/page/index")
+
+      msg = ~r/Could not find any elements with selector "#nonexistent-id"/
+
+      assert_raise AssertionError, msg, fn ->
+        conn |> assert_has("#nonexistent-id")
+      end
+    end
+
+    test "succeeds if element searched is title (Static)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("title")
+    end
+
+    test "succeeds if element searched is title (Live)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_has("title")
+    end
+  end
+
   describe "assert_has/3" do
     test "succeeds if single element is found with CSS selector and text (Static)", %{conn: conn} do
       conn

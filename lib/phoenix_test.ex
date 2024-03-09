@@ -292,10 +292,20 @@ defmodule PhoenixTest do
   defdelegate open_browser(session, open_fun), to: Driver
 
   @doc """
+  Assert helper to ensure an element with given CSS selector is present.
+
+  It'll raise an error if no elements are found, but it will _not_ raise if more
+  than one matching element is found.
+
+  If you want to specify the conten of the element, use `assert_has/3`.
+  """
+  defdelegate assert_has(session, selector), to: Assertions
+
+  @doc """
   Assert helper to ensure an element with given CSS selector and `text` is
   present.
 
-  It'll raise an error if no elements are found, but it will not raise if more
+  It'll raise an error if no elements are found, but it will _not_ raise if more
   than one matching element is found.
   """
   defdelegate assert_has(session, selector, text), to: Assertions
