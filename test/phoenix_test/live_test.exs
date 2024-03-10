@@ -47,6 +47,18 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", "LiveView main page")
     end
 
+    test "follows redirects", %{conn: conn} do
+      conn
+      |> visit("/live/redirect_on_mount/redirect")
+      |> assert_has("h1", "LiveView main page")
+    end
+
+    test "follows push redirects (push navigate)", %{conn: conn} do
+      conn
+      |> visit("/live/redirect_on_mount/push_navigate")
+      |> assert_has("h1", "LiveView main page")
+    end
+
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise Phoenix.Router.NoRouteError, fn ->
         conn
