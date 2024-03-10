@@ -35,6 +35,12 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", "Main page")
     end
 
+    test "follows redirects", %{conn: conn} do
+      conn
+      |> visit("/page/redirect_to_static")
+      |> assert_has("h1", "Main page")
+    end
+
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise Phoenix.Router.NoRouteError, fn ->
         conn

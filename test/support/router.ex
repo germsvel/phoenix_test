@@ -29,9 +29,10 @@ defmodule PhoenixTest.Router do
     put "/page/update_record", PageController, :update
     delete "/page/delete_record", PageController, :delete
     get "/page/unauthorized", PageController, :unauthorized
-    get "/page/:page", PageController, :show
+    get "/page/redirect_to_static", PageController, :redirect_to_static
     post "/page/redirect_to_liveview", PageController, :redirect_to_liveview
     post "/page/redirect_to_static", PageController, :redirect_to_static
+    get "/page/:page", PageController, :show
 
     live_session :live_pages, root_layout: {PhoenixTest.PageView, :layout} do
       live "/live/index", IndexLive
@@ -39,5 +40,6 @@ defmodule PhoenixTest.Router do
     end
 
     live "/live/index_no_layout", IndexLive
+    live "/live/redirect_on_mount/:redirect_type", RedirectLive
   end
 end

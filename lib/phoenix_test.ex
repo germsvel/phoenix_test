@@ -50,6 +50,10 @@ defmodule PhoenixTest do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
 
+      %{status: 302} = conn ->
+        path = redirected_to(conn)
+        visit(conn, path)
+
       conn ->
         PhoenixTest.Static.build(conn)
     end
