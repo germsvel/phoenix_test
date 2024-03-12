@@ -116,6 +116,53 @@ defmodule PhoenixTest.Assertions do
 
   Raises `AssertionError` if an element matching the selector and text is found.
   """
+  def refute_has(session, "title") do
+    title = PhoenixTest.Driver.render_page_title(session)
+
+    if is_nil(title) do
+      refute false
+    else
+      raise AssertionError,
+        message: """
+        Expected title not to be present but found: #{inspect(title)}
+        """
+    end
+
+    session
+  end
+
+  def refute_has(session, selector) do
+    session
+    |> PhoenixTest.Driver.render_html()
+    |> Query.find(selector)
+    |> case do
+      :not_found ->
+        refute false
+
+      {:found, element} ->
+        raise AssertionError,
+          message: """
+          Expected not to find an element.
+
+          But found an element with selector #{inspect(selector)}:
+
+          #{format_found_elements(element)}
+          """
+
+      {:found_many, elements} ->
+        raise AssertionError,
+          message: """
+          Expected not to find an element.
+
+          But found #{Enum.count(elements)} elements with selector #{inspect(selector)}:
+
+          #{format_found_elements(elements)}
+          """
+    end
+
+    session
+  end
+
   def refute_has(session, "title", text) do
     title = PhoenixTest.Driver.render_page_title(session)
 
@@ -127,6 +174,8 @@ defmodule PhoenixTest.Assertions do
     else
       refute false
     end
+
+    session
   end
 
   def refute_has(session, selector, text) do
@@ -153,6 +202,8 @@ defmodule PhoenixTest.Assertions do
           Expected not to find an element.
 
           But found #{Enum.count(elements)} elements with selector #{inspect(selector)} and text #{inspect(text)}:
+
+          #{format_found_elements(elements)}
           """
     end
 

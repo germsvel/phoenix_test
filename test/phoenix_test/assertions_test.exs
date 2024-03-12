@@ -202,17 +202,92 @@ defmodule PhoenixTest.AssertionsTest do
     end
   end
 
+  describe "refute_has/2" do
+    test "succeeds if no element is found with CSS selector (Static)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("#some-invalid-id")
+      |> refute_has("[data-role='invalid-role']")
+    end
+
+    test "succeeds if no element is found with CSS selector (Live)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refute_has("#some-invalid-id")
+      |> refute_has("[data-role='invalid-role']")
+    end
+
+    test "can refute presence of title (Static)", %{conn: conn} do
+      conn
+      |> visit("/page/index_no_layout")
+      |> refute_has("title")
+      |> refute_has("#something-else-to-test-pipe")
+    end
+
+    test "raises if element is found", %{conn: conn} do
+      msg =
+        """
+        Expected not to find an element.
+
+        But found an element with selector "h1":
+
+        <h1 id="title" class="title" data-role="title">
+          Main page
+        </h1>
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> refute_has("h1")
+      end
+    end
+
+    test "raises if title is found", %{conn: conn} do
+      msg =
+        """
+        Expected title not to be present but found: "PhoenixTest is the best!"
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> refute_has("title")
+      end
+    end
+
+    test "raises an error if multiple elements are found", %{conn: conn} do
+      conn = visit(conn, "/page/index")
+
+      msg =
+        """
+        Expected not to find an element.
+
+        But found 2 elements with selector ".multiple_links":
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn |> refute_has(".multiple_links")
+      end
+    end
+  end
+
   describe "refute_has/3" do
     test "can be used to refute on page title (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> refute_has("title", "Not the title")
+      |> refute_has("title", "Not this title either")
     end
 
     test "can be used to refute on page title (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> refute_has("title", "Not the title")
+      |> refute_has("title", "Not this title either")
     end
 
     test "raises if title matches value (Static)", %{conn: conn} do
@@ -289,6 +364,14 @@ defmodule PhoenixTest.AssertionsTest do
         Expected not to find an element.
 
         But found 2 elements with selector ".multiple_links" and text "Multiple links":
+
+        <a class="multiple_links" href="/page/page_3">
+          Multiple links
+        </a>
+
+        <a class="multiple_links" href="/page/page_4">
+          Multiple links
+        </a>
         """
         |> ignore_whitespace()
 

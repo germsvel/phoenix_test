@@ -18,10 +18,6 @@ defmodule PhoenixTest.Router do
     plug(:fetch_live_flash)
   end
 
-  pipeline :bad_layout do
-    plug(:put_root_layout, {UnknownView, :unknown_template})
-  end
-
   scope "/", PhoenixTest do
     pipe_through([:browser])
 
