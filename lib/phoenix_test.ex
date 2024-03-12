@@ -301,7 +301,7 @@ defmodule PhoenixTest do
   It'll raise an error if no elements are found, but it will _not_ raise if more
   than one matching element is found.
 
-  If you want to specify the conten of the element, use `assert_has/3`.
+  If you want to specify the content of the element, use `assert_has/3`.
   """
   defdelegate assert_has(session, selector), to: Assertions
 
@@ -313,6 +313,16 @@ defmodule PhoenixTest do
   than one matching element is found.
   """
   defdelegate assert_has(session, selector, text), to: Assertions
+
+  @doc """
+  Opposite of `assert_has/2` helper. Verifies that element with
+  given CSS selector is _not_ present.
+
+  It'll raise an error if any elements that match selector are found.
+
+  If you want to specify the content of the element, use `refute_has/3`.
+  """
+  defdelegate refute_has(session, selector), to: Assertions
 
   @doc """
   Opposite of `assert_has/3` helper. Verifies that element with
