@@ -3,6 +3,7 @@ defmodule PhoenixTest.AssertionsTest do
 
   import PhoenixTest
   import PhoenixTest.TestHelpers
+  import PhoenixTest.Selectors
 
   alias ExUnit.AssertionError
 
@@ -37,6 +38,12 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/live/index")
       |> assert_has("title")
+    end
+
+    test "takes in input helper in assertion", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has(input(type: "text", label: "Email"))
     end
   end
 

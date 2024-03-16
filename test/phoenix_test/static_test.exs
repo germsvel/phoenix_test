@@ -225,6 +225,34 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "fill_in/3" do
+    test "fills in a single text field based on the label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("Email", with: "someone@example.com")
+      |> click_button("Save")
+      |> assert_has("#form-data", "email: someone@example.com")
+    end
+
+    test "can fill-in complex form fields", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
+      |> click_button("Save")
+      |> assert_has("#form-data", "name: Aragorn")
+      |> assert_has("#form-data", "notes: Dunedain. Heir to the throne. King of Arnor and Gondor")
+    end
+
+    test "works in 'nested' forms", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("User Name", with: "Aragorn")
+      |> click_button("Save")
+      |> assert_has("#form-data", "user:name: Aragorn")
+    end
+  end
+
   describe "fill_form/3" do
     test "raises an error when form cannot be found with given selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
@@ -241,7 +269,7 @@ defmodule PhoenixTest.StaticTest do
 
         Found the following fields:
 
-        <input name="user[name]"/>\n
+        <input id="user_name" name="user[name]" type="text"/>\n
         """
 
       assert_raise ArgumentError, message, fn ->

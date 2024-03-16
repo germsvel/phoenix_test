@@ -127,14 +127,23 @@ defmodule PhoenixTest.Query do
   - `{:not_found, elements_matched_selector}`: If no elements are found.
   - `{:found_many, elements}`: If more than one element is found.
   """
-  def find(html, selector, text) do
+  def find(html, selector, text, opts \\ []) do
+    exact_match = Keyword.get(opts, :exact, false)
+
+    filter_fun =
+      if exact_match do
+        fn element -> Html.text(element) == text end
+      else
+        fn element -> Html.text(element) =~ text end
+      end
+
     elements_matched_selector =
       html
       |> Html.parse()
       |> Html.all(selector)
 
     elements_matched_selector
-    |> Enum.filter(fn element -> Html.text(element) =~ text end)
+    |> Enum.filter(filter_fun)
     |> case do
       [] -> {:not_found, elements_matched_selector}
       [found] -> {:found, found}
@@ -209,8 +218,7 @@ defmodule PhoenixTest.Query do
   """
   def find_one_of(html, elements) do
     results =
-      elements
-      |> Enum.map(fn
+      Enum.map(elements, fn
         {selector, text} ->
           find(html, selector, text)
 
@@ -228,6 +236,174 @@ defmodule PhoenixTest.Query do
       {:found, _} = found -> found
       {:found_many, _} = found -> found
       :not_found -> {:not_found, potential_matches(results)}
+    end
+  end
+
+  def find_by_label!(html, label) do
+    case find_by_label(html, label) do
+      {:found, element} ->
+        element
+
+      {:not_found, :no_label, []} ->
+        msg = """
+        Could not find element with label #{inspect(label)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :no_label, potential_matches} ->
+        msg = """
+        Could not find element with label #{inspect(label)}.
+
+        Found the following labels:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :found_many_labels, potential_matches} ->
+        msg = """
+        Found many elements with label #{inspect(label)}:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :missing_for, found_label} ->
+        msg = """
+        Found label but doesn't have `for` attribute.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        #{Html.raw(found_label)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :missing_id, found_label} ->
+        msg = """
+        Found label but could not find corresponding element with matching `id`.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        #{Html.raw(found_label)}
+        """
+
+        raise ArgumentError, msg
+    end
+  end
+
+  def find_by_label(html, label) do
+    with {:explicit_association, label_element} <- find_label_element(html, label),
+         {:ok, label_for} <- label_for(label_element),
+         {:found, element} <- find_element_with_id(html, label_for, label_element) do
+      {:found, element}
+    else
+      {:implicit_association, _label_element, element} ->
+        {:found, element}
+
+      not_found ->
+        not_found
+    end
+  end
+
+  def find_ancestor!(html, ancestor, descendant_id) do
+    case find_ancestor(html, ancestor, descendant_id) do
+      {:found, element} ->
+        element
+
+      :not_found ->
+        msg = """
+        Could not find any #{inspect(ancestor)} elements.
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, potential_matches} ->
+        msg = """
+        Could not find #{inspect(ancestor)} for an element with ID #{inspect(descendant_id)}.
+
+        Found other potential #{inspect(ancestor)}:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+    end
+  end
+
+  def find_ancestor(html, ancestor, descendant_id) do
+    case find(html, ancestor) do
+      :not_found ->
+        :not_found
+
+      {:found, element} ->
+        filter_ancestor_with_descendant_id([element], descendant_id)
+
+      {:found_many, elements} ->
+        filter_ancestor_with_descendant_id(elements, descendant_id)
+    end
+  end
+
+  defp filter_ancestor_with_descendant_id(ancestors, descendant_id) do
+    ancestors
+    |> Enum.filter(fn ancestor ->
+      case find(Html.raw(ancestor), "##{descendant_id}") do
+        :not_found -> false
+        {:found, _element} -> true
+        {:found_many, _elements} -> true
+      end
+    end)
+    |> case do
+      [] -> {:not_found, ancestors}
+      [ancestor] -> {:found, ancestor}
+    end
+  end
+
+  defp find_label_element(html, label) do
+    find(html, "label", label, exact: true)
+    |> case do
+      {:not_found, potential_matches} ->
+        {:not_found, :no_label, potential_matches}
+
+      {:found, element} ->
+        determine_implicit_or_explicit_label(element)
+
+      {:found_many, elements} ->
+        {:not_found, :found_many_labels, elements}
+    end
+  end
+
+  defp determine_implicit_or_explicit_label(label) do
+    case find_one_of(Html.raw(label), ["input", "select", "textarea"]) do
+      {:not_found, _} ->
+        {:explicit_association, label}
+
+      {:found, element} ->
+        {:implicit_association, label, element}
+    end
+  end
+
+  defp label_for(label) do
+    case Html.attribute(label, "for") do
+      nil ->
+        {:not_found, :missing_for, label}
+
+      for_attr ->
+        {:ok, for_attr}
+    end
+  end
+
+  defp find_element_with_id(html, id, label) do
+    case find(html, "##{id}") do
+      :not_found -> {:not_found, :missing_id, label}
+      {:found, _el} = found -> found
     end
   end
 

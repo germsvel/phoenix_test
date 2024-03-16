@@ -3,6 +3,7 @@ defmodule PhoenixTest.LiveTest do
 
   import PhoenixTest
   import PhoenixTest.TestHelpers
+  import PhoenixTest.Selectors
 
   alias PhoenixTest.Driver
 
@@ -155,6 +156,48 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "fill_in/3" do
+    test "fills in a single text field based on the label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: "someone@example.com")
+      |> assert_has(input(label: "Email", value: "someone@example.com"))
+    end
+
+    test "can fill-in complex form fields", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
+      |> click_button("Save")
+      |> assert_has("#form-data", "first_name: Aragorn")
+      |> assert_has("#form-data", "notes: Dunedain. Heir to the throne. King of Arnor and Gondor")
+    end
+
+    test "works in 'nested' forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("User Name", with: "Aragorn")
+      |> click_button("Save")
+      |> assert_has("#form-data", "user:name: Aragorn")
+    end
+
+    test "triggers phx-change validations", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: nil)
+      |> assert_has("#form-errors", "Errors present")
+    end
+
+    test "can be used to submit form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: "someone@example.com")
+      |> click_button("Save email")
+      |> assert_has("#form-data", "email: someone@example.com")
+    end
+  end
+
   describe "fill_form/3" do
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = conn |> visit("/live/index")
@@ -222,7 +265,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#full-form",
-        name: "Aragorn",
+        first_name: "Aragorn",
         admin: "on",
         race: "human",
         notes: "King of Gondor"

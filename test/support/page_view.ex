@@ -82,7 +82,7 @@ defmodule PhoenixTest.PageView do
 
     <form action="/page/create_record" method="post" id="email-form">
       <label for="email">Email</label>
-      <input name="email" />
+      <input type="text" id="email" name="email" />
       <button>Save</button>
     </form>
 
@@ -98,14 +98,14 @@ defmodule PhoenixTest.PageView do
     </form>
 
     <form id="nested-form" method="post" action="/page/create_record">
-      <label for="user[name]">Name</label>
-      <input name="user[name]" />
+      <label for="user_name">User Name</label>
+      <input type="text" id="user_name" name="user[name]" />
       <button>Save</button>
     </form>
 
     <form id="full-form" method="post" action="/page/create_record">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="name">First Name</label>
+      <input type="text" id="name" name="name" />
 
       <label for="admin">Admin</label>
       <input type="checkbox" name="admin" />
@@ -119,7 +119,7 @@ defmodule PhoenixTest.PageView do
       </select>
 
       <label for="notes">Notes</label>
-      <textarea name="notes" rows="5" cols="33">
+      <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>
 
       <div>

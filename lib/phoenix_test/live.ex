@@ -16,6 +16,13 @@ defmodule PhoenixTest.Live do
     Map.get(private, key, :not_found)
   end
 
+  def get_private(%__MODULE__{private: private}, key, default) do
+    case Map.get(private, key, :not_found) do
+      :not_found -> default
+      found -> found
+    end
+  end
+
   def pop_private(%__MODULE__{private: private} = session, key) do
     {popped, rest_private} = Map.pop(private, key, %{})
     {popped, %{session | private: rest_private}}
@@ -36,6 +43,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+  alias PhoenixTest.Utils
 
   def render_page_title(%{view: view}) do
     page_title(view)
@@ -90,6 +98,32 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     |> Query.find_one_of!(submit_buttons)
 
     session
+  end
+
+  def fill_in(session, label, with: value) do
+    html = render_html(session)
+
+    input = Query.find_by_label!(html, label)
+    input_id = Html.attribute(input, "id")
+
+    form = Query.find_ancestor!(html, "form", input_id)
+    id = Html.attribute(form, "id")
+
+    new_form_data = Utils.name_to_map(Html.attribute(input, "name"), value)
+
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    session
+    |> PhoenixTest.Live.put_private(:active_form, active_form)
+    |> fill_form("form##{id}", active_form.form_data)
+  end
+
+  defp add_to_active_form_data(session, new_form_data) do
+    session
+    |> PhoenixTest.Live.get_private(:active_form, %{form_data: %{}})
+    |> Map.update(:form_data, %{}, fn form_data ->
+      DeepMerge.deep_merge(form_data, new_form_data)
+    end)
   end
 
   def fill_form(session, selector, form_data) do

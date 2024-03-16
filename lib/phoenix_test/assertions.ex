@@ -6,6 +6,7 @@ defmodule PhoenixTest.Assertions do
   alias ExUnit.AssertionError
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+  alias PhoenixTest.Selectors
 
   @doc """
   Asserts that the rendered HTML content within the given session contains an
@@ -36,7 +37,7 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def assert_has(session, selector) do
+  def assert_has(session, selector) when is_binary(selector) do
     session
     |> PhoenixTest.Driver.render_html()
     |> Query.find(selector)
@@ -55,6 +56,12 @@ defmodule PhoenixTest.Assertions do
     end
 
     session
+  end
+
+  def assert_has(session, selector_builder) do
+    html = PhoenixTest.Driver.render_html(session)
+    selector = Selectors.compile(selector_builder, html)
+    assert_has(session, selector)
   end
 
   def assert_has(session, "title", text) do
@@ -131,7 +138,7 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def refute_has(session, selector) do
+  def refute_has(session, selector) when is_binary(selector) do
     session
     |> PhoenixTest.Driver.render_html()
     |> Query.find(selector)

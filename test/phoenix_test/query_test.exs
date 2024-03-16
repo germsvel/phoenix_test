@@ -134,6 +134,15 @@ defmodule PhoenixTest.QueryTest do
       assert {"h1", _, ["Hello       "]} = element
     end
 
+    test "matches on exact text if required" do
+      html = """
+      <h1>Hello world</h1>
+      """
+
+      assert {:found, _} = Query.find(html, "h1", "Hello")
+      assert {:not_found, _} = Query.find(html, "h1", "Hello", exact: true)
+    end
+
     test "finds an element with attribute selector and text" do
       html = """
       <h1 id="title">Hello</h1>
@@ -297,6 +306,286 @@ defmodule PhoenixTest.QueryTest do
       [a, b] = matched_selector_but_not_text
       assert {"h2", _, ["Hello"]} = a
       assert {"h2", _, ["Greetings"]} = b
+    end
+  end
+
+  describe "find_by_label!/2" do
+    test "raises error if no label is found" do
+      html = """
+      <input id="name"/>
+      """
+
+      msg = """
+      Could not find element with label "Name"
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "Name")
+      end
+    end
+
+    test "raises if label isn't found (but other labels are present)" do
+      html = """
+      <label for="name">Names</label>
+      """
+
+      msg = """
+      Could not find element with label "Name".
+
+      Found the following labels:
+
+      <label for="name">
+        Names
+      </label>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "Name")
+      end
+    end
+
+    test "raises error if label doesn't have a `for` attribute" do
+      html = """
+      <label>Name</label>
+      """
+
+      msg =
+        """
+        Found label but doesn't have `for` attribute.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        <label>
+          Name
+        </label>\n
+        """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "Name")
+      end
+    end
+
+    test "raises error if label's `for` doesn't have corresponding `id`" do
+      html = """
+      <label for="name">Name</label>
+      <input type="text" name="name" />
+      """
+
+      msg = """
+      Found label but could not find corresponding element with matching `id`.
+
+      (Label's `for` attribute must point to element's `id`)
+
+      Label found:
+
+      <label for="name">
+        Name
+      </label>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "Name")
+      end
+    end
+
+    test "raises error if multiple multiple labels match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <label for="second_greeting">Hello</label>
+      """
+
+      msg = """
+      Found many elements with label "Hello":
+
+      <label for="greeting">
+        Hello
+      </label>
+
+      <label for="second_greeting">
+        Hello
+      </label>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "Hello")
+      end
+    end
+
+    test "returns found element" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      """
+
+      element = Query.find_by_label!(html, "Hello")
+
+      assert {"input", [{"id", "greeting"}], []} = element
+    end
+
+    test "returns found element when association is implicit" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      element = Query.find_by_label!(html, "Hello")
+
+      assert {"input", [{"name", "greeting"}], []} = element
+    end
+  end
+
+  describe "find_by_label/2" do
+    test "returns error if no label is found" do
+      html = """
+      <input id="name"/>
+      """
+
+      assert {:not_found, :no_label, []} = Query.find_by_label(html, "Name")
+    end
+
+    test "returns error with other labels if others are found" do
+      html = """
+      <label name="name">Helpful for typo</label>
+      """
+
+      {:not_found, :no_label, [potential_match]} = Query.find_by_label(html, "Name")
+
+      assert {"label", _, ["Helpful for typo"]} = potential_match
+    end
+
+    test "returns error if label doesn't have `for` attribute set" do
+      html = """
+      <label>Name</label>
+      """
+
+      {:not_found, :missing_for, label_without_for_element} = Query.find_by_label(html, "Name")
+
+      assert {"label", _, ["Name"]} = label_without_for_element
+    end
+
+    test "returns error if label's for doesn't have matching element with id" do
+      html = """
+      <label for="name">Name</label>
+      <input type="text" name="name" />
+      """
+
+      {:not_found, :missing_id, found_label} = Query.find_by_label(html, "Name")
+
+      assert {"label", _, ["Name"]} = found_label
+    end
+
+    test "returns matching elements if multiple labels match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <label for="second_greeting">Hello</label>
+      """
+
+      {:not_found, :found_many_labels, elements} = Query.find_by_label(html, "Hello")
+
+      assert Enum.count(elements) == 2
+    end
+
+    test "returns the element the label points to" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      """
+
+      {:found, element} = Query.find_by_label(html, "Hello")
+
+      assert {"input", [{"id", "greeting"}], []} = element
+    end
+
+    test "returns found element when association is implicit" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "Hello")
+
+      assert {"input", [{"name", "greeting"}], []} = element
+    end
+  end
+
+  describe "find_ancestor!/3" do
+    test "returns specified ancestor element of given id" do
+      html = """
+      <form id="super-form">
+        <input id="greeting" />
+      </form>
+      """
+
+      element = Query.find_ancestor!(html, "form", "greeting")
+
+      assert {"form", [{"id", "super-form"}], _} = element
+    end
+
+    test "raises error if cannot find ancestor element (but there are matches)" do
+      html = """
+      <form id="super-form">
+      </form>
+      <input id="greeting" />
+      """
+
+      msg = """
+      Could not find "form" for an element with ID "greeting".
+
+      Found other potential "form":
+
+      <form id="super-form">
+      </form>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_ancestor!(html, "form", "greeting")
+      end
+    end
+
+    test "raises error if cannot find any elements like ancestor" do
+      html = """
+      <input id="greeting" />
+      """
+
+      msg = """
+      Could not find any "form" elements.
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_ancestor!(html, "form", "greeting")
+      end
+    end
+  end
+
+  describe "find_ancestor/3" do
+    test "finds specified ancestor element of given id" do
+      html = """
+      <form id="super-form">
+        <input id="greeting" />
+      </form>
+      """
+
+      {:found, element} = Query.find_ancestor(html, "form", "greeting")
+
+      assert {"form", [{"id", "super-form"}], _} = element
+    end
+
+    test "returns error if cannot find ancestor element" do
+      html = """
+      <form id="super-form">
+      </form>
+      <input id="greeting" />
+      """
+
+      {:not_found, [other_potential_match]} = Query.find_ancestor(html, "form", "greeting")
+
+      assert {"form", [{"id", "super-form"}], _} = other_potential_match
     end
   end
 end

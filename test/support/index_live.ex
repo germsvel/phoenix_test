@@ -27,7 +27,8 @@ defmodule PhoenixTest.IndexLive do
     </div>
 
     <form id="email-form" phx-change="validate-email" phx-submit="save-form">
-      <input name="email" />
+      <label for="email">Email</label>
+      <input id="email" name="email" value={assigns[:email]} />
       <button type="submit">Save email</button>
     </form>
 
@@ -43,13 +44,14 @@ defmodule PhoenixTest.IndexLive do
     </form>
 
     <form id="nested-form" phx-submit="save-form">
-      <input name="user[name]" />
+      <label for="user-name">User Name</label>
+      <input id="user-name" name="user[name]" />
       <button type="submit">Save</button>
     </form>
 
     <form id="full-form" phx-submit="save-form">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="first_name">First Name</label>
+      <input id="first_name" name="first_name" />
 
       <label for="admin">Admin</label>
       <input type="checkbox" name="admin" value="on" />
@@ -63,7 +65,7 @@ defmodule PhoenixTest.IndexLive do
       </select>
 
       <label for="notes">Notes</label>
-      <textarea name="notes" rows="5" cols="33">
+      <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>
     </form>
 
@@ -152,7 +154,9 @@ defmodule PhoenixTest.IndexLive do
         {:noreply, assign(socket, :show_form_errors, true)}
 
       _valid ->
-        {:noreply, socket}
+        socket
+        |> assign(:email, email)
+        |> then(&{:noreply, &1})
     end
   end
 
