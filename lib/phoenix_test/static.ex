@@ -112,13 +112,34 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   def fill_in(session, label, with: value) do
     html = render_html(session)
 
-    input = Query.find_by_label!(html, label)
-    input_id = Html.attribute(input, "id")
+    field = Query.find_by_label!(html, label)
+    field_id = Html.attribute(field, "id")
 
-    form = Query.find_ancestor!(html, "form", input_id)
+    form = Query.find_ancestor!(html, "form", field_id)
     id = Html.attribute(form, "id")
 
-    new_form_data = Utils.name_to_map(Html.attribute(input, "name"), value)
+    new_form_data = Utils.name_to_map(Html.attribute(field, "name"), value)
+
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> fill_form("form##{id}", active_form.form_data)
+  end
+
+  def select(session, option, from: label) do
+    html = render_html(session)
+
+    field = Query.find_by_label!(html, label)
+    field_id = Html.attribute(field, "id")
+
+    form = Query.find_ancestor!(html, "form", field_id)
+    id = Html.attribute(form, "id")
+
+    option = Query.find!(Html.raw(field), "option", option)
+    value = Html.attribute(option, "value")
+
+    new_form_data = Utils.name_to_map(Html.attribute(field, "name"), value)
 
     active_form = add_to_active_form_data(session, new_form_data)
 

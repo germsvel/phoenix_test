@@ -46,6 +46,13 @@ defmodule PhoenixTest.IndexLive do
     <form id="nested-form" phx-submit="save-form">
       <label for="user-name">User Name</label>
       <input id="user-name" name="user[name]" />
+
+      <label for="user-admin">User Admin</label>
+      <select id="user-admin" name="user[admin]">
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+
       <button type="submit">Save</button>
     </form>
 
@@ -57,7 +64,7 @@ defmodule PhoenixTest.IndexLive do
       <input type="checkbox" name="admin" value="on" />
 
       <label for="race">Race</label>
-      <select name="race">
+      <select id="race" name="race">
         <option value="human">Human</option>
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>

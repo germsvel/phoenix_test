@@ -253,6 +253,24 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "select/3" do
+    test "selects given option for a label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> select("Elf", from: "Race")
+      |> click_button("Save")
+      |> assert_has("#form-data", "race: elf")
+    end
+
+    test "works in 'nested' forms", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> select("False", from: "User Admin")
+      |> click_button("Save")
+      |> assert_has("#form-data", "user:admin: false")
+    end
+  end
+
   describe "fill_form/3" do
     test "raises an error when form cannot be found with given selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
@@ -269,13 +287,13 @@ defmodule PhoenixTest.StaticTest do
 
         Found the following fields:
 
-        <input id="user_name" name="user[name]" type="text"/>\n
+        <input name="name"/>\n
         """
 
       assert_raise ArgumentError, message, fn ->
         conn
         |> visit("/page/index")
-        |> fill_form("#nested-form", location: %{user: %{name: "Aragorn"}})
+        |> fill_form("#no-submit-button-form", location: %{user: %{name: "Aragorn"}})
       end
     end
   end

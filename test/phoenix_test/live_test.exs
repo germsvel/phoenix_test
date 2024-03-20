@@ -198,6 +198,31 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "select/3" do
+    test "selects given option for a label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Elf", from: "Race")
+      |> assert_has("#full-form option[value='elf']")
+    end
+
+    test "works in 'nested' forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("False", from: "User Admin")
+      |> click_button("Save")
+      |> assert_has("#form-data", "user:admin: false")
+    end
+
+    test "can be used to submit form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Elf", from: "Race")
+      |> click_button("Save")
+      |> assert_has("#form-data", "race: elf")
+    end
+  end
+
   describe "fill_form/3" do
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = conn |> visit("/live/index")

@@ -100,6 +100,13 @@ defmodule PhoenixTest.PageView do
     <form id="nested-form" method="post" action="/page/create_record">
       <label for="user_name">User Name</label>
       <input type="text" id="user_name" name="user[name]" />
+
+      <label for="user_admin">User Admin</label>
+      <select id="user_admin" name="user[admin]">
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+
       <button>Save</button>
     </form>
 
@@ -111,7 +118,7 @@ defmodule PhoenixTest.PageView do
       <input type="checkbox" name="admin" />
 
       <label for="race">Race</label>
-      <select name="race">
+      <select id="race" name="race">
         <option value="human">Human</option>
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>
