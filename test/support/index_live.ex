@@ -29,8 +29,9 @@ defmodule PhoenixTest.IndexLive do
     <form id="email-form" phx-change="validate-email" phx-submit="save-form">
       <label for="email">Email</label>
       <input id="email" name="email" value={assigns[:email]} />
-      <button type="submit">Save email</button>
+      <button>Save</button>
     </form>
+    <button phx-click="reset-email-form">Reset</button>
 
     <div :if={@form_saved} id="form-data">
       <%= for {key, value} <- @form_data do %>
@@ -74,6 +75,8 @@ defmodule PhoenixTest.IndexLive do
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>
+
+      <button>Save</button>
     </form>
 
     <form id="redirect-form" phx-submit="save-redirect-form">
@@ -153,6 +156,12 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("save-redirect-form-to-static", _, socket) do
     {:noreply, redirect(socket, to: "/page/index")}
+  end
+
+  def handle_event("reset-email-form", _, socket) do
+    socket
+    |> assign(:email, nil)
+    |> then(&{:noreply, &1})
   end
 
   def handle_event("validate-email", %{"email" => email}, socket) do

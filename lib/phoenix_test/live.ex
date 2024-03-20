@@ -69,12 +69,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def click_button(session, selector, text) do
-    if has_active_form?(session) do
-      {form, session} = PhoenixTest.Live.pop_private(session, :active_form)
+    {form, session} = PhoenixTest.Live.pop_private(session, :active_form)
 
-      session
-      |> validate_submit_buttons!(selector, text)
-      |> submit_form(form.selector, form.form_data)
+    if has_active_form?(form) and is_submit_button?(form.form_element, selector, text) do
+      submit_form(session, form.selector, form.form_data)
     else
       session.view
       |> element(selector, text)
@@ -83,22 +81,21 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
-  defp has_active_form?(session) do
-    case PhoenixTest.Live.get_private(session, :active_form) do
-      :not_found -> false
-      _ -> true
+  defp is_submit_button?(form_element, selector, text) do
+    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
+
+    form_element
+    |> Html.raw()
+    |> Query.find_one_of(submit_buttons)
+    |> case do
+      {:found, _} -> true
+      {:found_many, _} -> true
+      {:not_found, _} -> false
     end
   end
 
-  defp validate_submit_buttons!(session, selector, text) do
-    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
-
-    session
-    |> render_html()
-    |> Query.find_one_of!(submit_buttons)
-
-    session
-  end
+  defp has_active_form?(%{form_data: _}), do: true
+  defp has_active_form?(%{}), do: false
 
   def fill_in(session, label, with: value) do
     html = render_html(session)
@@ -106,7 +103,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     field = Query.find_by_label!(html, label)
     field_id = Html.attribute(field, "id")
 
-    form = Query.find_ancestor!(html, "form", field_id)
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
     id = Html.attribute(form, "id")
 
     new_form_data = Utils.name_to_map(Html.attribute(field, "name"), value)
@@ -124,7 +121,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     field = Query.find_by_label!(html, label)
     field_id = Html.attribute(field, "id")
 
-    form = Query.find_ancestor!(html, "form", field_id)
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
     id = Html.attribute(form, "id")
 
     option = Query.find!(Html.raw(field), "option", option)
@@ -166,7 +163,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
 
     session
-    |> PhoenixTest.Live.put_private(:active_form, %{selector: selector, form_data: form_data})
+    |> PhoenixTest.Live.put_private(:active_form, %{
+      selector: selector,
+      form_data: form_data,
+      form_element: form_element
+    })
   end
 
   def submit_form(session, selector, form_data) do

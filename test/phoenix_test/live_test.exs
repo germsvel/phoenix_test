@@ -142,12 +142,12 @@ defmodule PhoenixTest.LiveTest do
       assert_raise ArgumentError, ~r/does not have phx-click attribute/, fn ->
         conn
         |> visit("/live/index")
-        |> click_button("Save email")
+        |> click_button("Submit Invalid Form")
       end
     end
 
     test "raises an error if active form but can't find button", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
+      assert_raise ArgumentError, ~r/none matched the text filter "No button"/, fn ->
         conn
         |> visit("/live/index")
         |> fill_form("#no-phx-change-form", name: "Legolas")
@@ -193,7 +193,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "someone@example.com")
-      |> click_button("Save email")
+      |> click_button("Save")
       |> assert_has("#form-data", "email: someone@example.com")
     end
   end
@@ -284,6 +284,14 @@ defmodule PhoenixTest.LiveTest do
       |> fill_form("#email-form", email: "some@example.com")
       |> click_button("Save")
       |> assert_has("#form-data", "email: some@example.com")
+    end
+
+    test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#email-form", email: "some@example.com")
+      |> click_button("Reset")
+      |> refute_has("#form-data", "email: some@example.com")
     end
 
     test "can handle forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do

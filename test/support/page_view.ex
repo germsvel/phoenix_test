@@ -83,7 +83,7 @@ defmodule PhoenixTest.PageView do
     <form action="/page/create_record" method="post" id="email-form">
       <label for="email">Email</label>
       <input type="text" id="email" name="email" />
-      <button>Save</button>
+      <input type="submit" value="Save" />
     </form>
 
     <form id="update-form" action="/page/update_record" method="post">
@@ -133,6 +133,8 @@ defmodule PhoenixTest.PageView do
         <label for="member_of_fellowship">Member of fellowship</label>
         <input type="checkbox" name="member_of_fellowship" />
       </div>
+
+      <button>Save</button>
     </form>
 
     <form id="redirect-to-liveview-form" method="post" action="/page/redirect_to_liveview">
