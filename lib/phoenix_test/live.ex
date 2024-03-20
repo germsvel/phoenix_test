@@ -126,6 +126,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         |> form(selector, form_data)
         |> render_submit()
         |> maybe_redirect(session)
+        |> maybe_trigger_action(selector, form_data)
 
       action_form?(form_element) ->
         session.conn
@@ -136,6 +137,33 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         raise ArgumentError,
               "Expected form with selector #{inspect(selector)} to have a `phx-submit` or `action` defined."
     end
+  end
+
+  defp maybe_trigger_action(%PhoenixTest.Live{} = session, selector, form_data) do
+    element =
+      session
+      |> render_html()
+      |> Query.find(selector)
+
+    case element do
+      {:found, form_element} ->
+        case phx_trigger_action_form?(form_element) do
+          true ->
+            session.conn
+            |> PhoenixTest.Static.build()
+            |> PhoenixTest.submit_form(selector, form_data)
+
+          _ ->
+            session
+        end
+
+      _ ->
+        session
+    end
+  end
+
+  defp maybe_trigger_action(session, _, _) do
+    session
   end
 
   defp action_form?(form_element) do
@@ -154,6 +182,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     phx_change = Html.attribute(form_element, "phx-change")
 
     phx_change != nil && phx_change != ""
+  end
+
+  defp phx_trigger_action_form?(form_element) do
+    phx_trigger_action = Html.attribute(form_element, "phx-trigger-action")
+
+    phx_trigger_action != nil && phx_trigger_action != ""
   end
 
   def open_browser(%{view: view} = session, open_fun \\ &Phoenix.LiveViewTest.open_browser/1) do
