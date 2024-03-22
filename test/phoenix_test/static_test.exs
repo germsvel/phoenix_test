@@ -209,7 +209,9 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
+      msg = ~r/Could not find element with selector "button" and text "Show tab"/
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/page/page_2")
         |> click_button("Show tab")
@@ -217,7 +219,9 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error if can't find button", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find an element with given selector/, fn ->
+      msg = ~r/Could not find element with selector "button" and text "No button"/
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/page/index")
         |> click_button("No button")
@@ -303,8 +307,16 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_form("#email-form", email: "sample@example.com")
-      |> click_button("#email-form", "Save")
+      |> click_button("Save")
       |> assert_has("#form-data", "email: sample@example.com")
+    end
+
+    test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_form("#email-form", email: "some@example.com")
+      |> click_button("Delete record")
+      |> refute_has("#form-data", "email: some@example.com")
     end
 
     test "can submit nested forms", %{conn: conn} do

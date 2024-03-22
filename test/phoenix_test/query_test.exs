@@ -515,14 +515,14 @@ defmodule PhoenixTest.QueryTest do
   end
 
   describe "find_ancestor!/3" do
-    test "returns specified ancestor element of given id" do
+    test "returns specified ancestor element of given selector" do
       html = """
       <form id="super-form">
         <input id="greeting" />
       </form>
       """
 
-      element = Query.find_ancestor!(html, "form", "greeting")
+      element = Query.find_ancestor!(html, "form", "#greeting")
 
       assert {"form", [{"id", "super-form"}], _} = element
     end
@@ -535,7 +535,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       msg = """
-      Could not find "form" for an element with ID "greeting".
+      Could not find "form" for an element with selector "#greeting".
 
       Found other potential "form":
 
@@ -544,7 +544,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", "greeting")
+        Query.find_ancestor!(html, "form", "#greeting")
       end
     end
 
@@ -558,20 +558,109 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", "greeting")
+        Query.find_ancestor!(html, "form", "#greeting")
+      end
+    end
+  end
+
+  describe "find_ancestor!/3 with complex selector + text filter" do
+    test "returns specified ancestor element of given selector and text filter" do
+      html = """
+      <form id="super-form">
+        <button>Save</button>
+      </form>
+
+      <form id="other-form">
+        <button>Reset</button>
+      </form>
+      """
+
+      element = Query.find_ancestor!(html, "form", {"button", "Save"})
+
+      assert {"form", [{"id", "super-form"}], _} = element
+    end
+
+    test "raises if there are multiple possible matches for given selector and text filter" do
+      html = """
+      <form id="super-form">
+        <button>Save</button>
+      </form>
+
+      <form id="other-form">
+        <button>Save</button>
+      </form>
+      """
+
+      msg =
+        """
+        Found too many "form" elements with nested element with
+        selector "button" and text "Save"
+
+        Potential matches:
+
+        <form id="super-form">
+          <button>
+            Save
+          </button>
+        </form>
+
+        <form id="other-form">
+          <button>
+            Save
+          </button>
+        </form>\n
+        """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_ancestor!(html, "form", {"button", "Save"})
+      end
+    end
+
+    test "raises error if cannot find ancestor element (but there are matches)" do
+      html = """
+      <form id="super-form">
+      </form>
+      <button>Save</button>
+      """
+
+      msg = """
+      Could not find "form" for an element with selector "button" and text "Save".
+
+      Found other potential "form":
+
+      <form id="super-form">
+      </form>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_ancestor!(html, "form", {"button", "Save"})
+      end
+    end
+
+    test "raises error if cannot find ancestor element" do
+      html = """
+      <button>Save</button>
+      """
+
+      msg = """
+      Could not find any "form" elements.
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_ancestor!(html, "form", {"button", "Save"})
       end
     end
   end
 
   describe "find_ancestor/3" do
-    test "finds specified ancestor element of given id" do
+    test "finds specified ancestor element of given selector" do
       html = """
       <form id="super-form">
         <input id="greeting" />
       </form>
       """
 
-      {:found, element} = Query.find_ancestor(html, "form", "greeting")
+      {:found, element} = Query.find_ancestor(html, "form", "#greeting")
 
       assert {"form", [{"id", "super-form"}], _} = element
     end
@@ -583,7 +672,54 @@ defmodule PhoenixTest.QueryTest do
       <input id="greeting" />
       """
 
-      {:not_found, [other_potential_match]} = Query.find_ancestor(html, "form", "greeting")
+      {:not_found, [other_potential_match]} = Query.find_ancestor(html, "form", "#greeting")
+
+      assert {"form", [{"id", "super-form"}], _} = other_potential_match
+    end
+  end
+
+  describe "find_ancestor/3 with complex selector + text filter" do
+    test "finds specified ancestor element of given selector and text filter" do
+      html = """
+      <form id="super-form">
+        <button>Save</button>
+      </form>
+
+      <form id="other-form">
+        <button>Reset</button>
+      </form>
+      """
+
+      {:found, element} = Query.find_ancestor(html, "form", {"button", "Save"})
+
+      assert {"form", [{"id", "super-form"}], _} = element
+    end
+
+    test "returns multiple ancestors if many are found (given selector and text filter)" do
+      html = """
+      <form id="super-form">
+        <button>Save</button>
+      </form>
+
+      <form id="other-form">
+        <button>Save</button>
+      </form>
+      """
+
+      {:found_many, [el1, el2]} = Query.find_ancestor(html, "form", {"button", "Save"})
+
+      assert {"form", [{"id", "super-form"}], _} = el1
+      assert {"form", [{"id", "other-form"}], _} = el2
+    end
+
+    test "returns error if cannot find ancestor element" do
+      html = """
+      <form id="super-form">
+      </form>
+      """
+
+      {:not_found, [other_potential_match]} =
+        Query.find_ancestor(html, "form", {"button", "Save"})
 
       assert {"form", [{"id", "super-form"}], _} = other_potential_match
     end

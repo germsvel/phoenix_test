@@ -84,11 +84,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_button(session, selector, text) do
+    form = PhoenixTest.Static.get_private(session, :active_form, %{})
+
     cond do
-      has_active_form?(session) ->
-        session
-        |> validate_submit_buttons!(selector, text)
-        |> submit_active_form()
+      has_active_form?(form) and is_submit_button?(form.form_element, selector, text) ->
+        submit_active_form(session)
 
       data_attribute_form?(session, selector, text) ->
         form =
@@ -103,9 +103,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         |> maybe_redirect(session)
 
       true ->
-        session
-        |> validate_submit_buttons!(selector, text)
-        |> single_button_form_submit(text)
+        single_button_form_submit(session, selector, text)
     end
   end
 
@@ -115,7 +113,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     field = Query.find_by_label!(html, label)
     field_id = Html.attribute(field, "id")
 
-    form = Query.find_ancestor!(html, "form", field_id)
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
     id = Html.attribute(form, "id")
 
     new_form_data = Utils.name_to_map(Html.attribute(field, "name"), value)
@@ -133,7 +131,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     field = Query.find_by_label!(html, label)
     field_id = Html.attribute(field, "id")
 
-    form = Query.find_ancestor!(html, "form", field_id)
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
     id = Html.attribute(form, "id")
 
     option = Query.find!(Html.raw(field), "option", option)
@@ -157,15 +155,21 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def fill_form(session, selector, form_data) do
-    form =
+    form_element =
       session
       |> render_html()
       |> Query.find!(selector)
-      |> Html.Form.build()
+
+    form = Html.Form.build(form_element)
 
     :ok = Html.Form.validate_form_data!(form, form_data)
 
-    active_form = %{selector: selector, form_data: form_data, parsed: form}
+    active_form = %{
+      selector: selector,
+      form_data: form_data,
+      parsed: form,
+      form_element: form_element
+    }
 
     session
     |> PhoenixTest.Static.put_private(:active_form, active_form)
@@ -191,22 +195,21 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  defp has_active_form?(session) do
-    case PhoenixTest.Static.get_private(session, :active_form) do
-      :not_found -> false
-      _ -> true
+  defp is_submit_button?(form_element, selector, text) do
+    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
+
+    form_element
+    |> Html.raw()
+    |> Query.find_one_of(submit_buttons)
+    |> case do
+      {:found, _} -> true
+      {:found_many, _} -> true
+      {:not_found, _} -> false
     end
   end
 
-  defp validate_submit_buttons!(session, selector, text) do
-    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
-
-    session
-    |> render_html()
-    |> Query.find_one_of!(submit_buttons)
-
-    session
-  end
+  defp has_active_form?(%{form_data: _}), do: true
+  defp has_active_form?(%{}), do: false
 
   defp submit_active_form(session) do
     {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
@@ -218,11 +221,15 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> maybe_redirect(session)
   end
 
-  defp single_button_form_submit(session, text) do
-    form =
+  defp single_button_form_submit(session, selector, text) do
+    html =
       session
       |> render_html()
-      |> Query.find!("form", text)
+
+    _submit_button = Query.find!(html, selector, text)
+
+    form =
+      Query.find_ancestor!(html, "form", {selector, text})
       |> Html.Form.build()
 
     action = form["attributes"]["action"]

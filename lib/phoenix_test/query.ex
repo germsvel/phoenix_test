@@ -313,8 +313,45 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_ancestor!(html, ancestor, descendant_id) do
-    case find_ancestor(html, ancestor, descendant_id) do
+  def find_ancestor!(html, ancestor, {descendant_selector, descendant_text} = desc) do
+    case find_ancestor(html, ancestor, desc) do
+      {:found, element} ->
+        element
+
+      {:found_many, potential_matches} ->
+        msg = """
+        Found too many #{inspect(ancestor)} elements with nested element with
+        selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}
+
+        Potential matches:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      :not_found ->
+        msg = """
+        Could not find any #{inspect(ancestor)} elements.
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, potential_matches} ->
+        msg = """
+        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}.
+
+        Found other potential #{inspect(ancestor)}:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+    end
+  end
+
+  def find_ancestor!(html, ancestor, descendant_selector) do
+    case find_ancestor(html, ancestor, descendant_selector) do
       {:found, element} ->
         element
 
@@ -327,7 +364,7 @@ defmodule PhoenixTest.Query do
 
       {:not_found, potential_matches} ->
         msg = """
-        Could not find #{inspect(ancestor)} for an element with ID #{inspect(descendant_id)}.
+        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
 
         Found other potential #{inspect(ancestor)}:
 
@@ -338,23 +375,52 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_ancestor(html, ancestor, descendant_id) do
-    case find(html, ancestor) do
+  def find_ancestor(html, ancestor_selector, {descendant_selector, descendant_text}) do
+    case find(html, ancestor_selector) do
       :not_found ->
         :not_found
 
       {:found, element} ->
-        filter_ancestor_with_descendant_id([element], descendant_id)
+        filter_ancestor_with_descendant([element], descendant_selector, descendant_text)
 
       {:found_many, elements} ->
-        filter_ancestor_with_descendant_id(elements, descendant_id)
+        filter_ancestor_with_descendant(elements, descendant_selector, descendant_text)
     end
   end
 
-  defp filter_ancestor_with_descendant_id(ancestors, descendant_id) do
+  def find_ancestor(html, ancestor_selector, descendant_selector) do
+    case find(html, ancestor_selector) do
+      :not_found ->
+        :not_found
+
+      {:found, element} ->
+        filter_ancestor_with_descendant([element], descendant_selector)
+
+      {:found_many, elements} ->
+        filter_ancestor_with_descendant(elements, descendant_selector)
+    end
+  end
+
+  defp filter_ancestor_with_descendant(ancestors, descendant_selector, descendant_text) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      case find(Html.raw(ancestor), "##{descendant_id}") do
+      case find(Html.raw(ancestor), descendant_selector, descendant_text) do
+        {:not_found, _} -> false
+        {:found, _element} -> true
+        {:found_many, _elements} -> true
+      end
+    end)
+    |> case do
+      [] -> {:not_found, ancestors}
+      [ancestor] -> {:found, ancestor}
+      [_ | _] = ancestors -> {:found_many, ancestors}
+    end
+  end
+
+  defp filter_ancestor_with_descendant(ancestors, descendant_selector) do
+    ancestors
+    |> Enum.filter(fn ancestor ->
+      case find(Html.raw(ancestor), descendant_selector) do
         :not_found -> false
         {:found, _element} -> true
         {:found_many, _elements} -> true
