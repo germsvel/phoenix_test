@@ -7,6 +7,23 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.9
+
+### Improvements
+
+- Adds `assert_has/2` and `refute_has/2`. Commits [3756a47] and [9709b7a].
+- Follows redirect on `visit/2`. Commit [b4f49be]
+
+### Fixes
+
+- Do not always assume `submit_button` after `fill_form` is for submitting the
+  form. Commit [e193a07]
+
+[3756a47]: https://github.com/germsvel/phoenix_test/commit/3756a47
+[9709b7a]: https://github.com/germsvel/phoenix_test/commit/9709b7a
+[b4f49be]: https://github.com/germsvel/phoenix_test/commit/b4f49be
+[e193a07]: https://github.com/germsvel/phoenix_test/commit/e193a07
+
 ## 0.2.8
 
 ### Added

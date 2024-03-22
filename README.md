@@ -43,7 +43,7 @@ Add `phoenix_test` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:phoenix_test, "~> 0.2.8", only: :test, runtime: false}
+    {:phoenix_test, "~> 0.2.9", only: :test, runtime: false}
   ]
 end
 ```
