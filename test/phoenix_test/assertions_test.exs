@@ -115,7 +115,7 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Could not find element with text "Super page".
+        Could not find any elements with selector "h1" and text "Super page".
 
         Found other elements matching the selector "h1":
 
@@ -191,7 +191,7 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Could not find element with text "Frodo".
+        Could not find any elements with selector "#multiple-items" and text "Frodo".
 
         Found other elements matching the selector "#multiple-items":
 
@@ -218,7 +218,9 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> assert_has(".multiple_links", count: 2)
+      |> assert_has(".multiple_links", text: "Multiple links", count: 2)
       |> assert_has("h1", count: 1)
+      |> assert_has("h1", text: "Main page", count: 1)
     end
 
     test "raises an error if count is more than expected count", %{conn: conn} do
@@ -226,7 +228,9 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Expected 1 elements with ".multiple_links" but found 2 instead:
+        Expected 1 elements with ".multiple_links".
+
+        But found 2:
         """
         |> ignore_whitespace()
 
@@ -240,7 +244,9 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Expected 2 elements with "h1" but found 1 instead:
+        Expected 2 elements with "h1".
+
+        But found 1:
         """
         |> ignore_whitespace()
 
@@ -276,7 +282,9 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> refute_has("h1", count: 2)
+      |> refute_has("h1", text: "Main page", count: 2)
       |> refute_has(".multiple_links", count: 1)
+      |> refute_has(".multiple_links", text: "Multiple links", count: 1)
     end
 
     test "raises if element is found", %{conn: conn} do
@@ -284,7 +292,7 @@ defmodule PhoenixTest.AssertionsTest do
         """
         Expected not to find any elements with selector "h1".
 
-        But found:
+        But found 1:
 
         <h1 id="title" class="title" data-role="title">
           Main page
@@ -320,7 +328,7 @@ defmodule PhoenixTest.AssertionsTest do
         """
         Expected not to find any elements with selector ".multiple_links".
 
-        But found:
+        But found 2:
         """
         |> ignore_whitespace()
 
@@ -334,7 +342,7 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Expected not to find any elements with selector "h1".
+        Expected not to find 1 elements with selector "h1".
         """
         |> ignore_whitespace()
 
@@ -350,7 +358,7 @@ defmodule PhoenixTest.AssertionsTest do
         """
         Expected not to find 2 elements with selector ".multiple_links".
 
-        But found:
+        But found 2:
         """
         |> ignore_whitespace()
 
@@ -426,9 +434,9 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Expected not to find an element.
+        Expected not to find any elements with selector "#title" and text "Main page".
 
-        But found an element with selector "#title" and text "Main page":
+        But found 1:
 
         <h1 id="title" class="title" data-role="title">
           Main page
@@ -446,9 +454,9 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Expected not to find an element.
+        Expected not to find any elements with selector ".multiple_links" and text "Multiple links".
 
-        But found 2 elements with selector ".multiple_links" and text "Multiple links":
+        But found 2:
 
         <a class="multiple_links" href="/page/page_3">
           Multiple links

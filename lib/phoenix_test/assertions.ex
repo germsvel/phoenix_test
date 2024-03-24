@@ -48,7 +48,11 @@ defmodule PhoenixTest.Assertions do
     assert_has(session, selector)
   end
 
-  def assert_has(session, "title", text) do
+  def assert_has(session, "title", text) when is_binary(text) do
+    assert_has(session, "title", text: text)
+  end
+
+  def assert_has(session, "title", text: text) do
     title = PhoenixTest.Driver.render_page_title(session)
 
     if title == text do
@@ -64,59 +68,31 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_has(session, selector, text) when is_binary(text) do
-    session
-    |> PhoenixTest.Driver.render_html()
-    |> Query.find(selector, text)
-    |> case do
-      {:found, _found} ->
-        assert true
-
-      {:found_many, _found} ->
-        assert true
-
-      {:not_found, []} ->
-        raise AssertionError,
-          message: """
-          Could not find any elements with selector #{inspect(selector)}.
-          """
-
-      {:not_found, elements_matched_selector} ->
-        raise AssertionError,
-          message: """
-          Could not find element with text #{inspect(text)}.
-
-          Found other elements matching the selector #{inspect(selector)}:
-
-          #{format_found_elements(elements_matched_selector)}
-          """
-    end
-
-    session
+    assert_has(session, selector, text: text)
   end
 
   def assert_has(session, selector, opts) when is_list(opts) do
     expected_count = Keyword.get(opts, :count, :any)
+    text = Keyword.get(opts, :text, :no_text)
+    finder = finder_fun(selector, text)
 
     session
     |> PhoenixTest.Driver.render_html()
-    |> Query.find(selector)
+    |> finder.()
     |> case do
       :not_found ->
+        raise AssertionError, assert_not_found_error_msg(selector, opts)
+
+      {:not_found, potential_matches} ->
         raise AssertionError,
-          message: """
-          Could not find any elements with selector #{inspect(selector)}.
-          """
+          message: assert_not_found_error_msg(selector, opts, potential_matches)
 
       {:found, found} ->
         if expected_count in [:any, 1] do
           assert true
         else
           raise AssertionError,
-            message: """
-            Expected #{expected_count} elements with #{inspect(selector)} but found 1 instead:
-
-            #{format_found_elements(found)}
-            """
+            message: assert_incorrect_count_error_msg(selector, opts, [found])
         end
 
       {:found_many, found} ->
@@ -126,11 +102,7 @@ defmodule PhoenixTest.Assertions do
           assert true
         else
           raise AssertionError,
-            message: """
-            Expected #{expected_count} elements with #{inspect(selector)} but found #{count} instead:
-
-            #{format_found_elements(found)}
-            """
+            message: assert_incorrect_count_error_msg(selector, opts, found)
         end
     end
 
@@ -169,7 +141,11 @@ defmodule PhoenixTest.Assertions do
     refute_has(session, selector, count: :any)
   end
 
-  def refute_has(session, "title", text) do
+  def refute_has(session, "title", text) when is_binary(text) do
+    refute_has(session, "title", text: text)
+  end
+
+  def refute_has(session, "title", text: text) do
     title = PhoenixTest.Driver.render_page_title(session)
 
     if title == text do
@@ -185,57 +161,27 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_has(session, selector, text) when is_binary(text) do
-    session
-    |> PhoenixTest.Driver.render_html()
-    |> Query.find(selector, text)
-    |> case do
-      {:not_found, _} ->
-        refute false
-
-      {:found, element} ->
-        raise AssertionError,
-          message: """
-          Expected not to find an element.
-
-          But found an element with selector #{inspect(selector)} and text #{inspect(text)}:
-
-          #{format_found_elements(element)}
-          """
-
-      {:found_many, elements} ->
-        raise AssertionError,
-          message: """
-          Expected not to find an element.
-
-          But found #{Enum.count(elements)} elements with selector #{inspect(selector)} and text #{inspect(text)}:
-
-          #{format_found_elements(elements)}
-          """
-    end
-
-    session
+    refute_has(session, selector, text: text)
   end
 
   def refute_has(session, selector, opts) when is_list(opts) do
     refute_count = Keyword.get(opts, :count, :any)
+    text = Keyword.get(opts, :text, :no_text)
+    finder = finder_fun(selector, text)
 
     session
     |> PhoenixTest.Driver.render_html()
-    |> Query.find(selector)
+    |> finder.()
     |> case do
       :not_found ->
         refute false
 
+      {:not_found, _} ->
+        refute false
+
       {:found, element} ->
         if refute_count in [:any, 1] do
-          raise AssertionError,
-            message: """
-            Expected not to find any elements with selector #{inspect(selector)}.
-
-            But found:
-
-            #{format_found_elements(element)}
-            """
+          raise AssertionError, message: refute_found_error_msg(selector, opts, [element])
         else
           refute false
         end
@@ -244,14 +190,7 @@ defmodule PhoenixTest.Assertions do
         count = Enum.count(elements)
 
         if refute_count in [:any, count] do
-          raise AssertionError,
-            message: """
-            Expected not to find #{refute_count} elements with selector #{inspect(selector)}.
-
-            But found:
-
-            #{format_found_elements(elements)}
-            """
+          raise AssertionError, message: refute_found_error_msg(selector, opts, elements)
         else
           refute false
         end
@@ -259,6 +198,52 @@ defmodule PhoenixTest.Assertions do
 
     session
   end
+
+  defp assert_incorrect_count_error_msg(selector, opts, found) do
+    text = Keyword.get(opts, :text, :no_text)
+    expected_count = Keyword.get(opts, :count, :any)
+
+    "Expected #{expected_count} elements with #{inspect(selector)}"
+    |> maybe_append_text(text)
+    |> append_found(found)
+  end
+
+  defp assert_not_found_error_msg(selector, opts, other_matches \\ []) do
+    count = Keyword.get(opts, :count, :any)
+    text = Keyword.get(opts, :text, :no_text)
+
+    "Could not find #{count} elements with selector #{inspect(selector)}"
+    |> maybe_append_text(text)
+    |> append_found_other_matches(selector, other_matches)
+  end
+
+  def refute_found_error_msg(selector, opts, found) do
+    refute_count = Keyword.get(opts, :count, :any)
+    text = Keyword.get(opts, :text, :no_text)
+
+    "Expected not to find #{refute_count} elements with selector #{inspect(selector)}"
+    |> maybe_append_text(text)
+    |> append_found(found)
+  end
+
+  defp append_found(msg, found) do
+    msg <> "\n\n" <> "But found #{Enum.count(found)}:" <> "\n\n" <> format_found_elements(found)
+  end
+
+  defp append_found_other_matches(msg, _selector, []), do: msg
+
+  defp append_found_other_matches(msg, selector, matches) do
+    msg <>
+      "\n\n" <>
+      "Found other elements matching the selector #{inspect(selector)}:" <>
+      "\n\n" <> format_found_elements(matches)
+  end
+
+  defp maybe_append_text(msg, :no_text), do: msg <> "."
+  defp maybe_append_text(msg, text), do: msg <> " and text #{inspect(text)}."
+
+  defp finder_fun(selector, :no_text), do: &Query.find(&1, selector)
+  defp finder_fun(selector, text), do: &Query.find(&1, selector, text)
 
   defp format_found_elements(elements) when is_list(elements) do
     Enum.map_join(elements, "\n", &Html.raw/1)
