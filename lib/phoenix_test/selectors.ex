@@ -14,8 +14,9 @@ defmodule PhoenixTest.Selectors do
 
   def compile({:input, attrs}, html) do
     {label, attrs} = Map.pop(attrs, :label)
+
     element = Query.find_by_label!(html, label)
-    label_for = Html.attribute(element, "for")
+    id = Html.attribute(element, "id")
 
     existing_attrs =
       Enum.filter(attrs, fn {_k, v} -> v != nil end)
@@ -23,6 +24,6 @@ defmodule PhoenixTest.Selectors do
         acc <> "[#{k}=#{inspect(v)}]"
       end)
 
-    "input##{label_for}" <> existing_attrs
+    "input##{id}" <> existing_attrs
   end
 end

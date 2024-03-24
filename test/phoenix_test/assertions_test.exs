@@ -40,10 +40,16 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("title")
     end
 
+    test "succeeds if more than one element matches selector", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("li")
+    end
+
     test "takes in input helper in assertion", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> assert_has(input(type: "text", label: "Email"))
+      |> assert_has(input(type: "text", label: "User Name"))
     end
   end
 
@@ -207,6 +213,41 @@ defmodule PhoenixTest.AssertionsTest do
         conn |> assert_has("#multiple-items", "Frodo")
       end
     end
+
+    test "accepts a `count` option", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has(".multiple_links", count: 2)
+      |> assert_has("h1", count: 1)
+    end
+
+    test "raises an error if count is more than expected count", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      msg =
+        """
+        Expected 1 elements with ".multiple_links" but found 2 instead:
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        session |> assert_has(".multiple_links", count: 1)
+      end
+    end
+
+    test "raises an error if count is less than expected count", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      msg =
+        """
+        Expected 2 elements with "h1" but found 1 instead:
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        session |> assert_has("h1", count: 2)
+      end
+    end
   end
 
   describe "refute_has/2" do
@@ -231,12 +272,19 @@ defmodule PhoenixTest.AssertionsTest do
       |> refute_has("#something-else-to-test-pipe")
     end
 
+    test "accepts a `count` option", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("h1", count: 2)
+      |> refute_has(".multiple_links", count: 1)
+    end
+
     test "raises if element is found", %{conn: conn} do
       msg =
         """
-        Expected not to find an element.
+        Expected not to find any elements with selector "h1".
 
-        But found an element with selector "h1":
+        But found:
 
         <h1 id="title" class="title" data-role="title">
           Main page
@@ -270,14 +318,44 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         """
-        Expected not to find an element.
+        Expected not to find any elements with selector ".multiple_links".
 
-        But found 2 elements with selector ".multiple_links":
+        But found:
         """
         |> ignore_whitespace()
 
       assert_raise AssertionError, msg, fn ->
         conn |> refute_has(".multiple_links")
+      end
+    end
+
+    test "raises if there is one element and count is 1", %{conn: conn} do
+      conn = visit(conn, "/page/index")
+
+      msg =
+        """
+        Expected not to find any elements with selector "h1".
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn |> refute_has("h1", count: 1)
+      end
+    end
+
+    test "raises if there are the same number of elements as refuted", %{conn: conn} do
+      conn = visit(conn, "/page/index")
+
+      msg =
+        """
+        Expected not to find 2 elements with selector ".multiple_links".
+
+        But found:
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn |> refute_has(".multiple_links", count: 2)
       end
     end
   end
