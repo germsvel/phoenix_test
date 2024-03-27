@@ -308,17 +308,48 @@ defmodule PhoenixTest do
   than one matching element is found.
 
   If you want to specify the content of the element, use `assert_has/3`.
+
+  ## Examples
+
+  ```elixir
+  # assert there's an h1
+  assert_has(session, "h1")
+
+  # assert there's an element with ID "user"
+  assert_has(session, "#user")
+  ```
   """
   defdelegate assert_has(session, selector), to: Assertions
 
   @doc """
-  Assert helper to ensure an element with given CSS selector and `text` is
-  present.
+  Assert helper to ensure an element with given CSS selector and options.
 
   It'll raise an error if no elements are found, but it will _not_ raise if more
   than one matching element is found.
+
+  ## Options
+
+  - `text`: the text filter to look for. NOTE: by default `assert_has/3` will
+  perform a substring match (e.g. `a =~ b`). That makes it easier to assert text
+  within HTML elements that also contain other HTML elements.
+
+  - `count`: the number of items you expect to match CSS selector (and `text` if
+  provided)
+
+  ## Examples
+
+  ```elixir
+  # assert there's an element with ID "user" and text "Aragorn"
+  assert_has(session, "#user", text: "Aragorn") # <- succeeds if text found is "Aragorn" or "Aragorn, Son of Arathorn"
+
+  # assert there are two elements with class "posts"
+  assert_has(session, ".posts", count: 2)
+
+  # assert there are two elements with class "posts" and text "Hello"
+  assert_has(session, ".posts", text: "Hello", count: 2)
+  ```
   """
-  defdelegate assert_has(session, selector, text), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Assertions
 
   @doc """
   Opposite of `assert_has/2` helper. Verifies that element with
@@ -327,6 +358,16 @@ defmodule PhoenixTest do
   It'll raise an error if any elements that match selector are found.
 
   If you want to specify the content of the element, use `refute_has/3`.
+
+  ## Example
+
+  ```elixir
+  # refute there's an h1
+  refute_has(session, "h1")
+
+  # refute there's an element with ID "user"
+  refute_has(session, "#user")
+  ```
   """
   defdelegate refute_has(session, selector), to: Assertions
 
@@ -334,7 +375,27 @@ defmodule PhoenixTest do
   Opposite of `assert_has/3` helper. Verifies that element with
   given CSS selector and `text` is _not_ present.
 
-  It'll raise an error if any elements that match selector and text are found.
+  It'll raise an error if any elements that match selector and options.
+
+  ## Options
+
+  - `text`: the text filter to look for.
+  - `count`: the number of items you're expecting _should not_ match the CSS
+  selector (and `text` if provided)
+
+  ## Examples
+
+  ```elixir
+  # refute there's an element with ID "user" and text "Aragorn"
+  refute_has(session, "#user", text: "Aragorn")
+
+  # refute there are two elements with class "posts" (less or more will not
+  # raise)
+  refute_has(session, ".posts", count: 2)
+
+  # refute there are two elements with class "posts" and text "Hello"
+  refute_has(session, ".posts", text: "Hello", count: 2)
+  ```
   """
-  defdelegate refute_has(session, selector, text), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Assertions
 end

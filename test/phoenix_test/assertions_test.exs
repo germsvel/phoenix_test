@@ -57,19 +57,19 @@ defmodule PhoenixTest.AssertionsTest do
     test "succeeds if single element is found with CSS selector and text (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> assert_has("h1", "Main page")
-      |> assert_has("#title", "Main page")
-      |> assert_has(".title", "Main page")
-      |> assert_has("[data-role='title']", "Main page")
+      |> assert_has("h1", text: "Main page")
+      |> assert_has("#title", text: "Main page")
+      |> assert_has(".title", text: "Main page")
+      |> assert_has("[data-role='title']", text: "Main page")
     end
 
     test "succeeds if single element is found with CSS selector and text (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> assert_has("h1", "LiveView main page")
-      |> assert_has("#title", "LiveView main page")
-      |> assert_has(".title", "LiveView main page")
-      |> assert_has("[data-role='title']", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("#title", text: "LiveView main page")
+      |> assert_has(".title", text: "LiveView main page")
+      |> assert_has("[data-role='title']", text: "LiveView main page")
     end
 
     test "succeeds if more than one element matches selector but text narrows it down", %{
@@ -77,25 +77,25 @@ defmodule PhoenixTest.AssertionsTest do
     } do
       conn
       |> visit("/page/index")
-      |> assert_has("li", "Aragorn")
+      |> assert_has("li", text: "Aragorn")
     end
 
     test "succeeds if more than one element matches selector and text", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> assert_has(".multiple_links", "Multiple links")
+      |> assert_has(".multiple_links", text: "Multiple links")
     end
 
     test "succeeds if text difference is only a matter of truncation", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> assert_has(".has_extra_space", "Has extra space")
+      |> assert_has(".has_extra_space", text: "Has extra space")
     end
 
     test "succeeds when a non-200 status code is returned", %{conn: conn} do
       conn
       |> visit("/page/unauthorized")
-      |> assert_has("h1", "Unauthorized")
+      |> assert_has("h1", text: "Unauthorized")
     end
 
     test "raises an error if the element cannot be found at all", %{conn: conn} do
@@ -104,7 +104,7 @@ defmodule PhoenixTest.AssertionsTest do
       msg = ~r/Could not find any elements with selector "#nonexistent-id"/
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("#nonexistent-id", "Main page")
+        conn |> assert_has("#nonexistent-id", text: "Main page")
       end
     end
 
@@ -126,20 +126,20 @@ defmodule PhoenixTest.AssertionsTest do
         |> ignore_whitespace()
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("h1", "Super page")
+        conn |> assert_has("h1", text: "Super page")
       end
     end
 
     test "can be used to assert on page title (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> assert_has("title", "PhoenixTest is the best!")
+      |> assert_has("title", text: "PhoenixTest is the best!")
     end
 
     test "can be used to assert on page title (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> assert_has("title", "PhoenixTest is the best!")
+      |> assert_has("title", text: "PhoenixTest is the best!")
     end
 
     test "raises if title does not match expected value (Static)", %{conn: conn} do
@@ -152,7 +152,7 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         conn
         |> visit("/page/index")
-        |> assert_has("title", "Not the title")
+        |> assert_has("title", text: "Not the title")
       end
     end
 
@@ -166,7 +166,7 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         conn
         |> visit("/live/index")
-        |> assert_has("title", "Not the title")
+        |> assert_has("title", text: "Not the title")
       end
     end
 
@@ -180,7 +180,7 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         conn
         |> visit("/page/index")
-        |> assert_has("title", "PhoenixTest")
+        |> assert_has("title", text: "PhoenixTest")
       end
     end
 
@@ -210,7 +210,7 @@ defmodule PhoenixTest.AssertionsTest do
         |> ignore_whitespace()
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("#multiple-items", "Frodo")
+        conn |> assert_has("#multiple-items", text: "Frodo")
       end
     end
 
@@ -372,15 +372,15 @@ defmodule PhoenixTest.AssertionsTest do
     test "can be used to refute on page title (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> refute_has("title", "Not the title")
-      |> refute_has("title", "Not this title either")
+      |> refute_has("title", text: "Not the title")
+      |> refute_has("title", text: "Not this title either")
     end
 
     test "can be used to refute on page title (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refute_has("title", "Not the title")
-      |> refute_has("title", "Not this title either")
+      |> refute_has("title", text: "Not the title")
+      |> refute_has("title", text: "Not this title either")
     end
 
     test "raises if title matches value (Static)", %{conn: conn} do
@@ -393,7 +393,7 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         conn
         |> visit("/page/index")
-        |> refute_has("title", "PhoenixTest is the best!")
+        |> refute_has("title", text: "PhoenixTest is the best!")
       end
     end
 
@@ -407,26 +407,26 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         conn
         |> visit("/live/index")
-        |> refute_has("title", "PhoenixTest is the best!")
+        |> refute_has("title", text: "PhoenixTest is the best!")
       end
     end
 
     test "succeeds if no element is found with CSS selector and text (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> refute_has("h1", "Not main page")
-      |> refute_has("h2", "Main page")
-      |> refute_has("#incorrect-id", "Main page")
-      |> refute_has("#title", "Not main page")
+      |> refute_has("h1", text: "Not main page")
+      |> refute_has("h2", text: "Main page")
+      |> refute_has("#incorrect-id", text: "Main page")
+      |> refute_has("#title", text: "Not main page")
     end
 
     test "succeeds if no element is found with CSS selector and text (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refute_has("h1", "Not main page")
-      |> refute_has("h2", "Main page")
-      |> refute_has("#incorrect-id", "Main page")
-      |> refute_has("#title", "Not main page")
+      |> refute_has("h1", text: "Not main page")
+      |> refute_has("h2", text: "Main page")
+      |> refute_has("#incorrect-id", text: "Main page")
+      |> refute_has("#title", text: "Not main page")
     end
 
     test "raises an error if one element is found", %{conn: conn} do
@@ -445,7 +445,7 @@ defmodule PhoenixTest.AssertionsTest do
         |> ignore_whitespace()
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has("#title", "Main page")
+        conn |> refute_has("#title", text: "Main page")
       end
     end
 
@@ -469,7 +469,7 @@ defmodule PhoenixTest.AssertionsTest do
         |> ignore_whitespace()
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has(".multiple_links", "Multiple links")
+        conn |> refute_has(".multiple_links", text: "Multiple links")
       end
     end
   end

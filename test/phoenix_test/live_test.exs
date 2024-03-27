@@ -45,19 +45,19 @@ defmodule PhoenixTest.LiveTest do
     test "navigates to given LiveView page", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
 
     test "follows redirects", %{conn: conn} do
       conn
       |> visit("/live/redirect_on_mount/redirect")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
 
     test "follows push redirects (push navigate)", %{conn: conn} do
       conn
       |> visit("/live/redirect_on_mount/push_navigate")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
 
     test "raises error if route doesn't exist", %{conn: conn} do
@@ -73,28 +73,28 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> click_link("Navigate link")
-      |> assert_has("h1", "LiveView page 2")
+      |> assert_has("h1", text: "LiveView page 2")
     end
 
     test "accepts click_link with selector", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("a", "Navigate link")
-      |> assert_has("h1", "LiveView page 2")
+      |> assert_has("h1", text: "LiveView page 2")
     end
 
     test "handles patches to current view", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Patch link")
-      |> assert_has("h2", "LiveView main page details")
+      |> assert_has("h2", text: "LiveView main page details")
     end
 
     test "handles navigation to a non-liveview", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Navigate to non-liveview")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "raises error when there are multiple links with same text", %{conn: conn} do
@@ -127,7 +127,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> click_button("Show tab")
-      |> assert_has("#tab", "Tab title")
+      |> assert_has("#tab", text: "Tab title")
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
@@ -170,8 +170,10 @@ defmodule PhoenixTest.LiveTest do
       |> fill_in("First Name", with: "Aragorn")
       |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
       |> click_button("Save")
-      |> assert_has("#form-data", "first_name: Aragorn")
-      |> assert_has("#form-data", "notes: Dunedain. Heir to the throne. King of Arnor and Gondor")
+      |> assert_has("#form-data", text: "first_name: Aragorn")
+      |> assert_has("#form-data",
+        text: "notes: Dunedain. Heir to the throne. King of Arnor and Gondor"
+      )
     end
 
     test "works in 'nested' forms", %{conn: conn} do
@@ -179,14 +181,14 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("User Name", with: "Aragorn")
       |> click_button("Save")
-      |> assert_has("#form-data", "user:name: Aragorn")
+      |> assert_has("#form-data", text: "user:name: Aragorn")
     end
 
     test "triggers phx-change validations", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: nil)
-      |> assert_has("#form-errors", "Errors present")
+      |> assert_has("#form-errors", text: "Errors present")
     end
 
     test "can be used to submit form", %{conn: conn} do
@@ -194,7 +196,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("Email", with: "someone@example.com")
       |> click_button("Save")
-      |> assert_has("#form-data", "email: someone@example.com")
+      |> assert_has("#form-data", text: "email: someone@example.com")
     end
   end
 
@@ -211,7 +213,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> select("False", from: "User Admin")
       |> click_button("Save")
-      |> assert_has("#form-data", "user:admin: false")
+      |> assert_has("#form-data", text: "user:admin: false")
     end
 
     test "can be used to submit form", %{conn: conn} do
@@ -219,7 +221,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> select("Elf", from: "Race")
       |> click_button("Save")
-      |> assert_has("#form-data", "race: elf")
+      |> assert_has("#form-data", text: "race: elf")
     end
   end
 
@@ -241,7 +243,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#email-form", email: nil)
-      |> assert_has("#form-errors", "Errors present")
+      |> assert_has("#form-errors", text: "Errors present")
     end
 
     test "raises an error when form can't be found with selector", %{conn: conn} do
@@ -283,7 +285,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#email-form", email: "some@example.com")
       |> click_button("Save")
-      |> assert_has("#form-data", "email: some@example.com")
+      |> assert_has("#form-data", text: "email: some@example.com")
     end
 
     test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
@@ -291,7 +293,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#email-form", email: "some@example.com")
       |> click_button("Reset")
-      |> refute_has("#form-data", "email: some@example.com")
+      |> refute_has("#form-data", text: "email: some@example.com")
     end
 
     test "can handle forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
@@ -304,10 +306,10 @@ defmodule PhoenixTest.LiveTest do
         notes: "King of Gondor"
       )
       |> click_button("Save")
-      |> assert_has("#form-data", "name: Aragorn")
-      |> assert_has("#form-data", "admin: on")
-      |> assert_has("#form-data", "race: human")
-      |> assert_has("#form-data", "notes: King of Gondor")
+      |> assert_has("#form-data", text: "name: Aragorn")
+      |> assert_has("#form-data", text: "admin: on")
+      |> assert_has("#form-data", text: "race: human")
+      |> assert_has("#form-data", text: "notes: King of Gondor")
     end
 
     test "can submit nested forms", %{conn: conn} do
@@ -315,7 +317,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#nested-form", user: %{name: "Aragorn"})
       |> click_button("#nested-form", "Save")
-      |> assert_has("#form-data", "user:name: Aragorn")
+      |> assert_has("#form-data", text: "user:name: Aragorn")
     end
 
     test "follows form's redirect to live page", %{conn: conn} do
@@ -323,7 +325,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#redirect-form", name: "Aragorn")
       |> click_button("#redirect-form-submit", "Save")
-      |> assert_has("h1", "LiveView page 2")
+      |> assert_has("h1", text: "LiveView page 2")
     end
 
     test "follows form's redirect to static page", %{conn: conn} do
@@ -331,7 +333,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#redirect-form-to-static", name: "Aragorn")
       |> click_button("#redirect-form-to-static-submit", "Save")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "submits regular (non phx-submit) form", %{conn: conn} do
@@ -339,7 +341,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#non-liveview-form", name: "Aragorn")
       |> click_button("Submit Non LiveView")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
@@ -363,28 +365,28 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> submit_form("#email-form", email: "some@example.com")
-      |> assert_has("#form-data", "email: some@example.com")
+      |> assert_has("#form-data", text: "email: some@example.com")
     end
 
     test "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> submit_form("#redirect-form", name: "Aragorn")
-      |> assert_has("h1", "LiveView page 2")
+      |> assert_has("h1", text: "LiveView page 2")
     end
 
     test "follows form's redirect to static page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> submit_form("#redirect-form-to-static", name: "Aragorn")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "submits regular (non phx-submit) form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> submit_form("#non-liveview-form", name: "Aragorn")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "raises an error if the form can't be found", %{conn: conn} do
@@ -435,7 +437,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> open_browser(open_fun)
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
   end
 end

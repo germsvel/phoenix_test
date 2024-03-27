@@ -32,13 +32,13 @@ defmodule PhoenixTest.StaticTest do
     test "navigates to given static page", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "follows redirects", %{conn: conn} do
       conn
       |> visit("/page/redirect_to_static")
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
 
     test "raises error if route doesn't exist", %{conn: conn} do
@@ -54,28 +54,28 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> click_link("Page 2")
-      |> assert_has("h1", "Page 2")
+      |> assert_has("h1", text: "Page 2")
     end
 
     test "accepts selector for link", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("a", "Page 2")
-      |> assert_has("h1", "Page 2")
+      |> assert_has("h1", text: "Page 2")
     end
 
     test "handles navigation to a LiveView", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("To LiveView!")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
 
     test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("Data-method Delete")
-      |> assert_has("h1", "Record deleted")
+      |> assert_has("h1", text: "Record deleted")
     end
 
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
@@ -139,42 +139,42 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> click_button("Get record")
-      |> assert_has("h1", "Record received")
+      |> assert_has("h1", text: "Record received")
     end
 
     test "accepts selector for button", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("button", "Get record")
-      |> assert_has("h1", "Record received")
+      |> assert_has("h1", text: "Record received")
     end
 
     test "handles a button clicks when button PUTs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Mark as active")
-      |> assert_has("h1", "Record updated")
+      |> assert_has("h1", text: "Record updated")
     end
 
     test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Delete record")
-      |> assert_has("h1", "Record deleted")
+      |> assert_has("h1", text: "Record deleted")
     end
 
     test "can handle redirects to a LiveView", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Post and Redirect")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
 
     test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Data-method Delete")
-      |> assert_has("h1", "Record deleted")
+      |> assert_has("h1", text: "Record deleted")
     end
 
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
@@ -235,7 +235,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_in("Email", with: "someone@example.com")
       |> click_button("Save")
-      |> assert_has("#form-data", "email: someone@example.com")
+      |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
     test "can fill-in complex form fields", %{conn: conn} do
@@ -244,8 +244,10 @@ defmodule PhoenixTest.StaticTest do
       |> fill_in("First Name", with: "Aragorn")
       |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
       |> click_button("Save")
-      |> assert_has("#form-data", "name: Aragorn")
-      |> assert_has("#form-data", "notes: Dunedain. Heir to the throne. King of Arnor and Gondor")
+      |> assert_has("#form-data", text: "name: Aragorn")
+      |> assert_has("#form-data",
+        text: "notes: Dunedain. Heir to the throne. King of Arnor and Gondor"
+      )
     end
 
     test "works in 'nested' forms", %{conn: conn} do
@@ -253,7 +255,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_in("User Name", with: "Aragorn")
       |> click_button("Save")
-      |> assert_has("#form-data", "user:name: Aragorn")
+      |> assert_has("#form-data", text: "user:name: Aragorn")
     end
   end
 
@@ -263,7 +265,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> select("Elf", from: "Race")
       |> click_button("Save")
-      |> assert_has("#form-data", "race: elf")
+      |> assert_has("#form-data", text: "race: elf")
     end
 
     test "works in 'nested' forms", %{conn: conn} do
@@ -271,7 +273,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> select("False", from: "User Admin")
       |> click_button("Save")
-      |> assert_has("#form-data", "user:admin: false")
+      |> assert_has("#form-data", text: "user:admin: false")
     end
   end
 
@@ -308,7 +310,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_form("#email-form", email: "sample@example.com")
       |> click_button("Save")
-      |> assert_has("#form-data", "email: sample@example.com")
+      |> assert_has("#form-data", text: "email: sample@example.com")
     end
 
     test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
@@ -316,7 +318,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_form("#email-form", email: "some@example.com")
       |> click_button("Delete record")
-      |> refute_has("#form-data", "email: some@example.com")
+      |> refute_has("#form-data", text: "email: some@example.com")
     end
 
     test "can submit nested forms", %{conn: conn} do
@@ -324,7 +326,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_form("#nested-form", user: %{name: "Aragorn"})
       |> click_button("#nested-form", "Save")
-      |> assert_has("#form-data", "user:name: Aragorn")
+      |> assert_has("#form-data", text: "user:name: Aragorn")
     end
 
     test "can submit forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
@@ -338,11 +340,11 @@ defmodule PhoenixTest.StaticTest do
         member_of_fellowship: "on"
       )
       |> click_button("Save")
-      |> assert_has("#form-data", "name: Aragorn")
-      |> assert_has("#form-data", "admin: on")
-      |> assert_has("#form-data", "race: human")
-      |> assert_has("#form-data", "notes: King of Gondor")
-      |> assert_has("#form-data", "member_of_fellowship: on")
+      |> assert_has("#form-data", text: "name: Aragorn")
+      |> assert_has("#form-data", text: "admin: on")
+      |> assert_has("#form-data", text: "race: human")
+      |> assert_has("#form-data", text: "notes: King of Gondor")
+      |> assert_has("#form-data", text: "member_of_fellowship: on")
     end
 
     test "can handle redirects into a LiveView", %{conn: conn} do
@@ -350,7 +352,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_form("#redirect-to-liveview-form", name: "Aragorn")
       |> click_button("Save and Redirect to LiveView")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
   end
 
@@ -359,28 +361,28 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> submit_form("#no-submit-button-form", name: "Aragorn")
-      |> assert_has("#form-data", "name: Aragorn")
+      |> assert_has("#form-data", text: "name: Aragorn")
     end
 
     test "can handle redirects", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> submit_form("#no-submit-button-and-redirect", name: "Aragorn")
-      |> assert_has("h1", "LiveView main page")
+      |> assert_has("h1", text: "LiveView main page")
     end
 
     test "handles when form PUTs data through hidden input", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> submit_form("#update-form", name: "Aragorn")
-      |> assert_has("#form-data", "name: Aragorn")
+      |> assert_has("#form-data", text: "name: Aragorn")
     end
 
     test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Delete record")
-      |> assert_has("h1", "Record deleted")
+      |> assert_has("h1", text: "Record deleted")
     end
 
     test "raises an error if the form can't be found", %{conn: conn} do
@@ -429,7 +431,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> open_browser(open_fun)
-      |> assert_has("h1", "Main page")
+      |> assert_has("h1", text: "Main page")
     end
   end
 end
