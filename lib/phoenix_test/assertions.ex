@@ -77,7 +77,8 @@ defmodule PhoenixTest.Assertions do
   def assert_has(session, selector, opts) when is_list(opts) do
     expected_count = Keyword.get(opts, :count, :any)
     text = Keyword.get(opts, :text, :no_text)
-    finder = finder_fun(selector, text)
+    exact = Keyword.get(opts, :exact, false)
+    finder = finder_fun(selector, text, exact)
 
     session
     |> PhoenixTest.Driver.render_html()
@@ -172,7 +173,8 @@ defmodule PhoenixTest.Assertions do
   def refute_has(session, selector, opts) when is_list(opts) do
     refute_count = Keyword.get(opts, :count, :any)
     text = Keyword.get(opts, :text, :no_text)
-    finder = finder_fun(selector, text)
+    exact = Keyword.get(opts, :exact, false)
+    finder = finder_fun(selector, text, exact)
 
     session
     |> PhoenixTest.Driver.render_html()
@@ -247,8 +249,8 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_text(msg, :no_text), do: msg <> "."
   defp maybe_append_text(msg, text), do: msg <> " and text #{inspect(text)}."
 
-  defp finder_fun(selector, :no_text), do: &Query.find(&1, selector)
-  defp finder_fun(selector, text), do: &Query.find(&1, selector, text)
+  defp finder_fun(selector, :no_text, _exact), do: &Query.find(&1, selector)
+  defp finder_fun(selector, text, exact), do: &Query.find(&1, selector, text, exact: exact)
 
   defp format_found_elements(elements) when is_list(elements) do
     Enum.map_join(elements, "\n", &Html.raw/1)
@@ -270,7 +272,7 @@ defmodule PhoenixTest.Assertions do
     I know it's a pain (sorry about that).
 
     But trust me, it allows you to combine it with other options you'll like
-    (such as `count` and more coming soon)
+    (such as `count`, `exact`, and more coming soon)
     """)
   end
 end

@@ -329,9 +329,12 @@ defmodule PhoenixTest do
 
   ## Options
 
-  - `text`: the text filter to look for. NOTE: by default `assert_has/3` will
-  perform a substring match (e.g. `a =~ b`). That makes it easier to assert text
-  within HTML elements that also contain other HTML elements.
+  - `text`: the text filter to look for.
+
+  - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
+  =~ b`). That makes it easier to assert text within HTML elements that also
+  contain other HTML elements. But sometimes we want to assert the exact text is
+  present. For that, use `exact: true`.
 
   - `count`: the number of items you expect to match CSS selector (and `text` if
   provided)
@@ -340,7 +343,12 @@ defmodule PhoenixTest do
 
   ```elixir
   # assert there's an element with ID "user" and text "Aragorn"
-  assert_has(session, "#user", text: "Aragorn") # <- succeeds if text found is "Aragorn" or "Aragorn, Son of Arathorn"
+  assert_has(session, "#user", text: "Aragorn")
+    # ^ succeeds if text found is "Aragorn" or "Aragorn, Son of Arathorn"
+
+  # assert there's an element with ID "user" and text "Aragorn"
+  assert_has(session, "#user", text: "Aragorn", exact: true)
+    # ^ succeeds only if text found is "Aragorn". Fails if finds "Aragorn, Son of Arathorn"
 
   # assert there are two elements with class "posts"
   assert_has(session, ".posts", count: 2)
@@ -380,6 +388,12 @@ defmodule PhoenixTest do
   ## Options
 
   - `text`: the text filter to look for.
+
+  - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
+  =~ b`). That makes it easier to refute text within HTML elements that also
+  contain other HTML elements. But sometimes we want to refute the exact text is
+  absent. For that, use `exact: true`.
+
   - `count`: the number of items you're expecting _should not_ match the CSS
   selector (and `text` if provided)
 
@@ -389,8 +403,10 @@ defmodule PhoenixTest do
   # refute there's an element with ID "user" and text "Aragorn"
   refute_has(session, "#user", text: "Aragorn")
 
-  # refute there are two elements with class "posts" (less or more will not
-  # raise)
+  # refute there's an element with ID "user" and exact text "Aragorn"
+  refute_has(session, "#user", text: "Aragorn", exact: true)
+
+  # refute there are two elements with class "posts" (less or more will not raise)
   refute_has(session, ".posts", count: 2)
 
   # refute there are two elements with class "posts" and text "Hello"

@@ -254,6 +254,33 @@ defmodule PhoenixTest.AssertionsTest do
         session |> assert_has("h1", count: 2)
       end
     end
+
+    test "accepts an `exact` option to match text exactly", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("h1", text: "Main", exact: false)
+      |> assert_has("h1", text: "Main page", exact: true)
+    end
+
+    test "raises if `exact` text doesn't match", %{conn: conn} do
+      msg =
+        """
+        Could not find any elements with selector "h1" and text "Main".
+
+        Found other elements matching the selector "h1":
+
+        <h1 id="title" class="title" data-role="title">
+          Main page
+        </h1>
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> assert_has("h1", text: "Main", exact: true)
+      end
+    end
   end
 
   describe "refute_has/2" do
@@ -470,6 +497,32 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise AssertionError, msg, fn ->
         conn |> refute_has(".multiple_links", text: "Multiple links")
+      end
+    end
+
+    test "accepts an `exact` option to match text exactly", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("h1", text: "Main", exact: true)
+    end
+
+    test "raises if `exact` text makes refutation false", %{conn: conn} do
+      msg =
+        """
+        Expected not to find any elements with selector "h1" and text "Main".
+
+        But found 1:
+
+        <h1 id="title" class="title" data-role="title">
+          Main page
+        </h1>
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> refute_has("h1", text: "Main", exact: false)
       end
     end
   end
