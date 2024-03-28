@@ -75,10 +75,8 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_has(session, selector, opts) when is_list(opts) do
-    expected_count = Keyword.get(opts, :count, :any)
-    text = Keyword.get(opts, :text, :no_text)
-    exact = Keyword.get(opts, :exact, false)
-    finder = finder_fun(selector, text, exact)
+    count = Keyword.get(opts, :count, :any)
+    finder = finder_fun(selector, opts)
 
     session
     |> PhoenixTest.Driver.render_html()
@@ -92,7 +90,7 @@ defmodule PhoenixTest.Assertions do
           message: assert_not_found_error_msg(selector, opts, potential_matches)
 
       {:found, found} ->
-        if expected_count in [:any, 1] do
+        if count in [:any, 1] do
           assert true
         else
           raise AssertionError,
@@ -100,9 +98,9 @@ defmodule PhoenixTest.Assertions do
         end
 
       {:found_many, found} ->
-        count = Enum.count(found)
+        found_count = Enum.count(found)
 
-        if expected_count in [:any, count] do
+        if count in [:any, found_count] do
           assert true
         else
           raise AssertionError,
@@ -171,10 +169,8 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_has(session, selector, opts) when is_list(opts) do
-    refute_count = Keyword.get(opts, :count, :any)
-    text = Keyword.get(opts, :text, :no_text)
-    exact = Keyword.get(opts, :exact, false)
-    finder = finder_fun(selector, text, exact)
+    count = Keyword.get(opts, :count, :any)
+    finder = finder_fun(selector, opts)
 
     session
     |> PhoenixTest.Driver.render_html()
@@ -187,16 +183,16 @@ defmodule PhoenixTest.Assertions do
         refute false
 
       {:found, element} ->
-        if refute_count in [:any, 1] do
+        if count in [:any, 1] do
           raise AssertionError, message: refute_found_error_msg(selector, opts, [element])
         else
           refute false
         end
 
       {:found_many, elements} ->
-        count = Enum.count(elements)
+        found_count = Enum.count(elements)
 
-        if refute_count in [:any, count] do
+        if count in [:any, found_count] do
           raise AssertionError, message: refute_found_error_msg(selector, opts, elements)
         else
           refute false
@@ -217,19 +213,23 @@ defmodule PhoenixTest.Assertions do
 
   defp assert_not_found_error_msg(selector, opts, other_matches \\ []) do
     count = Keyword.get(opts, :count, :any)
+    position = Keyword.get(opts, :at, :any)
     text = Keyword.get(opts, :text, :no_text)
 
     "Could not find #{count} elements with selector #{inspect(selector)}"
     |> maybe_append_text(text)
+    |> maybe_append_position(position)
     |> append_found_other_matches(selector, other_matches)
   end
 
   def refute_found_error_msg(selector, opts, found) do
     refute_count = Keyword.get(opts, :count, :any)
+    at = Keyword.get(opts, :at, :any)
     text = Keyword.get(opts, :text, :no_text)
 
     "Expected not to find #{refute_count} elements with selector #{inspect(selector)}"
     |> maybe_append_text(text)
+    |> maybe_append_position(at)
     |> append_found(found)
   end
 
@@ -242,15 +242,25 @@ defmodule PhoenixTest.Assertions do
   defp append_found_other_matches(msg, selector, matches) do
     msg <>
       "\n\n" <>
-      "Found other elements matching the selector #{inspect(selector)}:" <>
+      "Found these elements matching the selector #{inspect(selector)}:" <>
       "\n\n" <> format_found_elements(matches)
   end
 
-  defp maybe_append_text(msg, :no_text), do: msg <> "."
-  defp maybe_append_text(msg, text), do: msg <> " and text #{inspect(text)}."
+  defp maybe_append_text(msg, :no_text), do: msg
+  defp maybe_append_text(msg, text), do: msg <> " and text #{inspect(text)}"
 
-  defp finder_fun(selector, :no_text, _exact), do: &Query.find(&1, selector)
-  defp finder_fun(selector, text, exact), do: &Query.find(&1, selector, text, exact: exact)
+  defp maybe_append_position(msg, :any), do: msg
+  defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
+
+  defp finder_fun(selector, opts) do
+    case Keyword.get(opts, :text, :no_text) do
+      :no_text ->
+        &Query.find(&1, selector)
+
+      text ->
+        &Query.find(&1, selector, text, opts)
+    end
+  end
 
   defp format_found_elements(elements) when is_list(elements) do
     Enum.map_join(elements, "\n", &Html.raw/1)
@@ -272,7 +282,7 @@ defmodule PhoenixTest.Assertions do
     I know it's a pain (sorry about that).
 
     But trust me, it allows you to combine it with other options you'll like
-    (such as `count`, `exact`, and more coming soon)
+    (such as `count`, `exact`, and `at`)
     """)
   end
 end

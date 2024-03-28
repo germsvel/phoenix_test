@@ -117,7 +117,7 @@ defmodule PhoenixTest.AssertionsTest do
         """
         Could not find any elements with selector "h1" and text "Super page".
 
-        Found other elements matching the selector "h1":
+        Found these elements matching the selector "h1":
 
         <h1 id="title" class="title" data-role="title">
           Main page
@@ -193,7 +193,7 @@ defmodule PhoenixTest.AssertionsTest do
         """
         Could not find any elements with selector "#multiple-items" and text "Frodo".
 
-        Found other elements matching the selector "#multiple-items":
+        Found these elements matching the selector "#multiple-items":
 
         <ul id="multiple-items">
           <li>
@@ -267,7 +267,7 @@ defmodule PhoenixTest.AssertionsTest do
         """
         Could not find any elements with selector "h1" and text "Main".
 
-        Found other elements matching the selector "h1":
+        Found these elements matching the selector "h1":
 
         <h1 id="title" class="title" data-role="title">
           Main page
@@ -279,6 +279,26 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
         |> assert_has("h1", text: "Main", exact: true)
+      end
+    end
+
+    test "accepts an `at` option to assert on a specific element", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("#multiple-items li", at: 2, text: "Legolas")
+    end
+
+    test "raises if it cannot find element at `at` position", %{conn: conn} do
+      msg =
+        """
+        Could not find any elements with selector "#multiple-items li" and text "Aragorn" at position 2
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> assert_has("#multiple-items li", at: 2, text: "Aragorn")
       end
     end
   end
@@ -523,6 +543,32 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
         |> refute_has("h1", text: "Main", exact: false)
+      end
+    end
+
+    test "accepts an `at` option to refute on a specific element", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("#multiple-items li", at: 2, text: "Aragorn")
+    end
+
+    test "raises if it finds element at `at` position", %{conn: conn} do
+      msg =
+        """
+        Expected not to find any elements with selector "#multiple-items li" and text "Legolas" at position 2
+
+        But found 1:
+
+        <li>
+          Legolas
+        </li>
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> refute_has("#multiple-items li", at: 2, text: "Legolas")
       end
     end
   end

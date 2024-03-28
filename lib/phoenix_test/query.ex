@@ -128,22 +128,14 @@ defmodule PhoenixTest.Query do
   - `{:found_many, elements}`: If more than one element is found.
   """
   def find(html, selector, text, opts \\ []) do
-    exact_match = Keyword.get(opts, :exact, false)
-
-    filter_fun =
-      if exact_match do
-        fn element -> Html.text(element) == text end
-      else
-        fn element -> Html.text(element) =~ text end
-      end
-
     elements_matched_selector =
       html
       |> Html.parse()
       |> Html.all(selector)
 
     elements_matched_selector
-    |> Enum.filter(filter_fun)
+    |> filter_by_position(opts)
+    |> filter_by_text(text, opts)
     |> case do
       [] -> {:not_found, elements_matched_selector}
       [found] -> {:found, found}
@@ -470,6 +462,31 @@ defmodule PhoenixTest.Query do
     case find(html, "##{id}") do
       :not_found -> {:not_found, :missing_id, label}
       {:found, _el} = found -> found
+    end
+  end
+
+  defp filter_by_text(elements, text, opts) do
+    exact_match = Keyword.get(opts, :exact, false)
+
+    filter_fun =
+      if exact_match do
+        fn element -> Html.text(element) == text end
+      else
+        fn element -> Html.text(element) =~ text end
+      end
+
+    Enum.filter(elements, filter_fun)
+  end
+
+  defp filter_by_position(elements, opts) do
+    at = Keyword.get(opts, :at, :any)
+
+    case at do
+      :any ->
+        elements
+
+      at when is_number(at) ->
+        elements |> Enum.at(at - 1) |> List.wrap()
     end
   end
 

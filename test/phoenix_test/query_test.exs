@@ -165,6 +165,17 @@ defmodule PhoenixTest.QueryTest do
       assert {"div", [{"class", "greeting"}], ["Hello"]} = el2
     end
 
+    test "only returns element `at` (1-based index) if requested" do
+      html = """
+      <div id="1" class="greeting">Hello</div>
+      <div id="2" class="greeting">Hello</div>
+      """
+
+      {:found, el} = Query.find(html, ".greeting", "Hello", at: 2)
+
+      assert {"div", [{"id", "2"}, _], ["Hello"]} = el
+    end
+
     test "finds element with text if multiple match CSS selector" do
       html = """
       <div class="greeting">Hello</div>
