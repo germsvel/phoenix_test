@@ -61,8 +61,9 @@ defmodule PhoenixTest.IndexLive do
       <label for="first_name">First Name</label>
       <input id="first_name" name="first_name" />
 
+      <input type="hidden" name="admin" value="off" />
       <label for="admin">Admin</label>
-      <input type="checkbox" name="admin" value="on" />
+      <input id="admin" type="checkbox" name="admin" value="on" />
 
       <label for="race">Race</label>
       <select id="race" name="race">

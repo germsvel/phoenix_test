@@ -146,12 +146,54 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> fill_form("form##{id}", active_form.form_data)
   end
 
+  def check(session, label) do
+    html = render_html(session)
+
+    field = Query.find_by_label!(html, label)
+    field_id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value") || "on"
+
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
+    id = Html.attribute(form, "id")
+
+    new_form_data = Utils.name_to_map(name, value)
+
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> fill_form("form##{id}", active_form.form_data)
+  end
+
   defp add_to_active_form_data(session, new_form_data) do
     session
     |> PhoenixTest.Static.get_private(:active_form, %{form_data: %{}})
     |> Map.update(:form_data, %{}, fn form_data ->
       DeepMerge.deep_merge(form_data, new_form_data)
     end)
+  end
+
+  def uncheck(session, label) do
+    html = render_html(session)
+
+    field = Query.find_by_label!(html, label)
+    field_id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+
+    hidden_input = Query.find!(html, "input[type='hidden'][name=#{name}]")
+    value = Html.attribute(hidden_input, "value")
+
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
+    id = Html.attribute(form, "id")
+
+    new_form_data = Utils.name_to_map(name, value)
+
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> fill_form("form##{id}", active_form.form_data)
   end
 
   def fill_form(session, selector, form_data) do

@@ -224,6 +224,12 @@ defmodule PhoenixTest do
   @doc false
   defdelegate select(session, option, attrs), to: Driver
 
+  @doc false
+  defdelegate check(session, label), to: Driver
+
+  @doc false
+  defdelegate uncheck(session, label), to: Driver
+
   @doc """
   Fills form data, validating that input fields are present.
 

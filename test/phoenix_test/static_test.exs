@@ -277,6 +277,34 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "check/3" do
+    test "checks a checkbox", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> check("Admin (boolean)")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "admin_boolean: true")
+    end
+
+    test "sets checkbox value as 'on' by default", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> check("Admin")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "admin: on")
+    end
+  end
+
+  describe "uncheck/3" do
+    test "sends the default value (in hidden input)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> uncheck("Admin")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "admin: off")
+    end
+  end
+
   describe "fill_form/3" do
     test "raises an error when form cannot be found with given selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->

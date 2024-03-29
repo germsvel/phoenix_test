@@ -225,6 +225,26 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "check/3" do
+    test "checks a checkbox", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Admin")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "admin: on")
+    end
+  end
+
+  describe "uncheck/3" do
+    test "sends the default value (in hidden input)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> uncheck("Admin")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "admin: off")
+    end
+  end
+
   describe "fill_form/3" do
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = conn |> visit("/live/index")

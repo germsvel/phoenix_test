@@ -102,11 +102,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     field = Query.find_by_label!(html, label)
     field_id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
 
     form = Query.find_ancestor!(html, "form", "##{field_id}")
     id = Html.attribute(form, "id")
 
-    new_form_data = Utils.name_to_map(Html.attribute(field, "name"), value)
+    new_form_data = Utils.name_to_map(name, value)
 
     active_form = add_to_active_form_data(session, new_form_data)
 
@@ -123,11 +124,54 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     form = Query.find_ancestor!(html, "form", "##{field_id}")
     id = Html.attribute(form, "id")
+    name = Html.attribute(field, "name")
 
     option = Query.find!(Html.raw(field), "option", option)
-    value = Html.attribute(option, "value")
+    option_value = Html.attribute(option, "value")
 
-    new_form_data = Utils.name_to_map(Html.attribute(field, "name"), value)
+    new_form_data = Utils.name_to_map(name, option_value)
+
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    session
+    |> PhoenixTest.Live.put_private(:active_form, active_form)
+    |> fill_form("form##{id}", active_form.form_data)
+  end
+
+  def check(session, label) do
+    html = render_html(session)
+
+    field = Query.find_by_label!(html, label)
+    field_id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value")
+
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
+    id = Html.attribute(form, "id")
+
+    new_form_data = Utils.name_to_map(name, value)
+
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    session
+    |> PhoenixTest.Live.put_private(:active_form, active_form)
+    |> fill_form("form##{id}", active_form.form_data)
+  end
+
+  def uncheck(session, label) do
+    html = render_html(session)
+
+    field = Query.find_by_label!(html, label)
+    field_id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+
+    hidden_input = Query.find!(html, "input[type='hidden'][name=#{name}]")
+    value = Html.attribute(hidden_input, "value")
+
+    form = Query.find_ancestor!(html, "form", "##{field_id}")
+    id = Html.attribute(form, "id")
+
+    new_form_data = Utils.name_to_map(name, value)
 
     active_form = add_to_active_form_data(session, new_form_data)
 

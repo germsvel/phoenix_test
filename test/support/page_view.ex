@@ -114,8 +114,12 @@ defmodule PhoenixTest.PageView do
       <label for="name">First Name</label>
       <input type="text" id="name" name="name" />
 
+      <input type="hidden" name="admin" value="off" />
       <label for="admin">Admin</label>
-      <input type="checkbox" name="admin" />
+      <input id="admin" type="checkbox" name="admin" />
+
+      <label for="admin_boolean">Admin (boolean)</label>
+      <input id="admin_boolean" type="checkbox" name="admin_boolean" value="true" />
 
       <label for="race">Race</label>
       <select id="race" name="race">
