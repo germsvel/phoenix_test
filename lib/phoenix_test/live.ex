@@ -41,9 +41,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 
+  alias PhoenixTest.Field
   alias PhoenixTest.Html
   alias PhoenixTest.Query
-  alias PhoenixTest.Utils
 
   def render_page_title(%{view: view}) do
     page_title(view)
@@ -98,86 +98,67 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defp has_active_form?(%{}), do: false
 
   def fill_in(session, label, with: value) do
-    html = render_html(session)
+    field =
+      session
+      |> render_html()
+      |> Field.find_input!(label, value)
 
-    field = Query.find_by_label!(html, label)
-    field_id = Html.attribute(field, "id")
-    name = Html.attribute(field, "name")
-
-    form = Query.find_ancestor!(html, "form", "##{field_id}")
-    id = Html.attribute(form, "id")
-
-    new_form_data = Utils.name_to_map(name, value)
-
+    new_form_data = Field.to_form_data(field)
     active_form = add_to_active_form_data(session, new_form_data)
+
+    form = Field.parent_form(field)
 
     session
     |> PhoenixTest.Live.put_private(:active_form, active_form)
-    |> fill_form("form##{id}", active_form.form_data)
+    |> fill_form("form##{form.id}", active_form.form_data)
   end
 
   def select(session, option, from: label) do
-    html = render_html(session)
+    field =
+      session
+      |> render_html()
+      |> Field.find_select_option!(label, option)
 
-    field = Query.find_by_label!(html, label)
-    field_id = Html.attribute(field, "id")
-
-    form = Query.find_ancestor!(html, "form", "##{field_id}")
-    id = Html.attribute(form, "id")
-    name = Html.attribute(field, "name")
-
-    option = Query.find!(Html.raw(field), "option", option)
-    option_value = Html.attribute(option, "value")
-
-    new_form_data = Utils.name_to_map(name, option_value)
-
+    new_form_data = Field.to_form_data(field)
     active_form = add_to_active_form_data(session, new_form_data)
+
+    form = Field.parent_form(field)
 
     session
     |> PhoenixTest.Live.put_private(:active_form, active_form)
-    |> fill_form("form##{id}", active_form.form_data)
+    |> fill_form("form##{form.id}", active_form.form_data)
   end
 
   def check(session, label) do
-    html = render_html(session)
+    field =
+      session
+      |> render_html()
+      |> Field.find_checkbox!(label)
 
-    field = Query.find_by_label!(html, label)
-    field_id = Html.attribute(field, "id")
-    name = Html.attribute(field, "name")
-    value = Html.attribute(field, "value")
-
-    form = Query.find_ancestor!(html, "form", "##{field_id}")
-    id = Html.attribute(form, "id")
-
-    new_form_data = Utils.name_to_map(name, value)
-
+    new_form_data = Field.to_form_data(field)
     active_form = add_to_active_form_data(session, new_form_data)
+
+    form = Field.parent_form(field)
 
     session
     |> PhoenixTest.Live.put_private(:active_form, active_form)
-    |> fill_form("form##{id}", active_form.form_data)
+    |> fill_form("form##{form.id}", active_form.form_data)
   end
 
   def uncheck(session, label) do
-    html = render_html(session)
+    field =
+      session
+      |> render_html()
+      |> Field.find_hidden_uncheckbox!(label)
 
-    field = Query.find_by_label!(html, label)
-    field_id = Html.attribute(field, "id")
-    name = Html.attribute(field, "name")
-
-    hidden_input = Query.find!(html, "input[type='hidden'][name=#{name}]")
-    value = Html.attribute(hidden_input, "value")
-
-    form = Query.find_ancestor!(html, "form", "##{field_id}")
-    id = Html.attribute(form, "id")
-
-    new_form_data = Utils.name_to_map(name, value)
-
+    new_form_data = Field.to_form_data(field)
     active_form = add_to_active_form_data(session, new_form_data)
+
+    form = Field.parent_form(field)
 
     session
     |> PhoenixTest.Live.put_private(:active_form, active_form)
-    |> fill_form("form##{id}", active_form.form_data)
+    |> fill_form("form##{form.id}", active_form.form_data)
   end
 
   defp add_to_active_form_data(session, new_form_data) do
