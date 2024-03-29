@@ -7,6 +7,24 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.10
+
+### Improvements
+
+- Add `count` option in assertions. Commit [16fd0a4]
+- Add `exact` option in assertions. Commit [da772f1]
+- Add `at` option in assertions. Commit [5da74ec]
+
+### Deprecations
+
+- Deprecate `assert_has/3` where `text` is the third argument (positional). Use
+  `assert_has/3` with `text:` option instead. Commit [193c21a]
+
+[16fd0a4]: https://github.com/germsvel/phoenix_test/commit/16fd0a4
+[da772f1]: https://github.com/germsvel/phoenix_test/commit/da772f1
+[5da74ec]: https://github.com/germsvel/phoenix_test/commit/5da74ec
+[193c21a]: https://github.com/germsvel/phoenix_test/commit/193c21a
+
 ## 0.2.9
 
 ### Improvements
