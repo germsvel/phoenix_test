@@ -129,6 +129,18 @@ defmodule PhoenixTest.PageView do
         <option value="orc">Orc</option>
       </select>
 
+      <fieldset>
+        <legend>Please select your preferred contact method:</legend>
+        <div>
+          <input type="radio" id="email_choice" name="contact" value="email" />
+          <label for="email_choice">Email Choice</label>
+          <input type="radio" id="phone_choice" name="contact" value="phone" />
+          <label for="phone_choice">Phone Choice</label>
+          <input type="radio" id="mail_choice" name="contact" value="mail" checked />
+          <label for="mail_choice">Mail Choice</label>
+        </div>
+      </fieldset>
+
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>

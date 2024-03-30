@@ -171,6 +171,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> fill_form("form##{form.id}", active_form.form_data)
   end
 
+  def choose(session, label) do
+    field =
+      session
+      |> render_html()
+      |> Field.find_radio_button!(label)
+
+    new_form_data = Field.to_form_data(field)
+    active_form = add_to_active_form_data(session, new_form_data)
+
+    form = Field.parent_form(field)
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> fill_form("form##{form.id}", active_form.form_data)
+  end
+
   defp add_to_active_form_data(session, new_form_data) do
     session
     |> PhoenixTest.Static.get_private(:active_form, %{form_data: %{}})

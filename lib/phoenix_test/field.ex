@@ -71,6 +71,21 @@ defmodule PhoenixTest.Field do
     }
   end
 
+  def find_radio_button!(html, label) do
+    field = Query.find_by_label!(html, label)
+    id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value")
+
+    %__MODULE__{
+      html: html,
+      label: label,
+      id: id,
+      name: name,
+      value: value
+    }
+  end
+
   def to_form_data(field) do
     Utils.name_to_map(field.name, field.value)
   end

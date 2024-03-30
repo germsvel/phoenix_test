@@ -225,7 +225,7 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "check/3" do
+  describe "check/2" do
     test "checks a checkbox", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -235,13 +235,32 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "uncheck/3" do
+  describe "uncheck/2" do
     test "sends the default value (in hidden input)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> uncheck("Admin")
       |> click_button("Save")
       |> assert_has("#form-data", text: "admin: off")
+    end
+  end
+
+  describe "choose/2" do
+    test "chooses an option in radio button", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> choose("Email Choice")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "contact: email")
+    end
+
+    test "uses the default 'checked' if present", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      # other field to trigger form save
+      |> fill_in("First Name", with: "Not important")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "contact: mail")
     end
   end
 

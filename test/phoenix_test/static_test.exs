@@ -305,6 +305,16 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "choose/2" do
+    test "chooses an option in radio button", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> choose("Email Choice")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "contact: email")
+    end
+  end
+
   describe "fill_form/3" do
     test "raises an error when form cannot be found with given selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
