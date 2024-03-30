@@ -88,7 +88,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     cond do
       has_active_form?(form) and is_submit_button?(form.form_element, selector, text) ->
-        submit_active_form(session)
+        session
+        |> put_default_form_values()
+        |> submit_active_form()
 
       data_attribute_form?(session, selector, text) ->
         form =
@@ -104,6 +106,28 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
       true ->
         single_button_form_submit(session, selector, text)
+    end
+  end
+
+  def put_default_form_values(session) do
+    active_form = PhoenixTest.Static.get_private(session, :active_form, %{})
+
+    html = active_form.form_element |> Html.raw()
+
+    active_form = session |> add_default_radio_buttons(html)
+
+    session
+    |> PhoenixTest.Static.put_private(:active_form, active_form)
+  end
+
+  defp add_default_radio_buttons(session, html) do
+    case Query.find(html, "input[type='radio'][checked='checked']") do
+      {:found, element} ->
+        new_form_data = %{Html.attribute(element, "name") => Html.attribute(element, "value")}
+        prepend_to_active_form_data(session, new_form_data)
+
+      :not_found ->
+        PhoenixTest.Static.get_private(session, :active_form, %{})
     end
   end
 
@@ -185,6 +209,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     session
     |> PhoenixTest.Static.put_private(:active_form, active_form)
     |> fill_form("form##{form.id}", active_form.form_data)
+  end
+
+  defp prepend_to_active_form_data(session, default_form_data) do
+    session
+    |> PhoenixTest.Static.get_private(:active_form, %{form_data: %{}})
+    |> Map.update(:form_data, %{}, fn form_data ->
+      DeepMerge.deep_merge(default_form_data, form_data)
+    end)
   end
 
   defp add_to_active_form_data(session, new_form_data) do

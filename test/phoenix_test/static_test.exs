@@ -313,6 +313,15 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save")
       |> assert_has("#form-data", text: "contact: email")
     end
+
+    test "uses the default 'checked' if present", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      # other field to trigger form save
+      |> fill_in("First Name", with: "Not important")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "contact: mail")
+    end
   end
 
   describe "fill_form/3" do
