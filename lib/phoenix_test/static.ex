@@ -243,9 +243,20 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> Html.raw()
     |> Query.find_one_of(submit_buttons)
     |> case do
-      {:found, _} -> true
-      {:found_many, _} -> true
-      {:not_found, _} -> false
+      {:found, _} ->
+        true
+
+      {:found_many, elements} ->
+        msg = """
+        Found too many submit buttons (#{Enum.count(elements)}) with text #{inspect(text)}:
+
+        #{Enum.map_join(elements, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, _} ->
+        false
     end
   end
 
