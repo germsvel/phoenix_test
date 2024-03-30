@@ -165,7 +165,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     field =
       session
       |> render_html()
-      |> Field.find_radio_button!(label)
+      |> Field.find_input!(label)
 
     new_form_data = Field.to_form_data(field)
     active_form = add_to_active_form_data(session, new_form_data)

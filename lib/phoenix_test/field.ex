@@ -8,10 +8,11 @@ defmodule PhoenixTest.Field do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  def find_input!(html, label, value) do
+  def find_input!(html, label, value \\ nil) do
     field = Query.find_by_label!(html, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
+    value = value || Html.attribute(field, "value")
 
     %__MODULE__{
       html: html,
@@ -61,21 +62,6 @@ defmodule PhoenixTest.Field do
 
     hidden_input = Query.find!(html, "input[type='hidden'][name=#{name}]")
     value = Html.attribute(hidden_input, "value")
-
-    %__MODULE__{
-      html: html,
-      label: label,
-      id: id,
-      name: name,
-      value: value
-    }
-  end
-
-  def find_radio_button!(html, label) do
-    field = Query.find_by_label!(html, label)
-    id = Html.attribute(field, "id")
-    name = Html.attribute(field, "name")
-    value = Html.attribute(field, "value")
 
     %__MODULE__{
       html: html,
