@@ -1,30 +1,12 @@
 defmodule PhoenixTest.Static do
   @moduledoc false
-  defstruct conn: nil, private: %{}
+
+  alias PhoenixTest.ActiveForm
+
+  defstruct conn: nil, active_form: ActiveForm.new()
 
   def build(conn) do
     %__MODULE__{conn: conn}
-  end
-
-  def get_private(%__MODULE__{private: private}, key) do
-    Map.get(private, key, :not_found)
-  end
-
-  def get_private(%__MODULE__{private: private}, key, default) do
-    case Map.get(private, key, :not_found) do
-      :not_found -> default
-      found -> found
-    end
-  end
-
-  def pop_private(%__MODULE__{private: private} = session, key) do
-    {popped, rest_private} = Map.pop(private, key, %{})
-    {popped, %{session | private: rest_private}}
-  end
-
-  def put_private(%__MODULE__{private: private} = session, key, value) do
-    updated_private = Map.put(private, key, value)
-    %{session | private: updated_private}
   end
 end
 
@@ -85,10 +67,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_button(session, selector, text) do
-    form = PhoenixTest.Static.get_private(session, :active_form, %{})
+    form = session.active_form
 
     cond do
-      has_active_form?(form) and is_submit_button?(form.form_element, selector, text) ->
+      ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) ->
         session
         |> put_default_form_values()
         |> submit_active_form()
@@ -111,13 +93,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def put_default_form_values(session) do
-    active_form =
-      session
-      |> PhoenixTest.Static.get_private(:active_form, ActiveForm.new())
-      |> add_default_radio_buttons()
+    active_form = session.active_form |> add_default_radio_buttons()
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
   end
 
   defp add_default_radio_buttons(active_form) do
@@ -146,15 +125,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form =
-      session
-      |> PhoenixTest.Static.get_private(:active_form, ActiveForm.new())
-      |> ActiveForm.add_form_data(new_form_data)
+    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
 
     form = Field.parent_form(field)
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
     |> fill_form("form##{form.id}", active_form.form_data)
   end
 
@@ -166,15 +142,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form =
-      session
-      |> PhoenixTest.Static.get_private(:active_form, ActiveForm.new())
-      |> ActiveForm.add_form_data(new_form_data)
+    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
 
     form = Field.parent_form(field)
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
     |> fill_form("form##{form.id}", active_form.form_data)
   end
 
@@ -186,15 +159,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form =
-      session
-      |> PhoenixTest.Static.get_private(:active_form, ActiveForm.new())
-      |> ActiveForm.add_form_data(new_form_data)
+    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
 
     form = Field.parent_form(field)
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
     |> fill_form("form##{form.id}", active_form.form_data)
   end
 
@@ -206,15 +176,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form =
-      session
-      |> PhoenixTest.Static.get_private(:active_form, ActiveForm.new())
-      |> ActiveForm.add_form_data(new_form_data)
+    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
 
     form = Field.parent_form(field)
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
     |> fill_form("form##{form.id}", active_form.form_data)
   end
 
@@ -226,15 +193,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form =
-      session
-      |> PhoenixTest.Static.get_private(:active_form, ActiveForm.new())
-      |> ActiveForm.add_form_data(new_form_data)
+    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
 
     form = Field.parent_form(field)
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
     |> fill_form("form##{form.id}", active_form.form_data)
   end
 
@@ -256,7 +220,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     }
 
     session
-    |> PhoenixTest.Static.put_private(:active_form, active_form)
+    |> Map.put(:active_form, active_form)
   end
 
   def submit_form(session, selector, form_data) do
@@ -303,11 +267,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  defp has_active_form?(%{form_data: _}), do: true
-  defp has_active_form?(%{}), do: false
-
   defp submit_active_form(session) do
-    {form, session} = PhoenixTest.Static.pop_private(session, :active_form)
+    {form, session} = Map.pop(session, :active_form)
     action = form.parsed["attributes"]["action"]
     method = form.parsed["operative_method"]
 

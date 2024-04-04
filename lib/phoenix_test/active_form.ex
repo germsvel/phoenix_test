@@ -16,4 +16,7 @@ defmodule PhoenixTest.ActiveForm do
       DeepMerge.deep_merge(form_data, new_form_data)
     end)
   end
+
+  def active?(%{selector: _}), do: true
+  def active?(%{}), do: false
 end
