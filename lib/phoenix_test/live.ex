@@ -50,10 +50,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def click_button(session, selector, text) do
-    {form, session} = Map.pop(session, :active_form)
+    form = Map.get(session, :active_form)
 
     if ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) do
-      submit_form(session, form.selector, form.form_data)
+      session
+      |> Map.put(:active_form, ActiveForm.new())
+      |> submit_form(form.selector, form.form_data)
     else
       session.view
       |> element(selector, text)

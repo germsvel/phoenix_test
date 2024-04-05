@@ -268,9 +268,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp submit_active_form(session) do
-    {form, session} = Map.pop(session, :active_form)
+    form = Map.get(session, :active_form)
     action = form.parsed["attributes"]["action"]
     method = form.parsed["operative_method"]
+
+    session = Map.put(session, :active_form, ActiveForm.new())
 
     session.conn
     |> dispatch(@endpoint, method, action, form.form_data)

@@ -130,6 +130,26 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#tab", text: "Tab title")
     end
 
+    test "does not remove active form if button isn't form's submit button", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> fill_in("User Name", with: "Aragorn")
+        |> click_button("Reset")
+
+      assert PhoenixTest.ActiveForm.active?(session.active_form)
+    end
+
+    test "resets active form if it is form's submit button", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> fill_in("User Name", with: "Aragorn")
+        |> click_button("Save")
+
+      refute PhoenixTest.ActiveForm.active?(session.active_form)
+    end
+
     test "raises an error when there are no buttons on page", %{conn: conn} do
       assert_raise ArgumentError, ~r/selector "button" did not return any element/, fn ->
         conn

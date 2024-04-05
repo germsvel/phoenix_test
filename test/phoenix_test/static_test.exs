@@ -177,6 +177,26 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record deleted")
     end
 
+    test "does not remove active form if button isn't form's submit button", %{conn: conn} do
+      session =
+        conn
+        |> visit("/page/index")
+        |> fill_in("User Name", with: "Aragorn")
+        |> click_button("Mark as active")
+
+      assert PhoenixTest.ActiveForm.active?(session.active_form)
+    end
+
+    test "resets active form if it is form's submit button", %{conn: conn} do
+      session =
+        conn
+        |> visit("/page/index")
+        |> fill_in("User Name", with: "Aragorn")
+        |> click_button("Save")
+
+      refute PhoenixTest.ActiveForm.active?(session.active_form)
+    end
+
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
         """
