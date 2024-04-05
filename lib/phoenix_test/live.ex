@@ -53,14 +53,36 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     form = Map.get(session, :active_form)
 
     if ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) do
+      additional_data = additional_form_data(form, selector, text)
+
       session
       |> Map.put(:active_form, ActiveForm.new())
-      |> submit_form(form.selector, form.form_data)
+      |> submit_form(form.selector, form.form_data, additional_data)
     else
       session.view
       |> element(selector, text)
       |> render_click()
       |> maybe_redirect(session)
+    end
+  end
+
+  defp additional_form_data(form, selector, text) do
+    form.form_element
+    |> Html.raw()
+    |> Query.find(selector, text)
+    |> case do
+      {:found, element} ->
+        name = Html.attribute(element, "name")
+        value = Html.attribute(element, "value")
+
+        if name && value do
+          %{name => value}
+        else
+          %{}
+        end
+
+      {:not_found, _} ->
+        %{}
     end
   end
 
@@ -201,7 +223,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     |> Map.put(:active_form, active_form)
   end
 
-  def submit_form(session, selector, form_data) do
+  def submit_form(session, selector, form_data, event_data \\ %{}) do
     form_element =
       session
       |> render_html()
@@ -211,7 +233,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       phx_submit_form?(form_element) ->
         session.view
         |> form(selector, form_data)
-        |> render_submit()
+        |> render_submit(event_data)
         |> maybe_redirect(session)
 
       action_form?(form_element) ->

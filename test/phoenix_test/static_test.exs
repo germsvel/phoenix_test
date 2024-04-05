@@ -197,6 +197,14 @@ defmodule PhoenixTest.StaticTest do
       refute PhoenixTest.ActiveForm.active?(session.active_form)
     end
 
+    test "includes name and value if specified", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("User Name", with: "Aragorn")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "save-button: nested-form-save")
+    end
+
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
         """

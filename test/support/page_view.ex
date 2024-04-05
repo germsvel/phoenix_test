@@ -107,7 +107,7 @@ defmodule PhoenixTest.PageView do
         <option value="false">False</option>
       </select>
 
-      <button>Save</button>
+      <button name="save-button" value="nested-form-save">Save</button>
     </form>
 
     <form id="full-form" method="post" action="/page/create_record">

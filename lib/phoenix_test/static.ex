@@ -72,7 +72,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     cond do
       ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) ->
         session
-        |> put_default_form_values()
+        |> put_default_form_values(selector, text)
         |> submit_active_form()
 
       data_attribute_form?(session, selector, text) ->
@@ -92,8 +92,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  def put_default_form_values(session) do
-    active_form = session.active_form |> add_default_radio_buttons()
+  def put_default_form_values(session, selector, text) do
+    active_form =
+      session.active_form
+      |> add_default_radio_buttons()
+      |> add_button_data(selector, text)
 
     session
     |> Map.put(:active_form, active_form)
@@ -113,6 +116,26 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         )
 
       :not_found ->
+        active_form
+    end
+  end
+
+  defp add_button_data(active_form, selector, text) do
+    active_form.form_element
+    |> Html.raw()
+    |> Query.find(selector, text)
+    |> case do
+      {:found, element} ->
+        name = Html.attribute(element, "name")
+        value = Html.attribute(element, "value")
+
+        if name && value do
+          ActiveForm.prepend_form_data(active_form, %{name => value})
+        else
+          active_form
+        end
+
+      {:not_found, _} ->
         active_form
     end
   end

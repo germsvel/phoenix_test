@@ -54,7 +54,7 @@ defmodule PhoenixTest.IndexLive do
         <option value="false">False</option>
       </select>
 
-      <button type="submit">Save</button>
+      <button type="submit" name="no-phx-change-form-button" value="save">Save</button>
     </form>
 
     <form id="full-form" phx-submit="save-form">
@@ -89,7 +89,7 @@ defmodule PhoenixTest.IndexLive do
       <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>
 
-      <button>Save</button>
+      <button type="submit">Save</button>
     </form>
 
     <form id="redirect-form" phx-submit="save-redirect-form">

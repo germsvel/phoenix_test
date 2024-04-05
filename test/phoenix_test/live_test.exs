@@ -150,6 +150,14 @@ defmodule PhoenixTest.LiveTest do
       refute PhoenixTest.ActiveForm.active?(session.active_form)
     end
 
+    test "includes name and value if specified", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("User Name", with: "Aragorn")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "no-phx-change-form-button: save")
+    end
+
     test "raises an error when there are no buttons on page", %{conn: conn} do
       assert_raise ArgumentError, ~r/selector "button" did not return any element/, fn ->
         conn
