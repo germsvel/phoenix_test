@@ -150,7 +150,7 @@ defmodule PhoenixTest.PageView do
         <input type="checkbox" name="member_of_fellowship" />
       </div>
 
-      <button>Save Full Form</button>
+      <button name="full_form_button" value="save">Save Full Form</button>
     </form>
 
     <form id="redirect-to-liveview-form" method="post" action="/page/redirect_to_liveview">

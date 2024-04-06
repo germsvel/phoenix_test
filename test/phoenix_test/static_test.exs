@@ -205,6 +205,15 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "save-button: nested-form-save")
     end
 
+    test "includes default data if form is untouched", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "admin: off")
+      |> assert_has("#form-data", text: "contact: mail")
+      |> assert_has("#form-data", text: "full_form_button: save")
+    end
+
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
         """
