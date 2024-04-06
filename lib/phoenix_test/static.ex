@@ -15,6 +15,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   import Phoenix.ConnTest
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.Element
   alias PhoenixTest.Field
   alias PhoenixTest.Html
   alias PhoenixTest.OpenBrowser
@@ -69,17 +70,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   def click_button(session, selector, text) do
     form = session.active_form
 
-    cond do
-      ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) ->
-        session
-        |> put_default_form_values(selector, text)
-        |> submit_active_form()
+    html = render_html(session)
+    button = Element.find!(html, selector, text)
 
+    cond do
       data_attribute_form?(session, selector, text) ->
         form =
-          session
-          |> render_html()
-          |> Query.find!(selector, text)
+          button.parsed
           |> Html.DataAttributeForm.build()
           |> Html.DataAttributeForm.validate!(selector, text)
 
@@ -87,8 +84,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         |> dispatch(@endpoint, form.method, form.action, form.data)
         |> maybe_redirect(session)
 
+      ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) ->
+        session
+        |> put_default_form_values(selector, text)
+        |> submit_active_form()
+
       true ->
-        single_button_form_submit(session, selector, text)
+        single_button_form_submit(session, html, button)
     end
   end
 
@@ -302,16 +304,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> maybe_redirect(session)
   end
 
-  defp single_button_form_submit(session, selector, text) do
-    html =
-      session
-      |> render_html()
+  defp single_button_form_submit(session, html, button) do
+    selector = button.selector
+    text = button.text
 
-    _submit_button = Query.find!(html, selector, text)
-
-    form =
-      Query.find_ancestor!(html, "form", {selector, text})
-      |> Html.Form.build()
+    form_element = Element.find_parent_form!(html, selector, text)
+    form = Html.Form.build(form_element.parsed)
 
     action = form["attributes"]["action"]
     method = form["operative_method"]

@@ -80,6 +80,6 @@ defmodule PhoenixTest.Field do
     form = Query.find_ancestor!(field.html, "form", "##{field.id}")
     id = Html.attribute(form, "id")
 
-    %{source: form, id: id}
+    %{raw: Html.raw(form), id: id}
   end
 end
