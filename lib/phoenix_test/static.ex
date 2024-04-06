@@ -15,8 +15,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   import Phoenix.ConnTest
 
   alias PhoenixTest.ActiveForm
-  alias PhoenixTest.Element
+  alias PhoenixTest.Button
   alias PhoenixTest.Field
+  alias PhoenixTest.Form
   alias PhoenixTest.Html
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
@@ -71,7 +72,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     form = session.active_form
 
     html = render_html(session)
-    button = Element.find!(html, selector, text)
+    button = Button.find!(html, selector, text)
 
     cond do
       data_attribute_form?(session, selector, text) ->
@@ -305,17 +306,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp single_button_form_submit(session, html, button) do
-    selector = button.selector
-    text = button.text
-
-    form_element = Element.find_parent_form!(html, selector, text)
-    form = Html.Form.build(form_element.parsed)
-
-    action = form["attributes"]["action"]
-    method = form["operative_method"]
+    form = Form.find!(html, button)
 
     session.conn
-    |> dispatch(@endpoint, method, action)
+    |> dispatch(@endpoint, form.method, form.action, form.form_data)
     |> maybe_redirect(session)
   end
 
