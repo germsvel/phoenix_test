@@ -8,7 +8,27 @@ defmodule PhoenixTest.Form do
 
   defstruct ~w[raw parsed id action method form_data]a
 
-  def find!(html, button) do
+  def find!(html, selector) do
+    form = Query.find!(html, selector)
+    raw = Html.raw(form)
+    id = Html.attribute(form, "id")
+
+    data = Html.Form.build(form)
+
+    action = data["attributes"]["action"]
+    method = data["operative_method"]
+
+    %__MODULE__{
+      raw: raw,
+      parsed: form,
+      id: id,
+      action: action,
+      method: method,
+      form_data: form_data(form)
+    }
+  end
+
+  def find_by_button!(html, button) do
     form = Query.find_ancestor!(html, "form", {button.selector, button.text})
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
@@ -28,7 +48,7 @@ defmodule PhoenixTest.Form do
     }
   end
 
-  defp form_data(form, button) do
+  defp form_data(form, button \\ nil) do
     %{}
     |> put_form_data("input[type='hidden']", form)
     |> put_form_data("input[type='radio'][checked='checked']", form)
@@ -44,6 +64,8 @@ defmodule PhoenixTest.Form do
 
     Map.merge(form_data, hidden_fields)
   end
+
+  defp put_button_data(form_data, nil), do: form_data
 
   defp put_button_data(form_data, %Button{} = button) do
     if button.name && button.value do

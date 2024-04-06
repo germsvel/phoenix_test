@@ -69,7 +69,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_button(session, selector, text) do
-    form = session.active_form
+    active_form = session.active_form
 
     html = render_html(session)
     button = Button.find!(html, selector, text)
@@ -85,12 +85,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         |> dispatch(@endpoint, form.method, form.action, form.data)
         |> maybe_redirect(session)
 
-      ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) ->
-        form = Form.find!(html, button)
+      ActiveForm.active?(active_form) and
+          is_submit_button?(active_form.parsed, selector, text) ->
+        form = Form.find_by_button!(html, button)
         submit_active_form(session, form)
 
       true ->
-        form = Form.find!(html, button)
+        form = Form.find_by_button!(html, button)
         submit(session, form)
     end
   end
@@ -183,24 +184,20 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   def fill_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
-    form_element =
+    form =
       session
       |> render_html()
-      |> Query.find!(selector)
+      |> Form.find!(selector)
 
-    form = Html.Form.build(form_element)
+    form = update_in(form.form_data, fn data -> Map.merge(data, form_data) end)
 
-    :ok = Html.Form.validate_form_data!(form, form_data)
-
-    active_form = %{
-      selector: selector,
-      form_data: form_data,
-      parsed: form,
-      form_element: form_element
-    }
+    :ok =
+      form.parsed
+      |> Html.Form.build()
+      |> Html.Form.validate_form_data!(form_data)
 
     session
-    |> Map.put(:active_form, active_form)
+    |> Map.put(:active_form, form)
   end
 
   def submit_form(session, selector, form_data) do
@@ -248,14 +245,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp submit_active_form(session) do
-    form = Map.get(session, :active_form)
-    action = form.parsed["attributes"]["action"]
-    method = form.parsed["operative_method"]
+    active_form = Map.get(session, :active_form)
+    action = active_form.action
+    method = active_form.method
 
     session = Map.put(session, :active_form, ActiveForm.new())
 
     session.conn
-    |> dispatch(@endpoint, method, action, form.form_data)
+    |> dispatch(@endpoint, method, action, active_form.form_data)
     |> maybe_redirect(session)
   end
 

@@ -17,6 +17,7 @@ defmodule PhoenixTest.ActiveForm do
     end)
   end
 
-  def active?(%{selector: _}), do: true
-  def active?(%{}), do: false
+  def active?(%{form_data: form_data}) do
+    !Enum.empty?(form_data)
+  end
 end
