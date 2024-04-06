@@ -86,60 +86,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         |> maybe_redirect(session)
 
       ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) ->
-        session
-        |> put_default_form_values(selector, text)
-        |> submit_active_form()
+        form = Form.find!(html, button)
+        submit_active_form(session, form)
 
       true ->
-        single_button_form_submit(session, html, button)
-    end
-  end
-
-  def put_default_form_values(session, selector, text) do
-    active_form =
-      session.active_form
-      |> add_default_radio_buttons()
-      |> add_button_data(selector, text)
-
-    session
-    |> Map.put(:active_form, active_form)
-  end
-
-  defp add_default_radio_buttons(active_form) do
-    active_form.form_element
-    |> Html.raw()
-    |> Query.find("input[type='radio'][checked='checked']")
-    |> case do
-      {:found, element} ->
-        ActiveForm.prepend_form_data(
-          active_form,
-          %{
-            Html.attribute(element, "name") => Html.attribute(element, "value")
-          }
-        )
-
-      :not_found ->
-        active_form
-    end
-  end
-
-  defp add_button_data(active_form, selector, text) do
-    active_form.form_element
-    |> Html.raw()
-    |> Query.find(selector, text)
-    |> case do
-      {:found, element} ->
-        name = Html.attribute(element, "name")
-        value = Html.attribute(element, "value")
-
-        if name && value do
-          ActiveForm.prepend_form_data(active_form, %{name => value})
-        else
-          active_form
-        end
-
-      {:not_found, _} ->
-        active_form
+        form = Form.find!(html, button)
+        submit(session, form)
     end
   end
 
@@ -229,6 +181,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def fill_form(session, selector, form_data) do
+    form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
+
     form_element =
       session
       |> render_html()
@@ -305,9 +259,20 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> maybe_redirect(session)
   end
 
-  defp single_button_form_submit(session, html, button) do
-    form = Form.find!(html, button)
+  defp submit_active_form(session, form) do
+    action = form.action
+    method = form.method
+    active_form = Map.get(session, :active_form)
+    form_data = Map.merge(form.form_data, active_form.form_data)
 
+    session = Map.put(session, :active_form, ActiveForm.new())
+
+    session.conn
+    |> dispatch(@endpoint, method, action, form_data)
+    |> maybe_redirect(session)
+  end
+
+  defp submit(session, form) do
     session.conn
     |> dispatch(@endpoint, form.method, form.action, form.form_data)
     |> maybe_redirect(session)

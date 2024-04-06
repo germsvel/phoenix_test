@@ -6,6 +6,8 @@ defmodule PhoenixTest.Form do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
+  defstruct ~w[raw parsed id action method form_data]a
+
   def find!(html, button) do
     form = Query.find_ancestor!(html, "form", {button.selector, button.text})
     raw = Html.raw(form)
@@ -16,7 +18,7 @@ defmodule PhoenixTest.Form do
     action = data["attributes"]["action"]
     method = data["operative_method"]
 
-    %{
+    %__MODULE__{
       raw: raw,
       parsed: form,
       id: id,
