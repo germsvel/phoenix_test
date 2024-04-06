@@ -6,7 +6,7 @@ defmodule PhoenixTest.Form do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[raw parsed id action method form_data]a
+  defstruct ~w[selector raw parsed id action method form_data]a
 
   def find!(html, selector) do
     form = Query.find!(html, selector)
@@ -19,6 +19,7 @@ defmodule PhoenixTest.Form do
     method = data["operative_method"]
 
     %__MODULE__{
+      selector: selector,
       raw: raw,
       parsed: form,
       id: id,
@@ -39,6 +40,7 @@ defmodule PhoenixTest.Form do
     method = data["operative_method"]
 
     %__MODULE__{
+      selector: "##{id}",
       raw: raw,
       parsed: form,
       id: id,
@@ -46,6 +48,20 @@ defmodule PhoenixTest.Form do
       method: method,
       form_data: form_data(form, button)
     }
+  end
+
+  def phx_change?(form) do
+    phx_change = Html.attribute(form.parsed, "phx-change")
+    phx_change != nil and phx_change != ""
+  end
+
+  def phx_submit?(form) do
+    phx_submit = Html.attribute(form.parsed, "phx-submit")
+    phx_submit != nil and phx_submit != ""
+  end
+
+  def has_action?(form) do
+    form.action != nil and form.action != ""
   end
 
   defp form_data(form, button \\ nil) do

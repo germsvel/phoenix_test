@@ -23,6 +23,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Field
+  alias PhoenixTest.Form
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
@@ -50,14 +51,15 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def click_button(session, selector, text) do
-    form = Map.get(session, :active_form)
+    active_form = Map.get(session, :active_form)
 
-    if ActiveForm.active?(form) and is_submit_button?(form.form_element, selector, text) do
-      additional_data = additional_form_data(form, selector, text)
+    if ActiveForm.active?(active_form) and
+         is_submit_button?(active_form, selector, text) do
+      additional_data = additional_form_data(active_form, selector, text)
 
       session
       |> Map.put(:active_form, ActiveForm.new())
-      |> submit_form(form.selector, form.form_data, additional_data)
+      |> submit_form(active_form.selector, active_form.form_data, additional_data)
     else
       session.view
       |> element(selector, text)
@@ -66,8 +68,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
-  defp additional_form_data(form, selector, text) do
-    form.form_element
+  defp additional_form_data(active_form, selector, text) do
+    active_form.parsed
     |> Html.raw()
     |> Query.find(selector, text)
     |> case do
@@ -86,11 +88,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
   end
 
-  defp is_submit_button?(form_element, selector, text) do
+  defp is_submit_button?(form, selector, text) do
     submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
 
-    form_element
-    |> Html.raw()
+    form.raw
     |> Query.find_one_of(submit_buttons)
     |> case do
       {:found, _} ->
@@ -196,73 +197,57 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def fill_form(session, selector, form_data) do
-    form_element =
+    form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
+
+    form =
       session
       |> render_html()
-      |> Query.find!(selector)
+      |> Form.find!(selector)
 
-    if phx_change_form?(form_element) do
+    form = update_in(form.form_data, fn data -> Map.merge(data, form_data) end)
+
+    if Form.phx_change?(form) do
       session.view
-      |> form(selector, form_data)
+      |> form(selector, form.form_data)
       |> render_change()
     else
-      form_element
+      form.parsed
       |> Html.Form.build()
       |> then(fn form ->
         :ok = Html.Form.validate_form_fields!(form["fields"], form_data)
       end)
     end
 
-    active_form = %{
-      selector: selector,
-      form_data: form_data,
-      form_element: form_element
-    }
-
     session
-    |> Map.put(:active_form, active_form)
+    |> Map.put(:active_form, form)
   end
 
   def submit_form(session, selector, form_data, event_data \\ %{}) do
-    form_element =
+    form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
+
+    form =
       session
       |> render_html()
-      |> Query.find!(selector)
+      |> Form.find!(selector)
+
+    form = update_in(form.form_data, fn data -> Map.merge(data, form_data) end)
 
     cond do
-      phx_submit_form?(form_element) ->
+      Form.phx_submit?(form) ->
         session.view
-        |> form(selector, form_data)
+        |> form(selector, form.form_data)
         |> render_submit(event_data)
         |> maybe_redirect(session)
 
-      action_form?(form_element) ->
+      Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.submit_form(selector, form_data)
+        |> PhoenixTest.submit_form(selector, form.form_data)
 
       true ->
         raise ArgumentError,
               "Expected form with selector #{inspect(selector)} to have a `phx-submit` or `action` defined."
     end
-  end
-
-  defp action_form?(form_element) do
-    action = Html.attribute(form_element, "action")
-
-    action != nil && action != ""
-  end
-
-  defp phx_submit_form?(form_element) do
-    phx_submit = Html.attribute(form_element, "phx-submit")
-
-    phx_submit != nil && phx_submit != ""
-  end
-
-  defp phx_change_form?(form_element) do
-    phx_change = Html.attribute(form_element, "phx-change")
-
-    phx_change != nil && phx_change != ""
   end
 
   def open_browser(%{view: view} = session, open_fun \\ &Phoenix.LiveViewTest.open_browser/1) do
