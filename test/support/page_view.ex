@@ -83,7 +83,7 @@ defmodule PhoenixTest.PageView do
     <form action="/page/create_record" method="post" id="email-form">
       <label for="email">Email</label>
       <input type="text" id="email" name="email" />
-      <input type="submit" value="Save" />
+      <button type="submit">Save Email</button>
     </form>
 
     <form id="update-form" action="/page/update_record" method="post">
@@ -107,7 +107,7 @@ defmodule PhoenixTest.PageView do
         <option value="false">False</option>
       </select>
 
-      <button name="save-button" value="nested-form-save">Save</button>
+      <button name="save-button" value="nested-form-save">Save Nested Form</button>
     </form>
 
     <form id="full-form" method="post" action="/page/create_record">
@@ -150,7 +150,7 @@ defmodule PhoenixTest.PageView do
         <input type="checkbox" name="member_of_fellowship" />
       </div>
 
-      <button>Save</button>
+      <button>Save Full Form</button>
     </form>
 
     <form id="redirect-to-liveview-form" method="post" action="/page/redirect_to_liveview">

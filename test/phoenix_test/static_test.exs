@@ -192,7 +192,7 @@ defmodule PhoenixTest.StaticTest do
         conn
         |> visit("/page/index")
         |> fill_in("User Name", with: "Aragorn")
-        |> click_button("Save")
+        |> click_button("Save Nested Form")
 
       refute PhoenixTest.ActiveForm.active?(session.active_form)
     end
@@ -201,7 +201,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_in("User Name", with: "Aragorn")
-      |> click_button("Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "save-button: nested-form-save")
     end
 
@@ -262,7 +262,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_in("Email", with: "someone@example.com")
-      |> click_button("Save")
+      |> click_button("Save Email")
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
@@ -271,7 +271,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_in("First Name", with: "Aragorn")
       |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "name: Aragorn")
       |> assert_has("#form-data",
         text: "notes: Dunedain. Heir to the throne. King of Arnor and Gondor"
@@ -282,7 +282,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_in("User Name", with: "Aragorn")
-      |> click_button("Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Aragorn")
     end
   end
@@ -292,7 +292,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> select("Elf", from: "Race")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race: elf")
     end
 
@@ -300,7 +300,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> select("False", from: "User Admin")
-      |> click_button("Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:admin: false")
     end
   end
@@ -310,7 +310,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> check("Admin (boolean)")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin_boolean: true")
     end
 
@@ -318,7 +318,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> check("Admin")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
     end
   end
@@ -328,7 +328,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> uncheck("Admin")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
     end
   end
@@ -338,7 +338,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> choose("Email Choice")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: email")
     end
 
@@ -347,7 +347,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       # other field to trigger form save
       |> fill_in("First Name", with: "Not important")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
     end
   end
@@ -384,7 +384,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_form("#email-form", email: "sample@example.com")
-      |> click_button("Save")
+      |> click_button("Save Email")
       |> assert_has("#form-data", text: "email: sample@example.com")
     end
 
@@ -400,7 +400,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_form("#nested-form", user: %{name: "Aragorn"})
-      |> click_button("#nested-form", "Save")
+      |> click_button("#nested-form", "Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Aragorn")
     end
 
@@ -414,7 +414,7 @@ defmodule PhoenixTest.StaticTest do
         notes: "King of Gondor",
         member_of_fellowship: "on"
       )
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "name: Aragorn")
       |> assert_has("#form-data", text: "admin: on")
       |> assert_has("#form-data", text: "race: human")
