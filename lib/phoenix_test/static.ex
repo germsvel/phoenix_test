@@ -74,25 +74,26 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     html = render_html(session)
     button = Button.find!(html, selector, text)
 
-    cond do
-      data_attribute_form?(session, selector, text) ->
-        form =
-          button.parsed
-          |> Html.DataAttributeForm.build()
-          |> Html.DataAttributeForm.validate!(selector, text)
+    if data_attribute_form?(session, selector, text) do
+      form =
+        button.parsed
+        |> Html.DataAttributeForm.build()
+        |> Html.DataAttributeForm.validate!(selector, text)
 
-        session.conn
-        |> dispatch(@endpoint, form.method, form.action, form.data)
-        |> maybe_redirect(session)
+      session.conn
+      |> dispatch(@endpoint, form.method, form.action, form.data)
+      |> maybe_redirect(session)
+    else
+      form =
+        html
+        |> Form.find_by_button!(button)
+        |> Form.put_button_data(button)
 
-      ActiveForm.active?(active_form) and
-          is_submit_button?(active_form.parsed, selector, text) ->
-        form = Form.find_by_button!(html, button)
+      if active_form.id == form.id do
         submit_active_form(session, form)
-
-      true ->
-        form = Form.find_by_button!(html, button)
+      else
         submit(session, form)
+      end
     end
   end
 
@@ -220,30 +221,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  defp is_submit_button?(form_element, selector, text) do
-    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
-
-    form_element
-    |> Html.raw()
-    |> Query.find_one_of(submit_buttons)
-    |> case do
-      {:found, _} ->
-        true
-
-      {:found_many, elements} ->
-        msg = """
-        Found too many submit buttons (#{Enum.count(elements)}) with text #{inspect(text)}:
-
-        #{Enum.map_join(elements, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, _} ->
-        false
-    end
-  end
-
   defp submit_active_form(session) do
     active_form = Map.get(session, :active_form)
     action = active_form.action
@@ -257,15 +234,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp submit_active_form(session, form) do
-    action = form.action
-    method = form.method
     active_form = Map.get(session, :active_form)
     form_data = Map.merge(form.form_data, active_form.form_data)
 
     session = Map.put(session, :active_form, ActiveForm.new())
 
     session.conn
-    |> dispatch(@endpoint, method, action, form_data)
+    |> dispatch(@endpoint, form.method, form.action, form_data)
     |> maybe_redirect(session)
   end
 

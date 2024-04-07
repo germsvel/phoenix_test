@@ -46,7 +46,7 @@ defmodule PhoenixTest.Form do
       id: id,
       action: action,
       method: method,
-      form_data: form_data(form, button)
+      form_data: form_data(form)
     }
   end
 
@@ -64,11 +64,10 @@ defmodule PhoenixTest.Form do
     form.action != nil and form.action != ""
   end
 
-  defp form_data(form, button \\ nil) do
+  defp form_data(form) do
     %{}
     |> put_form_data("input[type='hidden']", form)
     |> put_form_data("input[type='radio'][checked='checked']", form)
-    |> put_button_data(button)
   end
 
   defp put_form_data(form_data, selector, form) do
@@ -81,14 +80,14 @@ defmodule PhoenixTest.Form do
     Map.merge(form_data, hidden_fields)
   end
 
-  defp put_button_data(form_data, nil), do: form_data
+  def put_button_data(form, nil), do: form
 
-  defp put_button_data(form_data, %Button{} = button) do
+  def put_button_data(form, %Button{} = button) do
     if button.name && button.value do
       button_name_and_value = Utils.name_to_map(button.name, button.value)
-      Map.merge(form_data, button_name_and_value)
+      update_in(form.form_data, fn data -> Map.merge(button_name_and_value, data) end)
     else
-      form_data
+      form
     end
   end
 

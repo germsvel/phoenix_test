@@ -158,6 +158,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "no-phx-change-form-button: save")
     end
 
+    test "includes default data if form is untouched", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "admin: off")
+      |> assert_has("#form-data", text: "contact: mail")
+      |> assert_has("#form-data", text: "full_form_button: save")
+    end
+
     test "raises an error when there are no buttons on page", %{conn: conn} do
       msg = ~r/Could not find element with selector "button" and text "Show tab"/
 
@@ -168,11 +177,15 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error if no active form and no phx-submit", %{conn: conn} do
-      assert_raise ArgumentError, ~r/does not have phx-click attribute/, fn ->
+    test "raises an error if button is not part of form and has no phx-submit", %{conn: conn} do
+      msg = """
+      Expected element with selector "button" and text "Actionless Button" to have a `phx-click` attribute or belong to a `form` element.
+      """
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/live/index")
-        |> click_button("Submit Invalid Form")
+        |> click_button("Actionless Button")
       end
     end
 
@@ -363,7 +376,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#email-form", email: "some@example.com")
-      |> click_button("Reset")
+      |> click_button("Save Nested Form")
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 

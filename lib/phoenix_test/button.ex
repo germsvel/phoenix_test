@@ -25,6 +25,18 @@ defmodule PhoenixTest.Button do
     }
   end
 
+  def belongs_to_form?(button, html) do
+    case Query.find_ancestor(html, "form", {button.selector, button.text}) do
+      {:found, _} -> true
+      _ -> false
+    end
+  end
+
+  def phx_click?(button) do
+    phx_click = Html.attribute(button.parsed, "phx-click")
+    phx_click != nil && phx_click != ""
+  end
+
   def to_form_data(button) do
     if button.name && button.value do
       Utils.name_to_map(button.name, button.value)

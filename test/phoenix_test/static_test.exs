@@ -264,6 +264,17 @@ defmodule PhoenixTest.StaticTest do
         |> click_button("No button")
       end
     end
+
+    test "raises an error if button is not part of form", %{conn: conn} do
+      msg =
+        ~r/Could not find "form" for an element with selector "button" and text "Actionless Button"/
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> click_button("Actionless Button")
+      end
+    end
   end
 
   describe "fill_in/3" do

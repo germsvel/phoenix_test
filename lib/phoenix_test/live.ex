@@ -26,7 +26,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Field
   alias PhoenixTest.Form
   alias PhoenixTest.Html
-  alias PhoenixTest.Query
 
   def render_page_title(%{view: view}) do
     page_title(view)
@@ -54,46 +53,35 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   def click_button(session, selector, text) do
     active_form = session.active_form
 
-    button =
-      session
-      |> render_html()
-      |> Button.find!(selector, text)
+    html = render_html(session)
+    button = Button.find!(html, selector, text)
 
-    if ActiveForm.active?(active_form) and
-         is_submit_button?(active_form, selector, text) do
-      additional_data = Button.to_form_data(button)
+    cond do
+      Button.phx_click?(button) ->
+        session.view
+        |> element(selector, text)
+        |> render_click()
+        |> maybe_redirect(session)
 
-      session
-      |> Map.put(:active_form, ActiveForm.new())
-      |> submit_form(active_form.selector, active_form.form_data, additional_data)
-    else
-      session.view
-      |> element(selector, text)
-      |> render_click()
-      |> maybe_redirect(session)
-    end
-  end
+      Button.belongs_to_form?(button, html) ->
+        additional_data = Button.to_form_data(button)
+        form = Form.find_by_button!(html, button)
 
-  defp is_submit_button?(form, selector, text) do
-    submit_buttons = ["input[type=submit][value=#{text}]", {selector, text}]
+        form_data =
+          if active_form.id == form.id do
+            active_form.form_data
+          else
+            form.form_data
+          end
 
-    form.raw
-    |> Query.find_one_of(submit_buttons)
-    |> case do
-      {:found, _} ->
-        true
+        session
+        |> Map.put(:active_form, ActiveForm.new())
+        |> submit_form(form.selector, form_data, additional_data)
 
-      {:found_many, elements} ->
-        msg = """
-        Found too many submit buttons (#{Enum.count(elements)}) with text #{inspect(text)}:
-
-        #{Enum.map_join(elements, "\n", &Html.raw/1)}
+      true ->
+        raise ArgumentError, """
+        Expected element with selector #{inspect(selector)} and text #{inspect(text)} to have a `phx-click` attribute or belong to a `form` element.
         """
-
-        raise ArgumentError, msg
-
-      {:not_found, _} ->
-        false
     end
   end
 
@@ -190,11 +178,15 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> render_html()
       |> Form.find!(selector)
 
-    form = update_in(form.form_data, fn data -> Map.merge(data, form_data) end)
+    active_form =
+      session.active_form
+      |> Map.put(:id, form.id)
+      |> ActiveForm.prepend_form_data(form.form_data)
+      |> ActiveForm.add_form_data(form_data)
 
     if Form.phx_change?(form) do
       session.view
-      |> form(selector, form.form_data)
+      |> form(selector, active_form.form_data)
       |> render_change()
     else
       form.parsed
@@ -205,7 +197,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     end
 
     session
-    |> Map.put(:active_form, form)
+    |> Map.put(:active_form, active_form)
   end
 
   def submit_form(session, selector, form_data, event_data \\ %{}) do

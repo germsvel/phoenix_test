@@ -167,6 +167,8 @@ defmodule PhoenixTest.PageView do
       <label for="name">Name</label>
       <input name="name" />
     </form>
+
+    <button type="button">Actionless Button</button>
     """
   end
 

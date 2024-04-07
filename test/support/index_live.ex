@@ -91,7 +91,7 @@ defmodule PhoenixTest.IndexLive do
       <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>
 
-      <button type="submit">Save Full Form</button>
+      <button type="submit" name="full_form_button" value="save">Save Full Form</button>
     </form>
 
     <form id="redirect-form" phx-submit="save-redirect-form">
@@ -125,6 +125,8 @@ defmodule PhoenixTest.IndexLive do
         Submit Non LiveView
       </button>
     </form>
+
+    <button type="button">Actionless Button</button>
     """
   end
 
