@@ -22,6 +22,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   import Phoenix.LiveViewTest
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.Button
   alias PhoenixTest.Field
   alias PhoenixTest.Form
   alias PhoenixTest.Html
@@ -51,11 +52,16 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def click_button(session, selector, text) do
-    active_form = Map.get(session, :active_form)
+    active_form = session.active_form
+
+    button =
+      session
+      |> render_html()
+      |> Button.find!(selector, text)
 
     if ActiveForm.active?(active_form) and
          is_submit_button?(active_form, selector, text) do
-      additional_data = additional_form_data(active_form, selector, text)
+      additional_data = Button.to_form_data(button)
 
       session
       |> Map.put(:active_form, ActiveForm.new())
@@ -65,26 +71,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> element(selector, text)
       |> render_click()
       |> maybe_redirect(session)
-    end
-  end
-
-  defp additional_form_data(active_form, selector, text) do
-    active_form.parsed
-    |> Html.raw()
-    |> Query.find(selector, text)
-    |> case do
-      {:found, element} ->
-        name = Html.attribute(element, "name")
-        value = Html.attribute(element, "value")
-
-        if name && value do
-          %{name => value}
-        else
-          %{}
-        end
-
-      {:not_found, _} ->
-        %{}
     end
   end
 

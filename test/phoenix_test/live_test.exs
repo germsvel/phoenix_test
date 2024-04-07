@@ -159,7 +159,9 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
-      assert_raise ArgumentError, ~r/selector "button" did not return any element/, fn ->
+      msg = ~r/Could not find element with selector "button" and text "Show tab"/
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/live/page_2")
         |> click_button("Show tab")
@@ -175,7 +177,9 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if active form but can't find button", %{conn: conn} do
-      assert_raise ArgumentError, ~r/none matched the text filter "No button"/, fn ->
+      msg = ~r/Could not find element with selector "button" and text "No button"/
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/live/index")
         |> fill_form("#no-phx-change-form", name: "Legolas")

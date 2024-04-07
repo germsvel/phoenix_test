@@ -3,6 +3,7 @@ defmodule PhoenixTest.Button do
 
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+  alias PhoenixTest.Utils
 
   defstruct ~w[raw parsed id selector text name value]a
 
@@ -22,5 +23,13 @@ defmodule PhoenixTest.Button do
       name: name,
       value: value
     }
+  end
+
+  def to_form_data(button) do
+    if button.name && button.value do
+      Utils.name_to_map(button.name, button.value)
+    else
+      %{}
+    end
   end
 end
