@@ -29,7 +29,7 @@ defmodule PhoenixTest.IndexLive do
     <form id="email-form" phx-change="validate-email" phx-submit="save-form">
       <label for="email">Email</label>
       <input id="email" name="email" value={assigns[:email]} />
-      <button>Save</button>
+      <button>Save Email</button>
     </form>
     <button phx-click="reset-email-form">Reset</button>
 
@@ -54,7 +54,9 @@ defmodule PhoenixTest.IndexLive do
         <option value="false">False</option>
       </select>
 
-      <button type="submit" name="no-phx-change-form-button" value="save">Save</button>
+      <button type="submit" name="no-phx-change-form-button" value="save">
+        Save Nested Form
+      </button>
     </form>
 
     <form id="full-form" phx-submit="save-form">
@@ -89,14 +91,14 @@ defmodule PhoenixTest.IndexLive do
       <textarea id="notes" name="notes" rows="5" cols="33">
       </textarea>
 
-      <button type="submit">Save</button>
+      <button type="submit">Save Full Form</button>
     </form>
 
     <form id="redirect-form" phx-submit="save-redirect-form">
       <label for="name">Name</label>
       <input name="name" />
       <button type="submit" id="redirect-form-submit">
-        Save
+        Save Redirect Form
       </button>
     </form>
 
@@ -104,7 +106,7 @@ defmodule PhoenixTest.IndexLive do
       <label for="name">Name</label>
       <input name="name" />
       <button type="submit" id="redirect-form-to-static-submit">
-        Save
+        Save Redirect to Static Form
       </button>
     </form>
 

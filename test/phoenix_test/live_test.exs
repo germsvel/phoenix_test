@@ -145,7 +145,7 @@ defmodule PhoenixTest.LiveTest do
         conn
         |> visit("/live/index")
         |> fill_in("User Name", with: "Aragorn")
-        |> click_button("Save")
+        |> click_button("Save Nested Form")
 
       refute PhoenixTest.ActiveForm.active?(session.active_form)
     end
@@ -154,7 +154,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("User Name", with: "Aragorn")
-      |> click_button("Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "no-phx-change-form-button: save")
     end
 
@@ -197,7 +197,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("First Name", with: "Aragorn")
       |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "first_name: Aragorn")
       |> assert_has("#form-data",
         text: "notes: Dunedain. Heir to the throne. King of Arnor and Gondor"
@@ -208,7 +208,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("User Name", with: "Aragorn")
-      |> click_button("Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Aragorn")
     end
 
@@ -223,7 +223,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "someone@example.com")
-      |> click_button("Save")
+      |> click_button("Save Email")
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
   end
@@ -240,7 +240,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> select("False", from: "User Admin")
-      |> click_button("Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:admin: false")
     end
 
@@ -248,7 +248,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> select("Elf", from: "Race")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race: elf")
     end
   end
@@ -258,7 +258,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> check("Admin")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
     end
   end
@@ -268,7 +268,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> uncheck("Admin")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
     end
   end
@@ -278,7 +278,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> choose("Email Choice")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: email")
     end
 
@@ -287,7 +287,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       # other field to trigger form save
       |> fill_in("First Name", with: "Not important")
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
     end
   end
@@ -351,7 +351,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#email-form", email: "some@example.com")
-      |> click_button("Save")
+      |> click_button("Save Email")
       |> assert_has("#form-data", text: "email: some@example.com")
     end
 
@@ -372,7 +372,7 @@ defmodule PhoenixTest.LiveTest do
         race: "human",
         notes: "King of Gondor"
       )
-      |> click_button("Save")
+      |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "name: Aragorn")
       |> assert_has("#form-data", text: "admin: on")
       |> assert_has("#form-data", text: "race: human")
@@ -383,7 +383,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#nested-form", user: %{name: "Aragorn"})
-      |> click_button("#nested-form", "Save")
+      |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Aragorn")
     end
 
@@ -391,7 +391,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#redirect-form", name: "Aragorn")
-      |> click_button("#redirect-form-submit", "Save")
+      |> click_button("#redirect-form-submit", "Save Redirect Form")
       |> assert_has("h1", text: "LiveView page 2")
     end
 
@@ -399,7 +399,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_form("#redirect-form-to-static", name: "Aragorn")
-      |> click_button("#redirect-form-to-static-submit", "Save")
+      |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static")
       |> assert_has("h1", text: "Main page")
     end
 
