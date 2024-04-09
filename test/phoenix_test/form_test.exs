@@ -4,6 +4,30 @@ defmodule PhoenixTest.FormTest do
   alias PhoenixTest.Button
   alias PhoenixTest.Form
 
+  describe "find!" do
+    test "returns form ID as selector if id is present" do
+      html = """
+      <form id="user-form">
+      </form>
+      """
+
+      form = Form.find!(html, "#user-form")
+
+      assert form.selector == "#user-form"
+    end
+
+    test "creates composite selector of form's attributes (ignoring classes) if id isn't present" do
+      html = """
+      <form action="/" method="post" class="mx-auto text-3xl">
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert form.selector == ~s(form[action="/"][method="post"])
+    end
+  end
+
   describe "find_by_descendant!" do
     test "returns form ID as selector if id is present" do
       html = """
@@ -19,9 +43,9 @@ defmodule PhoenixTest.FormTest do
       assert form.selector == "#user-form"
     end
 
-    test "creates composite of form's attributes for selector if id isn't present" do
+    test "creates composite selector of form's attributes (ignoring classes) if id isn't present" do
       html = """
-      <form action="/" method="post" class="form">
+      <form action="/" method="post" class="mx-auto text-3xl">
         <button>Save</save>
       </form>
       """
@@ -30,7 +54,7 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find_by_descendant!(html, button)
 
-      assert form.selector == ~s(form[action="/"][method="post"][class="form"])
+      assert form.selector == ~s(form[action="/"][method="post"])
     end
   end
 end

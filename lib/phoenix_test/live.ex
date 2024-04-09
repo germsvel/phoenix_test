@@ -52,7 +52,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
   def click_button(session, selector, text) do
     active_form = session.active_form
-
     html = render_html(session)
     button = Button.find!(html, selector, text)
 
@@ -68,7 +67,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         form = Form.find_by_descendant!(html, button)
 
         form_data =
-          if active_form.id == form.id do
+          if active_form.selector == form.selector do
             active_form.form_data
           else
             form.form_data
@@ -99,7 +98,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     session
     |> Map.put(:active_form, active_form)
-    |> fill_form("form##{form.id}", active_form.form_data)
+    |> fill_form(form.selector, active_form.form_data)
   end
 
   def select(session, option, from: label) do
@@ -116,7 +115,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     session
     |> Map.put(:active_form, active_form)
-    |> fill_form("form##{form.id}", active_form.form_data)
+    |> fill_form(form.selector, active_form.form_data)
   end
 
   def check(session, label) do
@@ -133,7 +132,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     session
     |> Map.put(:active_form, active_form)
-    |> fill_form("form##{form.id}", active_form.form_data)
+    |> fill_form(form.selector, active_form.form_data)
   end
 
   def uncheck(session, label) do
@@ -150,7 +149,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     session
     |> Map.put(:active_form, active_form)
-    |> fill_form("form##{form.id}", active_form.form_data)
+    |> fill_form(form.selector, active_form.form_data)
   end
 
   def choose(session, label) do
@@ -167,7 +166,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     session
     |> Map.put(:active_form, active_form)
-    |> fill_form("form##{form.id}", active_form.form_data)
+    |> fill_form(form.selector, active_form.form_data)
   end
 
   def fill_form(session, selector, form_data) do

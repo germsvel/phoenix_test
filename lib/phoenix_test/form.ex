@@ -19,7 +19,7 @@ defmodule PhoenixTest.Form do
     method = data["operative_method"]
 
     %__MODULE__{
-      selector: selector,
+      selector: build_selector(id, form),
       raw: raw,
       parsed: form,
       id: id,
@@ -76,8 +76,9 @@ defmodule PhoenixTest.Form do
   defp build_selector(id, _) when is_binary(id), do: "##{id}"
 
   defp build_selector(_, {"form", attributes, _}) do
-    Enum.reduce(attributes, "form", fn {k, v}, acc ->
-      acc <> "[#{k}=#{inspect(v)}]"
+    Enum.reduce(attributes, "form", fn
+      {"class", _}, acc -> acc
+      {k, v}, acc -> acc <> "[#{k}=#{inspect(v)}]"
     end)
   end
 
