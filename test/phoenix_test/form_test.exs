@@ -4,7 +4,7 @@ defmodule PhoenixTest.FormTest do
   alias PhoenixTest.Button
   alias PhoenixTest.Form
 
-  describe "find_by_button!" do
+  describe "find_by_descendant!" do
     test "returns form ID as selector if id is present" do
       html = """
       <form id="user-form">
@@ -14,7 +14,7 @@ defmodule PhoenixTest.FormTest do
 
       button = %Button{selector: "button", text: "Save"}
 
-      form = Form.find_by_button!(html, button)
+      form = Form.find_by_descendant!(html, button)
 
       assert form.selector == "#user-form"
     end
@@ -28,7 +28,7 @@ defmodule PhoenixTest.FormTest do
 
       button = %Button{selector: "button", text: "Save"}
 
-      form = Form.find_by_button!(html, button)
+      form = Form.find_by_descendant!(html, button)
 
       assert form.selector == ~s(form[action="/"][method="post"][class="form"])
     end

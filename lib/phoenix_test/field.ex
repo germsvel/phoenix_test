@@ -5,6 +5,7 @@ defmodule PhoenixTest.Field do
   defstruct ~w[html label id name value]a
 
   alias PhoenixTest.Html
+  alias PhoenixTest.Form
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
@@ -77,9 +78,6 @@ defmodule PhoenixTest.Field do
   end
 
   def parent_form(field) do
-    form = Query.find_ancestor!(field.html, "form", "##{field.id}")
-    id = Html.attribute(form, "id")
-
-    %{raw: Html.raw(form), id: id}
+    Form.find_by_descendant!(field.html, field)
   end
 end

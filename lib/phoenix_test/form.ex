@@ -29,8 +29,8 @@ defmodule PhoenixTest.Form do
     }
   end
 
-  def find_by_button!(html, button) do
-    form = Query.find_ancestor!(html, "form", {button.selector, button.text})
+  def find_by_descendant!(html, descendant) do
+    form = Query.find_ancestor!(html, "form", descendant_selector(descendant))
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
     selector = build_selector(id, form)
@@ -49,6 +49,14 @@ defmodule PhoenixTest.Form do
       method: method,
       form_data: form_data(form)
     }
+  end
+
+  defp descendant_selector(descendant) do
+    if descendant.id do
+      "##{descendant.id}"
+    else
+      {descendant.selector, descendant.text}
+    end
   end
 
   def phx_change?(form) do

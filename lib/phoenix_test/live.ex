@@ -65,7 +65,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
       Button.belongs_to_form?(button, html) ->
         additional_data = Button.to_form_data(button)
-        form = Form.find_by_button!(html, button)
+        form = Form.find_by_descendant!(html, button)
 
         form_data =
           if active_form.id == form.id do
@@ -180,7 +180,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     active_form =
       ActiveForm.new()
-      |> Map.merge(%{id: form.id, selector: selector})
+      |> Map.merge(%{id: form.id, selector: form.selector})
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 

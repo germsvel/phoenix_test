@@ -86,7 +86,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     else
       form =
         html
-        |> Form.find_by_button!(button)
+        |> Form.find_by_descendant!(button)
         |> Form.put_button_data(button)
 
       if active_form.id == form.id do
