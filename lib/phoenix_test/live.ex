@@ -179,8 +179,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> Form.find!(selector)
 
     active_form =
-      session.active_form
-      |> Map.put(:id, form.id)
+      ActiveForm.new()
+      |> Map.merge(%{id: form.id, selector: selector})
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 

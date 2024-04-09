@@ -330,6 +330,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-errors", text: "Errors present")
     end
 
+    test "can be combined with other fill_forms without click_button", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_form("#country-form", country: "Bolivia")
+      |> fill_form("#city-form", city: "La Paz")
+      |> assert_has("#form-data", text: "Bolivia: La Paz")
+    end
+
     test "raises an error when form can't be found with selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
         conn

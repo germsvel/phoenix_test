@@ -33,6 +33,25 @@ defmodule PhoenixTest.IndexLive do
     </form>
     <button phx-click="reset-email-form">Reset</button>
 
+    <form id="country-form" phx-change="select-country">
+      <label for="country">Country</label>
+      <select id="country" name="country">
+        <option value="Bolivia">Bolivia</option>
+        <option value="Chile">Chile</option>
+        <option value="Argentina">Argentina</option>
+        <option value="Paraguay">Paraguay</option>
+      </select>
+    </form>
+
+    <form id="city-form" phx-change="select-city">
+      <label for="city">City</label>
+      <select id="city" name="city">
+        <%= for city <- @cities do %>
+          <option value={city}><%= city %></option>
+        <% end %>
+      </select>
+    </form>
+
     <div :if={@form_saved} id="form-data">
       <%= for {key, value} <- @form_data do %>
         <%= render_input_data(key, value) %>
@@ -147,6 +166,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_saved, false)
       |> assign(:form_data, %{})
       |> assign(:show_form_errors, false)
+      |> assign(:cities, [])
     }
   end
 
@@ -191,6 +211,25 @@ defmodule PhoenixTest.IndexLive do
         |> assign(:email, email)
         |> then(&{:noreply, &1})
     end
+  end
+
+  def handle_event("select-country", %{"country" => country}, socket) do
+    case country do
+      "Bolivia" ->
+        socket
+        |> assign(:country, country)
+        |> assign(:cities, ["Santa Cruz", "La Paz", "Cochabamba", "Other"])
+        |> then(&{:noreply, &1})
+    end
+  end
+
+  def handle_event("select-city", %{"city" => city}, socket) do
+    form_data = %{socket.assigns[:country] => city}
+
+    socket
+    |> assign(:form_saved, true)
+    |> assign(:form_data, form_data)
+    |> then(&{:noreply, &1})
   end
 
   defp render_input_data(key, value) when is_binary(value) do
