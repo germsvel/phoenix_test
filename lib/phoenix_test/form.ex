@@ -33,6 +33,7 @@ defmodule PhoenixTest.Form do
     form = Query.find_ancestor!(html, "form", {button.selector, button.text})
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
+    selector = build_selector(id, form)
 
     data = Html.Form.build(form)
 
@@ -40,7 +41,7 @@ defmodule PhoenixTest.Form do
     method = data["operative_method"]
 
     %__MODULE__{
-      selector: "##{id}",
+      selector: selector,
       raw: raw,
       parsed: form,
       id: id,
@@ -62,6 +63,14 @@ defmodule PhoenixTest.Form do
 
   def has_action?(form) do
     form.action != nil and form.action != ""
+  end
+
+  defp build_selector(id, _) when is_binary(id), do: "##{id}"
+
+  defp build_selector(_, {"form", attributes, _}) do
+    Enum.reduce(attributes, "form", fn {k, v}, acc ->
+      acc <> "[#{k}=#{inspect(v)}]"
+    end)
   end
 
   defp form_data(form) do
