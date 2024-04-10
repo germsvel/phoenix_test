@@ -202,6 +202,88 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
+  def assert_path(session, path) do
+    request_path = session.conn.request_path
+
+    if request_path == path do
+      assert true
+    else
+      msg = """
+      Expected path to be #{inspect(path)} but got #{inspect(request_path)}
+      """
+
+      raise AssertionError, msg
+    end
+
+    session
+  end
+
+  def assert_path(session, path, opts) do
+    params = Keyword.get(opts, :query_params)
+
+    session
+    |> assert_path(path)
+    |> assert_query_params(params)
+  end
+
+  defp assert_query_params(session, params) do
+    conn = session.conn
+
+    if conn.query_params == params do
+      assert true
+    else
+      params_string = URI.encode_query(params)
+
+      msg = """
+      Expected query params to be #{inspect(params_string)} but got #{inspect(conn.query_string)}
+      """
+
+      raise AssertionError, msg
+    end
+
+    session
+  end
+
+  def refute_path(session, path) do
+    request_path = session.conn.request_path
+
+    if request_path == path do
+      msg = """
+      Expected path not to be #{inspect(path)}
+      """
+
+      raise AssertionError, msg
+    else
+      refute false
+    end
+
+    session
+  end
+
+  def refute_path(session, path, opts) do
+    params = Keyword.get(opts, :query_params)
+
+    refute_query_params(session, params) || refute_path(session, path)
+  end
+
+  defp refute_query_params(session, params) do
+    conn = session.conn
+
+    if conn.query_params == params do
+      params_string = URI.encode_query(params)
+
+      msg = """
+      Expected query params not to be #{inspect(params_string)}
+      """
+
+      raise AssertionError, msg
+    else
+      refute false
+    end
+
+    session
+  end
+
   defp assert_incorrect_count_error_msg(selector, opts, found) do
     text = Keyword.get(opts, :text, :no_text)
     expected_count = Keyword.get(opts, :count, :any)
