@@ -433,4 +433,55 @@ defmodule PhoenixTest do
   ```
   """
   defdelegate refute_has(session, selector, opts), to: Assertions
+
+  @doc """
+  Assert helper to verify current request path. Takes an optional `query_params`
+  map.
+
+  ## Examples
+
+  ```elixir
+  # assert we're at /users
+  conn
+  |> visit("/users")
+  |> assert_path("/users")
+
+  # assert we're at /users?name=frodo
+  conn
+  |> visit("/users")
+  |> assert_path("/users", query_params: %{name: "frodo"})
+  ```
+  """
+  defdelegate assert_path(session, path), to: Assertions
+
+  @doc """
+  Same as `assert_path/2` but takes an optional `query_params` map.
+  """
+  defdelegate assert_path(session, path, opts), to: Assertions
+
+  @doc """
+  Verifies current request path is NOT the one provided. Takes an optional
+  `query_params` map for more specificity.
+
+  ## Examples
+
+  ```elixir
+  # refute we're at /posts
+  conn
+  |> visit("/users")
+  |> refute_path("/posts")
+
+  # refute we're at /users?name=frodo
+  conn
+  |> visit("/users?name=aragorn")
+  |> refute_path("/users", query_params: %{name: "frodo"})
+  ```
+  """
+  defdelegate refute_path(session, path), to: Assertions
+
+  @doc """
+  Same as `refute_path/2` but takes an optional `query_params` for more specific
+  refutation.
+  """
+  defdelegate refute_path(session, path, opts), to: Assertions
 end

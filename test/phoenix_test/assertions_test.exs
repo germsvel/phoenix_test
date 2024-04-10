@@ -572,4 +572,88 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
   end
+
+  describe "assert_path" do
+    test "asserts that the given path is the current path", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_path("/page/index")
+    end
+
+    test "asserts query params are the same", %{conn: conn} do
+      conn
+      |> visit("/page/index?hello=world")
+      |> assert_path("/page/index", query_params: %{"hello" => "world"})
+    end
+
+    test "raises helpful error if path doesn't match", %{conn: conn} do
+      msg =
+        """
+        Expected path to be "/page/not-index" but got "/page/index"
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> assert_path("/page/not-index")
+      end
+    end
+
+    test "raises helpful error if query params don't match", %{conn: conn} do
+      msg =
+        """
+        Expected query params to be "goodbye=world&hi=bye" but got "hello=world&hi=bye"
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index?hello=world&hi=bye")
+        |> assert_path("/page/index", query_params: %{"goodbye" => "world", "hi" => "bye"})
+      end
+    end
+  end
+
+  describe "refute_path" do
+    test "refute that the given path is the current path", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_path("/page/page_2")
+    end
+
+    test "refutes query params are the same", %{conn: conn} do
+      conn
+      |> visit("/page/index?hello=world")
+      |> refute_path("/page/index", query_params: %{"hello" => "not-world"})
+    end
+
+    test "raises helpful error if path matches", %{conn: conn} do
+      msg =
+        """
+        Expected path not to be "/page/index"
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> refute_path("/page/index")
+      end
+    end
+
+    test "raises helpful error if query params don't match", %{conn: conn} do
+      msg =
+        """
+        Expected query params not to be "hello=world&hi=bye"
+        """
+        |> ignore_whitespace()
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index?hello=world&hi=bye")
+        |> refute_path("/page/index", query_params: %{"hello" => "world", "hi" => "bye"})
+      end
+    end
+  end
 end
