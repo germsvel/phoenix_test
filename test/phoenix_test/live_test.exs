@@ -460,6 +460,17 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "email: some@example.com")
     end
 
+    test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button) via phx-submit",
+         %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#pre-rendered-data-form", [])
+      |> assert_has("#form-data", text: "input: value")
+      |> assert_has("#form-data", text: "select: selected")
+      |> assert_has("#form-data", text: "checkbox: checked")
+      |> assert_has("#form-data", text: "radio: checked")
+    end
+
     test "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -479,6 +490,17 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> submit_form("#non-liveview-form", name: "Aragorn")
       |> assert_has("h1", text: "Main page")
+    end
+
+    test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button) in regular (non phx-submit) form",
+         %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> submit_form("#pre-rendered-data-non-liveview-form", [])
+      |> assert_has("#form-data", text: "input: value")
+      |> assert_has("#form-data", text: "select: selected")
+      |> assert_has("#form-data", text: "checkbox: checked")
+      |> assert_has("#form-data", text: "radio: checked")
     end
 
     test "raises an error if the form can't be found", %{conn: conn} do
