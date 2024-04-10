@@ -57,6 +57,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Page 2")
     end
 
+    test "follows link that subsequently redirects", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("Navigate away and redirect back")
+      |> assert_has("h1", text: "Main page")
+    end
+
     test "accepts selector for link", %{conn: conn} do
       conn
       |> visit("/page/index")

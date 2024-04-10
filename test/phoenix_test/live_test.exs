@@ -76,6 +76,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView page 2")
     end
 
+    test "follows navigation that subsequently redirect", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate (and redirect back) link")
+      |> assert_has("h1", text: "LiveView main page")
+    end
+
     test "accepts click_link with selector", %{conn: conn} do
       conn
       |> visit("/live/index")

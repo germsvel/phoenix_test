@@ -34,6 +34,8 @@ defmodule PhoenixTest.PageView do
 
     <a href="/page/page_2">Page 2</a>
 
+    <a href="/page/no_page?redirect_to=/page/index">Navigate away and redirect back</a>
+
     <a class="multiple_links" href="/page/page_3">Multiple links</a>
     <a class="multiple_links" href="/page/page_4">Multiple links</a>
 

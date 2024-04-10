@@ -9,6 +9,11 @@ defmodule PhoenixTest.PageController do
     |> render("index.html")
   end
 
+  def show(conn, %{"redirect_to" => path}) do
+    conn
+    |> redirect(to: path)
+  end
+
   def show(conn, %{"page" => page}) do
     conn
     |> render(page <> ".html")
