@@ -105,7 +105,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
+    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
 
     form = Field.parent_form(field)
 
@@ -122,7 +122,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
+    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
 
     form = Field.parent_form(field)
 
@@ -139,7 +139,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
+    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
 
     form = Field.parent_form(field)
 
@@ -156,7 +156,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
+    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
 
     form = Field.parent_form(field)
 
@@ -173,7 +173,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     new_form_data = Field.to_form_data(field)
 
-    active_form = session.active_form |> ActiveForm.add_form_data(new_form_data)
+    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
 
     form = Field.parent_form(field)
 
@@ -190,21 +190,29 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> render_html()
       |> Form.find!(selector)
 
-    form = update_in(form.form_data, fn data -> Map.merge(data, form_data) end)
+    active_form =
+      ActiveForm.new(id: form.id, selector: form.selector)
+      |> ActiveForm.prepend_form_data(form.form_data)
+      |> ActiveForm.add_form_data(form_data)
 
     :ok =
       form.parsed
       |> Html.Form.build()
-      |> Html.Form.validate_form_data!(form_data)
+      |> Html.Form.validate_form_data!(active_form.form_data)
 
     session
-    |> Map.put(:active_form, form)
+    |> Map.put(:active_form, active_form)
   end
 
   def submit_form(session, selector, form_data) do
+    form =
+      session
+      |> render_html()
+      |> Form.find!(selector)
+
     session
     |> fill_form(selector, form_data)
-    |> submit_active_form()
+    |> submit_active_form(form)
   end
 
   defp data_attribute_form?(session, selector, text) do
@@ -219,18 +227,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       _ ->
         false
     end
-  end
-
-  defp submit_active_form(session) do
-    active_form = Map.get(session, :active_form)
-    action = active_form.action
-    method = active_form.method
-
-    session = Map.put(session, :active_form, ActiveForm.new())
-
-    session.conn
-    |> dispatch(@endpoint, method, action, active_form.form_data)
-    |> maybe_redirect(session)
   end
 
   defp submit_active_form(session, form) do

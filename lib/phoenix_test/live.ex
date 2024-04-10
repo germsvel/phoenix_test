@@ -178,8 +178,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> Form.find!(selector)
 
     active_form =
-      ActiveForm.new()
-      |> Map.merge(%{id: form.id, selector: form.selector})
+      ActiveForm.new(id: form.id, selector: form.selector)
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
@@ -207,19 +206,19 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> render_html()
       |> Form.find!(selector)
 
-    form = update_in(form.form_data, fn data -> Map.merge(data, form_data) end)
+    form_data = Map.merge(form.form_data, form_data)
 
     cond do
       Form.phx_submit?(form) ->
         session.view
-        |> form(selector, form.form_data)
+        |> form(selector, form_data)
         |> render_submit(event_data)
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.submit_form(selector, form.form_data)
+        |> PhoenixTest.submit_form(selector, form_data)
 
       true ->
         raise ArgumentError,

@@ -1,7 +1,9 @@
 defmodule PhoenixTest.ActiveForm do
   @moduledoc false
 
-  def new, do: %{id: nil, selector: nil, form_data: %{}}
+  def new(opts \\ []) do
+    Map.merge(%{id: nil, selector: nil, form_data: %{}}, Map.new(opts))
+  end
 
   def prepend_form_data(active_form, default_form_data) do
     active_form
