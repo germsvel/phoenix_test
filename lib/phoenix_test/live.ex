@@ -236,7 +236,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   defp maybe_redirect({:error, {:live_redirect, _}} = result, session) do
-    {:ok, view, _} = follow_redirect(result, session.conn)
+    result
+    |> follow_redirect(session.conn)
+    |> maybe_redirect(session)
+  end
+
+  defp maybe_redirect({:ok, view, _}, session) do
     %{session | view: view}
   end
 

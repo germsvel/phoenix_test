@@ -12,6 +12,8 @@ defmodule PhoenixTest.IndexLive do
     <.link class="multiple_links" href="/live/page_3">Multiple links</.link>
     <.link class="multiple_links" href="/live/page_4">Multiple links</.link>
 
+    <.link navigate="/live/page_2?redirect_to=/live/index">Navigate (and redirect back) link</.link>
+
     <h2 :if={@details}>LiveView main page details</h2>
 
     <button phx-click="change-page-title">Change page title</button>
