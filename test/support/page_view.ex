@@ -107,8 +107,8 @@ defmodule PhoenixTest.PageView do
         <option value="selected" selected>Selected</option>
       </select>
 
-      <select name="not_selected">
-        <option value="not_selected">Not selected</option>
+      <select name="select_none_selected">
+        <option value="first">Selected by default</option>
       </select>
 
       <input name="checkbox" type="checkbox" value="not_checked" />

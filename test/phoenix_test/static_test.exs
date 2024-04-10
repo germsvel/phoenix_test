@@ -466,6 +466,7 @@ defmodule PhoenixTest.StaticTest do
       |> submit_form("#pre-rendered-data-form", [])
       |> assert_has("#form-data", text: "input: value")
       |> assert_has("#form-data", text: "select: selected")
+      |> assert_has("#form-data", text: "select_none_selected: first")
       |> assert_has("#form-data", text: "checkbox: checked")
       |> assert_has("#form-data", text: "radio: checked")
     end

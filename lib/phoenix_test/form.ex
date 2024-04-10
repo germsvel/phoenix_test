@@ -104,16 +104,14 @@ defmodule PhoenixTest.Form do
   end
 
   defp put_form_data_select(form_data, form) do
-    # Convert to selector "select:has(option[selected][value])" once :has selector is supported by Floki
-    # https://hexdocs.pm/floki/readme.html#supported-selectors
-
     selects =
       form
       |> Html.all("select")
       |> Enum.reduce(%{}, fn select, acc ->
-        case Html.all(select, "option[selected][value]") do
-          [] -> acc
-          [option] -> Map.merge(acc, to_form_field(select, option))
+        case {Html.all(select, "option"), Html.all(select, "option[selected]")} do
+          {[], _} -> acc
+          {_, [only_selected]} -> Map.merge(acc, to_form_field(select, only_selected))
+          {[first | _], _} -> Map.merge(acc, to_form_field(select, first))
         end
       end)
 
