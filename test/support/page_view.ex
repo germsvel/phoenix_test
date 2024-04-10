@@ -100,9 +100,15 @@ defmodule PhoenixTest.PageView do
     <form action="/page/create_record" method="post" id="pre-rendered-data-form">
       <input name="input" value="value" />
 
+      <div><span>Test</span></div>
+
       <select name="select">
         <option value="not_selected">Not selected</option>
         <option value="selected" selected>Selected</option>
+      </select>
+
+      <select name="not_selected">
+        <option value="not_selected">Not selected</option>
       </select>
 
       <input name="checkbox" type="checkbox" value="not_checked" />

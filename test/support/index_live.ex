@@ -41,6 +41,10 @@ defmodule PhoenixTest.IndexLive do
         <option value="selected" selected>Selected</option>
       </select>
 
+      <select name="not_selected">
+        <option value="not_selected">Not selected</option>
+      </select>
+
       <input name="checkbox" type="checkbox" value="not_checked" />
       <input name="checkbox" type="checkbox" value="checked" checked />
 
@@ -166,6 +170,10 @@ defmodule PhoenixTest.IndexLive do
       <select name="select">
         <option value="not_selected">Not selected</option>
         <option value="selected" selected>Selected</option>
+      </select>
+
+      <select name="not_selected">
+        <option value="not_selected">Not selected</option>
       </select>
 
       <input name="checkbox" type="checkbox" value="not_checked" />
