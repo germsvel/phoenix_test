@@ -7,6 +7,29 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.11
+
+### Improvements
+
+- Add `assert_path` and `refute_path` assertions helpers. Commit [f2ab02c]
+- Include pre-selected text input values, selects, radio buttons, and checkboxes
+  in form submissions. Commits [32a8da5], [d253eba], [ebba679]
+- Include button's `name` and `value` if present. Commit [e54c64f]
+- `click_button` submits form without having to `fill_form` before it does.
+  Commit [8d16b7e]
+
+### Fixes
+
+- Follow multiple redirects in `Live.click_link`. Commit [28de102]
+
+[f2ab02c]: https://github.com/germsvel/phoenix_test/commit/f2ab02c
+[32a8da5]: https://github.com/germsvel/phoenix_test/commit/32a8da5
+[d253eba]: https://github.com/germsvel/phoenix_test/commit/d253eba
+[ebba679]: https://github.com/germsvel/phoenix_test/commit/ebba679
+[e54c64f]: https://github.com/germsvel/phoenix_test/commit/e54c64f
+[8d16b7e]: https://github.com/germsvel/phoenix_test/commit/8d16b7e
+[28de102]: https://github.com/germsvel/phoenix_test/commit/28de102
+
 ## 0.2.10
 
 ### Improvements
