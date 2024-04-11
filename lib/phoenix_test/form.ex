@@ -84,18 +84,39 @@ defmodule PhoenixTest.Form do
 
   defp form_data(form) do
     %{}
-    |> put_form_data("input[type='hidden']", form)
-    |> put_form_data("input[type='radio'][checked='checked']", form)
+    |> put_form_data("input[type=hidden]", form)
+    |> put_form_data("input[type=radio][checked=checked][value]", form)
+    |> put_form_data("input[type=checkbox][checked=checked][value]", form)
+    |> put_form_data(
+      "input:not([type=radio]):not([type=checkbox]):not([type=button]):not([type=submit])[value]",
+      form
+    )
+    |> put_form_data_select(form)
   end
 
   defp put_form_data(form_data, selector, form) do
-    hidden_fields =
+    input_fields =
       form
       |> Html.all(selector)
       |> Enum.map(&to_form_field/1)
       |> Enum.reduce(%{}, fn value, acc -> Map.merge(acc, value) end)
 
-    Map.merge(form_data, hidden_fields)
+    Map.merge(form_data, input_fields)
+  end
+
+  defp put_form_data_select(form_data, form) do
+    selects =
+      form
+      |> Html.all("select")
+      |> Enum.reduce(%{}, fn select, acc ->
+        case {Html.all(select, "option"), Html.all(select, "option[selected]")} do
+          {[], _} -> acc
+          {_, [only_selected]} -> Map.merge(acc, to_form_field(select, only_selected))
+          {[first | _], _} -> Map.merge(acc, to_form_field(select, first))
+        end
+      end)
+
+    Map.merge(form_data, selects)
   end
 
   def put_button_data(form, nil), do: form
@@ -110,8 +131,12 @@ defmodule PhoenixTest.Form do
   end
 
   defp to_form_field(element) do
-    name = Html.attribute(element, "name")
-    value = Html.attribute(element, "value")
+    to_form_field(element, element)
+  end
+
+  defp to_form_field(name_element, value_element) do
+    name = Html.attribute(name_element, "name")
+    value = Html.attribute(value_element, "value")
     Utils.name_to_map(name, value)
   end
 end

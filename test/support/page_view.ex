@@ -99,6 +99,27 @@ defmodule PhoenixTest.PageView do
       <input name="name" />
     </form>
 
+    <form action="/page/create_record" method="post" id="pre-rendered-data-form">
+      <input name="input" value="value" />
+
+      <div><span>Test</span></div>
+
+      <select name="select">
+        <option value="not_selected">Not selected</option>
+        <option value="selected" selected>Selected</option>
+      </select>
+
+      <select name="select_none_selected">
+        <option value="first">Selected by default</option>
+      </select>
+
+      <input name="checkbox" type="checkbox" value="not_checked" />
+      <input name="checkbox" type="checkbox" value="checked" checked />
+
+      <input name="radio" type="radio" value="not_checked" />
+      <input name="radio" type="radio" value="checked" checked />
+    </form>
+
     <form id="nested-form" method="post" action="/page/create_record">
       <label for="user_name">User Name</label>
       <input type="text" id="user_name" name="user[name]" />

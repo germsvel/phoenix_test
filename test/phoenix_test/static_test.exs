@@ -466,6 +466,18 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
+    test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button)",
+         %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> submit_form("#pre-rendered-data-form", [])
+      |> assert_has("#form-data", text: "input: value")
+      |> assert_has("#form-data", text: "select: selected")
+      |> assert_has("#form-data", text: "select_none_selected: first")
+      |> assert_has("#form-data", text: "checkbox: checked")
+      |> assert_has("#form-data", text: "radio: checked")
+    end
+
     test "can handle redirects", %{conn: conn} do
       conn
       |> visit("/page/index")
