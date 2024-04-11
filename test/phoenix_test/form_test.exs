@@ -26,6 +26,52 @@ defmodule PhoenixTest.FormTest do
 
       assert form.selector == ~s(form[action="/"][method="post"])
     end
+
+    test "generates default form data from form's html" do
+      html = """
+      <form id="form">
+        <input type="hidden" name="method" value="delete"/>
+        <input name="input" value="value" />
+
+        <select name="select">
+          <option value="not_selected">Not selected</option>
+          <option value="selected" selected>Selected</option>
+        </select>
+
+        <select name="select_none_selected">
+          <option value="first">Selected by default</option>
+        </select>
+
+        <input name="checkbox" type="checkbox" value="not_checked" />
+        <input name="checkbox" type="checkbox" value="checked" checked />
+
+        <input name="radio" type="radio" value="not_checked" />
+        <input name="radio" type="radio" value="checked" checked />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{
+               "method" => "delete",
+               "input" => "value",
+               "select" => "selected",
+               "checkbox" => "checked",
+               "radio" => "checked"
+             } = form.form_data
+    end
+
+    test "does not include disabled inputs in form_data" do
+      html = """
+      <form id="form">
+        <input name="input" value="value" disabled />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{} == form.form_data
+    end
   end
 
   describe "find_by_descendant!" do

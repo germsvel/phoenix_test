@@ -9,28 +9,18 @@ defmodule PhoenixTest.Form do
   defstruct ~w[selector raw parsed id action method form_data]a
 
   def find!(html, selector) do
-    form = Query.find!(html, selector)
-    raw = Html.raw(form)
-    id = Html.attribute(form, "id")
-
-    data = Html.Form.build(form)
-
-    action = data["attributes"]["action"]
-    method = data["operative_method"]
-
-    %__MODULE__{
-      selector: build_selector(id, form),
-      raw: raw,
-      parsed: form,
-      id: id,
-      action: action,
-      method: method,
-      form_data: form_data(form)
-    }
+    html
+    |> Query.find!(selector)
+    |> build()
   end
 
   def find_by_descendant!(html, descendant) do
-    form = Query.find_ancestor!(html, "form", descendant_selector(descendant))
+    html
+    |> Query.find_ancestor!("form", descendant_selector(descendant))
+    |> build()
+  end
+
+  defp build(form) do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
     selector = build_selector(id, form)
@@ -88,7 +78,7 @@ defmodule PhoenixTest.Form do
     |> put_form_data("input[type=radio][checked=checked][value]", form)
     |> put_form_data("input[type=checkbox][checked=checked][value]", form)
     |> put_form_data(
-      "input:not([type=radio]):not([type=checkbox]):not([type=button]):not([type=submit])[value]",
+      "input:not([disabled]):not([type=radio]):not([type=checkbox]):not([type=button]):not([type=submit])[value]",
       form
     )
     |> put_form_data_select(form)
