@@ -21,6 +21,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Html
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
+  alias PhoenixTest.Utils
 
   def render_page_title(session) do
     session
@@ -221,8 +222,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> Query.find(selector, text)
     |> case do
       {:found, element} ->
-        method = Html.attribute(element, "data-method")
-        method != "" && method != nil
+        element
+        |> Html.attribute("data-method")
+        |> Utils.present?()
 
       _ ->
         false

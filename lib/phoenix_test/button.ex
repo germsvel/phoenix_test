@@ -33,8 +33,9 @@ defmodule PhoenixTest.Button do
   end
 
   def phx_click?(button) do
-    phx_click = Html.attribute(button.parsed, "phx-click")
-    phx_click != nil && phx_click != ""
+    button.parsed
+    |> Html.attribute("phx-click")
+    |> Utils.present?()
   end
 
   def to_form_data(button) do

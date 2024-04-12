@@ -11,4 +11,7 @@ defmodule PhoenixTest.Utils do
       %{key => acc}
     end)
   end
+
+  def present?(term), do: !blank?(term)
+  def blank?(term), do: term == nil || term == ""
 end

@@ -50,18 +50,18 @@ defmodule PhoenixTest.Form do
   end
 
   def phx_change?(form) do
-    phx_change = Html.attribute(form.parsed, "phx-change")
-    phx_change != nil and phx_change != ""
+    form.parsed
+    |> Html.attribute("phx-change")
+    |> Utils.present?()
   end
 
   def phx_submit?(form) do
-    phx_submit = Html.attribute(form.parsed, "phx-submit")
-    phx_submit != nil and phx_submit != ""
+    form.parsed
+    |> Html.attribute("phx-submit")
+    |> Utils.present?()
   end
 
-  def has_action?(form) do
-    form.action != nil and form.action != ""
-  end
+  def has_action?(form), do: Utils.present?(form.action)
 
   defp build_selector(id, _) when is_binary(id), do: "##{id}"
 
