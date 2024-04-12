@@ -19,9 +19,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Field
   alias PhoenixTest.Form
   alias PhoenixTest.Html
+  alias PhoenixTest.Link
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
-  alias PhoenixTest.Utils
 
   def render_page_title(session) do
     session
@@ -43,11 +43,14 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def click_link(session, selector, text) do
-    if data_attribute_form?(session, selector, text) do
+    link =
+      session
+      |> render_html()
+      |> Link.find!(selector, text)
+
+    if Link.has_data_method?(link) do
       form =
-        session
-        |> render_html()
-        |> Query.find!(selector, text)
+        link.parsed
         |> Html.DataAttributeForm.build()
         |> Html.DataAttributeForm.validate!(selector, text)
 
@@ -55,13 +58,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> dispatch(@endpoint, form.method, form.action, form.data)
       |> maybe_redirect(session)
     else
-      path =
-        session
-        |> render_html()
-        |> Query.find!(selector, text)
-        |> Html.attribute("href")
-
-      PhoenixTest.visit(session.conn, path)
+      PhoenixTest.visit(session.conn, link.href)
     end
   end
 
@@ -75,7 +72,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     html = render_html(session)
     button = Button.find!(html, selector, text)
 
-    if data_attribute_form?(session, selector, text) do
+    if Button.has_data_method?(button) do
       form =
         button.parsed
         |> Html.DataAttributeForm.build()
@@ -214,21 +211,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     session
     |> fill_form(selector, form_data)
     |> submit_active_form(form)
-  end
-
-  defp data_attribute_form?(session, selector, text) do
-    session
-    |> render_html()
-    |> Query.find(selector, text)
-    |> case do
-      {:found, element} ->
-        element
-        |> Html.attribute("data-method")
-        |> Utils.present?()
-
-      _ ->
-        false
-    end
   end
 
   defp submit_active_form(session, form) do

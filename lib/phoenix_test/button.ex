@@ -38,6 +38,12 @@ defmodule PhoenixTest.Button do
     |> Utils.present?()
   end
 
+  def has_data_method?(button) do
+    button.parsed
+    |> Html.attribute("data-method")
+    |> Utils.present?()
+  end
+
   def to_form_data(button) do
     if button.name && button.value do
       Utils.name_to_map(button.name, button.value)
