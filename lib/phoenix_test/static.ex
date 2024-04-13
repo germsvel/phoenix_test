@@ -3,7 +3,7 @@ defmodule PhoenixTest.Static do
 
   alias PhoenixTest.ActiveForm
 
-  defstruct conn: nil, active_form: ActiveForm.new()
+  defstruct conn: nil, active_form: ActiveForm.new(), within: :none
 
   def build(conn) do
     %__MODULE__{conn: conn}
@@ -33,9 +33,18 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     end
   end
 
-  def render_html(%{conn: conn}) do
-    conn
-    |> html_response(conn.status)
+  def render_html(%{conn: conn, within: within}) do
+    case within do
+      :none ->
+        conn
+        |> html_response(conn.status)
+
+      selector ->
+        conn
+        |> html_response(conn.status)
+        |> Query.find!(selector)
+        |> Html.raw()
+    end
   end
 
   def click_link(session, text) do
@@ -93,6 +102,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         submit(session, form)
       end
     end
+  end
+
+  def within(session, selector, fun) do
+    session
+    |> Map.put(:within, selector)
+    |> fun.()
+    |> Map.put(:within, :none)
   end
 
   def fill_in(session, label, with: value) do

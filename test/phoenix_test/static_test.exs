@@ -284,6 +284,39 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "within/3" do
+    test "scopes assertions within selector", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("button", text: "Get record")
+      |> within("#email-form", fn session ->
+        refute_has(session, "button", text: "Get record")
+      end)
+    end
+
+    test "scopes further form actions within a selector", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#email-form", fn session ->
+        session
+        |> fill_in("Email", with: "someone@example.com")
+        |> click_button("Save Email")
+      end)
+      |> assert_has("#form-data", text: "email: someone@example.com")
+    end
+
+    test "raises when data is not in scoped HTML", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Could not find element with label "User Name"/, fn ->
+        conn
+        |> visit("/page/index")
+        |> within("#email-form", fn session ->
+          session
+          |> fill_in("User Name", with: "Aragorn")
+        end)
+      end
+    end
+  end
+
   describe "fill_in/3" do
     test "fills in a single text field based on the label", %{conn: conn} do
       conn

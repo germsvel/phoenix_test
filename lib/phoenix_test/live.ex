@@ -7,7 +7,7 @@ defmodule PhoenixTest.Live do
 
   alias PhoenixTest.ActiveForm
 
-  defstruct view: nil, conn: nil, active_form: ActiveForm.new()
+  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
@@ -26,13 +26,23 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Field
   alias PhoenixTest.Form
   alias PhoenixTest.Html
+  alias PhoenixTest.Query
 
   def render_page_title(%{view: view}) do
     page_title(view)
   end
 
-  def render_html(%{view: view}) do
-    render(view)
+  def render_html(%{view: view, within: within}) do
+    case within do
+      :none ->
+        render(view)
+
+      selector ->
+        view
+        |> render()
+        |> Query.find!(selector)
+        |> Html.raw()
+    end
   end
 
   def click_link(session, text) do
@@ -82,6 +92,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         Expected element with selector #{inspect(selector)} and text #{inspect(text)} to have a `phx-click` attribute or belong to a `form` element.
         """
     end
+  end
+
+  def within(session, selector, fun) do
+    session
+    |> Map.put(:within, selector)
+    |> fun.()
+    |> Map.put(:within, :none)
   end
 
   def fill_in(session, label, with: value) do

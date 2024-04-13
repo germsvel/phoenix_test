@@ -219,6 +219,9 @@ defmodule PhoenixTest do
   defdelegate click_button(session, selector, text), to: Driver
 
   @doc false
+  defdelegate within(session, selector, fun), to: Driver
+
+  @doc false
   defdelegate fill_in(session, label, attrs), to: Driver
 
   @doc false
