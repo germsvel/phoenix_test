@@ -23,7 +23,7 @@ test "admin can create a user", %{conn: conn} do
   |> click_link("Users")
   |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedain.com")
   |> click_button("Create")
-  |> assert_has(".user", "Aragorn")
+  |> assert_has(".user", text: "Aragorn")
 end
 ```
 
@@ -122,7 +122,7 @@ defmodule MyAppWeb.AdminCanCreateUserTest do
     |> click_link("Users")
     |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedain.com")
     |> click_button("Create")
-    |> assert_has(".user", "Aragorn")
+    |> assert_has(".user", text: "Aragorn")
   end
 ```
 
