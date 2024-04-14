@@ -90,13 +90,13 @@ defmodule PhoenixTest.PageView do
 
     <form id="update-form" action="/page/update_record" method="post">
       <input name="_method" type="hidden" value="put" />
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="update-form-name">Name</label>
+      <input id="update-form-name" name="name" />
     </form>
 
     <form action="/page/create_record" method="post" id="no-submit-button-form">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="no-submit-button-form-name">Name</label>
+      <input id="no-submit-button-form-name" name="name" />
     </form>
 
     <form action="/page/create_record" method="post" id="pre-rendered-data-form">
@@ -187,8 +187,13 @@ defmodule PhoenixTest.PageView do
     </form>
 
     <form id="no-submit-button-and-redirect" method="post" action="/page/redirect_to_liveview">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="no-submit-and-redirect-name">Name</label>
+      <input id="no-submit-and-redirect-name" name="name" />
+    </form>
+
+    <form id="no-button-form" method="post" action="/page/create_record">
+      <label for="no-button-form-country">Country of Origin</label>
+      <input type="text" id="no-button-form-country" name="country" />
     </form>
 
     <button type="button">Actionless Button</button>

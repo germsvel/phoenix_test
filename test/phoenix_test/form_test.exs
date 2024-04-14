@@ -72,6 +72,42 @@ defmodule PhoenixTest.FormTest do
 
       assert %{} == form.form_data
     end
+
+    test "submit_button returns the only button in the form" do
+      html = """
+      <form id="form">
+        <button type="submit">Save</button>
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %Button{text: "Save"} = form.submit_button
+    end
+
+    test "submit_button returns the first button in the form (if many)" do
+      html = """
+      <form id="form">
+        <button type="submit">Save</button>
+        <button>Cancel"</button>
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %Button{text: "Save"} = form.submit_button
+    end
+
+    test "submit_button returns nil if no buttons in the form" do
+      html = """
+      <form id="form">
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert is_nil(form.submit_button)
+    end
   end
 
   describe "find_by_descendant!" do

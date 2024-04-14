@@ -274,7 +274,7 @@ defmodule PhoenixTest.StaticTest do
 
     test "raises an error if button is not part of form", %{conn: conn} do
       msg =
-        ~r/Could not find "form" for an element with selector "button" and text "Actionless Button"/
+        ~r/Could not find "form" for an element with selector/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -412,6 +412,84 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "submit/1" do
+    test "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#no-submit-button-form", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("#form-data", text: "name: Aragorn")
+    end
+
+    test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button)",
+         %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> submit()
+      |> assert_has("#form-data", text: "admin: off")
+      |> assert_has("#form-data", text: "race: human")
+    end
+
+    test "includes the first button's name and value if present", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> submit()
+      |> assert_has("#form-data", text: "full_form_button: save")
+    end
+
+    test "can submit form without button", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("Country of Origin", with: "Arnor")
+      |> submit()
+      |> assert_has("#form-data", text: "country: Arnor")
+    end
+
+    test "can handle redirects", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#no-submit-button-and-redirect", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("h1", text: "LiveView main page")
+    end
+
+    test "handles when form PUTs data through hidden input", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#update-form", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("#form-data", text: "name: Aragorn")
+    end
+
+    test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Delete record")
+      |> assert_has("h1", text: "Record deleted")
+    end
+
+    test "raises an error if there's no active form", %{conn: conn} do
+      msg = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> submit()
+      end
+    end
+  end
+
   describe "fill_form/3" do
     test "raises an error when form cannot be found with given selector", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
@@ -428,7 +506,7 @@ defmodule PhoenixTest.StaticTest do
 
         Found the following fields:
 
-        <input name="name"/>\n
+        <input id="no-submit-button-form-name" name="name"/>\n
         """
 
       assert_raise ArgumentError, message, fn ->

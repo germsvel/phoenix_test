@@ -348,6 +348,104 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "submit/1" do
+    test "submits a pre-filled form via phx-submit", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: "some@example.com")
+      |> submit()
+      |> assert_has("#form-data", text: "email: some@example.com")
+    end
+
+    test "includes pre-rendered data", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> submit()
+      |> assert_has("#form-data", text: "admin: off")
+      |> assert_has("#form-data", text: "race: human")
+      |> assert_has("#form-data", text: "contact: mail")
+    end
+
+    test "includes the first button's name and value if present", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> submit()
+      |> assert_has("#form-data", text: "full_form_button: save")
+    end
+
+    test "can submit form without button", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Country of Origin", with: "Arnor")
+      |> submit()
+      |> assert_has("#form-data", text: "country: Arnor")
+    end
+
+    test "follows form's redirect to live page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#redirect-form", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "follows form's redirect to static page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#redirect-form-to-static", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("h1", text: "Main page")
+    end
+
+    test "submits regular (non phx-submit) form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#non-liveview-form", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("#form-data", text: "name: Aragorn")
+      |> assert_has("#form-data", text: "button: save")
+    end
+
+    test "raises an error if there's no active form", %{conn: conn} do
+      message = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
+
+      assert_raise ArgumentError, message, fn ->
+        conn
+        |> visit("/live/index")
+        |> submit()
+      end
+    end
+
+    test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
+      msg =
+        """
+        Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
+        """
+        |> ignore_whitespace()
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> within("#invalid-form", fn session ->
+          session
+          |> fill_in("Name", with: "Aragorn")
+          |> submit()
+        end)
+      end
+    end
+  end
+
   describe "fill_form/3" do
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = conn |> visit("/live/index")
@@ -472,7 +570,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_form("#non-liveview-form", name: "Aragorn")
       |> click_button("Submit Non LiveView")
-      |> assert_has("h1", text: "Main page")
+      |> assert_has("#form-data", text: "name: Aragorn")
     end
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
@@ -529,7 +627,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> submit_form("#non-liveview-form", name: "Aragorn")
-      |> assert_has("h1", text: "Main page")
+      |> assert_has("#form-data", text: "name: Aragorn")
     end
 
     test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button) in regular (non phx-submit) form",

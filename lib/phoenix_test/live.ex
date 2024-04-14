@@ -186,6 +186,52 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     |> fill_form(form.selector, active_form.form_data)
   end
 
+  def submit(session) do
+    active_form = session.active_form
+
+    unless ActiveForm.active?(active_form), do: raise(no_active_form_error())
+
+    selector = active_form.selector
+
+    form =
+      session
+      |> render_html()
+      |> Form.find!(selector)
+
+    additional_data =
+      if form.submit_button do
+        Button.to_form_data(form.submit_button)
+      else
+        %{}
+      end
+
+    form_data = Map.merge(form.form_data, active_form.form_data)
+
+    cond do
+      Form.phx_submit?(form) ->
+        session.view
+        |> form(selector, form_data)
+        |> render_submit(additional_data)
+        |> maybe_redirect(session)
+
+      Form.has_action?(form) ->
+        session.conn
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.fill_form(selector, form_data)
+        |> PhoenixTest.submit()
+
+      true ->
+        raise ArgumentError,
+              "Expected form with selector #{inspect(selector)} to have a `phx-submit` or `action` defined."
+    end
+  end
+
+  defp no_active_form_error do
+    %ArgumentError{
+      message: "There's no active form. Fill in a form with `fill_in`, `select`, etc."
+    }
+  end
+
   def fill_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 

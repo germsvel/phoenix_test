@@ -196,6 +196,30 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     |> fill_form(form.selector, active_form.form_data)
   end
 
+  def submit(session) do
+    active_form = session.active_form
+
+    unless ActiveForm.active?(active_form), do: raise(no_active_form_error())
+
+    selector = active_form.selector
+
+    form =
+      session
+      |> render_html()
+      |> Form.find!(selector)
+      |> then(fn form ->
+        Form.put_button_data(form, form.submit_button)
+      end)
+
+    submit_active_form(session, form)
+  end
+
+  defp no_active_form_error do
+    %ArgumentError{
+      message: "There's no active form. Fill in a form with `fill_in`, `select`, etc."
+    }
+  end
+
   def fill_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
@@ -230,7 +254,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   defp submit_active_form(session, form) do
-    active_form = Map.get(session, :active_form)
+    active_form = session.active_form
     form_data = Map.merge(form.form_data, active_form.form_data)
 
     session = Map.put(session, :active_form, ActiveForm.new())

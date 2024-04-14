@@ -6,7 +6,7 @@ defmodule PhoenixTest.Form do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[selector raw parsed id action method form_data]a
+  defstruct ~w[selector raw parsed id action method form_data submit_button]a
 
   def find!(html, selector) do
     html
@@ -37,7 +37,8 @@ defmodule PhoenixTest.Form do
       id: id,
       action: action,
       method: method,
-      form_data: form_data(form)
+      form_data: form_data(form),
+      submit_button: submit_button(raw)
     }
   end
 
@@ -128,5 +129,15 @@ defmodule PhoenixTest.Form do
     name = Html.attribute(name_element, "name")
     value = Html.attribute(value_element, "value")
     Utils.name_to_map(name, value)
+  end
+
+  defp submit_button(form_html) do
+    form_html
+    |> Query.find("button")
+    |> case do
+      {:found, element} -> Button.build(element)
+      {:found_many, [element | _]} -> Button.build(element)
+      :not_found -> nil
+    end
   end
 end

@@ -135,33 +135,33 @@ defmodule PhoenixTest.IndexLive do
     </form>
 
     <form id="redirect-form" phx-submit="save-redirect-form">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="redirect-form-name">Name</label>
+      <input id="redirect-form-name" name="name" />
       <button type="submit" id="redirect-form-submit">
         Save Redirect Form
       </button>
     </form>
 
     <form id="redirect-form-to-static" phx-submit="save-redirect-form-to-static">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="redirect-to-static-name">Name</label>
+      <input id="redirect-to-static-name" name="name" />
       <button type="submit" id="redirect-form-to-static-submit">
         Save Redirect to Static Form
       </button>
     </form>
 
     <form id="invalid-form">
-      <label for="name">Name</label>
-      <input name="name" />
+      <label for="invalid-form-name">Name</label>
+      <input id="invalid-form-name" name="name" />
       <button type="submit">
         Submit Invalid Form
       </button>
     </form>
 
-    <form id="non-liveview-form" action="/page/redirect_to_static" method="post">
-      <label for="name">Name</label>
-      <input name="name" />
-      <button type="submit">
+    <form id="non-liveview-form" action="/page/create_record" method="post">
+      <label for="non-liveview-form-name">Name</label>
+      <input id="non-liveview-form-name" name="name" />
+      <button type="submit" name="button" value="save">
         Submit Non LiveView
       </button>
     </form>
@@ -183,6 +183,11 @@ defmodule PhoenixTest.IndexLive do
 
       <input name="radio" type="radio" value="not_checked" />
       <input name="radio" type="radio" value="checked" checked />
+    </form>
+
+    <form id="button-less-form" phx-submit="save-form">
+      <label for="country-of-origin">Country of Origin</label>
+      <input id="country-of-origin" name="country" />
     </form>
 
     <button type="button">Actionless Button</button>
