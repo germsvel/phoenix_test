@@ -142,6 +142,12 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("title", text: "PhoenixTest is the best!")
     end
 
+    test "can assert title's exactness", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_has("title", text: "PhoenixTest is the best!", exact: true)
+    end
+
     test "raises if title does not match expected value (Static)", %{conn: conn} do
       msg =
         """
@@ -170,7 +176,8 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
-    test "raises if title is contained but is not exactly the same as expected", %{conn: conn} do
+    test "raises if title is contained but is not exactly the same as expected (with exact=true)",
+         %{conn: conn} do
       msg =
         """
         Expected title to be "PhoenixTest" but got "PhoenixTest is the best!"
@@ -180,7 +187,7 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         conn
         |> visit("/page/index")
-        |> assert_has("title", text: "PhoenixTest")
+        |> assert_has("title", text: "PhoenixTest", exact: true)
       end
     end
 
@@ -428,6 +435,12 @@ defmodule PhoenixTest.AssertionsTest do
       |> visit("/live/index")
       |> refute_has("title", text: "Not the title")
       |> refute_has("title", text: "Not this title either")
+    end
+
+    test "can be used to refute page title's exactness", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refute_has("title", text: "PhoenixTest is the", exact: true)
     end
 
     test "raises if title matches value (Static)", %{conn: conn} do
