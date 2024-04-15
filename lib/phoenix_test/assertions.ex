@@ -54,10 +54,13 @@ defmodule PhoenixTest.Assertions do
     assert_has(session, "title", text: text)
   end
 
-  def assert_has(session, "title", text: text) do
+  def assert_has(session, "title", opts) do
+    text = Keyword.fetch!(opts, :text)
+    exact = Keyword.get(opts, :exact, false)
     title = PhoenixTest.Driver.render_page_title(session)
+    matches? = if exact, do: title == text, else: title =~ text
 
-    if title == text do
+    if matches? do
       assert true
     else
       raise AssertionError,
@@ -148,10 +151,13 @@ defmodule PhoenixTest.Assertions do
     refute_has(session, "title", text: text)
   end
 
-  def refute_has(session, "title", text: text) do
+  def refute_has(session, "title", opts) do
+    text = Keyword.fetch!(opts, :text)
+    exact = Keyword.get(opts, :exact, false)
     title = PhoenixTest.Driver.render_page_title(session)
+    matches? = if exact, do: title == text, else: title =~ text
 
-    if title == text do
+    if matches? do
       raise AssertionError,
         message: """
         Expected title not to be #{inspect(text)}
