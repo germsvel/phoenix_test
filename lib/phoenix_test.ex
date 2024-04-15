@@ -19,7 +19,7 @@ defmodule PhoenixTest do
       |> click_link("Users")
       |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedan.com")
       |> click_button("Create")
-      |> assert_has(".user", "Aragorn")
+      |> assert_has(".user", text: "Aragorn")
     end
     ```
 
