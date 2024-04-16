@@ -573,11 +573,17 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_path("/page/index")
     end
 
-    test "asserts current path when following links", %{conn: conn} do
+    test "asserts current path when following links (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("Page 2")
       |> assert_path("/page/page_2")
+    end
+
+    test "asserts query params are the same (Static)", %{conn: conn} do
+      conn
+      |> visit("/page/index?hello=world")
+      |> assert_path("/page/index", query_params: %{"hello" => "world"})
     end
 
     test "asserts that the given path is the current path (Live)", %{conn: conn} do
@@ -593,10 +599,18 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_path("/live/page_2")
     end
 
-    test "asserts query params are the same", %{conn: conn} do
+    test "asserts correct path with Live patching", %{conn: conn} do
       conn
-      |> visit("/page/index?hello=world")
-      |> assert_path("/page/index", query_params: %{"hello" => "world"})
+      |> visit("/live/index")
+      |> click_link("Patch link")
+      |> assert_path("/live/index")
+    end
+
+    test "asserts correct query params with Live patching", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Patch link")
+      |> assert_path("/live/index", query_params: %{foo: "bar", details: true})
     end
 
     test "raises helpful error if path doesn't match", %{conn: conn} do
@@ -627,16 +641,50 @@ defmodule PhoenixTest.AssertionsTest do
   end
 
   describe "refute_path" do
-    test "refute that the given path is the current path", %{conn: conn} do
+    test "refute that the given path is the current path (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> refute_path("/page/page_2")
+    end
+
+    test "refutes current path when following links (Static)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("Page 2")
+      |> refute_path("/page/index")
     end
 
     test "refutes query params are the same", %{conn: conn} do
       conn
       |> visit("/page/index?hello=world")
       |> refute_path("/page/index", query_params: %{"hello" => "not-world"})
+    end
+
+    test "refutes that the given path is the current path (Live)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refute_path("/live/page_2")
+    end
+
+    test "refutes correct path with Live navigation", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate link")
+      |> refute_path("/live/index")
+    end
+
+    test "refutes correct path with Live patching", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Patch link")
+      |> refute_path("/live/page_2")
+    end
+
+    test "refutes query params with Live patching", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Patch link")
+      |> refute_path("/live/index", query_params: %{foo: "bar", details: false})
     end
 
     test "raises helpful error if path matches", %{conn: conn} do
@@ -662,6 +710,20 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index?hello=world&hi=bye")
         |> refute_path("/page/index", query_params: %{"hello" => "world", "hi" => "bye"})
+      end
+    end
+
+    test "raises helpful error if query params don't match with live patch", %{conn: conn} do
+      msg =
+        ignore_whitespace("""
+        Expected query params not to be "details=true&foo=bar"
+        """)
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_link("Patch link")
+        |> refute_path("/live/index", query_params: %{foo: "bar", details: true})
       end
     end
   end

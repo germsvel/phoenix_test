@@ -7,6 +7,7 @@ defmodule PhoenixTest.Assertions do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Selectors
+  alias PhoenixTest.Utils
 
   @doc """
   Asserts that the rendered HTML content within the given session contains an
@@ -209,13 +210,13 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_path(session, path) do
-    current_path = session.current_path
+    uri = URI.parse(session.current_path)
 
-    if current_path == path do
+    if uri.path == path do
       assert true
     else
       msg = """
-      Expected path to be #{inspect(path)} but got #{inspect(current_path)}
+      Expected path to be #{inspect(path)} but got #{inspect(uri.path)}
       """
 
       raise AssertionError, msg
@@ -233,15 +234,18 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp assert_query_params(session, params) do
-    conn = session.conn
+    params = Utils.stringify_keys_and_values(params)
 
-    if conn.query_params == params do
+    uri = URI.parse(session.current_path)
+    query_params = URI.decode_query(uri.query)
+
+    if query_params == params do
       assert true
     else
       params_string = URI.encode_query(params)
 
       msg = """
-      Expected query params to be #{inspect(params_string)} but got #{inspect(conn.query_string)}
+      Expected query params to be #{inspect(params_string)} but got #{inspect(uri.query)}
       """
 
       raise AssertionError, msg
@@ -251,9 +255,9 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_path(session, path) do
-    request_path = session.conn.request_path
+    uri = URI.parse(session.current_path)
 
-    if request_path == path do
+    if uri.path == path do
       msg = """
       Expected path not to be #{inspect(path)}
       """
@@ -273,9 +277,12 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp refute_query_params(session, params) do
-    conn = session.conn
+    params = Utils.stringify_keys_and_values(params)
 
-    if conn.query_params == params do
+    uri = URI.parse(session.current_path)
+    query_params = URI.decode_query(uri.query)
+
+    if query_params == params do
       params_string = URI.encode_query(params)
 
       msg = """
