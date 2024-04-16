@@ -145,7 +145,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
     form_data =
       if active_form.selector == form.selector do
-        Map.merge(existing_data, new_form_data)
+        DeepMerge.deep_merge(existing_data, new_form_data)
       else
         new_form_data
       end
@@ -173,7 +173,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         %{}
       end
 
-    form_data = Map.merge(form.form_data, active_form.form_data)
+    form_data = DeepMerge.deep_merge(form.form_data, active_form.form_data)
 
     cond do
       Form.phx_submit?(form) ->
@@ -237,7 +237,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> render_html()
       |> Form.find!(selector)
 
-    form_data = Map.merge(form.form_data, form_data)
+    form_data = DeepMerge.deep_merge(form.form_data, form_data)
 
     cond do
       Form.phx_submit?(form) ->

@@ -155,7 +155,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
     form_data =
       if active_form.selector == form.selector do
-        Map.merge(existing_data, new_form_data)
+        DeepMerge.deep_merge(existing_data, new_form_data)
       else
         new_form_data
       end
@@ -223,7 +223,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defp submit_active_form(session, form) do
     active_form = session.active_form
-    form_data = Map.merge(form.form_data, active_form.form_data)
+    form_data = DeepMerge.deep_merge(form.form_data, active_form.form_data)
 
     session = Map.put(session, :active_form, ActiveForm.new())
 

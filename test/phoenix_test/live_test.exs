@@ -372,6 +372,16 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "contact: email")
       |> assert_has("#form-data", text: "notes: Woodland Elf")
     end
+
+    test "populates all fields in nested forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("User Name", with: "Legolas")
+      |> select("True", from: "User Admin")
+      |> click_button("Save Nested Form")
+      |> assert_has("#form-data", text: "user:name: Legolas")
+      |> assert_has("#form-data", text: "user:admin: true")
+    end
   end
 
   describe "submit/1" do
