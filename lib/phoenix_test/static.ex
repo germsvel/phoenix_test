@@ -112,88 +112,56 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def fill_in(session, label, with: value) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_input!(label, value)
-
-    new_form_data = Field.to_form_data(field)
-
-    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
-
-    form = Field.parent_form(field)
-
     session
-    |> Map.put(:active_form, active_form)
-    |> fill_form(form.selector, active_form.form_data)
+    |> render_html()
+    |> Field.find_input!(label, value)
+    |> then(&fill_in_field_data(session, &1))
   end
 
   def select(session, option, from: label) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_select_option!(label, option)
-
-    new_form_data = Field.to_form_data(field)
-
-    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
-
-    form = Field.parent_form(field)
-
     session
-    |> Map.put(:active_form, active_form)
-    |> fill_form(form.selector, active_form.form_data)
+    |> render_html()
+    |> Field.find_select_option!(label, option)
+    |> then(&fill_in_field_data(session, &1))
   end
 
   def check(session, label) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_checkbox!(label)
-
-    new_form_data = Field.to_form_data(field)
-
-    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
-
-    form = Field.parent_form(field)
-
     session
-    |> Map.put(:active_form, active_form)
-    |> fill_form(form.selector, active_form.form_data)
+    |> render_html()
+    |> Field.find_checkbox!(label)
+    |> then(&fill_in_field_data(session, &1))
   end
 
   def uncheck(session, label) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_hidden_uncheckbox!(label)
-
-    new_form_data = Field.to_form_data(field)
-
-    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
-
-    form = Field.parent_form(field)
-
     session
-    |> Map.put(:active_form, active_form)
-    |> fill_form(form.selector, active_form.form_data)
+    |> render_html()
+    |> Field.find_hidden_uncheckbox!(label)
+    |> then(&fill_in_field_data(session, &1))
   end
 
   def choose(session, label) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_input!(label)
+    session
+    |> render_html()
+    |> Field.find_input!(label)
+    |> then(&fill_in_field_data(session, &1))
+  end
 
+  defp fill_in_field_data(session, field) do
+    active_form = session.active_form
+    existing_data = active_form.form_data
     new_form_data = Field.to_form_data(field)
-
-    active_form = ActiveForm.add_form_data(session.active_form, new_form_data)
 
     form = Field.parent_form(field)
 
+    form_data =
+      if active_form.selector == form.selector do
+        Map.merge(existing_data, new_form_data)
+      else
+        new_form_data
+      end
+
     session
-    |> Map.put(:active_form, active_form)
-    |> fill_form(form.selector, active_form.form_data)
+    |> fill_form(form.selector, form_data)
   end
 
   def submit(session) do

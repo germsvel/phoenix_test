@@ -345,6 +345,16 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Aragorn")
     end
+
+    test "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> fill_in("User Name", with: "Legolas")
+      |> submit()
+      |> refute_has("#form-data", text: "name: Aragorn")
+      |> assert_has("#form-data", text: "user:name: Legolas")
+    end
   end
 
   describe "select/3" do

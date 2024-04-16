@@ -282,6 +282,14 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Email")
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
+
+    test "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Country", with: "Bolivia")
+      |> fill_in("City", with: "La Paz")
+      |> assert_has("#form-data", text: "Bolivia: La Paz")
+    end
   end
 
   describe "select/3" do
