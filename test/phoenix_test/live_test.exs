@@ -356,6 +356,24 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "filling out full form with field functions" do
+    test "populates all fields", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("First Name", with: "Legolas")
+      |> check("Admin")
+      |> select("Elf", from: "Race")
+      |> choose("Email Choice")
+      |> fill_in("Notes", with: "Woodland Elf")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "name: Legolas")
+      |> assert_has("#form-data", text: "admin: on")
+      |> assert_has("#form-data", text: "race: elf")
+      |> assert_has("#form-data", text: "contact: email")
+      |> assert_has("#form-data", text: "notes: Woodland Elf")
+    end
+  end
+
   describe "submit/1" do
     test "submits a pre-filled form via phx-submit", %{conn: conn} do
       conn

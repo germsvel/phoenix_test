@@ -422,6 +422,24 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "filling out full form with field functions" do
+    test "populates all fields", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("First Name", with: "Legolas")
+      |> check("Admin")
+      |> select("Elf", from: "Race")
+      |> choose("Email Choice")
+      |> fill_in("Notes", with: "Woodland Elf")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "name: Legolas")
+      |> assert_has("#form-data", text: "admin: on")
+      |> assert_has("#form-data", text: "race: elf")
+      |> assert_has("#form-data", text: "contact: email")
+      |> assert_has("#form-data", text: "notes: Woodland Elf")
+    end
+  end
+
   describe "submit/1" do
     test "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
       conn
