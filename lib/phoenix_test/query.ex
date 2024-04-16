@@ -439,7 +439,7 @@ defmodule PhoenixTest.Query do
   end
 
   defp determine_implicit_or_explicit_label(label) do
-    case find_one_of(Html.raw(label), ["input", "select", "textarea"]) do
+    case find_one_of(Html.raw(label), ["input:not([type='hidden'])", "select", "textarea"]) do
       {:not_found, _} ->
         {:explicit_association, label}
 

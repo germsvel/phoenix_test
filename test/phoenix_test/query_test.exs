@@ -523,6 +523,20 @@ defmodule PhoenixTest.QueryTest do
 
       assert {"input", [{"name", "greeting"}], []} = element
     end
+
+    test "handles multiple linputs when implicit and one is hidden" do
+      html = """
+      <label>
+        Checkbox
+        <input type="hidden" name="admin" value="false" />
+        <input type="checkbox" name="admin" value="true" />
+      </label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "Checkbox")
+
+      assert {"input", [{"type", "checkbox"}, {"name", "admin"}, {"value", "true"}], []} = element
+    end
   end
 
   describe "find_ancestor!/3" do
