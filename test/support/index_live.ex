@@ -103,6 +103,9 @@ defmodule PhoenixTest.IndexLive do
       <label for="first_name">First Name</label>
       <input id="first_name" name="first_name" />
 
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" />
+
       <input type="hidden" name="admin" value="off" />
       <label for="admin">Admin</label>
       <input id="admin" type="checkbox" name="admin" value="on" />

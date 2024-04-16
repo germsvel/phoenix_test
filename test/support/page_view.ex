@@ -137,6 +137,9 @@ defmodule PhoenixTest.PageView do
       <label for="name">First Name</label>
       <input type="text" id="name" name="name" />
 
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" />
+
       <input type="hidden" name="admin" value="off" />
       <label for="admin">Admin</label>
       <input id="admin" type="checkbox" name="admin" />
