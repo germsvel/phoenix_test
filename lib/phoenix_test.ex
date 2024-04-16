@@ -444,6 +444,10 @@ defmodule PhoenixTest do
   Assert helper to verify current request path. Takes an optional `query_params`
   map.
 
+  > ### Limited live patch implementation {: .warning}
+  >
+  > The current `assert_path` implementation doesn't support live patches.
+
   ## Examples
 
   ```elixir
@@ -468,6 +472,10 @@ defmodule PhoenixTest do
   @doc """
   Verifies current request path is NOT the one provided. Takes an optional
   `query_params` map for more specificity.
+
+  > ### Limited live patch implementation {: .warning}
+  >
+  > The current `refute_path` implementation doesn't support live patches.
 
   ## Examples
 

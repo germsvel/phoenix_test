@@ -209,13 +209,13 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_path(session, path) do
-    request_path = session.conn.request_path
+    current_path = session.current_path
 
-    if request_path == path do
+    if current_path == path do
       assert true
     else
       msg = """
-      Expected path to be #{inspect(path)} but got #{inspect(request_path)}
+      Expected path to be #{inspect(path)} but got #{inspect(current_path)}
       """
 
       raise AssertionError, msg
