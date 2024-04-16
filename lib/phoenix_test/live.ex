@@ -7,11 +7,11 @@ defmodule PhoenixTest.Live do
 
   alias PhoenixTest.ActiveForm
 
-  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none
+  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: nil
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
-    %__MODULE__{view: view, conn: conn}
+    %__MODULE__{view: view, conn: conn, current_path: conn.request_path}
   end
 end
 
@@ -266,7 +266,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     PhoenixTest.visit(session.conn, path)
   end
 
-  defp maybe_redirect({:error, {:live_redirect, _}} = result, session) do
+  defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do
+    session = %{session | current_path: path}
+
     result
     |> follow_redirect(session.conn)
     |> maybe_redirect(session)

@@ -587,10 +587,30 @@ defmodule PhoenixTest.AssertionsTest do
   end
 
   describe "assert_path" do
-    test "asserts that the given path is the current path", %{conn: conn} do
+    test "asserts that the given path is the current path (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> assert_path("/page/index")
+    end
+
+    test "asserts current path when following links", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("Page 2")
+      |> assert_path("/page/page_2")
+    end
+
+    test "asserts that the given path is the current path (Live)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_path("/live/index")
+    end
+
+    test "asserts correct path with Live navigation", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate link")
+      |> assert_path("/live/page_2")
     end
 
     test "asserts query params are the same", %{conn: conn} do
