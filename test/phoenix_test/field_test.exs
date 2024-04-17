@@ -15,17 +15,6 @@ defmodule PhoenixTest.FieldTest do
       assert %{html: ^html, id: "name", label: "Name", name: "name", value: "Hello world"} = field
     end
 
-    test "allows overriding of value" do
-      html = """
-      <label for="name">Name</label>
-      <input id="name" type="text" name="name"/>
-      """
-
-      field = Field.find_input!(html, "Name", "Hello world")
-
-      assert %{html: ^html, id: "name", label: "Name", name: "name", value: "Hello world"} = field
-    end
-
     test "finds radio button specified by label" do
       html = """
       <label for="human">Human</label>

@@ -114,7 +114,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   def fill_in(session, label, with: value) do
     session
     |> render_html()
-    |> Field.find_input!(label, value)
+    |> Field.find_input!(label)
+    |> Map.put(:value, value)
     |> then(&fill_in_field_data(session, &1))
   end
 

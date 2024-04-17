@@ -9,11 +9,11 @@ defmodule PhoenixTest.Field do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  def find_input!(html, label, value \\ nil) do
+  def find_input!(html, label) do
     field = Query.find_by_label!(html, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
-    value = value || Html.attribute(field, "value")
+    value = Html.attribute(field, "value")
 
     %__MODULE__{
       html: html,
