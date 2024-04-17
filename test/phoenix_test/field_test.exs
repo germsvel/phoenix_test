@@ -12,7 +12,8 @@ defmodule PhoenixTest.FieldTest do
 
       field = Field.find_input!(html, "Name")
 
-      assert %{html: ^html, id: "name", label: "Name", name: "name", value: "Hello world"} = field
+      assert %{source_raw: ^html, id: "name", label: "Name", name: "name", value: "Hello world"} =
+               field
     end
 
     test "finds radio button specified by label" do
@@ -29,7 +30,44 @@ defmodule PhoenixTest.FieldTest do
 
       field = Field.find_input!(html, "Elf")
 
-      assert %{html: ^html, id: "elf", label: "Elf", name: "race", value: "elf"} = field
+      assert %{source_raw: ^html, id: "elf", label: "Elf", name: "race", value: "elf"} = field
+    end
+
+    test "finds input if nested inside label (and no id)" do
+      html = """
+      <label>
+        Name
+        <input type="text" name="name" value="Hello world"/>
+      </label>
+      """
+
+      field = Field.find_input!(html, "Name")
+
+      assert %{source_raw: ^html, label: "Name", name: "name", value: "Hello world"} = field
+    end
+
+    test "builds a selector based on id if id is present" do
+      html = """
+      <label for="name">Name</label>
+      <input id="name" type="text" name="name" value="Hello world"/>
+      """
+
+      field = Field.find_input!(html, "Name")
+
+      assert %{selector: "#name"} = field
+    end
+
+    test "builds a composite selector if id isn't present" do
+      html = """
+      <label>
+        Name
+        <input type="text" name="name" />
+      </label>
+      """
+
+      field = Field.find_input!(html, "Name")
+
+      assert ~s(input[type="text"][name="name"]) = field.selector
     end
   end
 end

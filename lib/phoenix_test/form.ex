@@ -2,6 +2,7 @@ defmodule PhoenixTest.Form do
   @moduledoc false
 
   alias PhoenixTest.Button
+  alias PhoenixTest.Element
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
@@ -23,7 +24,7 @@ defmodule PhoenixTest.Form do
   defp build(form) do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
-    selector = build_selector(id, form)
+    selector = Element.build_selector(form)
 
     data = Html.Form.build(form)
 
@@ -38,7 +39,7 @@ defmodule PhoenixTest.Form do
       action: action,
       method: method,
       form_data: form_data(form),
-      submit_button: submit_button(raw)
+      submit_button: Button.find_first(raw)
     }
   end
 
@@ -63,15 +64,6 @@ defmodule PhoenixTest.Form do
   end
 
   def has_action?(form), do: Utils.present?(form.action)
-
-  defp build_selector(id, _) when is_binary(id), do: "##{id}"
-
-  defp build_selector(_, {"form", attributes, _}) do
-    Enum.reduce(attributes, "form", fn
-      {"class", _}, acc -> acc
-      {k, v}, acc -> acc <> "[#{k}=#{inspect(v)}]"
-    end)
-  end
 
   defp form_data(form) do
     %{}
@@ -129,15 +121,5 @@ defmodule PhoenixTest.Form do
     name = Html.attribute(name_element, "name")
     value = Html.attribute(value_element, "value")
     Utils.name_to_map(name, value)
-  end
-
-  defp submit_button(form_html) do
-    form_html
-    |> Query.find("button")
-    |> case do
-      {:found, element} -> Button.build(element)
-      {:found_many, [element | _]} -> Button.build(element)
-      :not_found -> nil
-    end
   end
 end

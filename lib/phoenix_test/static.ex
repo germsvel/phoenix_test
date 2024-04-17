@@ -152,7 +152,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     existing_data = active_form.form_data
     new_form_data = Field.to_form_data(field)
 
-    form = Field.parent_form(field)
+    form = Field.parent_form!(field)
 
     form_data =
       if active_form.selector == form.selector do

@@ -1,27 +1,40 @@
 defmodule PhoenixTest.Button do
   @moduledoc false
 
+  alias PhoenixTest.Element
+  alias PhoenixTest.Form
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[raw parsed id selector text name value]a
+  defstruct ~w[source_raw raw parsed id selector text name value]a
 
   def find!(html, selector, text) do
     html
     |> Query.find!(selector, text)
-    |> build()
+    |> build(html)
   end
 
-  def build(parsed) do
+  def find_first(html) do
+    html
+    |> Query.find("button")
+    |> case do
+      {:found, element} -> build(element, html)
+      {:found_many, [element | _]} -> build(element, html)
+      :not_found -> nil
+    end
+  end
+
+  def build(parsed, source_raw) do
     button_html = Html.raw(parsed)
     id = Html.attribute(parsed, "id")
     name = Html.attribute(parsed, "name")
     value = Html.attribute(parsed, "value")
-    selector = build_selector(id, parsed)
+    selector = Element.build_selector(parsed)
     text = Html.text(parsed)
 
     %__MODULE__{
+      source_raw: source_raw,
       raw: button_html,
       parsed: parsed,
       id: id,
@@ -59,12 +72,7 @@ defmodule PhoenixTest.Button do
     end
   end
 
-  defp build_selector(id, _) when is_binary(id), do: "##{id}"
-
-  defp build_selector(_, {"button", attributes, _}) do
-    Enum.reduce(attributes, "button", fn
-      {"class", _}, acc -> acc
-      {k, v}, acc -> acc <> "[#{k}=#{inspect(v)}]"
-    end)
+  def parent_form!(button) do
+    Form.find_by_descendant!(button.source_raw, button)
   end
 end

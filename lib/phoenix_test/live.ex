@@ -74,7 +74,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
       Button.belongs_to_form?(button, html) ->
         additional_data = Button.to_form_data(button)
-        form = Form.find_by_descendant!(html, button)
+        form = Button.parent_form!(button)
 
         form_data =
           if active_form.selector == form.selector do
@@ -140,9 +140,11 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defp fill_in_field_data(session, field) do
     active_form = session.active_form
     existing_data = active_form.form_data
-    new_form_data = Field.to_form_data(field)
 
-    form = Field.parent_form(field)
+    new_form_data =
+      Field.to_form_data(field)
+
+    form = Field.parent_form!(field)
 
     form_data =
       if active_form.selector == form.selector do

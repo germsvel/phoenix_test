@@ -1,9 +1,10 @@
 defmodule PhoenixTest.Field do
   @moduledoc false
 
-  @enforce_keys ~w[html label id name value]a
-  defstruct ~w[html label id name value]a
+  @enforce_keys ~w[source_raw label id name value selector]a
+  defstruct ~w[source_raw label id name value selector]a
 
+  alias PhoenixTest.Element
   alias PhoenixTest.Html
   alias PhoenixTest.Form
   alias PhoenixTest.Query
@@ -16,11 +17,12 @@ defmodule PhoenixTest.Field do
     value = Html.attribute(field, "value")
 
     %__MODULE__{
-      html: html,
+      source_raw: html,
       label: label,
       id: id,
       name: name,
-      value: value
+      value: value,
+      selector: Element.build_selector(field)
     }
   end
 
@@ -33,26 +35,28 @@ defmodule PhoenixTest.Field do
     value = Html.attribute(option, "value")
 
     %__MODULE__{
-      html: html,
+      source_raw: html,
       label: label,
       id: id,
       name: name,
-      value: value
+      value: value,
+      selector: Element.build_selector(field)
     }
   end
 
   def find_checkbox!(html, label) do
-    source = Query.find_by_label!(html, label)
-    id = Html.attribute(source, "id")
-    name = Html.attribute(source, "name")
-    value = Html.attribute(source, "value") || "on"
+    field = Query.find_by_label!(html, label)
+    id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value") || "on"
 
     %__MODULE__{
-      html: html,
+      source_raw: html,
       label: label,
       id: id,
       name: name,
-      value: value
+      value: value,
+      selector: Element.build_selector(field)
     }
   end
 
@@ -65,11 +69,12 @@ defmodule PhoenixTest.Field do
     value = Html.attribute(hidden_input, "value")
 
     %__MODULE__{
-      html: html,
+      source_raw: html,
       label: label,
       id: id,
       name: name,
-      value: value
+      value: value,
+      selector: Element.build_selector(field)
     }
   end
 
@@ -77,7 +82,7 @@ defmodule PhoenixTest.Field do
     Utils.name_to_map(field.name, field.value)
   end
 
-  def parent_form(field) do
-    Form.find_by_descendant!(field.html, field)
+  def parent_form!(field) do
+    Form.find_by_descendant!(field.source_raw, field)
   end
 end
