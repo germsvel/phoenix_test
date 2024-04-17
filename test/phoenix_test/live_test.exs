@@ -248,6 +248,17 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has(input(label: "Email", value: "someone@example.com"))
     end
 
+    test "can fill input with `nil` to override existing value", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#pre-rendered-data-form", fn session ->
+        session
+        |> fill_in("Pre Rendered Input", with: nil)
+      end)
+      |> assert_has("#form-data", text: "input:")
+      |> refute_has("#form-data", text: "input: value")
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")

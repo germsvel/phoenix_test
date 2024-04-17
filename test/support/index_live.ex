@@ -35,8 +35,10 @@ defmodule PhoenixTest.IndexLive do
     </form>
     <button phx-click="reset-email-form">Reset</button>
 
-    <form id="pre-rendered-data-form" phx-submit="save-form">
-      <input name="input" value="value" />
+    <form id="pre-rendered-data-form" phx-change="save-form" phx-submit="save-form">
+      <label>
+        Pre Rendered Input <input name="input" value="value" />
+      </label>
 
       <select name="select">
         <option value="not_selected">Not selected</option>

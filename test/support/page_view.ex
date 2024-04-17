@@ -100,7 +100,9 @@ defmodule PhoenixTest.PageView do
     </form>
 
     <form action="/page/create_record" method="post" id="pre-rendered-data-form">
-      <input name="input" value="value" />
+      <label>
+        Pre Rendered Input <input name="input" value="value" />
+      </label>
 
       <div><span>Test</span></div>
 

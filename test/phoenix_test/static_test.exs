@@ -326,6 +326,15 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
+    test "can fill input with `nil` to override existing value", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("Pre Rendered Input", with: nil)
+      |> submit()
+      |> assert_has("#form-data", text: "input:")
+      |> refute_has("#form-data", text: "input: value")
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/page/index")
