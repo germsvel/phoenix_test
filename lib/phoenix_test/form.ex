@@ -43,13 +43,9 @@ defmodule PhoenixTest.Form do
     }
   end
 
-  defp descendant_selector(descendant) do
-    if descendant.id do
-      "##{descendant.id}"
-    else
-      {descendant.selector, descendant.text}
-    end
-  end
+  defp descendant_selector(%{id: id}) when is_binary(id), do: "##{id}"
+  defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
+  defp descendant_selector(%{selector: selector}), do: selector
 
   def phx_change?(form) do
     form.parsed

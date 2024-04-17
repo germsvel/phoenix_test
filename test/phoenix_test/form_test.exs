@@ -2,6 +2,7 @@ defmodule PhoenixTest.FormTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Button
+  alias PhoenixTest.Field
   alias PhoenixTest.Form
 
   describe "find!" do
@@ -111,7 +112,7 @@ defmodule PhoenixTest.FormTest do
   end
 
   describe "find_by_descendant!" do
-    test "returns form ID as selector if id is present" do
+    test "finds form for button (if form id is present)" do
       html = """
       <form id="user-form">
         <button>Save</save>
@@ -137,6 +138,23 @@ defmodule PhoenixTest.FormTest do
       form = Form.find_by_descendant!(html, button)
 
       assert form.selector == ~s(form[action="/"][method="post"])
+    end
+
+    test "finds parent form for fields" do
+      html = """
+      <form id="user-form">
+        <label>
+          Email
+          <input type="text" name="email" />
+        </label>
+      </form>
+      """
+
+      field = Field.find_input!(html, "Email")
+
+      form = Form.find_by_descendant!(html, field)
+
+      assert form.selector == "#user-form"
     end
   end
 end
