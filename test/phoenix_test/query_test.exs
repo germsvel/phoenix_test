@@ -552,6 +552,37 @@ defmodule PhoenixTest.QueryTest do
       assert {"form", [{"id", "super-form"}], _} = element
     end
 
+    test "raises error if it finds too many ancestor element that match selector" do
+      html = """
+      <form id="form-1">
+        <input type="text" name="email" />
+      </form>
+      <form id="form-2">
+        <input type="text" name="email" />
+      </form>
+      """
+
+      msg = """
+      Found too many "form" matches for element with selector "input[type='text'][name='email']"
+
+      Please make the selector more specific (e.g. using an id)
+
+      The following "form" elements were found:
+
+      <form id="form-1">
+        <input type="text" name="email"/>
+      </form>
+
+      <form id="form-2">
+        <input type="text" name="email"/>
+      </form>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_ancestor!(html, "form", "input[type='text'][name='email']")
+      end
+    end
+
     test "raises error if cannot find ancestor element (but there are matches)" do
       html = """
       <form id="super-form">

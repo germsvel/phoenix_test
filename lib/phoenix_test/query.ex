@@ -347,6 +347,19 @@ defmodule PhoenixTest.Query do
       {:found, element} ->
         element
 
+      {:found_many, ancestors} ->
+        msg = """
+        Found too many #{inspect(ancestor)} matches for element with selector #{inspect(descendant_selector)}
+
+        Please make the selector more specific (e.g. using an id)
+
+        The following #{inspect(ancestor)} elements were found:
+
+        #{Enum.map_join(ancestors, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
       :not_found ->
         msg = """
         Could not find any #{inspect(ancestor)} elements.
@@ -421,6 +434,7 @@ defmodule PhoenixTest.Query do
     |> case do
       [] -> {:not_found, ancestors}
       [ancestor] -> {:found, ancestor}
+      [_ | _] = ancestors -> {:found_many, ancestors}
     end
   end
 
