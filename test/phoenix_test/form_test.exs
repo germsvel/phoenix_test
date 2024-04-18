@@ -62,6 +62,36 @@ defmodule PhoenixTest.FormTest do
              } = form.form_data
     end
 
+    test "ignores hidden value for checkbox when checked" do
+      html = """
+      <form id="form">
+        <input name="checkbox" type="hidden" value="unchecked" />
+        <input name="checkbox" type="checkbox" value="checked" checked />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{
+               "checkbox" => "checked"
+             } = form.form_data
+    end
+
+    test "uses hidden value for checkbox when unchecked" do
+      html = """
+      <form id="form">
+        <input name="checkbox" type="hidden" value="unchecked" />
+        <input name="checkbox" type="checkbox" value="checked" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{
+               "checkbox" => "unchecked"
+             } = form.form_data
+    end
+
     test "does not include disabled inputs in form_data" do
       html = """
       <form id="form">
