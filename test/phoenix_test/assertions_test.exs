@@ -2,8 +2,8 @@ defmodule PhoenixTest.AssertionsTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.TestHelpers
   import PhoenixTest.Selectors
+  import PhoenixTest.TestHelpers
 
   alias ExUnit.AssertionError
 
@@ -24,7 +24,7 @@ defmodule PhoenixTest.AssertionsTest do
       msg = ~r/Could not find any elements with selector "#nonexistent-id"/
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("#nonexistent-id")
+        assert_has(conn, "#nonexistent-id")
       end
     end
 
@@ -104,7 +104,7 @@ defmodule PhoenixTest.AssertionsTest do
       msg = ~r/Could not find any elements with selector "#nonexistent-id"/
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("#nonexistent-id", text: "Main page")
+        assert_has(conn, "#nonexistent-id", text: "Main page")
       end
     end
 
@@ -114,7 +114,7 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Could not find any elements with selector "h1" and text "Super page".
 
         Found these elements matching the selector "h1":
@@ -122,11 +122,10 @@ defmodule PhoenixTest.AssertionsTest do
         <h1 id="title" class="title" data-role="title">
           Main page
         </h1>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("h1", text: "Super page")
+        assert_has(conn, "h1", text: "Super page")
       end
     end
 
@@ -150,10 +149,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if title does not match expected value (Static)", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected title to be "Not the title" but got "PhoenixTest is the best!"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -164,10 +162,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if title does not match expected value (Live)", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected title to be "Not the title" but got "PhoenixTest is the best!"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -179,10 +176,9 @@ defmodule PhoenixTest.AssertionsTest do
     test "raises if title is contained but is not exactly the same as expected (with exact=true)",
          %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected title to be "PhoenixTest" but got "PhoenixTest is the best!"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -197,7 +193,7 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Could not find any elements with selector "#multiple-items" and text "Frodo".
 
         Found these elements matching the selector "#multiple-items":
@@ -213,11 +209,10 @@ defmodule PhoenixTest.AssertionsTest do
             Gimli
           </li>
         </ul>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> assert_has("#multiple-items", text: "Frodo")
+        assert_has(conn, "#multiple-items", text: "Frodo")
       end
     end
 
@@ -234,15 +229,14 @@ defmodule PhoenixTest.AssertionsTest do
       session = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected 1 elements with ".multiple_links".
 
         But found 2:
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        session |> assert_has(".multiple_links", count: 1)
+        assert_has(session, ".multiple_links", count: 1)
       end
     end
 
@@ -250,15 +244,14 @@ defmodule PhoenixTest.AssertionsTest do
       session = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected 2 elements with "h1".
 
         But found 1:
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        session |> assert_has("h1", count: 2)
+        assert_has(session, "h1", count: 2)
       end
     end
 
@@ -271,7 +264,7 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if `exact` text doesn't match", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Could not find any elements with selector "h1" and text "Main".
 
         Found these elements matching the selector "h1":
@@ -279,8 +272,7 @@ defmodule PhoenixTest.AssertionsTest do
         <h1 id="title" class="title" data-role="title">
           Main page
         </h1>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -297,10 +289,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if it cannot find element at `at` position", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Could not find any elements with selector "#multiple-items li" and text "Aragorn" at position 2
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -343,7 +334,7 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if element is found", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find any elements with selector "h1".
 
         But found 1:
@@ -351,8 +342,7 @@ defmodule PhoenixTest.AssertionsTest do
         <h1 id="title" class="title" data-role="title">
           Main page
         </h1>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -363,10 +353,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if title is found", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected title not to be present but found: "PhoenixTest is the best!"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -379,15 +368,14 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find any elements with selector ".multiple_links".
 
         But found 2:
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has(".multiple_links")
+        refute_has(conn, ".multiple_links")
       end
     end
 
@@ -395,13 +383,12 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find 1 elements with selector "h1".
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has("h1", count: 1)
+        refute_has(conn, "h1", count: 1)
       end
     end
 
@@ -409,15 +396,14 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find 2 elements with selector ".multiple_links".
 
         But found 2:
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has(".multiple_links", count: 2)
+        refute_has(conn, ".multiple_links", count: 2)
       end
     end
   end
@@ -445,10 +431,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if title matches value (Static)", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected title not to be "PhoenixTest is the best!"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -459,10 +444,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if title matches value (Live)", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected title not to be "PhoenixTest is the best!"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -493,7 +477,7 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find any elements with selector "#title" and text "Main page".
 
         But found 1:
@@ -501,11 +485,10 @@ defmodule PhoenixTest.AssertionsTest do
         <h1 id="title" class="title" data-role="title">
           Main page
         </h1>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has("#title", text: "Main page")
+        refute_has(conn, "#title", text: "Main page")
       end
     end
 
@@ -513,7 +496,7 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find any elements with selector ".multiple_links" and text "Multiple links".
 
         But found 2:
@@ -525,11 +508,10 @@ defmodule PhoenixTest.AssertionsTest do
         <a class="multiple_links" href="/page/page_4">
           Multiple links
         </a>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
-        conn |> refute_has(".multiple_links", text: "Multiple links")
+        refute_has(conn, ".multiple_links", text: "Multiple links")
       end
     end
 
@@ -541,7 +523,7 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if `exact` text makes refutation false", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find any elements with selector "h1" and text "Main".
 
         But found 1:
@@ -549,8 +531,7 @@ defmodule PhoenixTest.AssertionsTest do
         <h1 id="title" class="title" data-role="title">
           Main page
         </h1>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -567,7 +548,7 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if it finds element at `at` position", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected not to find any elements with selector "#multiple-items li" and text "Legolas" at position 2
 
         But found 1:
@@ -575,8 +556,7 @@ defmodule PhoenixTest.AssertionsTest do
         <li>
           Legolas
         </li>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -621,10 +601,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises helpful error if path doesn't match", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected path to be "/page/not-index" but got "/page/index"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -635,10 +614,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises helpful error if query params don't match", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected query params to be "goodbye=world&hi=bye" but got "hello=world&hi=bye"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -663,10 +641,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises helpful error if path matches", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected path not to be "/page/index"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -677,10 +654,9 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises helpful error if query params don't match", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected query params not to be "hello=world&hi=bye"
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise AssertionError, msg, fn ->
         conn

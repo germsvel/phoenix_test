@@ -218,7 +218,8 @@ defmodule PhoenixTest.Query do
           find(html, selector)
       end)
 
-    Enum.find(results, :not_found, fn
+    results
+    |> Enum.find(:not_found, fn
       :not_found -> false
       {:not_found, _} -> false
       {:found, _} -> true
@@ -439,7 +440,8 @@ defmodule PhoenixTest.Query do
   end
 
   defp find_label_element(html, label) do
-    find(html, "label", label, exact: true)
+    html
+    |> find("label", label, exact: true)
     |> case do
       {:not_found, potential_matches} ->
         {:not_found, :no_label, potential_matches}

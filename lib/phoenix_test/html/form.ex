@@ -29,18 +29,16 @@ defmodule PhoenixTest.Html.Form do
   end
 
   defp build_attributes(attrs) do
-    attrs
-    |> Enum.reduce(%{}, fn {key, value}, acc ->
-      Map.put(acc, key, value)
-    end)
+    Enum.reduce(attrs, %{}, fn {key, value}, acc -> Map.put(acc, key, value) end)
   end
 
   defp build_fields(fields) do
-    inputs = fields |> Html.all("input")
-    selects = fields |> Html.all("select")
-    textareas = fields |> Html.all("textarea")
+    inputs = Html.all(fields, "input")
+    selects = Html.all(fields, "select")
+    textareas = Html.all(fields, "textarea")
 
-    Enum.concat([inputs, selects, textareas])
+    [inputs, selects, textareas]
+    |> Enum.concat()
     |> Enum.map(&build_field/1)
   end
 
@@ -115,8 +113,7 @@ defmodule PhoenixTest.Html.Form do
   Raises `ArgumentError` if the form data does not match the expected structure.
   """
   def validate_form_fields!(form_fields, form_data) do
-    form_data
-    |> Enum.each(fn
+    Enum.each(form_data, fn
       {key, values} when is_map(values) ->
         Enum.each(values, fn {nested_key, nested_value} ->
           combined_key = "#{to_string(key)}[#{to_string(nested_key)}]"

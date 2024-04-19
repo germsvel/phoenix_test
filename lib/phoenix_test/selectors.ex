@@ -19,7 +19,8 @@ defmodule PhoenixTest.Selectors do
     id = Html.attribute(element, "id")
 
     existing_attrs =
-      Enum.filter(attrs, fn {_k, v} -> v != nil end)
+      attrs
+      |> Enum.filter(fn {_k, v} -> v != nil end)
       |> Enum.reduce("", fn {k, v}, acc ->
         acc <> "[#{k}=#{inspect(v)}]"
       end)

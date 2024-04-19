@@ -10,13 +10,11 @@ defmodule PhoenixTest.PageController do
   end
 
   def show(conn, %{"redirect_to" => path}) do
-    conn
-    |> redirect(to: path)
+    redirect(conn, to: path)
   end
 
   def show(conn, %{"page" => page}) do
-    conn
-    |> render(page <> ".html")
+    render(conn, page <> ".html")
   end
 
   def create(conn, params) do
@@ -32,18 +30,15 @@ defmodule PhoenixTest.PageController do
   end
 
   def delete(conn, _) do
-    conn
-    |> render("record_deleted.html")
+    render(conn, "record_deleted.html")
   end
 
   def redirect_to_liveview(conn, _) do
-    conn
-    |> redirect(to: "/live/index")
+    redirect(conn, to: "/live/index")
   end
 
   def redirect_to_static(conn, _) do
-    conn
-    |> redirect(to: "/page/index")
+    redirect(conn, to: "/page/index")
   end
 
   def unauthorized(conn, _) do

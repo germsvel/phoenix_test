@@ -254,7 +254,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       msg =
-        """
+        ignore_whitespace("""
         Could not find an element with given selectors.
 
         I was looking for an element with one of these selectors:
@@ -271,8 +271,7 @@ defmodule PhoenixTest.QueryTest do
         <h2>
           Greetings
         </h2>
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])

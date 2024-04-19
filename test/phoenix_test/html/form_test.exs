@@ -233,7 +233,6 @@ defmodule PhoenixTest.Html.FormTest do
   end
 
   defp form_data(html_form) do
-    html_form
-    |> Query.find!("form")
+    Query.find!(html_form, "form")
   end
 end

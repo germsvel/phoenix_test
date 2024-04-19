@@ -1,14 +1,14 @@
 defmodule PhoenixTest.Field do
   @moduledoc false
 
-  @enforce_keys ~w[source_raw label id name value selector]a
-  defstruct ~w[source_raw label id name value selector]a
-
   alias PhoenixTest.Element
-  alias PhoenixTest.Html
   alias PhoenixTest.Form
+  alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
+
+  @enforce_keys ~w[source_raw label id name value selector]a
+  defstruct ~w[source_raw label id name value selector]a
 
   def find_input!(html, label) do
     field = Query.find_by_label!(html, label)

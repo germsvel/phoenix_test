@@ -22,8 +22,7 @@ defmodule PhoenixTest.Html.DataAttributeForm do
     csrf_token = form.csrf_token
 
     missing =
-      ["data-method": method, "data-to": action, "data-csrf": csrf_token]
-      |> Enum.filter(fn {_, value} -> empty?(value) end)
+      Enum.filter(["data-method": method, "data-to": action, "data-csrf": csrf_token], fn {_, value} -> empty?(value) end)
 
     unless method && action && csrf_token do
       raise ArgumentError, """

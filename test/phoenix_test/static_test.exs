@@ -43,8 +43,7 @@ defmodule PhoenixTest.StaticTest do
 
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise Phoenix.Router.NoRouteError, fn ->
-        conn
-        |> visit("/non_route")
+        visit(conn, "/non_route")
       end
     end
   end
@@ -87,7 +86,7 @@ defmodule PhoenixTest.StaticTest do
 
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Tried submitting form via `data-method` but some data attributes are
         missing.
 
@@ -106,8 +105,7 @@ defmodule PhoenixTest.StaticTest do
         emulate that, but be sure to verify you're including Phoenix.HTML.js!
 
         See: https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -223,7 +221,7 @@ defmodule PhoenixTest.StaticTest do
 
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Tried submitting form via `data-method` but some data attributes are
         missing.
 
@@ -242,8 +240,7 @@ defmodule PhoenixTest.StaticTest do
         emulate that, but be sure to verify you're including Phoenix.HTML.js!
 
         See: https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -310,8 +307,7 @@ defmodule PhoenixTest.StaticTest do
         conn
         |> visit("/page/index")
         |> within("#email-form", fn session ->
-          session
-          |> fill_in("User Name", with: "Aragorn")
+          fill_in(session, "User Name", with: "Aragorn")
         end)
       end
     end

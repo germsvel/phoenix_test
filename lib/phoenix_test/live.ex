@@ -1,11 +1,11 @@
 defmodule PhoenixTest.Live do
   @moduledoc false
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
-
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 
   alias PhoenixTest.ActiveForm
+
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
   defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: nil
 
@@ -16,8 +16,6 @@ defmodule PhoenixTest.Live do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
-
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 
@@ -27,6 +25,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Form
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
   def render_page_title(%{view: view}) do
     page_title(view)
@@ -153,8 +153,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         new_form_data
       end
 
-    session
-    |> fill_form(form.selector, form_data)
+    fill_form(session, form.selector, form_data)
   end
 
   def submit(session) do
@@ -212,7 +211,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       |> Form.find!(selector)
 
     active_form =
-      ActiveForm.new(id: form.id, selector: form.selector)
+      [id: form.id, selector: form.selector]
+      |> ActiveForm.new()
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
@@ -228,8 +228,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       end)
     end
 
-    session
-    |> Map.put(:active_form, active_form)
+    Map.put(session, :active_form, active_form)
   end
 
   def submit_form(session, selector, form_data, event_data \\ %{}) do

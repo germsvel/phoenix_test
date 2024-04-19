@@ -11,7 +11,6 @@ defmodule PhoenixTest.Static do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
 
   alias PhoenixTest.ActiveForm
@@ -23,6 +22,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
 
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
   def render_page_title(session) do
     session
     |> render_html()
@@ -36,8 +36,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   def render_html(%{conn: conn, within: within}) do
     case within do
       :none ->
-        conn
-        |> html_response(conn.status)
+        html_response(conn, conn.status)
 
       selector ->
         conn
@@ -161,8 +160,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         new_form_data
       end
 
-    session
-    |> fill_form(form.selector, form_data)
+    fill_form(session, form.selector, form_data)
   end
 
   def submit(session) do
@@ -198,7 +196,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> Form.find!(selector)
 
     active_form =
-      ActiveForm.new(id: form.id, selector: form.selector)
+      [id: form.id, selector: form.selector]
+      |> ActiveForm.new()
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
@@ -207,8 +206,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
       |> Html.Form.build()
       |> Html.Form.validate_form_data!(active_form.form_data)
 
-    session
-    |> Map.put(:active_form, active_form)
+    Map.put(session, :active_form, active_form)
   end
 
   def submit_form(session, selector, form_data) do

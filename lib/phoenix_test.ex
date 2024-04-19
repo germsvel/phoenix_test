@@ -28,12 +28,12 @@ defmodule PhoenixTest do
     [Wallaby](https://hexdocs.pm/wallaby/readme.html).
   """
 
-  alias PhoenixTest.Driver
-  alias PhoenixTest.Assertions
-
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
   import Phoenix.ConnTest
 
+  alias PhoenixTest.Assertions
+  alias PhoenixTest.Driver
+
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
   @doc """
   Entrypoint to create a session.
 

@@ -1,5 +1,6 @@
 defmodule PhoenixTest.Router do
   use Phoenix.Router
+
   import Phoenix.LiveView.Router
 
   pipeline :setup_session do

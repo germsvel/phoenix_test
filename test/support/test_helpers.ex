@@ -9,8 +9,7 @@ defmodule PhoenixTest.TestHelpers do
     |> String.split("\n")
     |> Enum.map(&String.trim/1)
     |> Enum.reject(fn s -> s == "" end)
-    |> Enum.map(fn s -> "\\s*" <> s <> "\\s*" end)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", fn s -> "\\s*" <> s <> "\\s*" end)
     |> Regex.compile!([:dotall])
   end
 end

@@ -7,10 +7,12 @@ defmodule PhoenixTest.ElementTest do
   describe "build_selector/2" do
     test "builds a selector based on id if id is present" do
       data =
-        """
-        <input id="name" type="text" name="name" value="Hello world"/>
-        """
-        |> Query.find!("input")
+        Query.find!(
+          """
+          <input id="name" type="text" name="name" value="Hello world"/>
+          """,
+          "input"
+        )
 
       selector = Element.build_selector(data)
 
@@ -19,10 +21,12 @@ defmodule PhoenixTest.ElementTest do
 
     test "builds a composite selector if id isn't present" do
       data =
-        """
-        <input type="text" name="name" />
-        """
-        |> Query.find!("input")
+        Query.find!(
+          """
+          <input type="text" name="name" />
+          """,
+          "input"
+        )
 
       selector = Element.build_selector(data)
 

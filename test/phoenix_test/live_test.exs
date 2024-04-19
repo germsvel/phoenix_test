@@ -2,8 +2,8 @@ defmodule PhoenixTest.LiveTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.TestHelpers
   import PhoenixTest.Selectors
+  import PhoenixTest.TestHelpers
 
   alias PhoenixTest.Driver
 
@@ -62,8 +62,7 @@ defmodule PhoenixTest.LiveTest do
 
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise Phoenix.Router.NoRouteError, fn ->
-        conn
-        |> visit("/live/non_route")
+        visit(conn, "/live/non_route")
       end
     end
   end
@@ -222,8 +221,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#email-form", fn session ->
-        session
-        |> fill_in("Email", with: "someone@example.com")
+        fill_in(session, "Email", with: "someone@example.com")
       end)
       |> assert_has(input(label: "Email", value: "someone@example.com"))
     end
@@ -233,8 +231,7 @@ defmodule PhoenixTest.LiveTest do
         conn
         |> visit("/live/index")
         |> within("#email-form", fn session ->
-          session
-          |> fill_in("User Name", with: "Aragorn")
+          fill_in(session, "User Name", with: "Aragorn")
         end)
       end
     end
@@ -252,8 +249,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#pre-rendered-data-form", fn session ->
-        session
-        |> fill_in("Pre Rendered Input", with: nil)
+        fill_in(session, "Pre Rendered Input", with: nil)
       end)
       |> assert_has("#form-data", text: "input's value is empty")
     end
@@ -477,10 +473,9 @@ defmodule PhoenixTest.LiveTest do
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -496,7 +491,7 @@ defmodule PhoenixTest.LiveTest do
 
   describe "fill_form/3" do
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
-      session = conn |> visit("/live/index")
+      session = visit(conn, "/live/index")
 
       starting_html = Driver.render_html(session)
 
@@ -623,10 +618,9 @@ defmodule PhoenixTest.LiveTest do
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -702,10 +696,9 @@ defmodule PhoenixTest.LiveTest do
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
-        """
-        |> ignore_whitespace()
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         conn

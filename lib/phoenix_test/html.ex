@@ -2,11 +2,10 @@ defmodule PhoenixTest.Html do
   @moduledoc false
 
   def parse(html) do
-    html
-    |> Floki.parse_document!()
+    Floki.parse_document!(html)
   end
 
-  def text(element), do: Floki.text(element) |> String.trim()
+  def text(element), do: element |> Floki.text() |> String.trim()
 
   def attribute(element, attr) do
     element

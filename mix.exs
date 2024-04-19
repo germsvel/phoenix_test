@@ -40,7 +40,8 @@ defmodule PhoenixTest.MixProject do
       {:floki, ">= 0.30.0"},
       {:jason, "~> 1.4"},
       {:phoenix, "~> 1.7.10"},
-      {:phoenix_live_view, "~> 0.20.1"}
+      {:phoenix_live_view, "~> 0.20.1"},
+      {:styler, "~> 0.11", only: [:dev, :test], runtime: false}
     ]
   end
 
