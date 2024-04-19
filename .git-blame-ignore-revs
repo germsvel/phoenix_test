@@ -1,0 +1,5 @@
+# Run this command to always ignore formatting commits in `git blame`
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Introduced Styler and ran mix format
+d3f22b4ef34d7cbe70e7a36cfa719cc54d4d667e
