@@ -255,8 +255,7 @@ defmodule PhoenixTest.LiveTest do
         session
         |> fill_in("Pre Rendered Input", with: nil)
       end)
-      |> assert_has("#form-data", text: "input:")
-      |> refute_has("#form-data", text: "input: value")
+      |> assert_has("#form-data", text: "input's value is empty")
     end
 
     test "can fill-in complex form fields", %{conn: conn} do

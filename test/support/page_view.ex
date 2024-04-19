@@ -259,6 +259,10 @@ defmodule PhoenixTest.PageView do
     """
   end
 
+  defp render_input_data(key, value) when value == "" or is_nil(value) do
+    "#{key}'s value is empty"
+  end
+
   defp render_input_data(key, value) when is_boolean(value) do
     "#{key}: #{to_string(value)}"
   end

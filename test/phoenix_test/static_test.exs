@@ -331,8 +331,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_in("Pre Rendered Input", with: nil)
       |> submit()
-      |> assert_has("#form-data", text: "input:")
-      |> refute_has("#form-data", text: "input: value")
+      |> assert_has("#form-data", text: "input's value is empty")
     end
 
     test "can fill-in complex form fields", %{conn: conn} do

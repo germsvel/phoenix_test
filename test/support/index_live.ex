@@ -282,6 +282,10 @@ defmodule PhoenixTest.IndexLive do
     |> then(&{:noreply, &1})
   end
 
+  defp render_input_data(key, value) when value == "" or is_nil(value) do
+    "#{key}'s value is empty"
+  end
+
   defp render_input_data(key, value) when is_binary(value) do
     "#{key}: #{value}"
   end
