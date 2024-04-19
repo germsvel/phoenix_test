@@ -34,6 +34,8 @@ defmodule PhoenixTest.FormTest do
         <input type="hidden" name="method" value="delete"/>
         <input name="input" value="value" />
 
+        <input type="text" name="text-input" value="text value" />
+
         <select name="select">
           <option value="not_selected">Not selected</option>
           <option value="selected" selected>Selected</option>
@@ -56,6 +58,7 @@ defmodule PhoenixTest.FormTest do
       assert %{
                "method" => "delete",
                "input" => "value",
+               "text-input" => "text value",
                "select" => "selected",
                "checkbox" => "checked",
                "radio" => "checked"
@@ -66,12 +69,40 @@ defmodule PhoenixTest.FormTest do
       html = """
       <form id="form">
         <input name="input" value="value" disabled />
+        <input name="checkbox" type="checkbox" value="checked" checked disabled />
+        <input name="radio" type="radio" value="checked" checked disabled />
       </form>
       """
 
       form = Form.find!(html, "form")
 
       assert %{} == form.form_data
+    end
+
+    test "ignores hidden value for checkbox when checked" do
+      html = """
+      <form id="form">
+        <input name="checkbox" type="hidden" value="unchecked" />
+        <input name="checkbox" type="checkbox" value="checked" checked />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"checkbox" => "checked"} = form.form_data
+    end
+
+    test "uses hidden value for checkbox when unchecked" do
+      html = """
+      <form id="form">
+        <input name="checkbox" type="hidden" value="unchecked" />
+        <input name="checkbox" type="checkbox" value="checked" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"checkbox" => "unchecked"} = form.form_data
     end
 
     test "submit_button returns the only button in the form" do

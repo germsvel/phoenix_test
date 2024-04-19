@@ -61,15 +61,19 @@ defmodule PhoenixTest.Form do
 
   def has_action?(form), do: Utils.present?(form.action)
 
+  @hidden_inputs "input[type=hidden]"
+  @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
+  @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
+  @pre_filled_text_inputs "input:not([disabled])[type=text][value]"
+  @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
+
   defp form_data(form) do
     %{}
-    |> put_form_data("input[type=hidden]", form)
-    |> put_form_data("input[type=radio][checked=checked][value]", form)
-    |> put_form_data("input[type=checkbox][checked=checked][value]", form)
-    |> put_form_data(
-      "input:not([disabled]):not([type=radio]):not([type=checkbox]):not([type=button]):not([type=submit])[value]",
-      form
-    )
+    |> put_form_data(@hidden_inputs, form)
+    |> put_form_data(@checked_radio_buttons, form)
+    |> put_form_data(@checked_checkboxes, form)
+    |> put_form_data(@pre_filled_text_inputs, form)
+    |> put_form_data(@pre_filled_default_text_inputs, form)
     |> put_form_data_select(form)
   end
 
