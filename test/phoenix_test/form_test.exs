@@ -6,7 +6,74 @@ defmodule PhoenixTest.FormTest do
   alias PhoenixTest.Form
 
   describe "find!" do
-    test "returns form ID as selector if id is present" do
+    test " finds a form by selector" do
+      html = """
+      <form id="user-form">
+      </form>
+
+      <form id="other-form">
+      </form>
+      """
+
+      form = Form.find!(html, "#user-form")
+
+      assert form.id == "user-form"
+    end
+  end
+
+  describe "find_by_descendant!" do
+    test "finds parent form for button (if form id is present)" do
+      html = """
+      <form id="user-form">
+        <button>Save</save>
+      </form>
+      """
+
+      button = %Button{selector: "button", text: "Save"}
+
+      form = Form.find_by_descendant!(html, button)
+
+      assert form.selector == "#user-form"
+    end
+
+    test "finds parent form for fields" do
+      html = """
+      <form id="user-form">
+        <label>
+          Email
+          <input type="text" name="email" />
+        </label>
+      </form>
+      """
+
+      field = Field.find_input!(html, "Email")
+
+      form = Form.find_by_descendant!(html, field)
+
+      assert form.selector == "#user-form"
+    end
+
+    test "creates same form as `find!`" do
+      html = """
+      <form id="user-form">
+        <label>
+          Email
+          <input type="text" name="email" />
+        </label>
+      </form>
+      """
+
+      field = Field.find_input!(html, "Email")
+
+      input_form = Form.find_by_descendant!(html, field)
+      find_form = Form.find!(html, "#user-form")
+
+      assert input_form == find_form
+    end
+  end
+
+  describe "form.selector" do
+    test "form's selector is id if id is present" do
       html = """
       <form id="user-form">
       </form>
@@ -27,7 +94,9 @@ defmodule PhoenixTest.FormTest do
 
       assert form.selector == ~s(form[action="/"][method="post"])
     end
+  end
 
+  describe "form.form_data" do
     test "generates default form data from form's html" do
       html = """
       <form id="form">
@@ -104,8 +173,10 @@ defmodule PhoenixTest.FormTest do
 
       assert %{"checkbox" => "unchecked"} = form.form_data
     end
+  end
 
-    test "submit_button returns the only button in the form" do
+  describe "form.submit_button" do
+    test "returns the only button in the form" do
       html = """
       <form id="form">
         <button type="submit">Save</button>
@@ -117,7 +188,7 @@ defmodule PhoenixTest.FormTest do
       assert %Button{text: "Save"} = form.submit_button
     end
 
-    test "submit_button returns the first button in the form (if many)" do
+    test "returns the first button in the form (if many)" do
       html = """
       <form id="form">
         <button type="submit">Save</button>
@@ -130,7 +201,7 @@ defmodule PhoenixTest.FormTest do
       assert %Button{text: "Save"} = form.submit_button
     end
 
-    test "submit_button returns nil if no buttons in the form" do
+    test "returns nil if no buttons in the form" do
       html = """
       <form id="form">
       </form>
@@ -142,50 +213,64 @@ defmodule PhoenixTest.FormTest do
     end
   end
 
-  describe "find_by_descendant!" do
-    test "finds form for button (if form id is present)" do
+  describe "form.action" do
+    test "returns action if found in form" do
       html = """
-      <form id="user-form">
-        <button>Save</save>
+      <form id="form" action="/">
       </form>
       """
 
-      button = %Button{selector: "button", text: "Save"}
+      form = Form.find!(html, "form")
 
-      form = Form.find_by_descendant!(html, button)
-
-      assert form.selector == "#user-form"
+      assert form.action == "/"
     end
 
-    test "creates composite selector of form's attributes (ignoring classes) if id isn't present" do
+    test "returns nil if no action is found" do
       html = """
-      <form action="/" method="post" class="mx-auto text-3xl">
-        <button>Save</save>
+      <form id="form">
       </form>
       """
 
-      button = %Button{selector: "button", text: "Save"}
+      form = Form.find!(html, "form")
 
-      form = Form.find_by_descendant!(html, button)
-
-      assert form.selector == ~s(form[action="/"][method="post"])
+      assert is_nil(form.action)
     end
+  end
 
-    test "finds parent form for fields" do
+  describe "form.method" do
+    test "sets 'get' as the form's method if none is specified" do
       html = """
       <form id="user-form">
-        <label>
-          Email
-          <input type="text" name="email" />
-        </label>
       </form>
       """
 
-      field = Field.find_input!(html, "Email")
+      form = Form.find!(html, "form")
 
-      form = Form.find_by_descendant!(html, field)
+      assert form.method == "get"
+    end
 
-      assert form.selector == "#user-form"
+    test "sets form method as operative_method if present" do
+      html = """
+      <form id="user-form" action="/" method="post">
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert form.method == "post"
+    end
+
+    test "sets method based on hidden input if available" do
+      html =
+        """
+        <form id="user-form" action="/" method="post">
+          <input type="hidden" name="_method" value="put"/>
+        </form>
+        """
+
+      form = Form.find!(html, "form")
+
+      assert form.method == "put"
     end
   end
 end

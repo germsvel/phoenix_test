@@ -24,28 +24,20 @@ defmodule PhoenixTest.Form do
   defp build(form) do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
+    action = Html.attribute(form, "action")
     selector = Element.build_selector(form)
 
-    data = Html.Form.build(form)
-
-    action = data["attributes"]["action"]
-    method = data["operative_method"]
-
     %__MODULE__{
-      selector: selector,
-      raw: raw,
-      parsed: form,
-      id: id,
       action: action,
-      method: method,
       form_data: form_data(form),
+      id: id,
+      method: operative_method(form),
+      parsed: form,
+      raw: raw,
+      selector: selector,
       submit_button: Button.find_first(raw)
     }
   end
-
-  defp descendant_selector(%{id: id}) when is_binary(id), do: "##{id}"
-  defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
-  defp descendant_selector(%{selector: selector}), do: selector
 
   def phx_change?(form) do
     form.parsed
@@ -60,6 +52,10 @@ defmodule PhoenixTest.Form do
   end
 
   def has_action?(form), do: Utils.present?(form.action)
+
+  defp descendant_selector(%{id: id}) when is_binary(id), do: "##{id}"
+  defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
+  defp descendant_selector(%{selector: selector}), do: selector
 
   @hidden_inputs "input[type=hidden]"
   @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
@@ -121,5 +117,24 @@ defmodule PhoenixTest.Form do
     name = Html.attribute(name_element, "name")
     value = Html.attribute(value_element, "value")
     Utils.name_to_map(name, value)
+  end
+
+  defp operative_method({"form", _attrs, fields} = form) do
+    hidden_input_method_value(fields) || Html.attribute(form, "method") || "get"
+  end
+
+  defp hidden_input_method_value(fields) do
+    fields
+    |> Enum.find(:no_method_input, fn
+      {"input", _, _} = field ->
+        Html.attribute(field, "name") == "_method"
+
+      _ ->
+        false
+    end)
+    |> case do
+      :no_method_input -> nil
+      field -> Html.attribute(field, "value")
+    end
   end
 end
