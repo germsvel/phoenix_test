@@ -83,7 +83,9 @@ defmodule PhoenixTest.IndexLive do
     </div>
 
     <form id="no-phx-change-form" phx-submit="save-name">
-      <input name="name" />
+      <label>
+        Name <input name="name" />
+      </label>
       <button type="submit">Save name</button>
     </form>
 
@@ -157,6 +159,8 @@ defmodule PhoenixTest.IndexLive do
     </form>
 
     <form id="invalid-form">
+      <label for="invalid-form-email">Email (no input)</label>
+
       <label for="invalid-form-name">Name</label>
       <input id="invalid-form-name" name="name" />
       <button type="submit">

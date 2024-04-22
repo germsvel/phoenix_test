@@ -168,6 +168,22 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record deleted")
     end
 
+    test "can submit forms with input type submit", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("Email", with: "sample@example.com")
+      |> click_button("Save Email")
+      |> assert_has("#form-data", text: "email: sample@example.com")
+    end
+
+    test "can handle clicking button that does not submit form after filling a form", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("Email", with: "some@example.com")
+      |> click_button("Delete record")
+      |> refute_has("#form-data", text: "email: some@example.com")
+    end
+
     test "can handle redirects to a LiveView", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -208,6 +224,14 @@ defmodule PhoenixTest.StaticTest do
       |> fill_in("User Name", with: "Aragorn")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "save-button: nested-form-save")
+    end
+
+    test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_form("#email-form", email: "some@example.com")
+      |> click_button("Delete record")
+      |> refute_has("#form-data", text: "email: some@example.com")
     end
 
     test "includes default data if form is untouched", %{conn: conn} do
@@ -359,6 +383,26 @@ defmodule PhoenixTest.StaticTest do
       |> refute_has("#form-data", text: "name: Aragorn")
       |> assert_has("#form-data", text: "user:name: Legolas")
     end
+
+    test "raises an error when element can't be found with label", %{conn: conn} do
+      msg = ~r/Could not find element with label "Non-existent Email Label"./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> fill_in("Non-existent Email Label", with: "some@example.com")
+      end
+    end
+
+    test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
+      msg = ~r/Found label but could not find corresponding element with matching `id`./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> fill_in("Email (no input)", with: "some@example.com")
+      end
+    end
   end
 
   describe "select/3" do
@@ -395,12 +439,30 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
     end
+
+    test "can check an unchecked checkbox", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> uncheck("Admin")
+      |> check("Admin")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "admin: on")
+    end
   end
 
   describe "uncheck/3" do
     test "sends the default value (in hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
+      |> uncheck("Admin")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "admin: off")
+    end
+
+    test "can uncheck a previous check/2 in the test", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> check("Admin")
       |> uncheck("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
@@ -419,8 +481,6 @@ defmodule PhoenixTest.StaticTest do
     test "uses the default 'checked' if present", %{conn: conn} do
       conn
       |> visit("/page/index")
-      # other field to trigger form save
-      |> fill_in("First Name", with: "Not important")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
     end

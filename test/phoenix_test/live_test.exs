@@ -173,6 +173,52 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "full_form_button: save")
     end
 
+    test "can click button that does not submit form after filling form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: "some@example.com")
+      |> click_button("Save Nested Form")
+      |> refute_has("#form-data", text: "email: some@example.com")
+    end
+
+    test "follows form's redirect to live page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#redirect-form", &fill_in(&1, "Name", with: "Aragorn"))
+      |> click_button("#redirect-form-submit", "Save Redirect Form")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "follows form's redirect to static page", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#redirect-form-to-static", &fill_in(&1, "Name", with: "Aragorn"))
+      |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static")
+      |> assert_has("h1", text: "Main page")
+    end
+
+    test "submits regular (non phx-submit) form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#non-liveview-form", &fill_in(&1, "Name", with: "Aragorn"))
+      |> click_button("Submit Non LiveView")
+      |> assert_has("#form-data", text: "name: Aragorn")
+    end
+
+    test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
+      msg =
+        ignore_whitespace("""
+        Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
+        """)
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> within("#non-liveview-form", &fill_in(&1, "Name", with: "Aragorn"))
+        |> click_button("Submit Invalid Form")
+      end
+    end
+
     test "raises an error when there are no buttons on page", %{conn: conn} do
       msg = ~r/Could not find element with selector "button" and text "Show tab"/
 
@@ -201,8 +247,11 @@ defmodule PhoenixTest.LiveTest do
       assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/live/index")
-        |> fill_form("#no-phx-change-form", name: "Legolas")
-        |> click_button("No button")
+        |> within("#no-phx-change-form", fn session ->
+          session
+          |> fill_in("Name", with: "Legolas")
+          |> click_button("No button")
+        end)
       end
     end
   end
@@ -281,6 +330,19 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-errors", text: "Errors present")
     end
 
+    test "does not trigger phx-change event if one isn't present", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      starting_html = Driver.render_html(session)
+
+      ending_html =
+        session
+        |> within("#no-phx-change-form", &fill_in(&1, "Name", with: "Aragorn"))
+        |> Driver.render_html()
+
+      assert starting_html == ending_html
+    end
+
     test "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -295,6 +357,26 @@ defmodule PhoenixTest.LiveTest do
       |> fill_in("Country", with: "Bolivia")
       |> fill_in("City", with: "La Paz")
       |> assert_has("#form-data", text: "Bolivia: La Paz")
+    end
+
+    test "raises an error when element can't be found with label", %{conn: conn} do
+      msg = ~r/Could not find element with label "Non-existent Email Label"./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> fill_in("Non-existent Email Label", with: "some@example.com")
+      end
+    end
+
+    test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
+      msg = ~r/Found label but could not find corresponding element with matching `id`./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> fill_in("Email (no input)", with: "some@example.com")
+      end
     end
   end
 
@@ -331,12 +413,30 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
     end
+
+    test "can check an unchecked checkbox", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> uncheck("Admin")
+      |> check("Admin")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "admin: on")
+    end
   end
 
   describe "uncheck/2" do
     test "sends the default value (in hidden input)", %{conn: conn} do
       conn
       |> visit("/live/index")
+      |> uncheck("Admin")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "admin: off")
+    end
+
+    test "can uncheck a previous check/2 in the test", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Admin")
       |> uncheck("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
@@ -355,8 +455,6 @@ defmodule PhoenixTest.LiveTest do
     test "uses the default 'checked' if present", %{conn: conn} do
       conn
       |> visit("/live/index")
-      # other field to trigger form save
-      |> fill_in("First Name", with: "Not important")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
     end

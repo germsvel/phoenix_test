@@ -92,7 +92,6 @@ defmodule PhoenixTest do
   |> click_link("Page Details") # <- applies live patch
   ```
 
-
   ## Submitting forms
 
   Phoenix allows for submitting forms on links via Phoenix.HTML's `data-method`,
@@ -173,27 +172,49 @@ defmodule PhoenixTest do
   |> click_button("Delete") # <- will submit form like Phoenix.HTML.js does
   ```
 
-  ## Combined with `fill_form/3`
+  ## Combined with `fill_in/3`, `select/3`, etc.
 
-  This function can be preceded by `fill_form` to fill out a form and
-  subsequently submit the form.
-
-  Note that `fill_form/3` + `click_button/2` works for both static and live
-  pages.
+  This function can be preceded by filling out a form.
 
   ### Example
 
   ```elixir
   session
-  |> fill_form("#user-form", name: "Aragorn")
+  |> fill_in("Name", name: "Aragorn")
+  |> check("Human")
   |> click_button("Create")
   ```
 
-  ## Single-button form
+  ### Submitting default data
 
-  If `click_button/2` is used alone (without `phx-click`, `data-*` attrs, or
-  `fill_form/3`), it is assumed it is a form with a single button (e.g.
-  "Delete").
+  By default, using `click_button/2` will submit the form it's part of (so long
+  as it has a `phx-click`, `data-*` attrs, or an `action`).
+
+  It will also include any hidden inputs and default data (e.g. inputs with a
+  `value` set and the button's `name` and `value` if present).
+
+  ### Example
+
+  ```heex
+  <form method="post" action="/users/2">
+    <input type="hidden" name="admin" value="true"/>
+    <button name="complete" value="true">Complete</button>
+  </form>
+  ```
+
+  ```elixir
+  session
+  |> click_button("Complete")
+  # ^ includes `%{"admin" => "true"}` and `%{"complete" => "true"}` in payload
+  ```
+
+  ## Single-button forms
+
+  `click_button/2` is smart enough to use a hidden input's value with
+  `name=_method` as the method to send (e.g. when we want to send `delete`,
+  `put`, or `patch`)
+
+  That means, it is helpful to submit single-button forms.
 
   ### Example
 
@@ -206,37 +227,231 @@ defmodule PhoenixTest do
 
   ```elixir
   session
-  |> click_button("Delete") # <- Triggers full form delete
+  |> click_button("Delete") # <- Triggers full form delete.
   ```
   """
   defdelegate click_button(session, text), to: Driver
 
   @doc """
-  Performs action defined by button with CSS selector.
+  Performs action defined by button with CSS selector and text.
 
   See `click_button/2` for more details.
   """
   defdelegate click_button(session, selector, text), to: Driver
 
-  @doc false
+  @doc """
+  Helpers to scope filling out form within a given selector. Use this if you
+  have more than one form on a page with similar labels.
+
+  ## Examples
+
+  Given we have some HTML like this:
+
+  ```heex
+  <form id="user-form" action="/users" method="post">
+    <label for="name">Name</label>
+    <input id="name" name="name"/>
+
+    <input type="hidden" name="admin" value="off" />
+    <label for="admin">Admin</label>
+    <input id="admin" type="checkbox" name="admin" value="on" />
+  </form>
+
+  # and assume another form with "Name" and "Admin" labels
+  ```
+
+  We can fill the form like this:
+
+  ```elixir
+  session
+  |> within("#user-form", fn session ->
+    session
+    |> fill_in("Name", with: "Aragorn")
+    |> check("Admin")
+  end)
+  ```
+  """
   defdelegate within(session, selector, fun), to: Driver
 
-  @doc false
+  @doc """
+  Fills text inputs and textareas, targetting the elements by their labels.
+
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `fill_in/3` will trigger the `phx-change` event.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Examples
+
+  Given we have a form that contains this:
+
+  ```heex
+  <label for="name">Name</label>
+  <input id="name" name="name"/>
+  ```
+
+  or this:
+
+  ```heex
+  <label>
+    Name
+    <input name="name"/>
+  </label>
+  ```
+
+  We can fill in the `name` field:
+
+  ```elixir
+  session
+  |> fill_in("Name", with: "Aragorn")
+  ```
+  """
   defdelegate fill_in(session, label, attrs), to: Driver
 
-  @doc false
+  @doc """
+  Selects an option from a select dropdown.
+
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `select/3` will trigger the `phx-change` event.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Examples
+
+  Given we have a form that contains this:
+
+  ```heex
+  <label for="race">Race</label>
+  <select id="race" name="race">
+    <option value="human">Human</option>
+    <option value="elf">Elf</option>
+    <option value="dwarf">Dwarf</option>
+    <option value="orc">Orc</option>
+  </select>
+  ```
+
+  We can select an option:
+
+  ```elixir
+  session
+  |> select("Human", from: "Race")
+  ```
+  """
   defdelegate select(session, option, attrs), to: Driver
 
-  @doc false
+  @doc """
+  Check a checkbox.
+
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `check/2` will trigger the `phx-change` event.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Example
+
+  Given we have a form that contains this:
+
+  ```heex
+  <input type="hidden" name="admin" value="off" />
+  <label for="admin">Admin</label>
+  <input id="admin" type="checkbox" name="admin" value="on" />
+  ```
+
+  We can check the "Admin" option:
+
+  ```elixir
+  session
+  |> check("Admin")
+  ```
+  """
   defdelegate check(session, label), to: Driver
 
-  @doc false
+  @doc """
+  Uncheck a checkbox.
+
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `uncheck/2` will trigger the `phx-change` event.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Example
+
+  Given we have a form that contains this:
+
+  ```heex
+  <input type="hidden" name="admin" value="off" />
+  <label for="admin">Admin</label>
+  <input id="admin" type="checkbox" name="admin" value="on" />
+  ```
+
+  We can uncheck the "Admin" option:
+
+  ```elixir
+  session
+  |> uncheck("Admin")
+  ```
+
+  Note that unchecking a checkbox in HTML doesn't actually send any data to the
+  server. That's why we have to have a hidden input with the default value (in
+  the example above: `admin="off"`).
+  """
   defdelegate uncheck(session, label), to: Driver
 
-  @doc false
+  @doc """
+  Choose a radio button option.
+
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `choose/3` will trigger the `phx-change` event.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Example
+
+  Given we have a form that contains this:
+
+  ```heex
+  <input type="radio" id="email" name="contact" value="email" />
+  <label for="email">Email</label>
+  <input type="radio" id="phone" name="contact" value="phone" />
+  <label for="phone">Phone</label>
+  <input type="radio" id="mail" name="contact" value="mail" checked />
+  <label for="mail">Mail</label>
+  ```
+
+  We can choose to be contacted by email:
+
+  ```elixir
+  session
+  |> choose("Email")
+  ```
+  """
   defdelegate choose(session, label), to: Driver
 
-  @doc false
+  @doc """
+  Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,
+  `select/3`, `choose/2`, etc. for how to fill a form.)
+
+  Forms are typically submitted by clicking buttons. But sometimes we want to
+  emulate what happens when we submit a form hitting <Enter>. That's what this
+  helper does.
+
+  If the form is a LiveView form, and if the form has a `phx-submit` attribute
+  defined, `submit/1` will trigger the `phx-submit` event. Otherwise, it'll
+  submit the form regularly.
+
+  If the form has a submit button with a `name` and `value`, `submit/1` will
+  also include that data in the payload.
+
+  ## Example
+
+  ```elixir
+  session
+  |> fill_in("Name", with: "Aragorn")
+  |> select("Human", from: "Race")
+  |> choose("Email")
+  |> submit()
+  ```
+  """
   defdelegate submit(session), to: Driver
 
   @doc """
@@ -266,6 +481,7 @@ defmodule PhoenixTest do
   |> click_button("Create")
   ```
   """
+  @deprecated "Use `fill_in/3`, `select/3`, `choose/2`, `check/2`, `uncheck/2`, and `within/3` instead."
   defdelegate fill_form(session, selector, data), to: Driver
 
   @doc """
@@ -297,6 +513,7 @@ defmodule PhoenixTest do
   |> submit_form("#user-form", user: %{email: "aragorn@dunedain.com"})
   ```
   """
+  @deprecated "Use `submit/3` in combination with `fill_in/3`, `choose/2`, etc. instead"
   defdelegate submit_form(session, selector, data), to: Driver
 
   @doc """

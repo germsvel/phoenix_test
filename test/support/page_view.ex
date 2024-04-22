@@ -201,6 +201,10 @@ defmodule PhoenixTest.PageView do
       <input type="text" id="no-button-form-country" name="country" />
     </form>
 
+    <form id="invalid-form">
+      <label for="email-no-input">Email (no input)</label>
+    </form>
+
     <button type="button">Actionless Button</button>
     """
   end

@@ -203,6 +203,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def fill_form(session, selector, form_data) do
+    change_form(session, selector, form_data)
+  end
+
+  defp change_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
     form =
