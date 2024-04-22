@@ -444,9 +444,12 @@ defmodule PhoenixTest do
   Assert helper to verify current request path. Takes an optional `query_params`
   map.
 
-  > ### Limited live patch implementation {: .warning}
+  > ### Note on Live Patch Implementation {: .info}
   >
-  > The current `assert_path` implementation doesn't support live patches.
+  > Capturing the current path in live patches relies on message passing and
+  could, therefore, be subject to intermittent failures. Please open an issue if
+  you see intermittent failures when using `assert_path` with live patches so we
+  can improve the implementation.
 
   ## Examples
 
@@ -473,9 +476,12 @@ defmodule PhoenixTest do
   Verifies current request path is NOT the one provided. Takes an optional
   `query_params` map for more specificity.
 
-  > ### Limited live patch implementation {: .warning}
+  > ### Note on Live Patch Implementation {: .info}
   >
-  > The current `refute_path` implementation doesn't support live patches.
+  > Capturing the current path in live patches relies on message passing and
+  could, therefore, be subject to intermittent failures. Please open an issue if
+  you see intermittent failures when using `refute_path` with live patches so we
+  can improve the implementation.
 
   ## Examples
 
