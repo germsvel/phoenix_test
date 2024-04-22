@@ -3,10 +3,11 @@ defmodule PhoenixTest.Static do
 
   alias PhoenixTest.ActiveForm
 
-  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: nil
+  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
-    %__MODULE__{conn: conn, current_path: conn.request_path}
+    current_path = conn.request_path <> "?" <> conn.query_string
+    %__MODULE__{conn: conn, current_path: current_path}
   end
 end
 

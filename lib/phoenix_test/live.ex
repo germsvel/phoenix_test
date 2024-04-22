@@ -7,7 +7,7 @@ defmodule PhoenixTest.Live do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: nil
+  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
@@ -281,6 +281,22 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   defp maybe_redirect(html, session) when is_binary(html) do
-    session
+    maybe_put_patch_path(session)
+  end
+
+  defp maybe_put_patch_path(session) do
+    case fetch_patch_path(session.view) do
+      :no_path ->
+        session
+
+      path when is_binary(path) ->
+        %{session | current_path: path}
+    end
+  end
+
+  defp fetch_patch_path(view) do
+    assert_patch(view, 0)
+  rescue
+    ArgumentError -> :no_path
   end
 end
