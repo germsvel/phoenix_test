@@ -7,6 +7,24 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.2.12
+
+### Fixes
+
+- Fix checked checkbox being overridden by hidden input. Commit [a621f34]
+- Handle multiple checkboxes inside a label. Commit [a8fc877]
+- Fix `assert_path`/`refute_path` to handle live patching. Commit [48a29a3]
+- Fix `assert_path`/`refute_path` to handle Live Navigation. Commit [842ab36]
+- Fix `assert_has`/`refute_has` title matching exactly. Commit [7b2f243]
+- Update `assert_has` examples in README to new API. Commit [cb7529b]
+
+[a621f34]: https://github.com/germsvel/phoenix_test/commit/a621f34
+[a8fc877]: https://github.com/germsvel/phoenix_test/commit/a8fc877
+[48a29a3]: https://github.com/germsvel/phoenix_test/commit/48a29a3
+[842ab36]: https://github.com/germsvel/phoenix_test/commit/842ab36
+[7b2f243]: https://github.com/germsvel/phoenix_test/commit/7b2f243
+[cb7529b]: https://github.com/germsvel/phoenix_test/commit/cb7529b
+
 ## 0.2.11
 
 ### Improvements
