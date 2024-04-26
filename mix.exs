@@ -58,7 +58,11 @@ defmodule PhoenixTest.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md": [title: "Introduction"], "CHANGELOG.md": [title: "Changelog"]]
+      extras: [
+        "README.md": [title: "Introduction"],
+        "CHANGELOG.md": [title: "Changelog"],
+        "upgrade_guides.md": [title: "Upgrade Guides"]
+      ]
     ]
   end
 end

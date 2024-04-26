@@ -205,7 +205,7 @@ defmodule PhoenixTest do
   ```elixir
   session
   |> click_button("Complete")
-  # ^ includes `%{"admin" => "true"}` and `%{"complete" => "true"}` in payload
+  # ^ includes `%{"admin" => "true", "complete" => "true"}` in payload
   ```
 
   ## Single-button forms

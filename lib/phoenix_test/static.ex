@@ -24,6 +24,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
   def render_page_title(session) do
     session
     |> render_html()
