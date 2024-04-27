@@ -110,6 +110,12 @@ defmodule PhoenixTest.FormTest do
           <option value="selected" selected>Selected</option>
         </select>
 
+        <select multiple name="select_multiple">
+          <option value="select_1" selected>Selected 1</option>
+          <option value="select_2" selected>Selected 2</option>
+          <option value="select_3">Not Selected</option>
+        </select>
+
         <select name="select_none_selected">
           <option value="first">Selected by default</option>
         </select>
@@ -129,6 +135,7 @@ defmodule PhoenixTest.FormTest do
                "input" => "value",
                "text-input" => "text value",
                "select" => "selected",
+               "select_multiple" => ["select_1", "select_2"],
                "checkbox" => "checked",
                "radio" => "checked"
              } = form.form_data

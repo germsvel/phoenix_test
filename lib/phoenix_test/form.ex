@@ -91,7 +91,7 @@ defmodule PhoenixTest.Form do
         case {Html.all(select, "option"), Html.all(select, "option[selected]")} do
           {[], _} -> acc
           {_, [only_selected]} -> Map.merge(acc, to_form_field(select, only_selected))
-          {[first | _], _} -> Map.merge(acc, to_form_field(select, first))
+          {_, multi_select} -> Map.merge(acc, to_form_field(select, multi_select))
         end
       end)
 
@@ -107,6 +107,12 @@ defmodule PhoenixTest.Form do
 
   defp to_form_field(element) do
     to_form_field(element, element)
+  end
+
+  defp to_form_field(name_element, value_elements) when is_list(value_elements) do
+    name = Html.attribute(name_element, "name")
+    values = Enum.map(value_elements, &Html.attribute(&1, "value"))
+    Utils.name_to_map(name, values)
   end
 
   defp to_form_field(name_element, value_element) do
