@@ -31,8 +31,25 @@ defmodule PhoenixTest.Field do
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 
-    option = Query.find!(Html.raw(field), "option", option)
-    value = Html.attribute(option, "value")
+    multiple = Html.attribute(field, "multiple") == "multiple"
+
+    value =
+      case {multiple, option} do
+        {true, [_|_]} ->
+          Enum.map(option, fn opt ->
+            opt = Query.find!(Html.raw(field), "option", opt)
+            Html.attribute(opt, "value")
+          end)
+        {true, _} ->
+          option = Query.find!(Html.raw(field), "option", option)
+          [Html.attribute(option, "value")]
+        {false, [_|_]} ->
+          # TODO: raise error
+          nil
+        {false, _} ->
+          option = Query.find!(Html.raw(field), "option", option)
+          Html.attribute(option, "value")
+      end
 
     %__MODULE__{
       source_raw: html,

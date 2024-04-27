@@ -135,6 +135,14 @@ defmodule PhoenixTest.IndexLive do
         <option value="orc">Orc</option>
       </select>
 
+      <label for="race_2">Race 2</label>
+      <select multiple id="race_2" name="race_2">
+        <option value="human">Human</option>
+        <option value="elf">Elf</option>
+        <option value="dwarf">Dwarf</option>
+        <option value="orc">Orc</option>
+      </select>
+
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>
