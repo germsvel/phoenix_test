@@ -21,7 +21,7 @@ test "admin can create a user", %{conn: conn} do
   conn
   |> visit("/")
   |> click_link("Users")
-  |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedain.com")
+  |> fill_in("Name", with: "Aragorn")
   |> click_button("Create")
   |> assert_has(".user", text: "Aragorn")
 end
@@ -31,102 +31,7 @@ Note that PhoenixTest does not handle JavaScript. If you're looking for
 something that supports JavaScript, take a look at
 [Wallaby](https://hexdocs.pm/wallaby/readme.html).
 
-## Setup
-
-PhoenixTest requires Phoenix `1.7+` and LiveView `0.20+`. It may work with
-earlier versions, but I have not tested that.
-
-### Installation
-
-Add `phoenix_test` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:phoenix_test, "~> 0.2.12", only: :test, runtime: false}
-  ]
-end
-```
-
-### Configuration
-
-In `config/test.exs` specify the endpoint to be used for routing requests:
-
-```elixir
-config :phoenix_test, :endpoint, MyAppWeb.Endpoint
-```
-
-### Adding a `FeatureCase`
-
-`PhoenixTest` helpers can be included via `import PhoenixTest`.
-
-But since each test needs a `conn` struct to get started, you'll likely want to
-set up a few things before that.
-
-To make that easier, it's helpful to create a `FeatureCase` module that can be
-used from your tests (replace `MyApp` with your app's name):
-
-```elixir
-defmodule MyAppWeb.FeatureCase do
-  @moduledoc """
-  This module defines the test case to be used by tests that require setting up
-  a connection to test feature tests.
-
-  Such tests rely on `PhoenixTest` and also import other functionality to
-  make it easier to build common data structures and interact with pages.
-
-  Finally, if the test case interacts with the database, we enable the SQL
-  sandbox, so changes done to the database are reverted at the end of every
-  test. If you are using PostgreSQL, you can even run database tests
-  asynchronously by setting `use MyAppWeb.FeatureCase, async: true`, although
-  this option is not recommended for other databases.
-  """
-
-  use ExUnit.CaseTemplate
-
-  using do
-    quote do
-      use MyAppWeb, :verified_routes
-
-      import MyAppWeb.FeatureCase
-
-      import PhoenixTest
-    end
-  end
-
-  setup tags do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(MyApp.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
-
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
-  end
-end
-```
-
-Note that we assume your Phoenix project is using Ecto and its phenomenal
-`SQL.Sandbox`. If it doesn't, feel free to remove the `SQL.Sandbox` code above.
-
-## Usage
-
-Now, you can create your tests like this:
-
-```elixir
-# test/my_app_web/features/admin_can_create_user_test.exs
-
-defmodule MyAppWeb.AdminCanCreateUserTest do
-  use MyAppWeb.FeatureCase, async: true
-
-  test "admin can create user", %{conn: conn} do
-    conn
-    |> visit("/")
-    |> click_link("Users")
-    |> fill_form("#user-form", name: "Aragorn", email: "aragorn@dunedain.com")
-    |> click_button("Create")
-    |> assert_has(".user", text: "Aragorn")
-  end
-```
-
-For full documentation, take a look at [PhoenixTest module docs](https://hexdocs.pm/phoenix_test/PhoenixTest.html).
+For full documentation, take a look at [PhoenixTest docs](https://hexdocs.pm/phoenix_test/PhoenixTest.html).
 
 ## Why PhoenixTest?
 
@@ -205,13 +110,7 @@ pages -- pages that were normal prior to the advent of LiveView and which are
 sometimes called "dead" views. Thus, we do not mean _static_ in the sense that
 static-site generators (such as Jekyll, Gatsby, etc.) mean it.
 
-## Sponsors
 
-Made possible thanks to:
+**Made with ❤️  by [German Velasco]**
 
-<a href="https://www.elixirstreams.com">
-  <figure>
-    <img height="100" width="100" src="https://www.elixirstreams.com/assets/images/elixir-streams-logo-transparent.png">
-    <figcaption>Elixir Streams</figcaption>
-  </figure>
-</a>
+[German Velasco]: https://germanvelasco.com
