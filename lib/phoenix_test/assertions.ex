@@ -49,12 +49,6 @@ defmodule PhoenixTest.Assertions do
     assert_has(session, selector)
   end
 
-  def assert_has(session, "title", text) when is_binary(text) do
-    log_deprecated_warning(:assert_has)
-
-    assert_has(session, "title", text: text)
-  end
-
   def assert_has(session, "title", opts) do
     text = Keyword.fetch!(opts, :text)
     exact = Keyword.get(opts, :exact, false)
@@ -71,11 +65,6 @@ defmodule PhoenixTest.Assertions do
     end
 
     session
-  end
-
-  def assert_has(session, selector, text) when is_binary(text) do
-    log_deprecated_warning(:assert_has)
-    assert_has(session, selector, text: text)
   end
 
   def assert_has(session, selector, opts) when is_list(opts) do
@@ -147,11 +136,6 @@ defmodule PhoenixTest.Assertions do
     refute_has(session, selector, count: :any)
   end
 
-  def refute_has(session, "title", text) when is_binary(text) do
-    log_deprecated_warning(:refute_has)
-    refute_has(session, "title", text: text)
-  end
-
   def refute_has(session, "title", opts) do
     text = Keyword.fetch!(opts, :text)
     exact = Keyword.get(opts, :exact, false)
@@ -168,11 +152,6 @@ defmodule PhoenixTest.Assertions do
     end
 
     session
-  end
-
-  def refute_has(session, selector, text) when is_binary(text) do
-    log_deprecated_warning(:refute_has)
-    refute_has(session, selector, text: text)
   end
 
   def refute_has(session, selector, opts) when is_list(opts) do
@@ -362,22 +341,4 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp format_found_elements(element), do: format_found_elements([element])
-
-  defp log_deprecated_warning(func) do
-    IO.warn("""
-    PhoenixTest.#{func}/3 with `text` as the third argument has been deprecated.
-    Use #{func}/3 with `text` as an option instead:
-
-    # Change from this:
-      #{func}(session, ".posts", "Hello world")
-
-    # to this:
-      #{func}(session, ".posts", text: "Hello world")
-
-    I know it's a pain (sorry about that).
-
-    But trust me, it allows you to combine it with other options you'll like
-    (such as `count`, `exact`, and `at`)
-    """)
-  end
 end
