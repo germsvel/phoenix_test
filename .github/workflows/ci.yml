@@ -64,7 +64,7 @@ jobs:
       run: mix deps.get
 
     - name: Compiles without warnings
-      run: mix compile
+      run: mix compile --warnings-as-errors
 
     - name: Check Formatting
       run: mix format --check-formatted
