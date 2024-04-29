@@ -158,7 +158,7 @@ defmodule PhoenixTest.Static do
         new_form_data
       end
 
-    change_form(session, form.selector, form_data)
+    fill_form(session, form.selector, form_data)
   end
 
   def submit(session) do
@@ -186,10 +186,6 @@ defmodule PhoenixTest.Static do
   end
 
   def fill_form(session, selector, form_data) do
-    change_form(session, selector, form_data)
-  end
-
-  def change_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
     form =
@@ -212,17 +208,13 @@ defmodule PhoenixTest.Static do
   end
 
   def submit_form(session, selector, form_data) do
-    submit_form_directly(session, selector, form_data)
-  end
-
-  def submit_form_directly(session, selector, form_data) do
     form =
       session
       |> render_html()
       |> Form.find!(selector)
 
     session
-    |> change_form(selector, form_data)
+    |> fill_form(selector, form_data)
     |> submit_active_form(form)
   end
 
@@ -287,8 +279,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate uncheck(session, label), to: Static
   defdelegate choose(session, label), to: Static
   defdelegate submit(session), to: Static
-  defdelegate fill_form(session, selector, form_data), to: Static
-  defdelegate submit_form(session, selector, form_data), to: Static
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static
 end

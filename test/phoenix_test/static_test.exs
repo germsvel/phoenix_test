@@ -226,10 +226,10 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "save-button: nested-form-save")
     end
 
-    test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
+    test "can handle clicking button that does not submit form after fill_in", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> fill_form("#email-form", email: "some@example.com")
+      |> fill_in("Email", with: "some@example.com")
       |> click_button("Delete record")
       |> refute_has("#form-data", text: "email: some@example.com")
     end
@@ -591,145 +591,6 @@ defmodule PhoenixTest.StaticTest do
         |> visit("/page/index")
         |> submit()
       end
-    end
-  end
-
-  describe "fill_form/3" do
-    test "raises an error when form cannot be found with given selector", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
-        conn
-        |> visit("/page/index")
-        |> fill_form("#no-existing-form", name: "Aragorn")
-      end
-    end
-
-    test "raises an error when form input cannot be found", %{conn: conn} do
-      message =
-        """
-        Expected form to have "location[user][name]" form field, but found none.
-
-        Found the following fields:
-
-        <input id="no-submit-button-form-name" name="name"/>\n
-        """
-
-      assert_raise ArgumentError, message, fn ->
-        conn
-        |> visit("/page/index")
-        |> fill_form("#no-submit-button-form", location: %{user: %{name: "Aragorn"}})
-      end
-    end
-  end
-
-  describe "fill_form + click_button" do
-    test "can submit forms with input type submit", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> fill_form("#email-form", email: "sample@example.com")
-      |> click_button("Save Email")
-      |> assert_has("#form-data", text: "email: sample@example.com")
-    end
-
-    test "can handle clicking button that does not submit form after fill_form", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> fill_form("#email-form", email: "some@example.com")
-      |> click_button("Delete record")
-      |> refute_has("#form-data", text: "email: some@example.com")
-    end
-
-    test "can submit nested forms", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> fill_form("#nested-form", user: %{name: "Aragorn"})
-      |> click_button("#nested-form", "Save Nested Form")
-      |> assert_has("#form-data", text: "user:name: Aragorn")
-    end
-
-    test "can submit forms with inputs, checkboxes, selects, textboxes", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> fill_form("#full-form",
-        name: "Aragorn",
-        admin: "on",
-        race: "human",
-        notes: "King of Gondor",
-        member_of_fellowship: "on"
-      )
-      |> click_button("Save Full Form")
-      |> assert_has("#form-data", text: "name: Aragorn")
-      |> assert_has("#form-data", text: "admin: on")
-      |> assert_has("#form-data", text: "race: human")
-      |> assert_has("#form-data", text: "notes: King of Gondor")
-      |> assert_has("#form-data", text: "member_of_fellowship: on")
-    end
-
-    test "can handle redirects into a LiveView", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> fill_form("#redirect-to-liveview-form", name: "Aragorn")
-      |> click_button("Save and Redirect to LiveView")
-      |> assert_has("h1", text: "LiveView main page")
-    end
-  end
-
-  describe "submit_form/3" do
-    test "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> submit_form("#no-submit-button-form", name: "Aragorn")
-      |> assert_has("#form-data", text: "name: Aragorn")
-    end
-
-    test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button)",
-         %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> submit_form("#pre-rendered-data-form", [])
-      |> assert_has("#form-data", text: "input: value")
-      |> assert_has("#form-data", text: "select: selected")
-      |> assert_has("#form-data", text: "select_none_selected: first")
-      |> assert_has("#form-data", text: "checkbox: checked")
-      |> assert_has("#form-data", text: "radio: checked")
-    end
-
-    test "can handle redirects", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> submit_form("#no-submit-button-and-redirect", name: "Aragorn")
-      |> assert_has("h1", text: "LiveView main page")
-    end
-
-    test "handles when form PUTs data through hidden input", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> submit_form("#update-form", name: "Aragorn")
-      |> assert_has("#form-data", text: "name: Aragorn")
-    end
-
-    test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> click_button("Delete record")
-      |> assert_has("h1", text: "Record deleted")
-    end
-
-    test "raises an error if the form can't be found", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
-        conn
-        |> visit("/page/index")
-        |> submit_form("#no-existing-form", email: "some@example.com")
-      end
-    end
-
-    test "raises an error if a field can't be found", %{conn: conn} do
-      assert_raise ArgumentError,
-                   ~r/Expected form to have "member_of_fellowship" form field/,
-                   fn ->
-                     conn
-                     |> visit("/page/index")
-                     |> submit_form("#email-form", member_of_fellowship: false)
-                   end
     end
   end
 

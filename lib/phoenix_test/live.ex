@@ -76,7 +76,7 @@ defmodule PhoenixTest.Live do
 
         session
         |> Map.put(:active_form, ActiveForm.new())
-        |> submit_form_directly(form.selector, form_data, additional_data)
+        |> submit_form(form.selector, form_data, additional_data)
 
       true ->
         raise ArgumentError, """
@@ -144,7 +144,7 @@ defmodule PhoenixTest.Live do
         new_form_data
       end
 
-    change_form(session, form.selector, form_data)
+    fill_form(session, form.selector, form_data)
   end
 
   def submit(session) do
@@ -178,7 +178,7 @@ defmodule PhoenixTest.Live do
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.Static.change_form(selector, form_data)
+        |> PhoenixTest.Static.fill_form(selector, form_data)
         |> PhoenixTest.submit()
 
       true ->
@@ -194,10 +194,6 @@ defmodule PhoenixTest.Live do
   end
 
   def fill_form(session, selector, form_data) do
-    change_form(session, selector, form_data)
-  end
-
-  defp change_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
     form =
@@ -226,11 +222,7 @@ defmodule PhoenixTest.Live do
     Map.put(session, :active_form, active_form)
   end
 
-  def submit_form(session, selector, form_data, event_data \\ %{}) do
-    submit_form_directly(session, selector, form_data, event_data)
-  end
-
-  defp submit_form_directly(session, selector, form_data, event_data) do
+  def submit_form(session, selector, form_data, event_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
     form =
@@ -250,7 +242,7 @@ defmodule PhoenixTest.Live do
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.Static.submit_form_directly(selector, form_data)
+        |> PhoenixTest.Static.submit_form(selector, form_data)
 
       true ->
         raise ArgumentError,
@@ -316,8 +308,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate uncheck(session, label), to: Live
   defdelegate choose(session, label), to: Live
   defdelegate submit(session), to: Live
-  defdelegate fill_form(session, selector, form_data), to: Live
-  defdelegate submit_form(session, selector, form_data), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live
 end

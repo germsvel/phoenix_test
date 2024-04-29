@@ -621,68 +621,6 @@ defmodule PhoenixTest do
   defdelegate submit(session), to: Driver
 
   @doc """
-  Fills form data, validating that input fields are present.
-
-  This can be used by both static and live pages.
-
-  If the form is a LiveView form, and if the form has a `phx-change` attribute
-  defined, `fill_form/3` will trigger the `phx-change` event.
-
-  This can be followed by a `click_button/3` to submit the form.
-
-  ## Examples
-
-  ```elixir
-  session
-  |> fill_form("#user-form", name: "Aragorn")
-  |> click_button("Create")
-  ```
-
-  If your form has nested data -- for example, with an input such as `<input
-  name="user[email]">` -- you can pass a nested map as the last argument:
-
-  ```elixir
-  session
-  |> fill_form("#user-form", user: %{email: "aragorn@dunedain.com"})
-  |> click_button("Create")
-  ```
-  """
-  @deprecated "Use `fill_in/3`, `select/3`, `choose/2`, `check/2`, `uncheck/2`, and `within/3` instead."
-  defdelegate fill_form(session, selector, data), to: Driver
-
-  @doc """
-  Submits form in the same way one would do by pressing `<Enter>`.
-
-  _Note that this does not validate presence of the submit button._
-
-  In the case of LiveView forms, it'll submit the form with LiveView's
-  `phx-submit` event.
-
-  If it's a static form, this is equivalent to filling the form and submitting
-  it with the form's `method` and to the form's `action`.
-
-  Note: if your form has a submit button, it's recommended you test with
-  `fill_form/3` + `click_button/2` instead.
-
-  ## Examples
-
-  ```elixir
-  session
-  |> submit_form("#user-form", name: "Aragorn")
-  ```
-
-  If your form has nested data -- for example, with an input such as `<input
-  name="user[email]">` -- you can pass a nested map as the last argument:
-
-  ```elixir
-  session
-  |> submit_form("#user-form", user: %{email: "aragorn@dunedain.com"})
-  ```
-  """
-  @deprecated "Use `submit/3` in combination with `fill_in/3`, `choose/2`, etc. instead"
-  defdelegate submit_form(session, selector, data), to: Driver
-
-  @doc """
   Open the default browser to display current HTML of `session`.
 
   ## Examples
