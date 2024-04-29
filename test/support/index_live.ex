@@ -201,6 +201,11 @@ defmodule PhoenixTest.IndexLive do
     </form>
 
     <button type="button">Actionless Button</button>
+
+    <form id="redirect-on-change" phx-change="redirect-on-change">
+      <label for="email-on-change">Email with redirect</label>
+      <input id="email-on-change" name="email" />
+    </form>
     """
   end
 
@@ -285,6 +290,10 @@ defmodule PhoenixTest.IndexLive do
     |> assign(:form_saved, true)
     |> assign(:form_data, form_data)
     |> then(&{:noreply, &1})
+  end
+
+  def handle_event("redirect-on-change", _, socket) do
+    {:noreply, push_navigate(socket, to: "/live/page_2")}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do

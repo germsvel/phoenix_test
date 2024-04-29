@@ -207,19 +207,22 @@ defmodule PhoenixTest.Live do
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
+    session = Map.put(session, :active_form, active_form)
+
     if Form.phx_change?(form) do
       session.view
       |> form(selector, active_form.form_data)
       |> render_change()
+      |> maybe_redirect(session)
     else
       form.parsed
       |> Html.Form.build()
       |> then(fn form ->
         :ok = Html.Form.validate_form_fields!(form["fields"], form_data)
       end)
-    end
 
-    Map.put(session, :active_form, active_form)
+      session
+    end
   end
 
   def submit_form(session, selector, form_data, event_data) do

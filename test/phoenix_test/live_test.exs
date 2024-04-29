@@ -343,6 +343,13 @@ defmodule PhoenixTest.LiveTest do
       assert starting_html == ending_html
     end
 
+    test "follows redirects on phx-change", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email with redirect", with: "someone@example.com")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
     test "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
