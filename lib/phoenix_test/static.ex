@@ -1,17 +1,6 @@
 defmodule PhoenixTest.Static do
   @moduledoc false
 
-  alias PhoenixTest.ActiveForm
-
-  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
-
-  def build(conn) do
-    current_path = conn.request_path <> "?" <> conn.query_string
-    %__MODULE__{conn: conn, current_path: current_path}
-  end
-end
-
-defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   import Phoenix.ConnTest
 
   alias PhoenixTest.ActiveForm
@@ -24,6 +13,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
+  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+
+  def build(conn) do
+    current_path = conn.request_path <> "?" <> conn.query_string
+    %__MODULE__{conn: conn, current_path: current_path}
+  end
 
   def render_page_title(session) do
     session
@@ -162,7 +158,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         new_form_data
       end
 
-    fill_form(session, form.selector, form_data)
+    change_form(session, form.selector, form_data)
   end
 
   def submit(session) do
@@ -190,6 +186,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def fill_form(session, selector, form_data) do
+    change_form(session, selector, form_data)
+  end
+
+  def change_form(session, selector, form_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
     form =
@@ -212,13 +212,17 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   end
 
   def submit_form(session, selector, form_data) do
+    submit_form_directly(session, selector, form_data)
+  end
+
+  def submit_form_directly(session, selector, form_data) do
     form =
       session
       |> render_html()
       |> Form.find!(selector)
 
     session
-    |> fill_form(selector, form_data)
+    |> change_form(selector, form_data)
     |> submit_active_form(form)
   end
 
@@ -265,4 +269,26 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
         %{session | conn: conn}
     end
   end
+end
+
+defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
+  alias PhoenixTest.Static
+
+  defdelegate render_page_title(session), to: Static
+  defdelegate render_html(session), to: Static
+  defdelegate click_link(session, text), to: Static
+  defdelegate click_link(session, selector, text), to: Static
+  defdelegate click_button(session, text), to: Static
+  defdelegate click_button(session, selector, text), to: Static
+  defdelegate within(session, selector, fun), to: Static
+  defdelegate fill_in(session, label, attrs), to: Static
+  defdelegate select(session, option, attrs), to: Static
+  defdelegate check(session, label), to: Static
+  defdelegate uncheck(session, label), to: Static
+  defdelegate choose(session, label), to: Static
+  defdelegate submit(session), to: Static
+  defdelegate fill_form(session, selector, form_data), to: Static
+  defdelegate submit_form(session, selector, form_data), to: Static
+  defdelegate open_browser(session), to: Static
+  defdelegate open_browser(session, open_fun), to: Static
 end

@@ -4,6 +4,11 @@ defmodule PhoenixTest.Live do
   import Phoenix.LiveViewTest
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.Button
+  alias PhoenixTest.Field
+  alias PhoenixTest.Form
+  alias PhoenixTest.Html
+  alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
@@ -13,20 +18,6 @@ defmodule PhoenixTest.Live do
     {:ok, view, _html} = live(conn)
     %__MODULE__{view: view, conn: conn, current_path: conn.request_path}
   end
-end
-
-defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
-  import Phoenix.ConnTest
-  import Phoenix.LiveViewTest
-
-  alias PhoenixTest.ActiveForm
-  alias PhoenixTest.Button
-  alias PhoenixTest.Field
-  alias PhoenixTest.Form
-  alias PhoenixTest.Html
-  alias PhoenixTest.Query
-
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
   def render_page_title(%{view: view}) do
     page_title(view)
@@ -85,7 +76,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
         session
         |> Map.put(:active_form, ActiveForm.new())
-        |> submit_form(form.selector, form_data, additional_data)
+        |> submit_form_directly(form.selector, form_data, additional_data)
 
       true ->
         raise ArgumentError, """
@@ -153,7 +144,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
         new_form_data
       end
 
-    fill_form(session, form.selector, form_data)
+    change_form(session, form.selector, form_data)
   end
 
   def submit(session) do
@@ -187,7 +178,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.fill_form(selector, form_data)
+        |> PhoenixTest.Static.change_form(selector, form_data)
         |> PhoenixTest.submit()
 
       true ->
@@ -236,6 +227,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   end
 
   def submit_form(session, selector, form_data, event_data \\ %{}) do
+    submit_form_directly(session, selector, form_data, event_data)
+  end
+
+  defp submit_form_directly(session, selector, form_data, event_data) do
     form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
 
     form =
@@ -255,7 +250,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.submit_form(selector, form_data)
+        |> PhoenixTest.Static.submit_form_directly(selector, form_data)
 
       true ->
         raise ArgumentError,
@@ -303,4 +298,26 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   rescue
     ArgumentError -> :no_path
   end
+end
+
+defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
+  alias PhoenixTest.Live
+
+  defdelegate render_page_title(session), to: Live
+  defdelegate render_html(session), to: Live
+  defdelegate click_link(session, text), to: Live
+  defdelegate click_link(session, selector, text), to: Live
+  defdelegate click_button(session, text), to: Live
+  defdelegate click_button(session, selector, text), to: Live
+  defdelegate within(session, selector, fun), to: Live
+  defdelegate fill_in(session, label, attrs), to: Live
+  defdelegate select(session, option, attrs), to: Live
+  defdelegate check(session, label), to: Live
+  defdelegate uncheck(session, label), to: Live
+  defdelegate choose(session, label), to: Live
+  defdelegate submit(session), to: Live
+  defdelegate fill_form(session, selector, form_data), to: Live
+  defdelegate submit_form(session, selector, form_data), to: Live
+  defdelegate open_browser(session), to: Live
+  defdelegate open_browser(session, open_fun), to: Live
 end
