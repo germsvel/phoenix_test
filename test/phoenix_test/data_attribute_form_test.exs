@@ -1,7 +1,7 @@
-defmodule PhoenixTest.Html.DataAttributeFormTest do
+defmodule PhoenixTest.DataAttributeFormTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Html.DataAttributeForm
+  alias PhoenixTest.DataAttributeForm
   alias PhoenixTest.Query
 
   describe "build/1" do

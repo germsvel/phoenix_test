@@ -5,6 +5,7 @@ defmodule PhoenixTest.Static do
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Button
+  alias PhoenixTest.DataAttributeForm
   alias PhoenixTest.Field
   alias PhoenixTest.Form
   alias PhoenixTest.Html
@@ -57,8 +58,8 @@ defmodule PhoenixTest.Static do
     if Link.has_data_method?(link) do
       form =
         link.parsed
-        |> Html.DataAttributeForm.build()
-        |> Html.DataAttributeForm.validate!(selector, text)
+        |> DataAttributeForm.build()
+        |> DataAttributeForm.validate!(selector, text)
 
       session.conn
       |> dispatch(@endpoint, form.method, form.action, form.data)
@@ -81,8 +82,8 @@ defmodule PhoenixTest.Static do
     if Button.has_data_method?(button) do
       form =
         button.parsed
-        |> Html.DataAttributeForm.build()
-        |> Html.DataAttributeForm.validate!(selector, text)
+        |> DataAttributeForm.build()
+        |> DataAttributeForm.validate!(selector, text)
 
       session.conn
       |> dispatch(@endpoint, form.method, form.action, form.data)

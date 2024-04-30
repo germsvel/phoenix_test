@@ -1,4 +1,4 @@
-defmodule PhoenixTest.Html.DataAttributeForm do
+defmodule PhoenixTest.DataAttributeForm do
   @moduledoc false
 
   alias PhoenixTest.Html
