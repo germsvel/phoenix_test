@@ -215,12 +215,6 @@ defmodule PhoenixTest.Live do
       |> render_change()
       |> maybe_redirect(session)
     else
-      form.parsed
-      |> Html.Form.build()
-      |> then(fn form ->
-        :ok = Html.Form.validate_form_fields!(form["fields"], form_data)
-      end)
-
       session
     end
   end

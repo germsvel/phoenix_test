@@ -199,11 +199,6 @@ defmodule PhoenixTest.Static do
       |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
-    :ok =
-      form.parsed
-      |> Html.Form.build()
-      |> Html.Form.validate_form_data!(active_form.form_data)
-
     Map.put(session, :active_form, active_form)
   end
 
