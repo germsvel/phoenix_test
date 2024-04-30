@@ -35,17 +35,20 @@ defmodule PhoenixTest.Field do
 
     value =
       case {multiple, option} do
-        {true, [_|_]} ->
+        {true, [_ | _]} ->
           Enum.map(option, fn opt ->
             opt = Query.find!(Html.raw(field), "option", opt)
             Html.attribute(opt, "value")
           end)
+
         {true, _} ->
           option = Query.find!(Html.raw(field), "option", option)
           [Html.attribute(option, "value")]
-        {false, [_|_]} ->
+
+        {false, [_ | _]} ->
           # TODO: raise error
           nil
+
         {false, _} ->
           option = Query.find!(Html.raw(field), "option", option)
           Html.attribute(option, "value")

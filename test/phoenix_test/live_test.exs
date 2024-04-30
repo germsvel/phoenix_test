@@ -421,32 +421,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
-    test "works for multiple select type 1", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> select("Elf", from: "Race")
-      |> select("Dwarf", from: "Race 2") # selecting only one option for multiple select
-      |> click_button("Save Full Form")
-      |> assert_has("#form-data", text: "race_2: dwarf")
-    end
-
-    test "works for multiple select type 2", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> select("Elf", from: "Race")
-      |> select("Elf", from: "Race 2")
-      |> select("Dwarf", from: "Race 2") # TODO: Is this a valid way for selecting multiple?
-      |> click_button("Save Full Form")
-      |> assert_has("#form-data", text: "race_2: dwarf")
-    end
-
-    test "works for multiple select type 3", %{conn: conn} do
+    test "works for multiple select", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> select("Elf", from: "Race")
       |> select(["Elf", "Dwarf"], from: "Race 2")
       |> click_button("Save Full Form")
-      |> assert_has("#form-data", text: "3")
+      |> assert_has("#form-data", text: "[elf, dwarf]")
     end
   end
 
