@@ -63,7 +63,7 @@ defmodule PhoenixTest.Live do
         |> render_click()
         |> maybe_redirect(session)
 
-      Button.belongs_to_form?(button, html) ->
+      Button.belongs_to_form?(button) ->
         additional_data = Button.to_form_data(button)
         form = Button.parent_form!(button)
 

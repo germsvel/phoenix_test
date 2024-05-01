@@ -45,8 +45,8 @@ defmodule PhoenixTest.Button do
     }
   end
 
-  def belongs_to_form?(button, html) do
-    case Query.find_ancestor(html, "form", {button.selector, button.text}) do
+  def belongs_to_form?(button) do
+    case Query.find_ancestor(button.source_raw, "form", {button.selector, button.text}) do
       {:found, _} -> true
       _ -> false
     end
