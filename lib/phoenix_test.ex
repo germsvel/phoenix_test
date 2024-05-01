@@ -638,6 +638,42 @@ defmodule PhoenixTest do
   defdelegate open_browser(session, open_fun), to: Driver
 
   @doc """
+  Escape hatch to give users access to underlying "native" data structure.
+
+  Once the unwrapped actions are performed, PhoenixTest will handle redirects
+  (if any).
+
+  - In LiveView tests, `unwrap/2` will pass the `view` that comes from
+  Phoenix.LiveViewTest `live/2`. Your action _must_ return the result of a
+  `render_*` LiveViewTest action.
+
+  - In non-LiveView tests, `unwrap/2` will pass the `conn` struct. And your
+  action _must_ return a `conn` struct.
+
+  ## Examples
+
+  ```elixir
+  # in a LiveView
+  session
+  |> unwrap(fn view ->
+    view
+    |> LiveViewTest.element("#hook")
+    |> LiveViewTest.render_hook(:hook_event, %{name: "Legolas"})
+  end)
+  ```
+
+  ```elixir
+  # in a non-LiveView
+  session
+  |> unwrap(fn conn ->
+    conn
+    |> Phoenix.ConnTest.recycle()
+  end)
+  ```
+  """
+  defdelegate unwrap(session, fun), to: Driver
+
+  @doc """
   Assert helper to ensure an element with given CSS selector is present.
 
   It'll raise an error if no elements are found, but it will _not_ raise if more

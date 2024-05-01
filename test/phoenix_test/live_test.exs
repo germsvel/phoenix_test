@@ -621,6 +621,30 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "unwrap" do
+    test "provides an escape hatch that gives access to the underlying view", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> unwrap(fn view ->
+        view
+        |> Phoenix.LiveViewTest.element("#hook")
+        |> Phoenix.LiveViewTest.render_hook(:hook_event, %{name: "Legolas"})
+      end)
+      |> assert_has("#form-data", text: "name: Legolas")
+    end
+
+    test "follows redirects after unwrap action", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> unwrap(fn view ->
+        view
+        |> Phoenix.LiveViewTest.element("#hook-with-redirect")
+        |> Phoenix.LiveViewTest.render_hook(:hook_with_redirect_event)
+      end)
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+  end
+
   describe "session.current_path" do
     test "it is set on visit", %{conn: conn} do
       session = visit(conn, "/live/index")

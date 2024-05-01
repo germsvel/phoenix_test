@@ -89,7 +89,7 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def within(session, selector, fun) do
+  def within(session, selector, fun) when is_function(fun, 1) do
     session
     |> Map.put(:within, selector)
     |> fun.()
@@ -256,6 +256,12 @@ defmodule PhoenixTest.Live do
     session
   end
 
+  def unwrap(%{view: view} = session, fun) when is_function(fun, 1) do
+    view
+    |> fun.()
+    |> maybe_redirect(session)
+  end
+
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
     PhoenixTest.visit(session.conn, path)
   end
@@ -311,4 +317,5 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live
+  defdelegate unwrap(session, fun), to: Live
 end

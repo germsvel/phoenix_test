@@ -13,6 +13,7 @@ defprotocol PhoenixTest.Driver do
   def uncheck(session, label)
   def choose(session, label)
   def submit(session)
+  def unwrap(session, fun)
   def open_browser(session)
   def open_browser(session, open_fun)
 end

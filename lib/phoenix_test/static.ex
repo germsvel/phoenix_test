@@ -105,7 +105,7 @@ defmodule PhoenixTest.Static do
     end
   end
 
-  def within(session, selector, fun) do
+  def within(session, selector, fun) when is_function(fun, 1) do
     session
     |> Map.put(:within, selector)
     |> fun.()
@@ -250,6 +250,12 @@ defmodule PhoenixTest.Static do
     session
   end
 
+  def unwrap(%{conn: conn} = session, fun) when is_function(fun, 1) do
+    conn
+    |> fun.()
+    |> maybe_redirect(session)
+  end
+
   defp maybe_redirect(conn, session) do
     case conn do
       %{status: 302} ->
@@ -280,4 +286,5 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static
+  defdelegate unwrap(session, fun), to: Static
 end

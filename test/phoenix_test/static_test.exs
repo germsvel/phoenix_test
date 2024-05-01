@@ -635,6 +635,32 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "unwrap" do
+    require Phoenix.ConnTest
+
+    @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
+    test "provides an escape hatch that gives access to the underlying conn", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> unwrap(fn conn ->
+        Phoenix.ConnTest.put_flash(conn, :info, "hello")
+      end)
+      |> then(fn %{conn: conn} ->
+        assert conn.assigns.flash == %{"info" => "hello"}
+      end)
+    end
+
+    test "follows redirects after unwrap action", %{conn: conn} do
+      conn
+      |> visit("/page/page_2")
+      |> unwrap(fn conn ->
+        Phoenix.ConnTest.post(conn, "/page/redirect_to_static", %{})
+      end)
+      |> assert_has("h1", text: "Main page")
+    end
+  end
+
   describe "session.current_path" do
     test "it is set on visit", %{conn: conn} do
       session = visit(conn, "/page/index")

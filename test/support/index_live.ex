@@ -218,6 +218,9 @@ defmodule PhoenixTest.IndexLive do
       <label for="email-on-change">Email with redirect</label>
       <input id="email-on-change" name="email" />
     </form>
+
+    <div id="hook" phx-hook="SomeHook"></div>
+    <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
     """
   end
 
@@ -314,6 +317,19 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("push-patch", _, socket) do
     {:noreply, push_patch(socket, to: "/live/index?foo=bar")}
+  end
+
+  def handle_event("hook_event", params, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:form_saved, true)
+      |> assign(:form_data, params)
+    }
+  end
+
+  def handle_event("hook_with_redirect_event", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/live/page_2")}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do
