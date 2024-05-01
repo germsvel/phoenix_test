@@ -181,6 +181,16 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 
+    test "submits owner form if button isn't nested inside form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#owner-form", fn session ->
+        fill_in(session, "Name", with: "Aragorn")
+      end)
+      |> click_button("Save Owner Form")
+      |> assert_has("#form-data", text: "name: Aragorn")
+    end
+
     test "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")

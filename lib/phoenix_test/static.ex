@@ -90,8 +90,8 @@ defmodule PhoenixTest.Static do
       |> maybe_redirect(session)
     else
       form =
-        html
-        |> Form.find_by_descendant!(button)
+        button
+        |> Button.parent_form!()
         |> Form.put_button_data(button)
 
       if active_form.selector == form.selector do

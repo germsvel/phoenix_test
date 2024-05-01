@@ -7,7 +7,7 @@ defmodule PhoenixTest.Button do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[source_raw raw parsed id selector text name value]a
+  defstruct ~w[source_raw raw parsed id selector text name value form_id]a
 
   def find!(html, selector, text) do
     html
@@ -32,6 +32,7 @@ defmodule PhoenixTest.Button do
     value = Html.attribute(parsed, "value")
     selector = Element.build_selector(parsed)
     text = Html.text(parsed)
+    form_id = Html.attribute(parsed, "form")
 
     %__MODULE__{
       source_raw: source_raw,
@@ -41,11 +42,16 @@ defmodule PhoenixTest.Button do
       selector: selector,
       text: text,
       name: name,
-      value: value
+      value: value,
+      form_id: form_id
     }
   end
 
   def belongs_to_form?(button) do
+    !!button.form_id || belongs_to_ancestor_form?(button)
+  end
+
+  defp belongs_to_ancestor_form?(button) do
     case Query.find_ancestor(button.source_raw, "form", {button.selector, button.text}) do
       {:found, _} -> true
       _ -> false
@@ -73,6 +79,10 @@ defmodule PhoenixTest.Button do
   end
 
   def parent_form!(button) do
-    Form.find_by_descendant!(button.source_raw, button)
+    if button.form_id do
+      Form.find!(button.source_raw, "##{button.form_id}")
+    else
+      Form.find_by_descendant!(button.source_raw, button)
+    end
   end
 end

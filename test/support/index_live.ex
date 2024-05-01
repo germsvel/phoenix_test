@@ -89,6 +89,15 @@ defmodule PhoenixTest.IndexLive do
       <button type="submit">Save name</button>
     </form>
 
+    <form id="owner-form" phx-submit="save-form">
+      <label for="name">Name</label>
+      <input id="name" name="name" />
+    </form>
+
+    <button form="owner-form">
+      Save Owner Form
+    </button>
+
     <form id="nested-form" phx-submit="save-form">
       <label for="user-name">User Name</label>
       <input id="user-name" name="user[name]" />

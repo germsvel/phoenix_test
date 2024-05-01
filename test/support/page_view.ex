@@ -206,6 +206,12 @@ defmodule PhoenixTest.PageView do
     </form>
 
     <button type="button">Actionless Button</button>
+
+    <form action="/page/create_record" method="post" id="owner-form">
+      <label for="owner-form-name">Name</label>
+      <input type="text" id="owner-form-name" name="name" />
+    </form>
+    <button form="owner-form">Save Owner Form</button>
     """
   end
 

@@ -59,6 +59,32 @@ defmodule PhoenixTest.ButtonTest do
     end
   end
 
+  describe "button.form_id" do
+    test "returns the button's form attribute if present" do
+      html = """
+      <button form="form-id">
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert button.form_id == "form-id"
+    end
+
+    test "returns nil if button doesn't have a form attribute" do
+      html = """
+      <button>
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert button.form_id == nil
+    end
+  end
+
   describe "button.raw" do
     test "returns the button's HTML" do
       html = """
@@ -140,6 +166,18 @@ defmodule PhoenixTest.ButtonTest do
       assert Button.belongs_to_form?(button)
     end
 
+    test "returns true if button has a form attribute" do
+      html = """
+      <button form="form-id">
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert Button.belongs_to_form?(button)
+    end
+
     test "returns false if button stands alone" do
       html = """
       <button>
@@ -213,6 +251,23 @@ defmodule PhoenixTest.ButtonTest do
           Save
         </button>
       </form>
+      """
+
+      form =
+        html
+        |> Button.find!("button", "Save")
+        |> Button.parent_form!()
+
+      assert form.id == "form"
+    end
+
+    test "returns associated form if button has form attribute" do
+      html = """
+      <form id="form">
+      </form>
+      <button form="form">
+        Save
+      </button>
       """
 
       form =

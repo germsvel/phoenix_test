@@ -101,12 +101,8 @@ defmodule PhoenixTest.Form do
   def put_button_data(form, nil), do: form
 
   def put_button_data(form, %Button{} = button) do
-    if button.name && button.value do
-      button_name_and_value = Utils.name_to_map(button.name, button.value)
-      update_in(form.form_data, fn data -> Map.merge(button_name_and_value, data) end)
-    else
-      form
-    end
+    button_data = Button.to_form_data(button)
+    update_in(form.form_data, fn data -> Map.merge(button_data, data) end)
   end
 
   defp to_form_field(element) do
