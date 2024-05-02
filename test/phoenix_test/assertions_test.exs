@@ -647,6 +647,19 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "raises helpful error if path doesn't have query params", %{conn: conn} do
+      msg =
+        ignore_whitespace("""
+        Expected query params to be "details=true&foo=bar" but got ""
+        """)
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> assert_path("/page/index", query_params: %{foo: "bar", details: true})
+      end
+    end
+
     test "raises helpful error if query params don't match", %{conn: conn} do
       msg =
         ignore_whitespace("""

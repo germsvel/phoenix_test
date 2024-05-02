@@ -216,7 +216,7 @@ defmodule PhoenixTest.Assertions do
     params = Utils.stringify_keys_and_values(params)
 
     uri = URI.parse(session.current_path)
-    query_params = URI.decode_query(uri.query)
+    query_params = uri.query && URI.decode_query(uri.query)
 
     if query_params == params do
       assert true
@@ -259,7 +259,7 @@ defmodule PhoenixTest.Assertions do
     params = Utils.stringify_keys_and_values(params)
 
     uri = URI.parse(session.current_path)
-    query_params = URI.decode_query(uri.query)
+    query_params = uri.query && URI.decode_query(uri.query)
 
     if query_params == params do
       params_string = URI.encode_query(params)
