@@ -592,11 +592,32 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_path("/live/index")
     end
 
+    test "asserts correct path with regular navigation (from Live)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate to non-liveview")
+      |> assert_path("/page/index")
+    end
+
+    test "asserts correct query params with regular navigation (from Live)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate to non-liveview")
+      |> assert_path("/page/index", query_params: %{foo: "bar", details: true})
+    end
+
     test "asserts correct path with Live navigation", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Navigate link")
       |> assert_path("/live/page_2")
+    end
+
+    test "asserts correct query params with Live navigation", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate link")
+      |> assert_path("/live/page_2", query_params: %{foo: "bar", details: true})
     end
 
     test "asserts correct path with Live patching", %{conn: conn} do

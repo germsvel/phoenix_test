@@ -16,7 +16,8 @@ defmodule PhoenixTest.Live do
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
-    %__MODULE__{view: view, conn: conn, current_path: conn.request_path}
+    current_path = conn.request_path <> "?" <> conn.query_string
+    %__MODULE__{view: view, conn: conn, current_path: current_path}
   end
 
   def render_page_title(%{view: view}) do

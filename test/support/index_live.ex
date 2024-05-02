@@ -6,9 +6,9 @@ defmodule PhoenixTest.IndexLive do
     ~H"""
     <h1 id="title" class="title" data-role="title">LiveView main page</h1>
 
-    <.link navigate="/live/page_2">Navigate link</.link>
+    <.link navigate="/live/page_2?details=true&foo=bar">Navigate link</.link>
     <.link patch="/live/index?details=true&foo=bar">Patch link</.link>
-    <.link href="/page/index">Navigate to non-liveview</.link>
+    <.link href="/page/index?details=true&foo=bar">Navigate to non-liveview</.link>
 
     <.link class="multiple_links" href="/live/page_3">Multiple links</.link>
     <.link class="multiple_links" href="/live/page_4">Multiple links</.link>
