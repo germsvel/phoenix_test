@@ -567,197 +567,100 @@ defmodule PhoenixTest.AssertionsTest do
   end
 
   describe "assert_path" do
-    test "asserts that the given path is the current path (Static)", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> assert_path("/page/index")
+    test "asserts the session's current path" do
+      session = %{current_path: "/page/index"}
+
+      assert_path(session, "/page/index")
     end
 
-    test "asserts current path when following links (Static)", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> click_link("Page 2")
-      |> assert_path("/page/page_2")
+    test "asserts query params are the same" do
+      session = %{current_path: "/page/index?hello=world"}
+
+      assert_path(session, "/page/index", query_params: %{"hello" => "world"})
     end
 
-    test "asserts query params are the same (Static)", %{conn: conn} do
-      conn
-      |> visit("/page/index?hello=world")
-      |> assert_path("/page/index", query_params: %{"hello" => "world"})
+    test "order of query params does not matter" do
+      session = %{current_path: "/page/index?hello=world&foo=bar"}
+
+      assert_path(session, "/page/index", query_params: %{"foo" => "bar", "hello" => "world"})
     end
 
-    test "asserts that the given path is the current path (Live)", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> assert_path("/live/index")
-    end
-
-    test "asserts correct path with regular navigation (from Live)", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Navigate to non-liveview")
-      |> assert_path("/page/index")
-    end
-
-    test "asserts correct query params with regular navigation (from Live)", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Navigate to non-liveview")
-      |> assert_path("/page/index", query_params: %{foo: "bar", details: true})
-    end
-
-    test "asserts correct path with Live navigation", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Navigate link")
-      |> assert_path("/live/page_2")
-    end
-
-    test "asserts correct query params with Live navigation", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Navigate link")
-      |> assert_path("/live/page_2", query_params: %{foo: "bar", details: true})
-    end
-
-    test "asserts correct path with Live patching", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Patch link")
-      |> assert_path("/live/index")
-    end
-
-    test "asserts correct query params with Live patching", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Patch link")
-      |> assert_path("/live/index", query_params: %{foo: "bar", details: true})
-    end
-
-    test "raises helpful error if path doesn't match", %{conn: conn} do
+    test "raises helpful error if path doesn't match" do
       msg =
         ignore_whitespace("""
         Expected path to be "/page/not-index" but got "/page/index"
         """)
 
       assert_raise AssertionError, msg, fn ->
-        conn
-        |> visit("/page/index")
-        |> assert_path("/page/not-index")
+        session = %{current_path: "/page/index"}
+
+        assert_path(session, "/page/not-index")
       end
     end
 
-    test "raises helpful error if path doesn't have query params", %{conn: conn} do
+    test "raises helpful error if path doesn't have query params" do
       msg =
         ignore_whitespace("""
-        Expected query params to be "details=true&foo=bar" but got ""
+        Expected query params to be "details=true&foo=bar" but got nil
         """)
 
       assert_raise AssertionError, msg, fn ->
-        conn
-        |> visit("/page/index")
-        |> assert_path("/page/index", query_params: %{foo: "bar", details: true})
+        session = %{current_path: "/page/index"}
+
+        assert_path(session, "/page/index", query_params: %{foo: "bar", details: true})
       end
     end
 
-    test "raises helpful error if query params don't match", %{conn: conn} do
+    test "raises helpful error if query params don't match" do
       msg =
         ignore_whitespace("""
         Expected query params to be "goodbye=world&hi=bye" but got "hello=world&hi=bye"
         """)
 
       assert_raise AssertionError, msg, fn ->
-        conn
-        |> visit("/page/index?hello=world&hi=bye")
-        |> assert_path("/page/index", query_params: %{"goodbye" => "world", "hi" => "bye"})
+        session = %{current_path: "/page/index?hello=world&hi=bye"}
+
+        assert_path(session, "/page/index", query_params: %{"goodbye" => "world", "hi" => "bye"})
       end
     end
   end
 
   describe "refute_path" do
-    test "refute that the given path is the current path (Static)", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> refute_path("/page/page_2")
+    test "refute the given path is the current path" do
+      session = %{current_path: "/page/index"}
+
+      refute_path(session, "/page/page_2")
     end
 
-    test "refutes current path when following links (Static)", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> click_link("Page 2")
-      |> refute_path("/page/index")
+    test "refutes query params are the same" do
+      session = %{current_path: "/page/index?hello=world"}
+
+      refute_path(session, "/page/index", query_params: %{"hello" => "not-world"})
     end
 
-    test "refutes query params are the same", %{conn: conn} do
-      conn
-      |> visit("/page/index?hello=world")
-      |> refute_path("/page/index", query_params: %{"hello" => "not-world"})
-    end
-
-    test "refutes that the given path is the current path (Live)", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> refute_path("/live/page_2")
-    end
-
-    test "refutes correct path with Live navigation", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Navigate link")
-      |> refute_path("/live/index")
-    end
-
-    test "refutes correct path with Live patching", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Patch link")
-      |> refute_path("/live/page_2")
-    end
-
-    test "refutes query params with Live patching", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_link("Patch link")
-      |> refute_path("/live/index", query_params: %{foo: "bar", details: false})
-    end
-
-    test "raises helpful error if path matches", %{conn: conn} do
+    test "raises helpful error if path matches" do
       msg =
         ignore_whitespace("""
         Expected path not to be "/page/index"
         """)
 
       assert_raise AssertionError, msg, fn ->
-        conn
-        |> visit("/page/index")
-        |> refute_path("/page/index")
+        session = %{current_path: "/page/index"}
+
+        refute_path(session, "/page/index")
       end
     end
 
-    test "raises helpful error if query params don't match", %{conn: conn} do
+    test "raises helpful error if query params MATCH" do
       msg =
         ignore_whitespace("""
         Expected query params not to be "hello=world&hi=bye"
         """)
 
       assert_raise AssertionError, msg, fn ->
-        conn
-        |> visit("/page/index?hello=world&hi=bye")
-        |> refute_path("/page/index", query_params: %{"hello" => "world", "hi" => "bye"})
-      end
-    end
+        session = %{current_path: "/page/index?hello=world&hi=bye"}
 
-    test "raises helpful error if query params don't match with live patch", %{conn: conn} do
-      msg =
-        ignore_whitespace("""
-        Expected query params not to be "details=true&foo=bar"
-        """)
-
-      assert_raise AssertionError, msg, fn ->
-        conn
-        |> visit("/live/index")
-        |> click_link("Patch link")
-        |> refute_path("/live/index", query_params: %{foo: "bar", details: true})
+        refute_path(session, "/page/index", query_params: %{"hello" => "world", "hi" => "bye"})
       end
     end
   end

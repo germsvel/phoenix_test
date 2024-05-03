@@ -32,7 +32,7 @@ defmodule PhoenixTest.PageView do
     ~H"""
     <h1 id="title" class="title" data-role="title">Main page</h1>
 
-    <a href="/page/page_2">Page 2</a>
+    <a href="/page/page_2?foo=bar">Page 2</a>
 
     <a href="/page/no_page?redirect_to=/page/index">Navigate away and redirect back</a>
 

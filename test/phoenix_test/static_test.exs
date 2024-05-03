@@ -634,4 +634,36 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Main page")
     end
   end
+
+  describe "session.current_path" do
+    test "it is set on visit", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert session.current_path == "/page/index"
+    end
+
+    test "it includes query string if available", %{conn: conn} do
+      session = visit(conn, "/page/index?foo=bar")
+
+      assert session.current_path == "/page/index?foo=bar"
+    end
+
+    test "it is updated on href navigation", %{conn: conn} do
+      session =
+        conn
+        |> visit("/page/index")
+        |> click_link("Page 2")
+
+      assert session.current_path == "/page/page_2?foo=bar"
+    end
+
+    test "it is updated on redirects", %{conn: conn} do
+      session =
+        conn
+        |> visit("/page/index")
+        |> click_link("Navigate away and redirect back")
+
+      assert session.current_path == "/page/index"
+    end
+  end
 end

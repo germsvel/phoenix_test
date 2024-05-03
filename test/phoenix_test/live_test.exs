@@ -620,4 +620,45 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
   end
+
+  describe "session.current_path" do
+    test "it is set on visit", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert session.current_path == "/live/index"
+    end
+
+    test "it is set on visit with query string", %{conn: conn} do
+      session = visit(conn, "/live/index?foo=bar")
+
+      assert session.current_path == "/live/index?foo=bar"
+    end
+
+    test "it is updated on href navigation", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> click_link("Navigate to non-liveview")
+
+      assert session.current_path == "/page/index?details=true&foo=bar"
+    end
+
+    test "it is updated on live navigation", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> click_link("Navigate link")
+
+      assert session.current_path == "/live/page_2?details=true&foo=bar"
+    end
+
+    test "it is updated on live patching", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> click_link("Patch link")
+
+      assert session.current_path == "/live/index?details=true&foo=bar"
+    end
+  end
 end

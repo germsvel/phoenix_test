@@ -16,9 +16,12 @@ defmodule PhoenixTest.Live do
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
-    current_path = conn.request_path <> "?" <> conn.query_string
+    current_path = append_query_string(conn.request_path, conn.query_string)
     %__MODULE__{view: view, conn: conn, current_path: current_path}
   end
+
+  defp append_query_string(path, ""), do: path
+  defp append_query_string(path, query), do: path <> "?" <> query
 
   def render_page_title(%{view: view}) do
     page_title(view)
