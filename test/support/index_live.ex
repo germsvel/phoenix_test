@@ -17,6 +17,9 @@ defmodule PhoenixTest.IndexLive do
 
     <h2 :if={@details}>LiveView main page details</h2>
 
+    <button phx-click="push-navigate">Button with push navigation</button>
+    <button phx-click="push-patch">Button with push patch</button>
+
     <button phx-click="change-page-title">Change page title</button>
 
     <button phx-click="show-tab">Show tab</button>
@@ -303,6 +306,14 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("redirect-on-change", _, socket) do
     {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_event("push-navigate", _, socket) do
+    {:noreply, push_navigate(socket, to: "/live/page_2?foo=bar")}
+  end
+
+  def handle_event("push-patch", _, socket) do
+    {:noreply, push_patch(socket, to: "/live/index?foo=bar")}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do

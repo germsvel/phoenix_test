@@ -660,5 +660,23 @@ defmodule PhoenixTest.LiveTest do
 
       assert session.current_path == "/live/index?details=true&foo=bar"
     end
+
+    test "it is updated on push navigation", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> click_button("Button with push navigation")
+
+      assert session.current_path == "/live/page_2?foo=bar"
+    end
+
+    test "it is updated on push patch", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> click_button("Button with push patch")
+
+      assert session.current_path == "/live/index?foo=bar"
+    end
   end
 end
