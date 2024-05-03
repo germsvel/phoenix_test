@@ -7,6 +7,34 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.3.0
+
+### Added
+
+- Adds `PhoenixTest.unwrap/2` as an escape hatch. Commit [87be9c5].
+
+### Improvements
+
+- We now handle redirects on `phx-change` events. Commit [cf1687c].
+- Click button can submit forms when not nested in form. Commit [e173f5b].
+
+### Fixes
+
+- Fix `assert_path` live navigation with query params. Commit [6c58f27].
+
+### Removed
+
+- Removes deprecated `fill_form/3` and `submit_form/3`. Commit [fef7e82].
+- Removes deprecated `assert_has`/`refute_has` with text as positional argument.
+  Commit [82f4170].
+
+[87be9c5]: https://github.com/germsvel/phoenix_test/commit/87be9c5
+[cf1687c]: https://github.com/germsvel/phoenix_test/commit/cf1687c
+[e173f5b]: https://github.com/germsvel/phoenix_test/commit/e173f5b
+[6c58f27]: https://github.com/germsvel/phoenix_test/commit/6c58f27
+[fef7e82]: https://github.com/germsvel/phoenix_test/commit/fef7e82
+[82f4170]: https://github.com/germsvel/phoenix_test/commit/82f4170
+
 ## 0.2.13
 
 ### Deprecations
