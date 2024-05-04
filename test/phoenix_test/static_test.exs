@@ -431,6 +431,14 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:admin: false")
     end
+
+    test "handles multi select", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> select(["Elf", "Dwarf"], from: "Race 2")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race_2: [elf,dwarf]")
+    end
   end
 
   describe "check/3" do

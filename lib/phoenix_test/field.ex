@@ -46,8 +46,15 @@ defmodule PhoenixTest.Field do
           [Html.attribute(option, "value")]
 
         {false, [_ | _]} ->
-          # TODO: raise error
-          nil
+          msg = """
+          Could not find a select with a "multiple" attribute set.
+
+          Found the following select:
+
+          #{Html.raw(field)}
+          """
+
+          raise ArgumentError, msg
 
         {false, _} ->
           option = Query.find!(Html.raw(field), "option", option)
