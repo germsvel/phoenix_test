@@ -157,6 +157,14 @@ defmodule PhoenixTest.PageView do
         <option value="orc">Orc</option>
       </select>
 
+      <label for="race_2">Race 2</label>
+      <select multiple id="race_2" name="race_2">
+        <option value="human">Human</option>
+        <option value="elf">Elf</option>
+        <option value="dwarf">Dwarf</option>
+        <option value="orc">Orc</option>
+      </select>
+
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>
@@ -271,6 +279,10 @@ defmodule PhoenixTest.PageView do
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do
     "#{key}'s value is empty"
+  end
+
+  defp render_input_data(key, value) when is_list(value) do
+    "#{key}: [#{Enum.join(value, ",")}]"
   end
 
   defp render_input_data(key, value) when is_boolean(value) do

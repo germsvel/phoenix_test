@@ -420,6 +420,15 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race: elf")
     end
+
+    test "works for multiple select", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Elf", from: "Race")
+      |> select(["Elf", "Dwarf"], from: "Race 2")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "[elf, dwarf]")
+    end
   end
 
   describe "check/2" do
