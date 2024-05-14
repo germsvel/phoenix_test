@@ -146,6 +146,10 @@ defmodule PhoenixTest.PageView do
       <label for="admin">Admin</label>
       <input id="admin" type="checkbox" name="admin" />
 
+      <input type="hidden" name="subscribe?" value="off" />
+      <label for="subscribe">Subscribe</label>
+      <input id="subscribe" type="checkbox" name="subscribe?" />
+
       <label for="admin_boolean">Admin (boolean)</label>
       <input id="admin_boolean" type="checkbox" name="admin_boolean" value="true" />
 

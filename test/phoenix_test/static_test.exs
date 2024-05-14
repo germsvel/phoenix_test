@@ -466,6 +466,14 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
     end
+
+    test "handle checkbox name with '?'", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> check("Subscribe")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "subscribe?: on")
+    end
   end
 
   describe "uncheck/3" do
