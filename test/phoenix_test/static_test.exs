@@ -233,7 +233,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> fill_in("User Name", with: "Aragorn")
       |> click_button("Save Nested Form")
-      |> assert_has("#form-data", text: "save-button: nested-form-save")
+      |> assert_has("#form-data", text: "user:save-button: nested-form-save")
     end
 
     test "can handle clicking button that does not submit form after fill_in", %{conn: conn} do
