@@ -2,7 +2,7 @@ defmodule PhoenixTest.Utils do
   @moduledoc false
 
   def name_to_map(name, value) do
-    parts = Regex.scan(~r/[\w|-]+/, name)
+    parts = Regex.scan(~r/[\w\?|-]+/, name)
 
     parts
     |> List.flatten()

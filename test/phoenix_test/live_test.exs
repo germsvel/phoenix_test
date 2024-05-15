@@ -448,6 +448,14 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
     end
+
+    test "handle checkbox name with '?'", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Subscribe")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "subscribe?: on")
+    end
   end
 
   describe "uncheck/2" do
