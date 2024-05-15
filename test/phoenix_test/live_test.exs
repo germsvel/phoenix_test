@@ -161,7 +161,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("User Name", with: "Aragorn")
       |> click_button("Save Nested Form")
-      |> assert_has("#form-data", text: "no-phx-change-form-button: save")
+      |> assert_has("#form-data", text: "user:no-phx-change-form-button: save")
     end
 
     test "includes default data if form is untouched", %{conn: conn} do

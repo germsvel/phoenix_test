@@ -106,7 +106,7 @@ defmodule PhoenixTest.Form do
 
   def put_button_data(form, %Button{} = button) do
     button_data = Button.to_form_data(button)
-    update_in(form.form_data, fn data -> Map.merge(button_data, data) end)
+    update_in(form.form_data, fn data -> DeepMerge.deep_merge(button_data, data) end)
   end
 
   defp to_form_field(element) do

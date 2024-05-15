@@ -111,7 +111,7 @@ defmodule PhoenixTest.IndexLive do
         <option value="false">False</option>
       </select>
 
-      <button type="submit" name="no-phx-change-form-button" value="save">
+      <button type="submit" name="user[no-phx-change-form-button]" value="save">
         Save Nested Form
       </button>
     </form>
