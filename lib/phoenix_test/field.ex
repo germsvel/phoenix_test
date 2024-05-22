@@ -92,7 +92,7 @@ defmodule PhoenixTest.Field do
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 
-    hidden_input = Query.find!(html, "input[type='hidden'][name=#{name}]")
+    hidden_input = Query.find!(html, "input[type='hidden'][name='#{name}']")
     value = Html.attribute(hidden_input, "value")
 
     %__MODULE__{

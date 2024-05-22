@@ -456,6 +456,14 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "subscribe?: on")
     end
+
+    test "works in 'nested' forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Payer")
+      |> click_button("Save Nested Form")
+      |> assert_has("#form-data", text: "user:payer: on")
+    end
   end
 
   describe "uncheck/2" do
@@ -474,6 +482,15 @@ defmodule PhoenixTest.LiveTest do
       |> uncheck("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
+    end
+
+    test "works in 'nested' forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Payer")
+      |> uncheck("Payer")
+      |> click_button("Save Nested Form")
+      |> assert_has("#form-data", text: "user:payer: off")
     end
   end
 
