@@ -111,6 +111,10 @@ defmodule PhoenixTest.IndexLive do
         <option value="false">False</option>
       </select>
 
+      <input type="hidden" name="user[payer]" value="off" />
+      <label for="user-payer">Payer</label>
+      <input id="user-payer" type="checkbox" name="user[payer]" value="on" />
+
       <button type="submit" name="user[no-phx-change-form-button]" value="save">
         Save Nested Form
       </button>
