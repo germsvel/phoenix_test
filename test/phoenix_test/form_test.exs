@@ -182,6 +182,59 @@ defmodule PhoenixTest.FormTest do
     end
   end
 
+  describe "multiple values named with [] resolve to a list" do
+    test "checkboxes, multiple" do
+      html = """
+      <form id="form">
+        <input name="checkbox[]" type="checkbox" value="some_value" checked />
+        <input name="checkbox[]" type="checkbox" value="another_value" checked />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"checkbox" => ["some_value", "another_value"]} = form.form_data
+    end
+
+    test "checkboxes, single" do
+      html = """
+      <form id="form">
+        <input name="checkbox[]" type="checkbox" value="some_value" checked />
+        <input name="checkbox[]" type="checkbox" value="another_value" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"checkbox" => ["some_value"]} = form.form_data
+    end
+
+    test "hidden, multiple" do
+      html = """
+      <form id="form">
+        <input name="hidden[]" type="hidden" value="some_value" />
+        <input name="hidden[]" type="hidden" value="another_value" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"hidden" => ["some_value", "another_value"]} = form.form_data
+    end
+
+    test "hidden, single" do
+      html = """
+      <form id="form">
+        <input name="hidden[]" type="hidden" value="some_value" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"hidden" => ["some_value"]} = form.form_data
+    end
+  end
+
   describe "form.submit_button" do
     test "returns the only button in the form" do
       html = """
