@@ -41,6 +41,8 @@ defmodule PhoenixTest.PageView do
 
     <a href="/live/index">To LiveView!</a>
 
+    <a href="?lang=en">English</a>
+
     <ul id="multiple-items">
       <li>Aragorn</li>
       <li>Legolas</li>
