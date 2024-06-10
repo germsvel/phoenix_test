@@ -95,7 +95,7 @@ defmodule PhoenixTest.Form do
           {_, false, [only_selected]} -> Map.merge(acc, to_form_field(select, only_selected))
           {_, true, [_ | _] = all_selected} -> Map.merge(acc, to_form_field(select, all_selected))
           {[first | _], false, _} -> Map.merge(acc, to_form_field(select, first))
-          {[first | _], true, _} -> Map.merge(acc, to_form_field(select, [first]))
+          {_, true, _} -> Map.merge(acc, to_form_field(select, []))
         end
       end)
 
