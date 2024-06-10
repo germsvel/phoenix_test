@@ -88,7 +88,7 @@ defmodule PhoenixTest.Form do
       form
       |> Html.all("select")
       |> Enum.reduce(%{}, fn select, acc ->
-        multiple = Html.attribute(select, "multiple") == "multiple"
+        multiple = !is_nil(Html.attribute(select, "multiple"))
 
         case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
           {[], _, _} -> acc
