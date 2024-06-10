@@ -61,6 +61,7 @@ defmodule PhoenixTest.Form do
   @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
   @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
   @pre_filled_text_inputs "input:not([disabled])[type=text][value]"
+  @pre_filled_number_inputs "input:not([disabled])[type=number][value]"
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
 
   defp form_data(form) do
@@ -69,6 +70,7 @@ defmodule PhoenixTest.Form do
     |> put_form_data(@checked_radio_buttons, form)
     |> put_form_data(@checked_checkboxes, form)
     |> put_form_data(@pre_filled_text_inputs, form)
+    |> put_form_data(@pre_filled_number_inputs, form)
     |> put_form_data(@pre_filled_default_text_inputs, form)
     |> put_form_data_select(form)
   end
