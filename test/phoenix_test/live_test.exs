@@ -331,6 +331,8 @@ defmodule PhoenixTest.LiveTest do
       |> fill_in("User Name", with: "Aragorn")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Aragorn")
+      |> assert_has("#form-data", text: "user:payer: off")
+      |> assert_has("#form-data", text: "user:role: El Jefe")
     end
 
     test "triggers phx-change validations", %{conn: conn} do
