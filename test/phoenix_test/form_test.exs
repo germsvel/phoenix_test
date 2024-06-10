@@ -125,6 +125,10 @@ defmodule PhoenixTest.FormTest do
 
         <input name="radio" type="radio" value="not_checked" />
         <input name="radio" type="radio" value="checked" checked />
+
+        <textarea name="textarea">
+          Default text
+        </textarea>
       </form>
       """
 
@@ -137,7 +141,8 @@ defmodule PhoenixTest.FormTest do
                "select" => "selected",
                "select_multiple" => ["select_1", "select_2"],
                "checkbox" => "checked",
-               "radio" => "checked"
+               "radio" => "checked",
+               "textarea" => "Default text"
              } = Form.build_data(form.form_data)
     end
 
@@ -147,6 +152,7 @@ defmodule PhoenixTest.FormTest do
         <input name="input" value="value" disabled />
         <input name="checkbox" type="checkbox" value="checked" checked disabled />
         <input name="radio" type="radio" value="checked" checked disabled />
+        <textarea name="textarea" disabled>Disabled value</textarea>
       </form>
       """
 

@@ -193,6 +193,12 @@ defmodule PhoenixTest.PageView do
 
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" rows="5" cols="33">
+      Prefilled notes
+      </textarea>
+
+      <label for="disabled_textarea">Disabled textaread</label>
+      <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
+      Prefilled content 
       </textarea>
 
       <div>

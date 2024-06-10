@@ -172,6 +172,8 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "contact: mail")
       |> assert_has("#form-data", text: "level: 7")
       |> assert_has("#form-data", text: "full_form_button: save")
+      |> assert_has("#form-data", text: "notes: Prefilled notes")
+      |> refute_has("#form-data", text: "disabled_textarea:")
     end
 
     test "can click button that does not submit form after filling form", %{conn: conn} do
