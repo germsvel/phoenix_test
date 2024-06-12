@@ -97,7 +97,7 @@ defmodule PhoenixTest.Form do
           {_, false, [only_selected]} -> DeepMerge.deep_merge(acc, to_form_field(select, only_selected))
           {_, true, [_ | _] = all_selected} -> DeepMerge.deep_merge(acc, to_form_field(select, all_selected))
           {[first | _], false, _} -> DeepMerge.deep_merge(acc, to_form_field(select, first))
-          {_, true, _} -> DeepMerge.merge(acc, to_form_field(select, []))
+          {_, true, _} -> DeepMerge.deep_merge(acc, to_form_field(select, []))
         end
       end)
 
