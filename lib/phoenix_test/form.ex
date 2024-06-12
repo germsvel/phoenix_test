@@ -90,14 +90,14 @@ defmodule PhoenixTest.Form do
       form
       |> Html.all("select")
       |> Enum.reduce(%{}, fn select, acc ->
-        multiple = Html.attribute(select, "multiple") == "multiple"
+        multiple = !is_nil(Html.attribute(select, "multiple"))
 
         case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
           {[], _, _} -> acc
           {_, false, [only_selected]} -> Map.merge(acc, to_form_field(select, only_selected))
           {_, true, [_ | _] = all_selected} -> Map.merge(acc, to_form_field(select, all_selected))
           {[first | _], false, _} -> Map.merge(acc, to_form_field(select, first))
-          {[first | _], true, _} -> Map.merge(acc, to_form_field(select, [first]))
+          {_, true, _} -> Map.merge(acc, to_form_field(select, []))
         end
       end)
 

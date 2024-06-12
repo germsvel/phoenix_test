@@ -425,6 +425,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
+    test "picks first by default", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race: human")
+    end
+
     test "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -439,6 +446,13 @@ defmodule PhoenixTest.StaticTest do
       |> select(["Elf", "Dwarf"], from: "Race 2")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race_2: [elf,dwarf]")
+    end
+
+    test "honors empty default for multi select", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race_2: []")
     end
   end
 
