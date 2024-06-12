@@ -105,6 +105,9 @@ defmodule PhoenixTest.IndexLive do
       <label for="user-name">User Name</label>
       <input id="user-name" name="user[name]" />
 
+      <label for="user-role">User Role</label>
+      <input id="user-role" name="user[role]" value="El Jefe" />
+
       <label for="user-admin">User Admin</label>
       <select id="user-admin" name="user[admin]">
         <option value="true">True</option>

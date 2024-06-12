@@ -126,11 +126,18 @@ defmodule PhoenixTest.PageView do
       <label for="user_name">User Name</label>
       <input type="text" id="user_name" name="user[name]" />
 
+      <label for="user-role">User Role</label>
+      <input id="user-role" name="user[role]" value="El Jefe" />
+
       <label for="user_admin">User Admin</label>
       <select id="user_admin" name="user[admin]">
         <option value="true">True</option>
         <option value="false">False</option>
       </select>
+
+      <input type="hidden" name="user[payer]" value="off" />
+      <label for="user-payer">Payer</label>
+      <input id="user-payer" type="checkbox" name="user[payer]" value="on" />
 
       <button name="user[save-button]" value="nested-form-save">Save Nested Form</button>
     </form>
