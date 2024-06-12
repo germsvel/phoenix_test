@@ -160,6 +160,9 @@ defmodule PhoenixTest.PageView do
       <label for="admin_boolean">Admin (boolean)</label>
       <input id="admin_boolean" type="checkbox" name="admin_boolean" value="true" />
 
+      <label for="level">Level (number)</label>
+      <input id="level" type="number" name="level" value="7" />
+
       <label for="race">Race</label>
       <select id="race" name="race">
         <option value="human">Human</option>

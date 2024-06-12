@@ -61,6 +61,7 @@ defmodule PhoenixTest.Form do
   @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
   @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
   @pre_filled_text_inputs "input:not([disabled])[type=text][value]"
+  @pre_filled_number_inputs "input:not([disabled])[type=number][value]"
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
 
   defp form_data(form) do
@@ -69,6 +70,7 @@ defmodule PhoenixTest.Form do
     |> put_form_data(@checked_radio_buttons, form)
     |> put_form_data(@checked_checkboxes, form)
     |> put_form_data(@pre_filled_text_inputs, form)
+    |> put_form_data(@pre_filled_number_inputs, form)
     |> put_form_data(@pre_filled_default_text_inputs, form)
     |> put_form_data_select(form)
   end
@@ -88,14 +90,14 @@ defmodule PhoenixTest.Form do
       form
       |> Html.all("select")
       |> Enum.reduce(%{}, fn select, acc ->
-        multiple = Html.attribute(select, "multiple") == "multiple"
+        multiple = !is_nil(Html.attribute(select, "multiple"))
 
         case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
           {[], _, _} -> acc
           {_, false, [only_selected]} -> DeepMerge.deep_merge(acc, to_form_field(select, only_selected))
           {_, true, [_ | _] = all_selected} -> DeepMerge.deep_merge(acc, to_form_field(select, all_selected))
           {[first | _], false, _} -> DeepMerge.deep_merge(acc, to_form_field(select, first))
-          {[first | _], true, _} -> DeepMerge.deep_merge(acc, to_form_field(select, [first]))
+          {_, true, _} -> DeepMerge.merge(acc, to_form_field(select, []))
         end
       end)
 

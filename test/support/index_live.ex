@@ -138,6 +138,9 @@ defmodule PhoenixTest.IndexLive do
       <label for="subscribe">Subscribe</label>
       <input id="subscribe" type="checkbox" name="subscribe?" value="on" />
 
+      <label for="level">Level (number)</label>
+      <input id="level" type="number" name="level" value="7" />
+
       <label for="race">Race</label>
       <select id="race" name="race">
         <option value="human">Human</option>
