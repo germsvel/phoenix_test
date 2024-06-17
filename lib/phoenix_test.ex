@@ -196,7 +196,6 @@ defmodule PhoenixTest do
 
   import Phoenix.ConnTest
 
-  alias PhoenixTest.Assertions
   alias PhoenixTest.Driver
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
@@ -691,7 +690,7 @@ defmodule PhoenixTest do
   assert_has(session, "#user")
   ```
   """
-  defdelegate assert_has(session, selector), to: Assertions
+  defdelegate assert_has(session, selector), to: Driver
 
   @doc """
   Assert helper to ensure an element with given CSS selector and options.
@@ -734,7 +733,7 @@ defmodule PhoenixTest do
   assert_has(session, ".posts", at: 2, text: "Hello")
   ```
   """
-  defdelegate assert_has(session, selector, opts), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Driver
 
   @doc """
   Opposite of `assert_has/2` helper. Verifies that element with
@@ -754,7 +753,7 @@ defmodule PhoenixTest do
   refute_has(session, "#user")
   ```
   """
-  defdelegate refute_has(session, selector), to: Assertions
+  defdelegate refute_has(session, selector), to: Driver
 
   @doc """
   Opposite of `assert_has/3` helper. Verifies that element with
@@ -795,7 +794,7 @@ defmodule PhoenixTest do
   refute_has(session, ".posts", at: 2, text: "Hello")
   ```
   """
-  defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Driver
 
   @doc """
   Assert helper to verify current request path. Takes an optional `query_params`
@@ -822,12 +821,12 @@ defmodule PhoenixTest do
   |> assert_path("/users", query_params: %{name: "frodo"})
   ```
   """
-  defdelegate assert_path(session, path), to: Assertions
+  defdelegate assert_path(session, path), to: Driver
 
   @doc """
   Same as `assert_path/2` but takes an optional `query_params` map.
   """
-  defdelegate assert_path(session, path, opts), to: Assertions
+  defdelegate assert_path(session, path, opts), to: Driver
 
   @doc """
   Verifies current request path is NOT the one provided. Takes an optional
@@ -854,11 +853,11 @@ defmodule PhoenixTest do
   |> refute_path("/users", query_params: %{name: "frodo"})
   ```
   """
-  defdelegate refute_path(session, path), to: Assertions
+  defdelegate refute_path(session, path), to: Driver
 
   @doc """
   Same as `refute_path/2` but takes an optional `query_params` for more specific
   refutation.
   """
-  defdelegate refute_path(session, path, opts), to: Assertions
+  defdelegate refute_path(session, path, opts), to: Driver
 end
