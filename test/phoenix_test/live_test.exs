@@ -61,7 +61,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises error if route doesn't exist", %{conn: conn} do
-      assert_raise Phoenix.Router.NoRouteError, fn ->
+      assert_raise ArgumentError, ~r/404/, fn ->
         visit(conn, "/live/non_route")
       end
     end

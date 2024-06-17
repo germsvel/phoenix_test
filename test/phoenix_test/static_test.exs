@@ -42,7 +42,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises error if route doesn't exist", %{conn: conn} do
-      assert_raise Phoenix.Router.NoRouteError, fn ->
+      assert_raise ArgumentError, ~r/404/, fn ->
         visit(conn, "/non_route")
       end
     end
@@ -646,7 +646,7 @@ defmodule PhoenixTest.StaticTest do
         assert content = File.read!(path)
 
         assert content =~
-                 ~r[<link rel="stylesheet" href="file:.*phoenix_test\/priv\/assets\/app\.css"\/>]
+                 ~r[<link rel="stylesheet" href="file:.*phoenix_test\/priv\/static\/assets\/app\.css"\/>]
 
         assert content =~ "<link rel=\"stylesheet\" href=\"//example.com/cool-styles.css\"/>"
         assert content =~ "body { font-size: 12px; }"

@@ -24,3 +24,6 @@ phoenix_test-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Ignore assets that are produced by build tools.
+/priv/static/assets/
