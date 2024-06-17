@@ -16,4 +16,5 @@ defprotocol PhoenixTest.Driver do
   def unwrap(session, fun)
   def open_browser(session)
   def open_browser(session, open_fun)
+  def current_path(session)
 end

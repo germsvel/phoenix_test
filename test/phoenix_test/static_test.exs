@@ -695,17 +695,17 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
-  describe "session.current_path" do
+  describe "current_path" do
     test "it is set on visit", %{conn: conn} do
       session = visit(conn, "/page/index")
 
-      assert session.current_path == "/page/index"
+      assert PhoenixTest.Driver.current_path(session) == "/page/index"
     end
 
     test "it includes query string if available", %{conn: conn} do
       session = visit(conn, "/page/index?foo=bar")
 
-      assert session.current_path == "/page/index?foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/page/index?foo=bar"
     end
 
     test "it is updated on href navigation", %{conn: conn} do
@@ -714,7 +714,7 @@ defmodule PhoenixTest.StaticTest do
         |> visit("/page/index")
         |> click_link("Page 2")
 
-      assert session.current_path == "/page/page_2?foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/page/page_2?foo=bar"
     end
 
     test "it is updated on redirects", %{conn: conn} do
@@ -723,7 +723,7 @@ defmodule PhoenixTest.StaticTest do
         |> visit("/page/index")
         |> click_link("Navigate away and redirect back")
 
-      assert session.current_path == "/page/index"
+      assert PhoenixTest.Driver.current_path(session) == "/page/index"
     end
   end
 end

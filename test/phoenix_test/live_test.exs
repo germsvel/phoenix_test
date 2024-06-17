@@ -682,17 +682,17 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "session.current_path" do
+  describe "current_path" do
     test "it is set on visit", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert session.current_path == "/live/index"
+      assert PhoenixTest.Driver.current_path(session) == "/live/index"
     end
 
     test "it is set on visit with query string", %{conn: conn} do
       session = visit(conn, "/live/index?foo=bar")
 
-      assert session.current_path == "/live/index?foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/live/index?foo=bar"
     end
 
     test "it is updated on href navigation", %{conn: conn} do
@@ -701,7 +701,7 @@ defmodule PhoenixTest.LiveTest do
         |> visit("/live/index")
         |> click_link("Navigate to non-liveview")
 
-      assert session.current_path == "/page/index?details=true&foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/page/index?details=true&foo=bar"
     end
 
     test "it is updated on live navigation", %{conn: conn} do
@@ -710,7 +710,7 @@ defmodule PhoenixTest.LiveTest do
         |> visit("/live/index")
         |> click_link("Navigate link")
 
-      assert session.current_path == "/live/page_2?details=true&foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/live/page_2?details=true&foo=bar"
     end
 
     test "it is updated on live patching", %{conn: conn} do
@@ -719,7 +719,7 @@ defmodule PhoenixTest.LiveTest do
         |> visit("/live/index")
         |> click_link("Patch link")
 
-      assert session.current_path == "/live/index?details=true&foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/live/index?details=true&foo=bar"
     end
 
     test "it is updated on push navigation", %{conn: conn} do
@@ -728,7 +728,7 @@ defmodule PhoenixTest.LiveTest do
         |> visit("/live/index")
         |> click_button("Button with push navigation")
 
-      assert session.current_path == "/live/page_2?foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/live/page_2?foo=bar"
     end
 
     test "it is updated on push patch", %{conn: conn} do
@@ -737,7 +737,7 @@ defmodule PhoenixTest.LiveTest do
         |> visit("/live/index")
         |> click_button("Button with push patch")
 
-      assert session.current_path == "/live/index?foo=bar"
+      assert PhoenixTest.Driver.current_path(session) == "/live/index?foo=bar"
     end
   end
 end

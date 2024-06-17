@@ -20,6 +20,8 @@ defmodule PhoenixTest.Live do
     %__MODULE__{view: view, conn: conn, current_path: current_path}
   end
 
+  def current_path(session), do: session.current_path
+
   defp append_query_string(path, ""), do: path
   defp append_query_string(path, query), do: path <> "?" <> query
 
@@ -318,4 +320,5 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live
   defdelegate unwrap(session, fun), to: Live
+  defdelegate current_path(session), to: Live
 end
