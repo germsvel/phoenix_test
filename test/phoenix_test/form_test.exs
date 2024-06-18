@@ -138,7 +138,7 @@ defmodule PhoenixTest.FormTest do
                "select_multiple" => ["select_1", "select_2"],
                "checkbox" => "checked",
                "radio" => "checked"
-             } = form.form_data
+             } = Form.build_data(form.form_data)
     end
 
     test "does not include disabled inputs in form_data" do
@@ -152,7 +152,7 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "form")
 
-      assert %{} == form.form_data
+      assert %{} == Form.build_data(form.form_data)
     end
 
     test "ignores hidden value for checkbox when checked" do
@@ -165,7 +165,7 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "form")
 
-      assert %{"checkbox" => "checked"} = form.form_data
+      assert %{"checkbox" => "checked"} = Form.build_data(form.form_data)
     end
 
     test "uses hidden value for checkbox when unchecked" do
@@ -178,7 +178,60 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "form")
 
-      assert %{"checkbox" => "unchecked"} = form.form_data
+      assert %{"checkbox" => "unchecked"} = Form.build_data(form.form_data)
+    end
+  end
+
+  describe "multiple values named with [] resolve to a list" do
+    test "checkboxes, multiple" do
+      html = """
+      <form id="form">
+        <input name="checkbox[]" type="checkbox" value="some_value" checked />
+        <input name="checkbox[]" type="checkbox" value="another_value" checked />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"checkbox" => ["some_value", "another_value"]} = Form.build_data(form.form_data)
+    end
+
+    test "checkboxes, single" do
+      html = """
+      <form id="form">
+        <input name="checkbox[]" type="checkbox" value="some_value" checked />
+        <input name="checkbox[]" type="checkbox" value="another_value" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"checkbox" => ["some_value"]} = Form.build_data(form.form_data)
+    end
+
+    test "hidden, multiple" do
+      html = """
+      <form id="form">
+        <input name="hidden[]" type="hidden" value="some_value" />
+        <input name="hidden[]" type="hidden" value="another_value" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"hidden" => ["some_value", "another_value"]} = Form.build_data(form.form_data)
+    end
+
+    test "hidden, single" do
+      html = """
+      <form id="form">
+        <input name="hidden[]" type="hidden" value="some_value" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{"hidden" => ["some_value"]} = Form.build_data(form.form_data)
     end
   end
 

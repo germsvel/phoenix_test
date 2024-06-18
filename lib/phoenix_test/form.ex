@@ -21,6 +21,16 @@ defmodule PhoenixTest.Form do
     |> build()
   end
 
+  def build_data(%__MODULE__{} = form), do: build_data(form.form_data)
+
+  def build_data(data) when is_list(data) do
+    data
+    |> Enum.map_join("&", fn {key, value} ->
+      "#{URI.encode_www_form(key)}=#{if(value, do: URI.encode_www_form(value))}"
+    end)
+    |> Plug.Conn.Query.decode()
+  end
+
   defp build(form) do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
@@ -65,50 +75,42 @@ defmodule PhoenixTest.Form do
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
 
   defp form_data(form) do
-    %{}
-    |> put_form_data(@hidden_inputs, form)
-    |> put_form_data(@checked_radio_buttons, form)
-    |> put_form_data(@checked_checkboxes, form)
-    |> put_form_data(@pre_filled_text_inputs, form)
-    |> put_form_data(@pre_filled_number_inputs, form)
-    |> put_form_data(@pre_filled_default_text_inputs, form)
-    |> put_form_data_select(form)
+    form_data(@hidden_inputs, form) ++
+      form_data(@checked_radio_buttons, form) ++
+      form_data(@checked_checkboxes, form) ++
+      form_data(@pre_filled_text_inputs, form) ++
+      form_data(@pre_filled_number_inputs, form) ++
+      form_data(@pre_filled_default_text_inputs, form) ++
+      form_data_select(form)
   end
 
-  defp put_form_data(form_data, selector, form) do
-    input_fields =
-      form
-      |> Html.all(selector)
-      |> Enum.map(&to_form_field/1)
-      |> Enum.reduce(%{}, fn value, acc -> DeepMerge.deep_merge(acc, value) end)
-
-    DeepMerge.deep_merge(form_data, input_fields)
+  defp form_data(selector, form) do
+    form
+    |> Html.all(selector)
+    |> Enum.flat_map(&to_form_field/1)
   end
 
-  defp put_form_data_select(form_data, form) do
-    selects =
-      form
-      |> Html.all("select")
-      |> Enum.reduce(%{}, fn select, acc ->
-        multiple = !is_nil(Html.attribute(select, "multiple"))
+  defp form_data_select(form) do
+    form
+    |> Html.all("select")
+    |> Enum.flat_map(fn select ->
+      multiple = !is_nil(Html.attribute(select, "multiple"))
 
-        case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
-          {[], _, _} -> acc
-          {_, false, [only_selected]} -> DeepMerge.deep_merge(acc, to_form_field(select, only_selected))
-          {_, true, [_ | _] = all_selected} -> DeepMerge.deep_merge(acc, to_form_field(select, all_selected))
-          {[first | _], false, _} -> DeepMerge.deep_merge(acc, to_form_field(select, first))
-          {_, true, _} -> DeepMerge.deep_merge(acc, to_form_field(select, []))
-        end
-      end)
-
-    DeepMerge.deep_merge(form_data, selects)
+      case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
+        {[], _, _} -> []
+        {_, false, [only_selected]} -> to_form_field(select, only_selected)
+        {_, true, [_ | _] = all_selected} -> to_form_field(select, all_selected)
+        {[first | _], false, _} -> to_form_field(select, first)
+        {_, true, _} -> to_form_field(select, [])
+      end
+    end)
   end
 
   def put_button_data(form, nil), do: form
 
   def put_button_data(form, %Button{} = button) do
     button_data = Button.to_form_data(button)
-    update_in(form.form_data, fn data -> DeepMerge.deep_merge(button_data, data) end)
+    Map.update!(form, :form_data, &(&1 ++ button_data))
   end
 
   defp to_form_field(element) do
@@ -117,14 +119,13 @@ defmodule PhoenixTest.Form do
 
   defp to_form_field(name_element, value_elements) when is_list(value_elements) do
     name = Html.attribute(name_element, "name")
-    values = Enum.map(value_elements, &Html.attribute(&1, "value"))
-    Utils.name_to_map(name, values)
+    Enum.map(value_elements, &{name, Html.attribute(&1, "value")})
   end
 
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
     value = Html.attribute(value_element, "value")
-    Utils.name_to_map(name, value)
+    [{name, value}]
   end
 
   defp operative_method({"form", _attrs, fields} = form) do

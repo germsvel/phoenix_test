@@ -5,7 +5,6 @@ defmodule PhoenixTest.Field do
   alias PhoenixTest.Form
   alias PhoenixTest.Html
   alias PhoenixTest.Query
-  alias PhoenixTest.Utils
 
   @enforce_keys ~w[source_raw label id name value selector]a
   defstruct ~w[source_raw label id name value selector]a
@@ -105,8 +104,12 @@ defmodule PhoenixTest.Field do
     }
   end
 
+  def to_form_data(%{value: values} = field) when is_list(values) do
+    Enum.map(values, &{field.name, &1})
+  end
+
   def to_form_data(field) do
-    Utils.name_to_map(field.name, field.value)
+    [{field.name, field.value}]
   end
 
   def parent_form!(field) do
