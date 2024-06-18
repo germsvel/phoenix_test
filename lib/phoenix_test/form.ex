@@ -76,11 +76,19 @@ defmodule PhoenixTest.Form do
   end
 
   defp put_form_data(form_data, selector, form) do
+    concat_lists = fn
+      _, original, override when is_list(original) and is_list(override) ->
+        original ++ override
+
+      _, _original, _override ->
+        DeepMerge.continue_deep_merge()
+    end
+
     input_fields =
       form
       |> Html.all(selector)
       |> Enum.map(&to_form_field/1)
-      |> Enum.reduce(%{}, fn value, acc -> DeepMerge.deep_merge(acc, value) end)
+      |> Enum.reduce(%{}, fn value, acc -> DeepMerge.deep_merge(acc, value, concat_lists) end)
 
     DeepMerge.deep_merge(form_data, input_fields)
   end
@@ -124,6 +132,8 @@ defmodule PhoenixTest.Form do
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
     value = Html.attribute(value_element, "value")
+    list? = String.ends_with?(name, "[]")
+    value = if list?, do: [value], else: value
     Utils.name_to_map(name, value)
   end
 
