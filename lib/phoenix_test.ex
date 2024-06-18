@@ -628,8 +628,9 @@ defmodule PhoenixTest do
   ```elixir
   session
   |> visit("/")
+  |> fill_in("Name", with: "Aragorn")
   |> open_browser()
-  |> submit_form("#user-form", name: "Aragorn")
+  |> submit()
   ```
   """
   defdelegate open_browser(session), to: Driver
