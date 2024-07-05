@@ -172,7 +172,7 @@ defmodule PhoenixTest.PageView do
       </select>
 
       <label for="race_2">Race 2</label>
-      <select multiple id="race_2" name="race_2">
+      <select multiple id="race_2" name="race_2[]">
         <option value="human">Human</option>
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>
