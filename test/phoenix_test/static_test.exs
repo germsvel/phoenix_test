@@ -451,11 +451,11 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race_2: [elf,dwarf]")
     end
 
-    test "honors empty default for multi select", %{conn: conn} do
+    test "contains no data for empty multi select", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Save Full Form")
-      |> assert_has("#form-data", text: "race_2: []")
+      |> refute_has("#form-data", text: "race_2")
     end
   end
 

@@ -159,7 +159,7 @@ defmodule PhoenixTest.Static do
 
     form_data =
       if active_form.selector == form.selector do
-        DeepMerge.deep_merge(existing_data, new_form_data)
+        existing_data ++ new_form_data
       else
         new_form_data
       end
@@ -192,8 +192,6 @@ defmodule PhoenixTest.Static do
   end
 
   def fill_form(session, selector, form_data) do
-    form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
-
     form =
       session
       |> render_html()
@@ -221,18 +219,18 @@ defmodule PhoenixTest.Static do
 
   defp submit_active_form(session, form) do
     active_form = session.active_form
-    form_data = DeepMerge.deep_merge(form.form_data, active_form.form_data)
+    form_data = form.form_data ++ active_form.form_data
 
     session = Map.put(session, :active_form, ActiveForm.new())
 
     session.conn
-    |> dispatch(@endpoint, form.method, form.action, form_data)
+    |> dispatch(@endpoint, form.method, form.action, Form.build_data(form_data))
     |> maybe_redirect(session)
   end
 
   defp submit(session, form) do
     session.conn
-    |> dispatch(@endpoint, form.method, form.action, form.form_data)
+    |> dispatch(@endpoint, form.method, form.action, Form.build_data(form))
     |> maybe_redirect(session)
   end
 
@@ -271,6 +269,7 @@ defmodule PhoenixTest.Static do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
+  alias PhoenixTest.Assertions
   alias PhoenixTest.Static
 
   defdelegate render_page_title(session), to: Static
@@ -290,4 +289,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate open_browser(session, open_fun), to: Static
   defdelegate unwrap(session, fun), to: Static
   defdelegate current_path(session), to: Static
+
+  defdelegate assert_has(session, selector), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Assertions
+  defdelegate refute_has(session, selector), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate assert_path(session, path), to: Assertions
+  defdelegate assert_path(session, path, opts), to: Assertions
+  defdelegate refute_path(session, path), to: Assertions
+  defdelegate refute_path(session, path, opts), to: Assertions
 end

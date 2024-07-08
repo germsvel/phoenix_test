@@ -7,6 +7,32 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.3.1
+
+### Improvements
+
+- Do not assume first option to be selected by default for multiple select. Commit [f146186]
+- Handle multiple select in forms. Commit [6b6512d]
+- Support pre-filled number inputs. Commit [81f03aa]
+
+### Fixes
+
+- Fix `open_browser/1` doc example. Commit [8f39959]
+- Deep merge form data in nested/prefixed forms. Commit [34b73b0]
+- Fix uncheck/2 in nested forms. Commit [e1a2408]
+- Fix: Preserve '?' in checkbox name. Commit [2e032ef]
+- Fix: Deep merge nested form button value (static). Commit [4303b4a]
+
+[8f39959]: https://github.com/germsvel/phoenix_test/commit/8f39959
+[34b73b0]: https://github.com/germsvel/phoenix_test/commit/34b73b0
+[f146186]: https://github.com/germsvel/phoenix_test/commit/f146186
+[81f03aa]: https://github.com/germsvel/phoenix_test/commit/81f03aa
+[e1a2408]: https://github.com/germsvel/phoenix_test/commit/e1a2408
+[2e032ef]: https://github.com/germsvel/phoenix_test/commit/2e032ef
+[4303b4a]: https://github.com/germsvel/phoenix_test/commit/4303b4a
+[6b6512d]: https://github.com/germsvel/phoenix_test/commit/6b6512d
+
+
 ## 0.3.0
 
 ### Added

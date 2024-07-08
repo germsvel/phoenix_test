@@ -72,9 +72,9 @@ defmodule PhoenixTest.Button do
 
   def to_form_data(button) do
     if button.name && button.value do
-      Utils.name_to_map(button.name, button.value)
+      [{button.name, button.value}]
     else
-      %{}
+      []
     end
   end
 

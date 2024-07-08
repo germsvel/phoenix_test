@@ -1,7 +1,7 @@
 defmodule PhoenixTest.MixProject do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.3.1"
   @source_url "https://github.com/germsvel/phoenix_test"
   @description """
   Write pipeable, fast, and easy-to-read feature tests for your Phoenix apps in
@@ -36,7 +36,6 @@ defmodule PhoenixTest.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
-      {:deep_merge, "~> 1.0"},
       {:floki, ">= 0.30.0"},
       {:jason, "~> 1.4"},
       {:phoenix, "~> 1.7.10"},

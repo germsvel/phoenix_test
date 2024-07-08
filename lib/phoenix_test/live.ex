@@ -137,15 +137,12 @@ defmodule PhoenixTest.Live do
   defp fill_in_field_data(session, field) do
     active_form = session.active_form
     existing_data = active_form.form_data
-
-    new_form_data =
-      Field.to_form_data(field)
-
+    new_form_data = Field.to_form_data(field)
     form = Field.parent_form!(field)
 
     form_data =
       if active_form.selector == form.selector do
-        DeepMerge.deep_merge(existing_data, new_form_data)
+        existing_data ++ new_form_data
       else
         new_form_data
       end
@@ -169,16 +166,16 @@ defmodule PhoenixTest.Live do
       if form.submit_button do
         Button.to_form_data(form.submit_button)
       else
-        %{}
+        []
       end
 
-    form_data = DeepMerge.deep_merge(form.form_data, active_form.form_data)
+    form_data = form.form_data ++ active_form.form_data
 
     cond do
       Form.phx_submit?(form) ->
         session.view
-        |> form(selector, form_data)
-        |> render_submit(additional_data)
+        |> form(selector, Form.build_data(form_data))
+        |> render_submit(Form.build_data(additional_data))
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->
@@ -200,8 +197,6 @@ defmodule PhoenixTest.Live do
   end
 
   def fill_form(session, selector, form_data) do
-    form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
-
     form =
       session
       |> render_html()
@@ -217,7 +212,7 @@ defmodule PhoenixTest.Live do
 
     if Form.phx_change?(form) do
       session.view
-      |> form(selector, active_form.form_data)
+      |> form(selector, Form.build_data(active_form.form_data))
       |> render_change()
       |> maybe_redirect(session)
     else
@@ -226,20 +221,18 @@ defmodule PhoenixTest.Live do
   end
 
   def submit_form(session, selector, form_data, event_data) do
-    form_data = Map.new(form_data, fn {k, v} -> {to_string(k), v} end)
-
     form =
       session
       |> render_html()
       |> Form.find!(selector)
 
-    form_data = DeepMerge.deep_merge(form.form_data, form_data)
+    form_data = form.form_data ++ form_data
 
     cond do
       Form.phx_submit?(form) ->
         session.view
-        |> form(selector, form_data)
-        |> render_submit(event_data)
+        |> form(selector, Form.build_data(form_data))
+        |> render_submit(Form.build_data(event_data))
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->
@@ -302,6 +295,7 @@ defmodule PhoenixTest.Live do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
+  alias PhoenixTest.Assertions
   alias PhoenixTest.Live
 
   defdelegate render_page_title(session), to: Live
@@ -321,4 +315,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate open_browser(session, open_fun), to: Live
   defdelegate unwrap(session, fun), to: Live
   defdelegate current_path(session), to: Live
+
+  defdelegate assert_has(session, selector), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Assertions
+  defdelegate refute_has(session, selector), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate assert_path(session, path), to: Assertions
+  defdelegate assert_path(session, path, opts), to: Assertions
+  defdelegate refute_path(session, path), to: Assertions
+  defdelegate refute_path(session, path, opts), to: Assertions
 end
