@@ -267,6 +267,7 @@ defmodule PhoenixTest.Static do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
+  alias PhoenixTest.Assertions
   alias PhoenixTest.Static
 
   defdelegate render_page_title(session), to: Static
@@ -285,4 +286,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static
   defdelegate unwrap(session, fun), to: Static
+
+  defdelegate assert_has(session, selector), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Assertions
+  defdelegate refute_has(session, selector), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate assert_path(session, path), to: Assertions
+  defdelegate assert_path(session, path, opts), to: Assertions
+  defdelegate refute_path(session, path), to: Assertions
+  defdelegate refute_path(session, path, opts), to: Assertions
 end

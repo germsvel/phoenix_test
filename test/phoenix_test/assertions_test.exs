@@ -6,6 +6,7 @@ defmodule PhoenixTest.AssertionsTest do
   import PhoenixTest.TestHelpers
 
   alias ExUnit.AssertionError
+  alias PhoenixTest.Live
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -568,19 +569,19 @@ defmodule PhoenixTest.AssertionsTest do
 
   describe "assert_path" do
     test "asserts the session's current path" do
-      session = %{current_path: "/page/index"}
+      session = %Live{current_path: "/page/index"}
 
       assert_path(session, "/page/index")
     end
 
     test "asserts query params are the same" do
-      session = %{current_path: "/page/index?hello=world"}
+      session = %Live{current_path: "/page/index?hello=world"}
 
       assert_path(session, "/page/index", query_params: %{"hello" => "world"})
     end
 
     test "order of query params does not matter" do
-      session = %{current_path: "/page/index?hello=world&foo=bar"}
+      session = %Live{current_path: "/page/index?hello=world&foo=bar"}
 
       assert_path(session, "/page/index", query_params: %{"foo" => "bar", "hello" => "world"})
     end
@@ -592,7 +593,7 @@ defmodule PhoenixTest.AssertionsTest do
         """)
 
       assert_raise AssertionError, msg, fn ->
-        session = %{current_path: "/page/index"}
+        session = %Live{current_path: "/page/index"}
 
         assert_path(session, "/page/not-index")
       end
@@ -605,7 +606,7 @@ defmodule PhoenixTest.AssertionsTest do
         """)
 
       assert_raise AssertionError, msg, fn ->
-        session = %{current_path: "/page/index"}
+        session = %Live{current_path: "/page/index"}
 
         assert_path(session, "/page/index", query_params: %{foo: "bar", details: true})
       end
@@ -618,7 +619,7 @@ defmodule PhoenixTest.AssertionsTest do
         """)
 
       assert_raise AssertionError, msg, fn ->
-        session = %{current_path: "/page/index?hello=world&hi=bye"}
+        session = %Live{current_path: "/page/index?hello=world&hi=bye"}
 
         assert_path(session, "/page/index", query_params: %{"goodbye" => "world", "hi" => "bye"})
       end
@@ -627,13 +628,13 @@ defmodule PhoenixTest.AssertionsTest do
 
   describe "refute_path" do
     test "refute the given path is the current path" do
-      session = %{current_path: "/page/index"}
+      session = %Live{current_path: "/page/index"}
 
       refute_path(session, "/page/page_2")
     end
 
     test "refutes query params are the same" do
-      session = %{current_path: "/page/index?hello=world"}
+      session = %Live{current_path: "/page/index?hello=world"}
 
       refute_path(session, "/page/index", query_params: %{"hello" => "not-world"})
     end
@@ -645,7 +646,7 @@ defmodule PhoenixTest.AssertionsTest do
         """)
 
       assert_raise AssertionError, msg, fn ->
-        session = %{current_path: "/page/index"}
+        session = %Live{current_path: "/page/index"}
 
         refute_path(session, "/page/index")
       end
@@ -658,7 +659,7 @@ defmodule PhoenixTest.AssertionsTest do
         """)
 
       assert_raise AssertionError, msg, fn ->
-        session = %{current_path: "/page/index?hello=world&hi=bye"}
+        session = %Live{current_path: "/page/index?hello=world&hi=bye"}
 
         refute_path(session, "/page/index", query_params: %{"hello" => "world", "hi" => "bye"})
       end

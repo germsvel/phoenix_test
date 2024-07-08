@@ -293,6 +293,7 @@ defmodule PhoenixTest.Live do
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
+  alias PhoenixTest.Assertions
   alias PhoenixTest.Live
 
   defdelegate render_page_title(session), to: Live
@@ -311,4 +312,13 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live
   defdelegate unwrap(session, fun), to: Live
+
+  defdelegate assert_has(session, selector), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Assertions
+  defdelegate refute_has(session, selector), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate assert_path(session, path), to: Assertions
+  defdelegate assert_path(session, path, opts), to: Assertions
+  defdelegate refute_path(session, path), to: Assertions
+  defdelegate refute_path(session, path, opts), to: Assertions
 end
