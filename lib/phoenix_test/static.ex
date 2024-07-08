@@ -22,6 +22,8 @@ defmodule PhoenixTest.Static do
     %__MODULE__{conn: conn, current_path: current_path}
   end
 
+  def current_path(session), do: session.current_path
+
   defp append_query_string(path, ""), do: path
   defp append_query_string(path, query), do: path <> "?" <> query
 
@@ -286,6 +288,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static
   defdelegate unwrap(session, fun), to: Static
+  defdelegate current_path(session), to: Static
 
   defdelegate assert_has(session, selector), to: Assertions
   defdelegate assert_has(session, selector, opts), to: Assertions

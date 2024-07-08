@@ -189,7 +189,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_path(session, path) do
-    uri = URI.parse(session.current_path)
+    uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
     if uri.path == path do
       assert true
@@ -215,7 +215,7 @@ defmodule PhoenixTest.Assertions do
   defp assert_query_params(session, params) do
     params = Utils.stringify_keys_and_values(params)
 
-    uri = URI.parse(session.current_path)
+    uri = URI.parse(PhoenixTest.Driver.current_path(session))
     query_params = uri.query && URI.decode_query(uri.query)
 
     if query_params == params do
@@ -234,7 +234,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_path(session, path) do
-    uri = URI.parse(session.current_path)
+    uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
     if uri.path == path do
       msg = """
@@ -258,7 +258,7 @@ defmodule PhoenixTest.Assertions do
   defp refute_query_params(session, params) do
     params = Utils.stringify_keys_and_values(params)
 
-    uri = URI.parse(session.current_path)
+    uri = URI.parse(PhoenixTest.Driver.current_path(session))
     query_params = uri.query && URI.decode_query(uri.query)
 
     if query_params == params do
