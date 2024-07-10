@@ -211,6 +211,8 @@ defmodule PhoenixTest do
   you're visiting.
   """
   def visit(conn, path) do
+    path = maybe_append_path(conn, path)
+
     case get(conn, path) do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
@@ -222,6 +224,16 @@ defmodule PhoenixTest do
       conn ->
         PhoenixTest.Static.build(conn)
     end
+  end
+
+  defp maybe_append_path(%Plug.Conn{request_path: request_path}, path) do
+    path
+    |> URI.parse()
+    |> Map.replace_lazy(:path, fn
+      nil -> request_path
+      uri_path -> uri_path
+    end)
+    |> URI.to_string()
   end
 
   @doc """
