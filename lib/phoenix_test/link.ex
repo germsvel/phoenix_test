@@ -28,14 +28,4 @@ defmodule PhoenixTest.Link do
     |> Html.attribute("data-method")
     |> Utils.present?()
   end
-
-  def maybe_append_path(link, path) do
-    link.href
-    |> URI.parse()
-    |> Map.replace_lazy(:path, fn
-      nil -> path
-      current_path -> current_path
-    end)
-    |> URI.to_string()
-  end
 end

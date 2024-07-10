@@ -70,9 +70,7 @@ defmodule PhoenixTest.Static do
       |> dispatch(@endpoint, form.method, form.action, form.data)
       |> maybe_redirect(session)
     else
-      path = Link.maybe_append_path(link, session.conn.request_path)
-
-      PhoenixTest.visit(session.conn, path)
+      PhoenixTest.visit(session.conn, link.href)
     end
   end
 
