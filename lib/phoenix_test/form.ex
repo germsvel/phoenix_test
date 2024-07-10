@@ -81,6 +81,7 @@ defmodule PhoenixTest.Form do
       form_data(@pre_filled_text_inputs, form) ++
       form_data(@pre_filled_number_inputs, form) ++
       form_data(@pre_filled_default_text_inputs, form) ++
+      form_data_textarea(form) ++
       form_data_select(form)
   end
 
@@ -88,6 +89,14 @@ defmodule PhoenixTest.Form do
     form
     |> Html.all(selector)
     |> Enum.flat_map(&to_form_field/1)
+  end
+
+  defp form_data_textarea(form) do
+    form
+    |> Html.all("textarea:not([disabled])")
+    |> Enum.flat_map(fn {"textarea", _attrs, value_elements} = textarea ->
+      to_form_field(textarea, value_elements)
+    end)
   end
 
   defp form_data_select(form) do
@@ -119,13 +128,16 @@ defmodule PhoenixTest.Form do
 
   defp to_form_field(name_element, value_elements) when is_list(value_elements) do
     name = Html.attribute(name_element, "name")
-    Enum.map(value_elements, &{name, Html.attribute(&1, "value")})
+    Enum.map(value_elements, &{name, element_value(&1)})
   end
 
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
-    value = Html.attribute(value_element, "value")
-    [{name, value}]
+    [{name, element_value(value_element)}]
+  end
+
+  defp element_value(element) do
+    Html.attribute(element, "value") || Html.text(element)
   end
 
   defp operative_method({"form", _attrs, fields} = form) do
