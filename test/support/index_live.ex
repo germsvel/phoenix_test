@@ -15,6 +15,8 @@ defmodule PhoenixTest.IndexLive do
 
     <.link navigate="/live/page_2?redirect_to=/live/index">Navigate (and redirect back) link</.link>
 
+    <.link href="?lang=en">English</.link>
+
     <h2 :if={@details}>LiveView main page details</h2>
 
     <button phx-click="push-navigate">Button with push navigation</button>

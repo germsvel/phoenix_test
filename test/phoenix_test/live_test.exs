@@ -103,6 +103,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    test "handles links with query parameters and no path", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("English")
+      |> assert_has("h1", text: "LiveView main page")
+    end
+
     test "raises error when there are multiple links with same text", %{conn: conn} do
       assert_raise ArgumentError, ~r/2 of them matched the text filter/, fn ->
         conn
