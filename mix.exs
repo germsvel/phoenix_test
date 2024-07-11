@@ -21,7 +21,13 @@ defmodule PhoenixTest.MixProject do
       package: package(),
       name: "PhoenixTest",
       source_url: @source_url,
-      docs: docs()
+      docs: docs(),
+      aliases: aliases(),
+      preferred_cli_env: [
+        setup: :test,
+        "assets.setup": :test,
+        "assets.build": :test
+      ]
     ]
   end
 
@@ -40,7 +46,9 @@ defmodule PhoenixTest.MixProject do
       {:jason, "~> 1.4"},
       {:phoenix, "~> 1.7.10"},
       {:phoenix_live_view, "~> 0.20.1"},
-      {:styler, "~> 0.11", only: [:dev, :test], runtime: false}
+      {:esbuild, "~> 0.8", only: :test, runtime: false},
+      {:styler, "~> 0.11", only: [:dev, :test], runtime: false},
+      {:plug_cowboy, "~> 2.7", only: :test, runtime: false}
     ]
   end
 
@@ -61,6 +69,14 @@ defmodule PhoenixTest.MixProject do
         "CHANGELOG.md": [title: "Changelog"],
         "upgrade_guides.md": [title: "Upgrade Guides"]
       ]
+    ]
+  end
+
+  defp aliases do
+    [
+      setup: ["deps.get", "assets.setup", "assets.build"],
+      "assets.setup": ["esbuild.install --if-missing"],
+      "assets.build": ["esbuild default"]
     ]
   end
 end
