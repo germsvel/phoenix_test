@@ -345,6 +345,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-errors", text: "Errors present")
     end
 
+    test "sends _target with phx-change events", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: "frodo@example.com")
+      |> assert_has("#form-data", text: "_target: [email]")
+    end
+
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = visit(conn, "/live/index")
 

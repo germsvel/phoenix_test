@@ -176,7 +176,7 @@ defmodule PhoenixTest.IndexLive do
 
       <label for="disabled_textarea">Disabled textaread</label>
       <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
-      Prefilled content 
+      Prefilled content
       </textarea>
 
       <button type="submit" name="full_form_button" value="save">Save Full Form</button>
@@ -304,7 +304,7 @@ defmodule PhoenixTest.IndexLive do
     |> then(&{:noreply, &1})
   end
 
-  def handle_event("validate-email", %{"email" => email}, socket) do
+  def handle_event("validate-email", %{"email" => email} = params, socket) do
     case email do
       empty when empty == nil or empty == "" ->
         {:noreply, assign(socket, :show_form_errors, true)}
@@ -312,6 +312,8 @@ defmodule PhoenixTest.IndexLive do
       _valid ->
         socket
         |> assign(:email, email)
+        |> assign(:form_saved, true)
+        |> assign(:form_data, params)
         |> then(&{:noreply, &1})
     end
   end

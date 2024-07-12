@@ -147,7 +147,33 @@ defmodule PhoenixTest.Live do
         new_form_data
       end
 
-    fill_form(session, form.selector, form_data)
+    additional_data = %{"_target" => field.name}
+
+    fill_form(session, form.selector, form_data, additional_data)
+  end
+
+  defp fill_form(session, selector, form_data, additional_data) do
+    form =
+      session
+      |> render_html()
+      |> Form.find!(selector)
+
+    active_form =
+      [id: form.id, selector: form.selector]
+      |> ActiveForm.new()
+      |> ActiveForm.prepend_form_data(form.form_data)
+      |> ActiveForm.add_form_data(form_data)
+
+    session = Map.put(session, :active_form, active_form)
+
+    if Form.phx_change?(form) do
+      session.view
+      |> form(selector, Form.build_data(active_form.form_data))
+      |> render_change(additional_data)
+      |> maybe_redirect(session)
+    else
+      session
+    end
   end
 
   def submit(session) do
@@ -194,30 +220,6 @@ defmodule PhoenixTest.Live do
     %ArgumentError{
       message: "There's no active form. Fill in a form with `fill_in`, `select`, etc."
     }
-  end
-
-  def fill_form(session, selector, form_data) do
-    form =
-      session
-      |> render_html()
-      |> Form.find!(selector)
-
-    active_form =
-      [id: form.id, selector: form.selector]
-      |> ActiveForm.new()
-      |> ActiveForm.prepend_form_data(form.form_data)
-      |> ActiveForm.add_form_data(form_data)
-
-    session = Map.put(session, :active_form, active_form)
-
-    if Form.phx_change?(form) do
-      session.view
-      |> form(selector, Form.build_data(active_form.form_data))
-      |> render_change()
-      |> maybe_redirect(session)
-    else
-      session
-    end
   end
 
   def submit_form(session, selector, form_data, event_data) do
