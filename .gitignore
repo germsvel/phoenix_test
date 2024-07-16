@@ -25,5 +25,9 @@ phoenix_test-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
+# Local configuration
+.envrc
+
 # Ignore assets that are produced by build tools.
-/priv/static/assets/
+/priv/static/assets/*
+!/priv/static/assets/app.css

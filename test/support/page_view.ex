@@ -13,8 +13,8 @@ defmodule PhoenixTest.PageView do
       <head>
         <meta name="csrf-token" content={Phoenix.Controller.get_csrf_token()} />
         <title><%= assigns[:page_title] || "PhoenixTest is the best!" %></title>
-        <link rel="stylesheet" href="/assets/app.css" />
         <link rel="stylesheet" href="//example.com/cool-styles.css" />
+        <link rel="stylesheet" href="/assets/app.css" />
         <script>
           console.log("Hey, I'm some JavaScript!")
         </script>
@@ -180,7 +180,7 @@ defmodule PhoenixTest.PageView do
       </select>
 
       <label for="race_2">Race 2</label>
-      <select multiple id="race_2" name="race_2[]">
+      <select multiple="multiple" id="race_2" name="race_2[]">
         <option value="human">Human</option>
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>
@@ -200,9 +200,7 @@ defmodule PhoenixTest.PageView do
       </fieldset>
 
       <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="5" cols="33">
-      Prefilled notes
-      </textarea>
+      <textarea id="notes" name="notes" rows="5" cols="33">Prefilled notes</textarea>
 
       <label for="disabled_textarea">Disabled textaread</label>
       <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
@@ -345,12 +343,12 @@ defmodule PhoenixTest.PageView do
         <legend>Do you like Elixir?</legend>
         <label for="like-elixir">Yes</label>
         <input type="hidden" name="like-elixir" value="no" />
-        <input type="check" name="like-elixir" id="like-elixir" value="yes" />
+        <input type="checkbox" name="like-elixir" id="like-elixir" value="yes" />
 
         <legend>Do you like Erlang</legend>
         <label for="like-erlang">Yes</label>
         <input type="hidden" name="like-erlang" value="no" />
-        <input type="check" name="like-erlang" id="like-erlang" value="yes" />
+        <input type="checkbox" name="like-erlang" id="like-erlang" value="yes" />
       </fieldset>
 
       <fieldset>

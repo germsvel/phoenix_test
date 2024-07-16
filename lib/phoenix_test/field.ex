@@ -7,8 +7,8 @@ defmodule PhoenixTest.Field do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  @enforce_keys ~w[source_raw parsed label id name value selector]a
-  defstruct ~w[source_raw parsed label id name value selector]a
+  @enforce_keys ~w[source_raw parsed label id name value selector raw]a
+  defstruct ~w[source_raw parsed label id name value selector raw]a
 
   def find_input!(html, input_selectors, label, opts) do
     field = Query.find_by_label!(html, input_selectors, label, opts)
@@ -23,13 +23,13 @@ defmodule PhoenixTest.Field do
       id: id,
       name: name,
       value: value,
-      selector: Element.build_selector(field)
+      selector: Element.build_selector(field),
+      raw: field
     }
   end
 
   def find_checkbox!(html, input_selector, label, opts) do
     field = Query.find_by_label!(html, input_selector, label, opts)
-
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value") || "on"
@@ -41,7 +41,8 @@ defmodule PhoenixTest.Field do
       id: id,
       name: name,
       value: value,
-      selector: Element.build_selector(field)
+      selector: Element.build_selector(field),
+      raw: field
     }
   end
 
@@ -60,7 +61,8 @@ defmodule PhoenixTest.Field do
       id: id,
       name: name,
       value: value,
-      selector: Element.build_selector(field)
+      selector: Element.build_selector(field),
+      raw: field
     }
   end
 

@@ -39,7 +39,7 @@ defmodule PhoenixTest.IndexLive do
     </form>
     <button phx-click="reset-email-form">Reset</button>
 
-    <form id="pre-rendered-data-form" phx-change="save-form" phx-submit="save-form">
+    <form id="pre-rendered-data-form" phx-change="validate-form" phx-submit="save-form">
       <label>
         Pre Rendered Input <input name="input" value="value" />
       </label>
@@ -127,26 +127,26 @@ defmodule PhoenixTest.IndexLive do
       </button>
     </form>
 
-    <form id="full-form" phx-submit="save-form">
+    <form id="full-form" phx-change="validate-form" phx-submit="save-form">
       <label for="first_name">First Name</label>
-      <input id="first_name" name="first_name" />
+      <input phx-update="ignore" id="first_name" name="first_name" />
 
       <label for="date">Date</label>
-      <input type="date" id="date" name="date" />
+      <input phx-update="ignore" type="date" id="date" name="date" />
 
       <input type="hidden" name="admin" value="off" />
       <label for="admin">Admin</label>
-      <input id="admin" type="checkbox" name="admin" value="on" />
+      <input phx-update="ignore" id="admin" type="checkbox" name="admin" value="on" />
 
       <input type="hidden" name="subscribe?" value="off" />
       <label for="subscribe">Subscribe</label>
-      <input id="subscribe" type="checkbox" name="subscribe?" value="on" />
+      <input phx-update="ignore" id="subscribe" type="checkbox" name="subscribe?" value="on" />
 
       <label for="level">Level (number)</label>
       <input id="level" type="number" name="level" value="7" />
 
       <label for="race">Race</label>
-      <select id="race" name="race">
+      <select phx-update="ignore" id="race" name="race">
         <option value="human">Human</option>
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>
@@ -155,7 +155,7 @@ defmodule PhoenixTest.IndexLive do
       </select>
 
       <label for="race_2">Race 2</label>
-      <select multiple id="race_2" name="race_2[]">
+      <select multiple="multiple" id="race_2" name="race_2[]">
         <option value="human">Human</option>
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>
@@ -165,24 +165,27 @@ defmodule PhoenixTest.IndexLive do
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>
-          <input type="radio" id="email_choice" name="contact" value="email" />
+          <input phx-update="ignore" type="radio" id="email_choice" name="contact" value="email" />
           <label for="email_choice">Email Choice</label>
           <input type="radio" id="phone_choice" name="contact" value="phone" />
           <label for="phone_choice">Phone Choice</label>
-          <input type="radio" id="mail_choice" name="contact" value="mail" checked />
+          <input
+            phx-update="ignore"
+            type="radio"
+            id="mail_choice"
+            name="contact"
+            value="mail"
+            checked
+          />
           <label for="mail_choice">Mail Choice</label>
         </div>
       </fieldset>
 
       <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="5" cols="33">
-      Prefilled notes
-      </textarea>
+      <textarea id="notes" name="notes" rows="5" cols="33">Prefilled notes</textarea>
 
       <label for="disabled_textarea">Disabled textaread</label>
-      <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
-      Prefilled content
-      </textarea>
+      <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>Prefilled content</textarea>
 
       <label for={@uploads.avatar.ref}>Avatar</label>
       <.live_file_input upload={@uploads.avatar} />
@@ -255,7 +258,7 @@ defmodule PhoenixTest.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
-    <form id="complex-labels" phx-change="save-form" phx-submit="save-form">
+    <form id="complex-labels" phx-change="validate-form" phx-submit="save-form">
       <label for="complex-name">
         Name <span>*</span>
       </label>
@@ -265,7 +268,7 @@ defmodule PhoenixTest.IndexLive do
         Human <span>*</span>
       </label>
       <input type="hidden" name="human" value="no" />
-      <input type="checkbox" id="complex-human" name="human" value="yes" />
+      <input phx-update="ignore" type="checkbox" id="complex-human" name="human" value="yes" />
 
       <label for="complex-animals">Choose a pet: <span>*</span></label>
       <select id="complex-animals" name="pet">
@@ -283,13 +286,13 @@ defmodule PhoenixTest.IndexLive do
         <label for="complex-movie">Movie <span>*</span></label>
       </fieldset>
 
-      <label for={@uploads.avatar.ref}>Avatar <span>*</span></label>
-      <.live_file_input upload={@uploads.avatar} />
+      <label for={@uploads.complex_avatar.ref}>Avatar <span>*</span></label>
+      <.live_file_input upload={@uploads.complex_avatar} />
 
       <button type="submit">Save</button>
     </form>
 
-    <form id="same-labels" phx-submit="save-form" phx-change="save-form">
+    <form id="same-labels" phx-change="validate-form" phx-submit="save-form">
       <fieldset name="like-elixir">
         <legend>Do you like Elixir:</legend>
 
@@ -331,12 +334,12 @@ defmodule PhoenixTest.IndexLive do
         <legend>Do you like Elixir?</legend>
         <label for="like-elixir">Yes</label>
         <input type="hidden" name="like-elixir" value="no" />
-        <input type="check" name="like-elixir" id="like-elixir" value="yes" />
+        <input phx-update="ignore" type="checkbox" name="like-elixir" id="like-elixir" value="yes" />
 
         <legend>Do you like Erlang</legend>
         <label for="like-erlang">Yes</label>
         <input type="hidden" name="like-erlang" value="no" />
-        <input type="check" name="like-erlang" id="like-erlang" value="yes" />
+        <input type="checkbox" name="like-erlang" id="like-erlang" value="yes" />
       </fieldset>
 
       <fieldset>
@@ -404,7 +407,7 @@ defmodule PhoenixTest.IndexLive do
       </fieldset>
 
       <label for="pet-select">Choose a pet:</label>
-      <select multiple name="pets" id="pet-select">
+      <select multiple="multiple" name="pets" id="pet-select">
         <option phx-click="select-pet" value="dog">Dog</option>
         <option phx-click="select-pet" value="cat">Cat</option>
       </select>
@@ -414,6 +417,7 @@ defmodule PhoenixTest.IndexLive do
 
         <div>
           <input
+            phx-update="ignore"
             phx-click="toggle-second-breakfast"
             type="checkbox"
             id="second-breakfast"
@@ -463,6 +467,7 @@ defmodule PhoenixTest.IndexLive do
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:complex_avatar, accept: ~w(.jpg .jpeg))
     }
   end
 
@@ -474,6 +479,15 @@ defmodule PhoenixTest.IndexLive do
     {:noreply, assign(socket, :show_tab, true)}
   end
 
+  def handle_event("validate-form", form_data, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:form_saved, true)
+      |> assign(:form_data, form_data)
+    }
+  end
+
   def handle_event("save-form", form_data, socket) do
     avatars =
       consume_uploaded_entries(socket, :avatar, fn _, %{client_name: name} ->
@@ -483,10 +497,14 @@ defmodule PhoenixTest.IndexLive do
     main_avatars =
       consume_uploaded_entries(socket, :main_avatar, fn _, %{client_name: name} -> {:ok, name} end)
 
+    complex_avatars =
+      consume_uploaded_entries(socket, :complex_avatar, fn _, %{client_name: name} -> {:ok, name} end)
+
     form_data =
       form_data
       |> Map.put("avatar", List.first(avatars))
       |> Map.put("main_avatar", List.first(main_avatars))
+      |> Map.put("complex_avatar", List.first(complex_avatars))
 
     {
       :noreply,
@@ -546,6 +564,12 @@ defmodule PhoenixTest.IndexLive do
         socket
         |> assign(:country, country)
         |> assign(:cities, ["Santa Cruz", "La Paz", "Cochabamba", "Other"])
+        |> then(&{:noreply, &1})
+
+      "Argentina" ->
+        socket
+        |> assign(:country, country)
+        |> assign(:cities, ["Buenos Aires", "Cordoba", "Other"])
         |> then(&{:noreply, &1})
     end
   end

@@ -111,7 +111,7 @@ defmodule PhoenixTest.FormTest do
           <option value="selected" selected>Selected</option>
         </select>
 
-        <select multiple name="select_multiple[]">
+        <select multiple="multiple" name="select_multiple[]">
           <option value="select_1" selected>Selected 1</option>
           <option value="select_2" selected>Selected 2</option>
           <option value="select_3">Not Selected</option>
