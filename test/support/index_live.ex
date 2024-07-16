@@ -170,14 +170,10 @@ defmodule PhoenixTest.IndexLive do
       </fieldset>
 
       <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="5" cols="33">
-      Prefilled notes
-      </textarea>
+      <textarea id="notes" name="notes" rows="5" cols="33">Prefilled notes</textarea>
 
       <label for="disabled_textarea">Disabled textaread</label>
-      <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
-      Prefilled content
-      </textarea>
+      <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>Prefilled content</textarea>
 
       <button type="submit" name="full_form_button" value="save">Save Full Form</button>
     </form>
@@ -324,6 +320,12 @@ defmodule PhoenixTest.IndexLive do
         socket
         |> assign(:country, country)
         |> assign(:cities, ["Santa Cruz", "La Paz", "Cochabamba", "Other"])
+        |> then(&{:noreply, &1})
+
+      "Argentina" ->
+        socket
+        |> assign(:country, country)
+        |> assign(:cities, ["Buenos Aires", "Cordoba", "Other"])
         |> then(&{:noreply, &1})
     end
   end

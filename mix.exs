@@ -48,7 +48,8 @@ defmodule PhoenixTest.MixProject do
       {:phoenix_live_view, "~> 0.20.1"},
       {:esbuild, "~> 0.8", only: :test, runtime: false},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false},
-      {:plug_cowboy, "~> 2.7", only: :test, runtime: false}
+      {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
+      {:wallaby, "~> 0.30.6", runtime: false, only: :test}
     ]
   end
 
@@ -76,7 +77,8 @@ defmodule PhoenixTest.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["esbuild default"]
+      "assets.build": ["esbuild default"],
+      test: ["assets.build", "test"]
     ]
   end
 end
