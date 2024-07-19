@@ -510,6 +510,17 @@ defmodule PhoenixTest.QueryTest do
       assert {"input", [{"id", "greeting"}], []} = element
     end
 
+    test "returns found element label points to (even if id has ? character)" do
+      html = """
+      <label for="greeting?">Hello</label>
+      <input id="greeting?"/>
+      """
+
+      {:found, element} = Query.find_by_label(html, "Hello")
+
+      assert {"input", [{"id", "greeting?"}], []} = element
+    end
+
     test "returns found element when association is implicit" do
       html = """
       <label>
