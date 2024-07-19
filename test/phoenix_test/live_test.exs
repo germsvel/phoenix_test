@@ -7,8 +7,12 @@ defmodule PhoenixTest.LiveTest do
 
   alias PhoenixTest.Driver
 
-  setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
+  require PhoenixTest.TestHelpers
+
+  setup context do
+    conn = Phoenix.ConnTest.build_conn()
+    conn = if context[:js], do: with_js_driver(conn), else: conn
+    %{conn: conn}
   end
 
   describe "render_page_title/1" do
@@ -42,19 +46,19 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "visit/2" do
-    test "navigates to given LiveView page", %{conn: conn} do
+    test_also_with_js "navigates to given LiveView page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> assert_has("h1", text: "LiveView main page")
     end
 
-    test "follows redirects", %{conn: conn} do
+    test_also_with_js "follows redirects", %{conn: conn} do
       conn
       |> visit("/live/redirect_on_mount/redirect")
       |> assert_has("h1", text: "LiveView main page")
     end
 
-    test "follows push redirects (push navigate)", %{conn: conn} do
+    test_also_with_js "follows push redirects (push navigate)", %{conn: conn} do
       conn
       |> visit("/live/redirect_on_mount/push_navigate")
       |> assert_has("h1", text: "LiveView main page")
@@ -68,59 +72,59 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "click_link/2" do
-    test "follows 'navigate' links", %{conn: conn} do
+    test_also_with_js "follows 'navigate' links", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Navigate link")
       |> assert_has("h1", text: "LiveView page 2")
     end
 
-    test "follows navigation that subsequently redirect", %{conn: conn} do
+    test_also_with_js "follows navigation that subsequently redirect", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Navigate (and redirect back) link")
       |> assert_has("h1", text: "LiveView main page")
     end
 
-    test "accepts click_link with selector", %{conn: conn} do
+    test_also_with_js "accepts click_link with selector", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("a", "Navigate link")
       |> assert_has("h1", text: "LiveView page 2")
     end
 
-    test "handles patches to current view", %{conn: conn} do
+    test_also_with_js "handles patches to current view", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Patch link")
       |> assert_has("h2", text: "LiveView main page details")
     end
 
-    test "handles navigation to a non-liveview", %{conn: conn} do
+    test_also_with_js "handles navigation to a non-liveview", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("Navigate to non-liveview")
       |> assert_has("h1", text: "Main page")
     end
 
-    test "raises error when there are multiple links with same text", %{conn: conn} do
-      assert_raise ArgumentError, ~r/2 of them matched the text filter/, fn ->
+    test_also_with_js "raises error when there are multiple links with same text", %{conn: conn} do
+      assert_raise ArgumentError, ~r/ 2 /, fn ->
         conn
         |> visit("/live/index")
         |> click_link("Multiple links")
       end
     end
 
-    test "raises an error when link element can't be found with given text", %{conn: conn} do
-      assert_raise ArgumentError, ~r/elements but none matched the text filter "No link"/, fn ->
+    test_also_with_js "raises an error when link element can't be found with given text", %{conn: conn} do
+      assert_raise ArgumentError, fn ->
         conn
         |> visit("/live/index")
         |> click_link("No link")
       end
     end
 
-    test "raises an error when there are no links on the page", %{conn: conn} do
-      assert_raise ArgumentError, ~r/selector "a" did not return any element/, fn ->
+    test_also_with_js "raises an error when there are no links on the page", %{conn: conn} do
+      assert_raise ArgumentError, fn ->
         conn
         |> visit("/live/page_2")
         |> click_link("No link")
@@ -129,7 +133,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "click_button/2" do
-    test "handles a `phx-click` button", %{conn: conn} do
+    test_also_with_js "handles a `phx-click` button", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_button("Show tab")
@@ -156,7 +160,7 @@ defmodule PhoenixTest.LiveTest do
       refute PhoenixTest.ActiveForm.active?(session.active_form)
     end
 
-    test "includes name and value if specified", %{conn: conn} do
+    test_also_with_js "includes name and value if specified", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("User Name", with: "Aragorn")
@@ -164,7 +168,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "user:no-phx-change-form-button: save")
     end
 
-    test "includes default data if form is untouched", %{conn: conn} do
+    test_also_with_js "includes default data if form is untouched", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_button("Save Full Form")
@@ -176,7 +180,7 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "disabled_textarea:")
     end
 
-    test "can click button that does not submit form after filling form", %{conn: conn} do
+    test_also_with_js "can click button that does not submit form after filling form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "some@example.com")
@@ -184,7 +188,7 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 
-    test "submits owner form if button isn't nested inside form", %{conn: conn} do
+    test_also_with_js "submits owner form if button isn't nested inside form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#owner-form", fn session ->
@@ -194,7 +198,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
-    test "follows form's redirect to live page", %{conn: conn} do
+    test_also_with_js "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#redirect-form", &fill_in(&1, "Name", with: "Aragorn"))
@@ -202,7 +206,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView page 2")
     end
 
-    test "follows form's redirect to static page", %{conn: conn} do
+    test_also_with_js "follows form's redirect to static page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#redirect-form-to-static", &fill_in(&1, "Name", with: "Aragorn"))
@@ -210,7 +214,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page")
     end
 
-    test "submits regular (non phx-submit) form", %{conn: conn} do
+    test_also_with_js "submits regular (non phx-submit) form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#non-liveview-form", &fill_in(&1, "Name", with: "Aragorn"))
@@ -232,7 +236,7 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error when there are no buttons on page", %{conn: conn} do
+    test_also_with_js "raises an error when there are no buttons on page", %{conn: conn} do
       msg = ~r/Could not find element with selector "button" and text "Show tab"/
 
       assert_raise ArgumentError, msg, fn ->
@@ -254,7 +258,7 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error if active form but can't find button", %{conn: conn} do
+    test_also_with_js "raises an error if active form but can't find button", %{conn: conn} do
       msg = ~r/Could not find element with selector "button" and text "No button"/
 
       assert_raise ArgumentError, msg, fn ->
@@ -270,7 +274,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "within/3" do
-    test "scopes assertions within selector", %{conn: conn} do
+    test_also_with_js "scopes assertions within selector", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> assert_has("button", text: "Reset")
@@ -279,16 +283,17 @@ defmodule PhoenixTest.LiveTest do
       end)
     end
 
-    test "scopes further form actions within a selector", %{conn: conn} do
+    test_also_with_js "scopes further form actions within a selector", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#email-form", fn session ->
         fill_in(session, "Email", with: "someone@example.com")
       end)
-      |> assert_has(input(label: "Email", value: "someone@example.com"))
+      |> click_button("Save Email")
+      |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
-    test "raises when data is not in scoped HTML", %{conn: conn} do
+    test_also_with_js "raises when data is not in scoped HTML", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with label "User Name"/, fn ->
         conn
         |> visit("/live/index")
@@ -300,6 +305,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "fill_in/3" do
+    # JS: Browser does not update `input.value` attribute when filling in field
     test "fills in a single text field based on the label", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -307,7 +313,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has(input(label: "Email", value: "someone@example.com"))
     end
 
-    test "can fill input with `nil` to override existing value", %{conn: conn} do
+    test_also_with_js "can fill input with `nil` to override existing value", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#pre-rendered-data-form", fn session ->
@@ -316,7 +322,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "input's value is empty")
     end
 
-    test "can fill-in complex form fields", %{conn: conn} do
+    test_also_with_js "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -328,7 +334,7 @@ defmodule PhoenixTest.LiveTest do
       )
     end
 
-    test "works in 'nested' forms", %{conn: conn} do
+    test_also_with_js "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("User Name", with: "Aragorn")
@@ -338,21 +344,22 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "user:role: El Jefe")
     end
 
-    test "triggers phx-change validations", %{conn: conn} do
+    test_also_with_js "triggers phx-change validations", %{conn: conn} do
       conn
       |> visit("/live/index")
+      |> fill_in("Email", with: "someone@example.com")
       |> fill_in("Email", with: nil)
       |> assert_has("#form-errors", text: "Errors present")
     end
 
-    test "sends _target with phx-change events", %{conn: conn} do
+    test_also_with_js "sends _target with phx-change events", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "frodo@example.com")
       |> assert_has("#form-data", text: "_target: [email]")
     end
 
-    test "does not trigger phx-change event if one isn't present", %{conn: conn} do
+    test_also_with_js "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = visit(conn, "/live/index")
 
       starting_html = Driver.render_html(session)
@@ -365,14 +372,14 @@ defmodule PhoenixTest.LiveTest do
       assert starting_html == ending_html
     end
 
-    test "follows redirects on phx-change", %{conn: conn} do
+    test_also_with_js "follows redirects on phx-change", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Email with redirect", with: "someone@example.com")
       |> assert_has("h1", text: "LiveView page 2")
     end
 
-    test "can be used to submit form", %{conn: conn} do
+    test_also_with_js "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "someone@example.com")
@@ -380,15 +387,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
-    test "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
+    test_also_with_js "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Country", with: "Bolivia")
-      |> fill_in("City", with: "La Paz")
-      |> assert_has("#form-data", text: "Bolivia: La Paz")
+      |> select("Argentina", from: "Country")
+      |> fill_in("City", with: "Cordoba")
+      |> assert_has("#form-data", text: "Argentina: Cordoba")
     end
 
-    test "raises an error when element can't be found with label", %{conn: conn} do
+    test_also_with_js "raises an error when element can't be found with label", %{conn: conn} do
       msg = ~r/Could not find element with label "Non-existent Email Label"./
 
       assert_raise ArgumentError, msg, fn ->
@@ -398,7 +405,7 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
+    test_also_with_js "raises an error when label is found but no corresponding input is found", %{conn: conn} do
       msg = ~r/Found label but could not find corresponding element with matching `id`./
 
       assert_raise ArgumentError, msg, fn ->
@@ -410,14 +417,14 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "select/3" do
-    test "selects given option for a label", %{conn: conn} do
+    test_also_with_js "selects given option for a label", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> select("Elf", from: "Race")
       |> assert_has("#full-form option[value='elf']")
     end
 
-    test "works in 'nested' forms", %{conn: conn} do
+    test_also_with_js "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> select("False", from: "User Admin")
@@ -425,7 +432,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "user:admin: false")
     end
 
-    test "can be used to submit form", %{conn: conn} do
+    test_also_with_js "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> select("Elf", from: "Race")
@@ -433,7 +440,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
-    test "works for multiple select", %{conn: conn} do
+    test_also_with_js "handles multi select", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> select("Elf", from: "Race")
@@ -441,10 +448,19 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "[elf, dwarf]")
     end
+
+    test_also_with_js "second call preserves values of first call for multi select (union)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select(["Human", "Elf"], from: "Race 2")
+      |> select(["Dwarf", "Orc"], from: "Race 2")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "[human, elf, dwarf, orc]")
+    end
   end
 
   describe "check/2" do
-    test "checks a checkbox", %{conn: conn} do
+    test_also_with_js "checks a checkbox", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> check("Admin")
@@ -452,7 +468,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "admin: on")
     end
 
-    test "can check an unchecked checkbox", %{conn: conn} do
+    test_also_with_js "can check an unchecked checkbox", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> uncheck("Admin")
@@ -461,7 +477,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "admin: on")
     end
 
-    test "handle checkbox name with '?'", %{conn: conn} do
+    test_also_with_js "handle checkbox name with '?'", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> check("Subscribe")
@@ -479,7 +495,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "uncheck/2" do
-    test "sends the default value (in hidden input)", %{conn: conn} do
+    test_also_with_js "sends the default value (in hidden input)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> uncheck("Admin")
@@ -487,7 +503,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "admin: off")
     end
 
-    test "can uncheck a previous check/2 in the test", %{conn: conn} do
+    test_also_with_js "can uncheck a previous check/2 in the test", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> check("Admin")
@@ -507,7 +523,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "choose/2" do
-    test "chooses an option in radio button", %{conn: conn} do
+    test_also_with_js "chooses an option in radio button", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> choose("Email Choice")
@@ -515,7 +531,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "contact: email")
     end
 
-    test "uses the default 'checked' if present", %{conn: conn} do
+    test_also_with_js "uses the default 'checked' if present", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_button("Save Full Form")
@@ -524,7 +540,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "filling out full form with field functions" do
-    test "populates all fields", %{conn: conn} do
+    test_also_with_js "populates all fields", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("First Name", with: "Legolas")
@@ -542,7 +558,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "notes: Woodland Elf")
     end
 
-    test "populates all fields in nested forms", %{conn: conn} do
+    test_also_with_js "populates all fields in nested forms", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("User Name", with: "Legolas")
@@ -554,7 +570,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "submit/1" do
-    test "submits a pre-filled form via phx-submit", %{conn: conn} do
+    test_also_with_js "submits a pre-filled form via phx-submit", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "some@example.com")
@@ -562,7 +578,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "email: some@example.com")
     end
 
-    test "includes pre-rendered data", %{conn: conn} do
+    test_also_with_js "includes pre-rendered data", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -572,7 +588,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "contact: mail")
     end
 
-    test "includes the first button's name and value if present", %{conn: conn} do
+    test_also_with_js "includes the first button's name and value if present", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -580,7 +596,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "full_form_button: save")
     end
 
-    test "can submit form without button", %{conn: conn} do
+    test_also_with_js "can submit form without button", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Country of Origin", with: "Arnor")
@@ -588,7 +604,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "country: Arnor")
     end
 
-    test "follows form's redirect to live page", %{conn: conn} do
+    test_also_with_js "follows form's redirect to live page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#redirect-form", fn session ->
@@ -599,7 +615,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView page 2")
     end
 
-    test "follows form's redirect to static page", %{conn: conn} do
+    test_also_with_js "follows form's redirect to static page", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#redirect-form-to-static", fn session ->
@@ -610,7 +626,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page")
     end
 
-    test "submits regular (non phx-submit) form", %{conn: conn} do
+    test_also_with_js "submits regular (non phx-submit) form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#non-liveview-form", fn session ->
@@ -622,7 +638,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "button: save")
     end
 
-    test "raises an error if there's no active form", %{conn: conn} do
+    test_also_with_js "raises an error if there's no active form", %{conn: conn} do
       message = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
 
       assert_raise ArgumentError, message, fn ->

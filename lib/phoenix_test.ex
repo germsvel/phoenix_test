@@ -210,7 +210,12 @@ defmodule PhoenixTest do
   LiveView or a static view. You don't need to worry about which type of page
   you're visiting.
   """
-  def visit(conn, path) do
+
+  def visit(%Plug.Conn{assigns: %{phoenix_test_js: true}} = conn, path) do
+    PhoenixTest.Wallaby.build(conn, path)
+  end
+
+  def visit(%Plug.Conn{} = conn, path) do
     case get(conn, path) do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
@@ -222,6 +227,32 @@ defmodule PhoenixTest do
       conn ->
         PhoenixTest.Static.build(conn)
     end
+  end
+
+  @doc """
+  Helper to run tests with the Javascript (Wallaby) driver via `@tag :js`.
+
+  ```elixir
+  setup %{conn: conn} = context do
+    conn = if context[:js], do: with_js_driver(conn), else: conn
+    %{conn: conn}
+  end
+
+  @tag :js
+  test "with wallaby", %{conn: conn} do
+    visit(conn, "/path")
+  end
+
+  test "without wallaby", %{conn: conn} do
+    visit(conn, "/path")
+  end
+  ```
+
+  You can also use `@describetag :js` and `@moduletag :js`.
+  Refer to the [ExUnit docs](https://hexdocs.pm/ex_unit/1.16.3/ExUnit.Case.html#module-tags) for more details.
+  """
+  def with_js_driver(%Plug.Conn{} = conn) do
+    Plug.Conn.assign(conn, :phoenix_test_js, true)
   end
 
   @doc """

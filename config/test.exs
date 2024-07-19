@@ -19,3 +19,11 @@ config :esbuild,
     cd: Path.expand("../test/assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
+
+config :wallaby,
+  otp_app: :phoenix_test,
+  js_logger: nil,
+  chromedriver: [
+    headless: System.get_env("WALLABY_HEADLESS", "t") in ["t", "true"],
+    binary: System.get_env("CHROME_EXECUTABLE", "")
+  ]
