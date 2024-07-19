@@ -104,6 +104,7 @@ defmodule PhoenixTest.FormTest do
         <input name="input" value="value" />
 
         <input type="text" name="text-input" value="text value" />
+        <input type="number" name="number-input" value="123" />
 
         <select name="select">
           <option value="not_selected">Not selected</option>
@@ -138,6 +139,7 @@ defmodule PhoenixTest.FormTest do
                "method" => "delete",
                "input" => "value",
                "text-input" => "text value",
+               "number-input" => "123",
                "select" => "selected",
                "select_multiple" => ["select_1", "select_2"],
                "checkbox" => "checked",

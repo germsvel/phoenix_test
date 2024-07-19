@@ -118,7 +118,7 @@ defmodule PhoenixTest.Static do
     session
     |> render_html()
     |> Field.find_input!(label)
-    |> Map.put(:value, value)
+    |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end
 
