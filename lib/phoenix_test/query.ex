@@ -475,7 +475,7 @@ defmodule PhoenixTest.Query do
   end
 
   defp find_element_with_id(html, id, label) do
-    case find(html, "##{id}") do
+    case find(html, "[id='#{id}']") do
       :not_found -> {:not_found, :missing_id, label}
       {:found, _el} = found -> found
     end

@@ -6,7 +6,7 @@ defmodule PhoenixTest.FormTest do
   alias PhoenixTest.Form
 
   describe "find!" do
-    test " finds a form by selector" do
+    test "finds a form by selector" do
       html = """
       <form id="user-form">
       </form>
