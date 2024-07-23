@@ -328,6 +328,14 @@ defmodule PhoenixTest.LiveTest do
       )
     end
 
+    test "can fill in numbers", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Level (number)", with: 10)
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "level: 10")
+    end
+
     test "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -528,7 +536,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("First Name", with: "Legolas")
-      |> fill_in("Date", with: "2023-12-30")
+      |> fill_in("Date", with: Date.new!(2023, 12, 30))
       |> check("Admin")
       |> select("Elf", from: "Race")
       |> choose("Email Choice")
