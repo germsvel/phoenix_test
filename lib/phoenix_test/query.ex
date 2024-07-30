@@ -98,9 +98,14 @@ defmodule PhoenixTest.Query do
   - `{:found_many, elements}`: If more than one element is found.
   """
   def find(html, selector) do
+    find(html, selector, [])
+  end
+
+  def find(html, selector, opts) when is_list(opts) do
     html
     |> Html.parse()
     |> Html.all(selector)
+    |> filter_by_position(opts)
     |> case do
       [] ->
         :not_found
@@ -127,7 +132,7 @@ defmodule PhoenixTest.Query do
   - `{:not_found, elements_matched_selector}`: If no elements are found.
   - `{:found_many, elements}`: If more than one element is found.
   """
-  def find(html, selector, text, opts \\ []) do
+  def find(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
     elements_matched_selector =
       html
       |> Html.parse()

@@ -329,7 +329,7 @@ defmodule PhoenixTest.Assertions do
   defp finder_fun(selector, opts) do
     case Keyword.get(opts, :text, :no_text) do
       :no_text ->
-        &Query.find(&1, selector)
+        &Query.find(&1, selector, opts)
 
       text ->
         &Query.find(&1, selector, text, opts)

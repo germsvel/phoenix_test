@@ -541,7 +541,13 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
-    test "accepts an `at` option to refute on a specific element", %{conn: conn} do
+    test "accepts an `at` option (without text) to refute on a specific element", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("#single-list-item li", at: 2)
+    end
+
+    test "accepts an `at` option with text to refute on a specific element", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> refute_has("#multiple-items li", at: 2, text: "Aragorn")

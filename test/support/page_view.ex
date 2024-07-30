@@ -50,6 +50,10 @@ defmodule PhoenixTest.PageView do
       <li>Gimli</li>
     </ul>
 
+    <ul id="single-list-item">
+      <li>Aragorn</li>
+    </ul>
+
     <div class="has_extra_space">
       &nbsp; Has extra space &nbsp;
     </div>
@@ -201,7 +205,7 @@ defmodule PhoenixTest.PageView do
 
       <label for="disabled_textarea">Disabled textaread</label>
       <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
-      Prefilled content 
+      Prefilled content
       </textarea>
 
       <div>
