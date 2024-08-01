@@ -152,10 +152,17 @@ defmodule PhoenixTest.IndexLive do
       <label for="race_2">Race 2</label>
       <select multiple id="race_2" name="race_2[]">
         <option value="human">Human</option>
-        <option value="elf">Elf</option>
+        <option value="elf" selected>Elf</option>
         <option value="dwarf">Dwarf</option>
         <option value="orc">Orc</option>
       </select>
+
+      <div>
+        <input type="checkbox" name="roles[]" id="role_reader" value="reader" checked />
+        <label for="role_reader">Reader</label>
+        <input type="checkbox" name="roles[]" id="role_writer" value="writer" />
+        <label for="role_writer">Writer</label>
+      </div>
 
       <fieldset>
         <legend>Please select your preferred contact method:</legend>

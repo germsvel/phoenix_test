@@ -444,10 +444,24 @@ defmodule PhoenixTest.LiveTest do
     test "works for multiple select", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Elf", from: "Race")
       |> select(["Elf", "Dwarf"], from: "Race 2")
       |> click_button("Save Full Form")
-      |> assert_has("#form-data", text: "[elf, dwarf]")
+      |> assert_has("#form-data", text: "race_2: [elf, dwarf]")
+    end
+
+    test "prefilled multiple select", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race_2: [elf]")
+    end
+
+    test "deselect all from multiple select", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select([], from: "Race 2")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race_2: []")
     end
   end
 
@@ -493,6 +507,14 @@ defmodule PhoenixTest.LiveTest do
       |> uncheck("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
+    end
+
+    test "sends no value if no hidden input", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> uncheck("Reader")
+      |> click_button("Save Full Form")
+      |> refute_has("#form-data", text: "roles:")
     end
 
     test "can uncheck a previous check/2 in the test", %{conn: conn} do
