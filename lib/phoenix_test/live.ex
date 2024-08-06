@@ -42,19 +42,11 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def click_link(session, text) do
-    click_link(session, "a", text)
-  end
-
   def click_link(session, selector, text) do
     session.view
     |> element(selector, text)
     |> render_click()
     |> maybe_redirect(session)
-  end
-
-  def click_button(session, text) do
-    click_button(session, "button", text)
   end
 
   def click_button(session, selector, text) do
@@ -91,50 +83,7 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def within(session, selector, fun) when is_function(fun, 1) do
-    session
-    |> Map.put(:within, selector)
-    |> fun.()
-    |> Map.put(:within, :none)
-  end
-
-  def fill_in(session, label, with: value) do
-    session
-    |> render_html()
-    |> Field.find_input!(label)
-    |> Map.put(:value, to_string(value))
-    |> then(&fill_in_field_data(session, &1))
-  end
-
-  def select(session, option, from: label) do
-    session
-    |> render_html()
-    |> Field.find_select_option!(label, option)
-    |> then(&fill_in_field_data(session, &1))
-  end
-
-  def check(session, label) do
-    session
-    |> render_html()
-    |> Field.find_checkbox!(label)
-    |> then(&fill_in_field_data(session, &1))
-  end
-
-  def uncheck(session, label) do
-    session
-    |> render_html()
-    |> Field.find_hidden_uncheckbox!(label)
-    |> then(&fill_in_field_data(session, &1))
-  end
-
-  def choose(session, label) do
-    session
-    |> render_html()
-    |> Field.find_input!(label)
-    |> then(&fill_in_field_data(session, &1))
-  end
-
-  defp fill_in_field_data(session, field) do
+  def fill_in_field_data(session, field) do
     active_form = session.active_form
     existing_data = active_form.form_data
     new_form_data = Field.to_form_data(field)
@@ -302,16 +251,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
-  defdelegate click_link(session, text), to: Live
   defdelegate click_link(session, selector, text), to: Live
-  defdelegate click_button(session, text), to: Live
   defdelegate click_button(session, selector, text), to: Live
-  defdelegate within(session, selector, fun), to: Live
-  defdelegate fill_in(session, label, attrs), to: Live
-  defdelegate select(session, option, attrs), to: Live
-  defdelegate check(session, label), to: Live
-  defdelegate uncheck(session, label), to: Live
-  defdelegate choose(session, label), to: Live
+  defdelegate fill_in_field_data(session, field), to: Live
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live
