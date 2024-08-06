@@ -43,7 +43,7 @@ defmodule PhoenixTest.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      assert button.selector == "#save"
+      assert button.selector == ~s|[id="save"]|
     end
 
     test "returns a composite selector if button has no id" do

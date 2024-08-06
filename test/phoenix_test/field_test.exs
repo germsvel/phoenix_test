@@ -54,7 +54,7 @@ defmodule PhoenixTest.FieldTest do
 
       field = Field.find_input!(html, "Name")
 
-      assert %{selector: "#name"} = field
+      assert %{selector: ~s|[id="name"]|} = field
     end
 
     test "builds a composite selector if id isn't present" do
@@ -83,7 +83,7 @@ defmodule PhoenixTest.FieldTest do
 
       field = Field.find_select_option!(html, "Name", "Select 2")
 
-      assert "#name" = field.selector
+      assert ~s|[id="name"]| = field.selector
       assert "select_2" = field.value
     end
 
@@ -99,7 +99,7 @@ defmodule PhoenixTest.FieldTest do
 
       field = Field.find_select_option!(html, "Name", ["Select 2", "Select 3"])
 
-      assert "#name" = field.selector
+      assert ~s|[id="name"]| = field.selector
       assert ["select_2", "select_3"] = field.value
     end
 

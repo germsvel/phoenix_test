@@ -25,6 +25,6 @@ defmodule PhoenixTest.Selectors do
         acc <> "[#{k}=#{inspect(v)}]"
       end)
 
-    "input##{id}" <> existing_attrs
+    "input[id=#{inspect(id)}]" <> existing_attrs
   end
 end

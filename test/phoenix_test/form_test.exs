@@ -33,7 +33,7 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find_by_descendant!(html, button)
 
-      assert form.selector == "#user-form"
+      assert form.selector == ~s|[id="user-form"]|
     end
 
     test "finds parent form for fields" do
@@ -50,7 +50,7 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find_by_descendant!(html, field)
 
-      assert form.selector == "#user-form"
+      assert form.selector == ~s|[id="user-form"]|
     end
 
     test "creates same form as `find!`" do
@@ -81,7 +81,7 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "#user-form")
 
-      assert form.selector == "#user-form"
+      assert form.selector == ~s|[id="user-form"]|
     end
 
     test "creates composite selector of form's attributes (ignoring classes) if id isn't present" do

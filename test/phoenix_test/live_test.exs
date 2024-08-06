@@ -3,7 +3,6 @@ defmodule PhoenixTest.LiveTest do
 
   import PhoenixTest
   import PhoenixTest.Selectors
-  import PhoenixTest.TestHelpers
 
   alias PhoenixTest.Driver
 
@@ -219,10 +218,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
-      msg =
-        ignore_whitespace("""
-        Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
-        """)
+      msg = ~r/to have a `phx-submit` or `action` defined/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -641,10 +637,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
-      msg =
-        ignore_whitespace("""
-        Expected form with selector "#invalid-form" to have a `phx-submit` or `action` defined.
-        """)
+      msg = ~r/to have a `phx-submit` or `action` defined/
 
       assert_raise ArgumentError, msg, fn ->
         conn

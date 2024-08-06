@@ -16,7 +16,7 @@ defmodule PhoenixTest.ElementTest do
 
       selector = Element.build_selector(data)
 
-      assert "#name" = selector
+      assert ~s|[id="name"]| = selector
     end
 
     test "builds a composite selector if id isn't present" do
