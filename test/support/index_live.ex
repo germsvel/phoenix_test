@@ -157,6 +157,14 @@ defmodule PhoenixTest.IndexLive do
         <option value="orc">Orc</option>
       </select>
 
+      <div>
+        <input type="hidden" name="roles" id="role_default" />
+        <input type="checkbox" name="roles[]" id="role_reader" value="reader" checked />
+        <label for="role_reader">Reader</label>
+        <input type="checkbox" name="roles[]" id="role_writer" value="writer" />
+        <label for="role_writer">Writer</label>
+      </div>
+
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>

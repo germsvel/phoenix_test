@@ -495,6 +495,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "admin: off")
     end
 
+    test "sends no value if no hidden input", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> uncheck("Reader")
+      |> click_button("Save Full Form")
+      |> refute_has("#form-data", text: "roles:")
+    end
+
     test "can uncheck a previous check/2 in the test", %{conn: conn} do
       conn
       |> visit("/live/index")
