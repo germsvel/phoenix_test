@@ -65,7 +65,7 @@ defmodule PhoenixTest.MixProject do
   defp docs do
     [
       main: "PhoenixTest",
-      logo: "doc/phoenix-test-logo.jpeg",
+      logo: "doc/phoenix-test-logo-transparent.png",
       extras: [
         "CHANGELOG.md": [title: "Changelog"],
         "upgrade_guides.md": [title: "Upgrade Guides"]
@@ -83,6 +83,6 @@ defmodule PhoenixTest.MixProject do
   end
 
   defp copy_images(_) do
-    File.copy!("phoenix-test-logo.jpeg", "doc/phoenix-test-logo.jpeg")
+    File.copy!("phoenix-test-logo-transparent.png", "doc/phoenix-test-logo-transparent.png")
   end
 end

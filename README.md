@@ -4,8 +4,6 @@
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/phoenix_test/)
 [![License](https://img.shields.io/hexpm/l/phoenix_test.svg)](https://github.com/germsvel/phoenix_test/blob/main/LICENSE)
 
-![](./phoenix-test-logo.jpeg)
-
 PhoenixTest provides a unified way of writing feature tests -- regardless of
 whether you're testing LiveView pages or static (non-LiveView) pages.
 
