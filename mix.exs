@@ -65,6 +65,7 @@ defmodule PhoenixTest.MixProject do
   defp docs do
     [
       main: "PhoenixTest",
+      logo: "doc/phoenix-test-logo.jpeg",
       extras: [
         "CHANGELOG.md": [title: "Changelog"],
         "upgrade_guides.md": [title: "Upgrade Guides"]
@@ -76,7 +77,12 @@ defmodule PhoenixTest.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["esbuild.install --if-missing"],
-      "assets.build": ["esbuild default"]
+      "assets.build": ["esbuild default"],
+      docs: ["docs", &copy_images/1]
     ]
+  end
+
+  defp copy_images(_) do
+    File.copy!("phoenix-test-logo.jpeg", "doc/phoenix-test-logo.jpeg")
   end
 end
