@@ -87,18 +87,30 @@ defmodule PhoenixTest.Live do
     active_form = session.active_form
     existing_data = active_form.form_data
     new_form_data = Field.to_form_data(field)
-    form = Field.parent_form!(field)
 
-    form_data =
-      if active_form.selector == form.selector do
-        existing_data ++ new_form_data
-      else
-        new_form_data
-      end
+    case Field.parent_form(field) do
+      {:ok, form} ->
+        form_data =
+          if active_form.selector == form.selector do
+            existing_data ++ new_form_data
+          else
+            new_form_data
+          end
 
-    additional_data = %{"_target" => field.name}
+        additional_data = %{"_target" => field.name}
 
-    fill_form(session, form.selector, form_data, additional_data)
+        fill_form(session, form.selector, form_data, additional_data)
+
+      _no_form ->
+        if Field.phx_click?(field) do
+          session.view
+          |> element(field.selector)
+          |> render_click()
+          |> maybe_redirect(session)
+        else
+          session
+        end
+    end
   end
 
   defp fill_form(session, selector, form_data, additional_data) do

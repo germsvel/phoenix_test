@@ -247,6 +247,13 @@ defmodule PhoenixTest.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
+    <label for="redirect-checkbox">Redirect checkbox</label>
+    <input
+      id="redirect-checkbox"
+      type="checkbox"
+      phx-click={Phoenix.LiveView.JS.patch("/live/page_2")}
+    />
+
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
     """

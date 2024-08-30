@@ -508,6 +508,13 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:payer: off")
     end
+
+    test "works outside a form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Redirect checkbox")
+      |> assert_path("/live/page_2")
+    end
   end
 
   describe "choose/2" do

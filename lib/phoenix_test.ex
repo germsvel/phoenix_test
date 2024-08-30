@@ -627,6 +627,7 @@ defmodule PhoenixTest do
     |> Field.find_input!(label)
     |> then(&Driver.fill_in_field_data(session, &1))
   end
+
   @doc """
   Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,
   `select/3`, `choose/2`, etc. for how to fill a form.)
