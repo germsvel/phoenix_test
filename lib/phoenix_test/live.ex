@@ -404,6 +404,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate assert_has(session, selector, opts), to: Assertions
   defdelegate refute_has(session, selector), to: Assertions
   defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate assert_download(session, file_name), to: Assertions
   defdelegate assert_path(session, path), to: Assertions
   defdelegate assert_path(session, path, opts), to: Assertions
   defdelegate refute_path(session, path), to: Assertions
