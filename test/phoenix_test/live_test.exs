@@ -835,4 +835,20 @@ defmodule PhoenixTest.LiveTest do
       assert PhoenixTest.Driver.current_path(session) == "/live/index?foo=bar"
     end
   end
+
+  describe "assert_download" do
+    test "asserts on file name", %{conn: conn} do
+      conn
+      |> visit("/page/download")
+      |> assert_download("elixir.jpg")
+    end
+
+    test "raises on live page", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Phoenix\.Controller/, fn ->
+        conn
+        |> visit("/live/index")
+        |> assert_download("elixir.jpg")
+      end
+    end
+  end
 end
