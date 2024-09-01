@@ -480,6 +480,15 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:payer: on")
     end
+
+    test "handles checkbox group incl. hidden input", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Human")
+      |> check("Elf")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race_3: [dwarf,human,elf]")
+    end
   end
 
   describe "uncheck/2" do

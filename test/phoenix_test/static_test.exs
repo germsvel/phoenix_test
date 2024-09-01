@@ -502,6 +502,15 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "subscribe?: on")
     end
+
+    test "handles checkbox group incl. hidden input", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> check("Human")
+      |> check("Elf")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "race_3: [dwarf,human,elf]")
+    end
   end
 
   describe "uncheck/3" do
