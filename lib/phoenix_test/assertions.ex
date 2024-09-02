@@ -5,8 +5,8 @@ defmodule PhoenixTest.Assertions do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Html
+  alias PhoenixTest.Locators
   alias PhoenixTest.Query
-  alias PhoenixTest.Selectors
   alias PhoenixTest.Utils
 
   @doc """
@@ -42,9 +42,9 @@ defmodule PhoenixTest.Assertions do
     assert_has(session, selector, count: :any)
   end
 
-  def assert_has(session, selector_builder) do
+  def assert_has(session, locator) do
     html = PhoenixTest.Driver.render_html(session)
-    selector = Selectors.compile(selector_builder, html)
+    selector = Locators.compile(locator, html)
 
     assert_has(session, selector)
   end

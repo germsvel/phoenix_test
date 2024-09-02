@@ -2,7 +2,7 @@ defmodule PhoenixTest.AssertionsTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.Selectors
+  import PhoenixTest.Locators
   import PhoenixTest.TestHelpers
 
   alias ExUnit.AssertionError

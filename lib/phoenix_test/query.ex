@@ -2,6 +2,7 @@ defmodule PhoenixTest.Query do
   @moduledoc false
 
   alias PhoenixTest.Html
+  alias PhoenixTest.Locators
 
   @doc """
   Finds the first element in the HTML content with the specified CSS selector.
@@ -148,6 +149,12 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  def find_by_role!(html, locator) do
+    selectors = Locators.role_selectors(locator)
+
+    find_one_of!(html, selectors)
+  end
+
   @doc """
   Finds one element from the given list of selectors in the HTML content, raising an error if not found.
 
@@ -194,8 +201,16 @@ defmodule PhoenixTest.Query do
       {:found, found_element} ->
         found_element
 
-      {:found_many, [found_element | _]} ->
-        found_element
+      {:found_many, found_elements} ->
+        raise ArgumentError, """
+        Found too many matches for given selectors:
+
+        #{format_find_one_of_elements_for_error(elements)}
+
+        Here's what I found:
+
+        #{format_potential_matches(found_elements)}
+        """
     end
   end
 
@@ -216,24 +231,26 @@ defmodule PhoenixTest.Query do
   def find_one_of(html, elements) do
     results =
       Enum.map(elements, fn
-        {selector, text} ->
-          find(html, selector, text)
-
-        selector ->
-          find(html, selector)
+        {selector, text} -> find(html, selector, text)
+        selector -> find(html, selector)
       end)
 
     results
-    |> Enum.find(:not_found, fn
+    |> Enum.filter(fn
       :not_found -> false
       {:not_found, _} -> false
       {:found, _} -> true
       {:found_many, _} -> true
     end)
     |> case do
-      {:found, _} = found -> found
-      {:found_many, _} = found -> found
-      :not_found -> {:not_found, potential_matches(results)}
+      [] ->
+        {:not_found, potential_matches(results)}
+
+      [found] ->
+        found
+
+      [_, _] = found_many ->
+        {:found_many, Enum.map(found_many, &elem(&1, 1))}
     end
   end
 

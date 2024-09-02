@@ -1,4 +1,4 @@
-defmodule PhoenixTest.Selectors do
+defmodule PhoenixTest.Locators do
   @moduledoc false
 
   alias PhoenixTest.Html
@@ -10,6 +10,22 @@ defmodule PhoenixTest.Selectors do
     value = Keyword.get(opts, :value)
 
     {:input, %{type: type, label: label, value: value}}
+  end
+
+  def button(opts) do
+    text = Keyword.get(opts, :text)
+    roles = ~w|button input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
+
+    {:button, %{text: text, roles: roles}}
+  end
+
+  def role_selectors({:button, data}) do
+    %{text: text, roles: roles} = data
+
+    Enum.map(roles, fn
+      "button" -> {"button", text}
+      role -> role <> "[value=#{inspect(text)}]"
+    end)
   end
 
   def compile({:input, attrs}, html) do

@@ -3,6 +3,7 @@ defmodule PhoenixTest.QueryTest do
 
   import PhoenixTest.TestHelpers
 
+  alias PhoenixTest.Locators
   alias PhoenixTest.Query
 
   describe "find!/2" do
@@ -205,11 +206,50 @@ defmodule PhoenixTest.QueryTest do
     end
   end
 
+  describe "find_by_role!/2" do
+    test "finds an element based on locator's roles" do
+      html = """
+      <button id="title">Hello</button>
+      """
+
+      locator = Locators.button(text: "Hello")
+
+      element = Query.find_by_role!(html, locator)
+
+      assert {"button", _, ["Hello"]} = element
+    end
+
+    test "raises an error if there's no match" do
+      html = """
+      <button id="title">Hello</button>
+      """
+
+      locator = Locators.button(text: "Hi")
+
+      assert_raise ArgumentError, ~r/Could not find an element/, fn ->
+        Query.find_by_role!(html, locator)
+      end
+    end
+
+    test "raises an error if there's more than one match" do
+      html = """
+      <button id="title">Hello</button>
+      <input type="submit" value="Hello" />
+      """
+
+      locator = Locators.button(text: "Hello")
+
+      assert_raise ArgumentError, ~r/too many matches/, fn ->
+        Query.find_by_role!(html, locator)
+      end
+    end
+  end
+
   describe "find_one_of!/2" do
     test "returns element when one matches" do
       html = """
       <h1 id="title">Hello</h1>
-      <h2 id="subtitle">Hi</h2>
+      <h2 id="subtitle">Not found</h2>
       """
 
       element = Query.find_one_of!(html, [{"h1", "Hello"}, {"h2", "Hi"}])
@@ -217,15 +257,15 @@ defmodule PhoenixTest.QueryTest do
       assert {"h1", _, ["Hello"]} = element
     end
 
-    test "returns first element if multiple match" do
+    test "raises error if multiple match" do
       html = """
       <h2>Hello</h2>
       <h2>Greetings</h2>
       """
 
-      element = Query.find_one_of!(html, ["h2"])
-
-      assert {"h2", _, ["Hello"]} = element
+      assert_raise ArgumentError, ~r/too many matches/, fn ->
+        Query.find_one_of!(html, ["h2"])
+      end
     end
 
     test "raises an error when element could not be found" do
@@ -283,7 +323,7 @@ defmodule PhoenixTest.QueryTest do
     test "finds one of elements that match passed selectors" do
       html = """
       <h1 id="title">Hello</h1>
-      <h2 id="subtitle">Hi</h2>
+      <h2 id="subtitle">Not found</h2>
       """
 
       {:found, element} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
@@ -300,6 +340,18 @@ defmodule PhoenixTest.QueryTest do
       assert {:found, _element} = Query.find_one_of(html, [{"h1", "Hello"}])
       assert {:found, element} = Query.find_one_of(html, ["h1"])
       assert {"h1", [{"id", "title"}], ["Hello"]} = element
+    end
+
+    test "returns {:found_many, found} when several match" do
+      html = """
+      <h1 id="title">Hello</h1>
+      <h2 id="subtitle">Hi</h2>
+      """
+
+      {:found_many, [elem1, elem2]} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
+
+      assert {"h1", _, ["Hello"]} = elem1
+      assert {"h2", _, ["Hi"]} = elem2
     end
 
     test "returns :not_found when no selector matches" do

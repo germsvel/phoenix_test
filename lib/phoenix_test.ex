@@ -195,8 +195,11 @@ defmodule PhoenixTest do
   """
 
   import Phoenix.ConnTest
+  import PhoenixTest.Locators
 
+  alias PhoenixTest.Button
   alias PhoenixTest.Driver
+  alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   @doc """
@@ -397,8 +400,9 @@ defmodule PhoenixTest do
   |> click_button("Delete") # <- Triggers full form delete.
   ```
   """
+
   def click_button(session, text) do
-    click_button(session, "button", text)
+    click(session, button(text: text))
   end
 
   @doc """
@@ -407,6 +411,17 @@ defmodule PhoenixTest do
   See `click_button/2` for more details.
   """
   defdelegate click_button(session, selector, text), to: Driver
+
+  defp click(session, {:button, _} = locator) do
+    html = Driver.render_html(session)
+
+    button =
+      html
+      |> Query.find_by_role!(locator)
+      |> Button.build(html)
+
+    Driver.click_button(session, button.selector, button.text)
+  end
 
   @doc """
   Helpers to scope filling out form within a given selector. Use this if you

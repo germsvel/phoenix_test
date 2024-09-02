@@ -2,7 +2,7 @@ defmodule PhoenixTest.LiveTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.Selectors
+  import PhoenixTest.Locators
 
   alias PhoenixTest.Driver
 
@@ -229,9 +229,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
-      msg = ~r/Could not find element with selector "button" and text "Show tab"/
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r/Could not find an element/, fn ->
         conn
         |> visit("/live/page_2")
         |> click_button("Show tab")
@@ -239,9 +237,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if button is not part of form and has no phx-submit", %{conn: conn} do
-      msg = """
-      Expected element with selector "button" and text "Actionless Button" to have a `phx-click` attribute or belong to a `form` element.
-      """
+      msg = ~r/to have a `phx-click` attribute or belong to a `form` element/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -251,7 +247,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if active form but can't find button", %{conn: conn} do
-      msg = ~r/Could not find element with selector "button" and text "No button"/
+      msg = ~r/Could not find an element/
 
       assert_raise ArgumentError, msg, fn ->
         conn

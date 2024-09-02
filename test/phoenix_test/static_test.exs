@@ -257,27 +257,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
-      msg =
-        ignore_whitespace("""
-        Tried submitting form via `data-method` but some data attributes are
-        missing.
-
-        I expected "button" with text "Incomplete data-method Delete" to include
-        data-method, data-to, and data-csrf.
-
-        I found:
-
-        <button data-method="delete">
-          Incomplete data-method Delete
-        </button>
-
-        It seems these are missing: data-to, data-csrf.
-
-        NOTE: `data-method` form submissions happen through JavaScript. Tests
-        emulate that, but be sure to verify you're including Phoenix.HTML.js!
-
-        See: https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
-        """)
+      msg = ~r/Tried submitting form via `data-method` but some data attributes/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -287,7 +267,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error when there are no buttons on page", %{conn: conn} do
-      msg = ~r/Could not find element with selector "button" and text "Show tab"/
+      msg = ~r/Could not find an element with given selectors/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -297,7 +277,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error if can't find button", %{conn: conn} do
-      msg = ~r/Could not find element with selector "button" and text "No button"/
+      msg = ~r/Could not find an element with given selectors/
 
       assert_raise ArgumentError, msg, fn ->
         conn
