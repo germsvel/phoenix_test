@@ -157,6 +157,10 @@ defmodule PhoenixTest.IndexLive do
         <option value="orc">Orc</option>
       </select>
 
+      <input type="hidden" name="race_3[]" value="dwarf" />
+      <label><input type="checkbox" name="race_3[]" value="human" />Human</label>
+      <label><input type="checkbox" name="race_3[]" value="elf" />Elf</label>
+
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>
