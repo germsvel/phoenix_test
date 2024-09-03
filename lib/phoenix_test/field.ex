@@ -5,9 +5,10 @@ defmodule PhoenixTest.Field do
   alias PhoenixTest.Form
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+  alias PhoenixTest.Utils
 
-  @enforce_keys ~w[source_raw label id name value selector]a
-  defstruct ~w[source_raw label id name value selector]a
+  @enforce_keys ~w[source_raw parsed label id name value selector]a
+  defstruct ~w[source_raw parsed label id name value selector]a
 
   def find_input!(html, label) do
     field = Query.find_by_label!(html, label)
@@ -17,6 +18,7 @@ defmodule PhoenixTest.Field do
 
     %__MODULE__{
       source_raw: html,
+      parsed: field,
       label: label,
       id: id,
       name: name,
@@ -62,6 +64,7 @@ defmodule PhoenixTest.Field do
 
     %__MODULE__{
       source_raw: html,
+      parsed: field,
       label: label,
       id: id,
       name: name,
@@ -78,6 +81,7 @@ defmodule PhoenixTest.Field do
 
     %__MODULE__{
       source_raw: html,
+      parsed: field,
       label: label,
       id: id,
       name: name,
@@ -96,6 +100,7 @@ defmodule PhoenixTest.Field do
 
     %__MODULE__{
       source_raw: html,
+      parsed: field,
       label: label,
       id: id,
       name: name,
@@ -114,5 +119,18 @@ defmodule PhoenixTest.Field do
 
   def parent_form!(field) do
     Form.find_by_descendant!(field.source_raw, field)
+  end
+
+  def phx_click?(field) do
+    field.parsed
+    |> Html.attribute("phx-click")
+    |> Utils.present?()
+  end
+
+  def belongs_to_form?(field) do
+    case Query.find_ancestor(field.source_raw, "form", field.selector) do
+      {:found, _} -> true
+      _ -> false
+    end
   end
 end

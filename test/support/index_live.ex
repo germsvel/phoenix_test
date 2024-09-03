@@ -247,6 +247,30 @@ defmodule PhoenixTest.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
+    <div id="not-a-form">
+      <fieldset>
+        <legend>Select a maintenance drone:</legend>
+
+        <div>
+          <input phx-click="select-drone" type="radio" id="huey" name="drone" value="huey" checked />
+          <label for="huey">Huey</label>
+        </div>
+
+        <div>
+          <input phx-click="select-drone" type="radio" id="dewey" name="drone" value="dewey" />
+          <label for="dewey">Dewey</label>
+        </div>
+
+        <div>
+          <input phx-click="select-drone" type="radio" id="louie" name="drone" value="louie" />
+          <label for="louie">Louie</label>
+        </div>
+      </fieldset>
+    </div>
+
+    <label for="no-form-no-phx-click">Invalid Radio Button</label>
+    <input type="radio" id="no-form-no-phx-click" name="invalids" value="nothing" checked />
+
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
     """
@@ -360,6 +384,15 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("hook_with_redirect_event", _params, socket) do
     {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_event("select-drone", params, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:form_saved, true)
+      |> assign(:form_data, params)
+    }
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do
