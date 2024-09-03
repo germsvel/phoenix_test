@@ -525,6 +525,23 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
     end
+
+    test "works with a phx-click outside of a form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#not-a-form", fn session ->
+        choose(session, "Huey")
+      end)
+      |> assert_has("#form-data", text: "value: huey")
+    end
+
+    test "raises an error if radio is neither in a form nor has a phx-click", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert_raise ArgumentError, ~r/to have a `phx-click` attribute or belong to a `form` element/, fn ->
+        choose(session, "Invalid Radio Button")
+      end
+    end
   end
 
   describe "filling out full form with field functions" do

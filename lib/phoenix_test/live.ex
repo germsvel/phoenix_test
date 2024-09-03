@@ -50,7 +50,6 @@ defmodule PhoenixTest.Live do
   end
 
   def click_button(session, selector, text) do
-    active_form = session.active_form
     html = render_html(session)
     button = Button.find!(html, selector, text)
 
@@ -62,6 +61,7 @@ defmodule PhoenixTest.Live do
         |> maybe_redirect(session)
 
       Button.belongs_to_form?(button) ->
+        active_form = session.active_form
         additional_data = Button.to_form_data(button)
         form = Button.parent_form!(button)
 
@@ -120,10 +120,26 @@ defmodule PhoenixTest.Live do
   end
 
   def choose(session, label) do
-    session
-    |> render_html()
-    |> Field.find_input!(label)
-    |> then(&fill_in_field_data(session, &1))
+    field =
+      session
+      |> render_html()
+      |> Field.find_input!(label)
+
+    cond do
+      Field.phx_click?(field) ->
+        session.view
+        |> element(field.selector)
+        |> render_click()
+        |> maybe_redirect(session)
+
+      Field.belongs_to_form?(field) ->
+        fill_in_field_data(session, field)
+
+      true ->
+        raise ArgumentError, """
+        Expected radio input with selector #{inspect(field.selector)} to have a `phx-click` attribute or belong to a `form` element.
+        """
+    end
   end
 
   defp fill_in_field_data(session, field) do
