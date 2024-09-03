@@ -71,54 +71,6 @@ defmodule PhoenixTest.FieldTest do
     end
   end
 
-  describe "find_select_option!" do
-    test "returns the selected option value" do
-      html = """
-      <label for="name">Name</label>
-      <select id="name" name="name">
-        <option value="select_1">Select 1</option>
-        <option value="select_2">Select 2</option>
-      </select>
-      """
-
-      field = Field.find_select_option!(html, "Name", "Select 2")
-
-      assert ~s|[id="name"]| = field.selector
-      assert "select_2" = field.value
-    end
-
-    test "returns multiple selected option value" do
-      html = """
-      <label for="name">Name</label>
-      <select multiple id="name" name="name">
-        <option value="select_1">Select 1</option>
-        <option value="select_2">Select 2</option>
-        <option value="select_3">Select 3</option>
-      </select>
-      """
-
-      field = Field.find_select_option!(html, "Name", ["Select 2", "Select 3"])
-
-      assert ~s|[id="name"]| = field.selector
-      assert ["select_2", "select_3"] = field.value
-    end
-
-    test "returns multiple selected option value without multiple attribute to select raises error" do
-      html = """
-      <label for="name">Name</label>
-      <select id="name" name="name">
-        <option value="select_1">Select 1</option>
-        <option value="select_2">Select 2</option>
-        <option value="select_3">Select 3</option>
-      </select>
-      """
-
-      assert_raise ArgumentError, ~r/Could not find a select with a "multiple" attribute set/, fn ->
-        Field.find_select_option!(html, "Name", ["Select 2", "Select 3"])
-      end
-    end
-  end
-
   describe "phx_click?" do
     test "returns true if field has a phx-click handler" do
       html = """

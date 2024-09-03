@@ -7,8 +7,10 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Button
   alias PhoenixTest.Field
   alias PhoenixTest.Form
+  alias PhoenixTest.FormData
   alias PhoenixTest.Html
   alias PhoenixTest.Query
+  alias PhoenixTest.Select
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
@@ -99,10 +101,28 @@ defmodule PhoenixTest.Live do
   end
 
   def select(session, option, from: label) do
-    session
-    |> render_html()
-    |> Field.find_select_option!(label, option)
-    |> then(&fill_in_field_data(session, &1))
+    field =
+      session
+      |> render_html()
+      |> Select.find_select_option!(label, option)
+
+    cond do
+      Select.belongs_to_form?(field) ->
+        fill_in_field_data(session, field)
+
+      Select.phx_click_options?(field) ->
+        Enum.reduce(field.value, session, fn value, session ->
+          session.view
+          |> element(Select.select_option_selector(field, value))
+          |> render_click()
+          |> maybe_redirect(session)
+        end)
+
+      true ->
+        raise ArgumentError, """
+        Expected select with selector #{inspect(field.selector)} to have a `phx-click` attribute on options or to belong to a `form` element.
+        """
+    end
   end
 
   def check(session, label) do
@@ -145,7 +165,7 @@ defmodule PhoenixTest.Live do
   defp fill_in_field_data(session, field) do
     active_form = session.active_form
     existing_data = active_form.form_data
-    new_form_data = Field.to_form_data(field)
+    new_form_data = FormData.to_form_data(field)
     form = Field.parent_form!(field)
 
     form_data =
