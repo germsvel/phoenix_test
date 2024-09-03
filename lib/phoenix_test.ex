@@ -197,7 +197,6 @@ defmodule PhoenixTest do
   import Phoenix.ConnTest
 
   alias PhoenixTest.Driver
-  alias PhoenixTest.Field
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   @doc """
@@ -441,12 +440,7 @@ defmodule PhoenixTest do
   end)
   ```
   """
-  def within(session, selector, fun) when is_function(fun, 1) do
-    session
-    |> Map.put(:within, selector)
-    |> fun.()
-    |> Map.put(:within, :none)
-  end
+  defdelegate within(session, selector, fun), to: Driver
 
   @doc """
   Fills text inputs and textareas, targetting the elements by their labels.
@@ -481,13 +475,7 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn")
   ```
   """
-  def fill_in(session, label, with: value) do
-    session
-    |> Driver.render_html()
-    |> Field.find_input!(label)
-    |> Map.put(:value, to_string(value))
-    |> then(&Driver.fill_in_field_data(session, &1))
-  end
+  defdelegate fill_in(session, label, attrs), to: Driver
 
   @doc """
   Selects an option from a select dropdown.
@@ -518,12 +506,7 @@ defmodule PhoenixTest do
   |> select("Human", from: "Race")
   ```
   """
-  def select(session, option, from: label) do
-    session
-    |> Driver.render_html()
-    |> Field.find_select_option!(label, option)
-    |> then(&Driver.fill_in_field_data(session, &1))
-  end
+  defdelegate select(session, option, attrs), to: Driver
 
   @doc """
   Check a checkbox.
@@ -550,12 +533,7 @@ defmodule PhoenixTest do
   |> check("Admin")
   ```
   """
-  def check(session, label) do
-    session
-    |> Driver.render_html()
-    |> Field.find_checkbox!(label)
-    |> then(&Driver.fill_in_field_data(session, &1))
-  end
+  defdelegate check(session, label), to: Driver
 
   @doc """
   Uncheck a checkbox.
@@ -586,12 +564,7 @@ defmodule PhoenixTest do
   server. That's why we have to have a hidden input with the default value (in
   the example above: `admin="off"`).
   """
-  def uncheck(session, label) do
-    session
-    |> Driver.render_html()
-    |> Field.find_hidden_uncheckbox!(label)
-    |> then(&Driver.fill_in_field_data(session, &1))
-  end
+  defdelegate uncheck(session, label), to: Driver
 
   @doc """
   Choose a radio button option.
@@ -621,12 +594,7 @@ defmodule PhoenixTest do
   |> choose("Email")
   ```
   """
-  def choose(session, label) do
-    session
-    |> Driver.render_html()
-    |> Field.find_input!(label)
-    |> then(&Driver.fill_in_field_data(session, &1))
-  end
+  defdelegate choose(session, label), to: Driver
 
   @doc """
   Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,
