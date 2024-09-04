@@ -8,10 +8,12 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.DataAttributeForm
   alias PhoenixTest.Field
   alias PhoenixTest.Form
+  alias PhoenixTest.FormData
   alias PhoenixTest.Html
   alias PhoenixTest.Link
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
+  alias PhoenixTest.Select
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
@@ -117,7 +119,7 @@ defmodule PhoenixTest.Static do
   def select(session, option, from: label) do
     session
     |> render_html()
-    |> Field.find_select_option!(label, option)
+    |> Select.find_select_option!(label, option)
     |> then(&fill_in_field_data(session, &1))
   end
 
@@ -145,7 +147,7 @@ defmodule PhoenixTest.Static do
   defp fill_in_field_data(session, field) do
     active_form = session.active_form
     existing_data = active_form.form_data
-    new_form_data = Field.to_form_data(field)
+    new_form_data = FormData.to_form_data(field)
 
     form = Field.parent_form!(field)
 

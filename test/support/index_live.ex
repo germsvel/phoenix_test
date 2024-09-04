@@ -266,10 +266,21 @@ defmodule PhoenixTest.IndexLive do
           <label for="louie">Louie</label>
         </div>
       </fieldset>
+
+      <label for="pet-select">Choose a pet:</label>
+      <select multiple name="pets" id="pet-select">
+        <option phx-click="select-pet" value="dog">Dog</option>
+        <option phx-click="select-pet" value="cat">Cat</option>
+      </select>
     </div>
 
     <label for="no-form-no-phx-click">Invalid Radio Button</label>
     <input type="radio" id="no-form-no-phx-click" name="invalids" value="nothing" checked />
+
+    <label for="no-form-no-phx-click-select">Invalid Select Option</label>
+    <select name="pets" id="no-form-no-phx-click-select">
+      <option value="dog">Dog</option>
+    </select>
 
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
@@ -354,6 +365,19 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("select-city", %{"city" => city}, socket) do
     form_data = %{socket.assigns[:country] => city}
+
+    socket
+    |> assign(:form_saved, true)
+    |> assign(:form_data, form_data)
+    |> then(&{:noreply, &1})
+  end
+
+  def handle_event("select-pet", %{"value" => value}, socket) do
+    form_data =
+      case socket.assigns.form_data do
+        %{selected: values} -> %{selected: values ++ [value]}
+        %{} -> %{selected: [value]}
+      end
 
     socket
     |> assign(:form_saved, true)

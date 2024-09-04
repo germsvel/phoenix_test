@@ -445,6 +445,32 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "[elf, dwarf]")
     end
+
+    test "works with phx-click outside of forms", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#not-a-form", fn session ->
+        select(session, "Dog", from: "Choose a pet:")
+      end)
+      |> assert_has("#form-data", text: "selected: [dog]")
+    end
+
+    test "works with phx-click and multi-select", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#not-a-form", fn session ->
+        select(session, ["Dog", "Cat"], from: "Choose a pet:")
+      end)
+      |> assert_has("#form-data", text: "selected: [dog, cat]")
+    end
+
+    test "raises an error if select option is neither in a form nor has a phx-click", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert_raise ArgumentError, ~r/to have a `phx-click` attribute on options or to belong to a `form`/, fn ->
+        select(session, "Dog", from: "Invalid Select Option")
+      end
+    end
   end
 
   describe "check/2" do
