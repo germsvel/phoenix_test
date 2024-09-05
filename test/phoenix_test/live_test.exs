@@ -506,6 +506,23 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:payer: on")
     end
+
+    test "works with phx-click outside a form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#not-a-form", fn session ->
+        check(session, "Second Breakfast")
+      end)
+      |> assert_has("#form-data", text: "value: second-breakfast")
+    end
+
+    test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert_raise ArgumentError, ~r/have a `phx-click` attribute or belong to a `form`/, fn ->
+        check(session, "Invalid Checkbox")
+      end
+    end
   end
 
   describe "uncheck/2" do
@@ -533,6 +550,25 @@ defmodule PhoenixTest.LiveTest do
       |> uncheck("Payer")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:payer: off")
+    end
+
+    test "works with phx-click outside a form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#not-a-form", fn session ->
+        session
+        |> check("Second Breakfast")
+        |> uncheck("Second Breakfast")
+      end)
+      |> refute_has("#form-data", text: "value: second-breakfast")
+    end
+
+    test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert_raise ArgumentError, ~r/have a `phx-click` attribute or belong to a `form`/, fn ->
+        uncheck(session, "Invalid Checkbox")
+      end
     end
   end
 
