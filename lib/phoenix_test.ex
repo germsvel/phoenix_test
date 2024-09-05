@@ -480,10 +480,41 @@ defmodule PhoenixTest do
   @doc """
   Selects an option from a select dropdown.
 
+  ## Inside a form
+
   If the form is a LiveView form, and if the form has a `phx-change` attribute
   defined, `select/3` will trigger the `phx-change` event.
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Example
+
+  Given we have a form that contains this:
+
+  ```heex
+  <form>
+    <label for="race">Race</label>
+    <select id="race" name="race">
+      <option value="human">Human</option>
+      <option value="elf">Elf</option>
+      <option value="dwarf">Dwarf</option>
+      <option value="orc">Orc</option>
+    </select>
+  </form>
+  ```
+
+  We can select an option:
+
+  ```elixir
+  session
+  |> select("Human", from: "Race")
+  ```
+
+  ## Outside a form
+
+  If the select dropdown exists outside of a form, `select/3` will trigger the
+  `phx-click` event associated to the option being selected (note that all
+  options must have a `phx-click` in that case).
 
   ## Examples
 
@@ -492,10 +523,10 @@ defmodule PhoenixTest do
   ```heex
   <label for="race">Race</label>
   <select id="race" name="race">
-    <option value="human">Human</option>
-    <option value="elf">Elf</option>
-    <option value="dwarf">Dwarf</option>
-    <option value="orc">Orc</option>
+    <option phx-click="select-race" value="human">Human</option>
+    <option phx-click="select-race" value="elf">Elf</option>
+    <option phx-click="select-race" value="dwarf">Dwarf</option>
+    <option phx-click="select-race" value="orc">Orc</option>
   </select>
   ```
 
@@ -505,11 +536,18 @@ defmodule PhoenixTest do
   session
   |> select("Human", from: "Race")
   ```
+
+  And we'll get an event `"select-race"` with the payload `%{"value" =>
+  "human"}`.
   """
   defdelegate select(session, option, attrs), to: Driver
 
   @doc """
   Check a checkbox.
+
+  To uncheck a checkbox, see `uncheck/2`.
+
+  ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
   defined, `check/2` will trigger the `phx-change` event.
@@ -521,9 +559,11 @@ defmodule PhoenixTest do
   Given we have a form that contains this:
 
   ```heex
-  <input type="hidden" name="admin" value="off" />
-  <label for="admin">Admin</label>
-  <input id="admin" type="checkbox" name="admin" value="on" />
+  <form>
+    <input type="hidden" name="admin" value="off" />
+    <label for="admin">Admin</label>
+    <input id="admin" type="checkbox" name="admin" value="on" />
+  </form>
   ```
 
   We can check the "Admin" option:
@@ -532,11 +572,38 @@ defmodule PhoenixTest do
   session
   |> check("Admin")
   ```
+
+  ## Outside of a form
+
+  If the checkbox exists outside of a form, `check/2` will trigger the
+  `phx-click` event.
+
+  ## Example
+
+  ```heex
+  <label for="admin">Admin</label>
+  <input phx-click="toggle-admin" id="admin" type="checkbox" name="admin" value="on" />
+  ```
+
+  We can check the "Admin" option:
+
+  ```elixir
+  session
+  |> check("Admin")
+  ```
+
+  And that will send a `"toggle-admin"` event with the input's `value` as the
+  payload.
+
   """
   defdelegate check(session, label), to: Driver
 
   @doc """
   Uncheck a checkbox.
+
+  To check a checkbox, see `check/2`.
+
+  ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
   defined, `uncheck/2` will trigger the `phx-change` event.
@@ -548,9 +615,11 @@ defmodule PhoenixTest do
   Given we have a form that contains this:
 
   ```heex
-  <input type="hidden" name="admin" value="off" />
-  <label for="admin">Admin</label>
-  <input id="admin" type="checkbox" name="admin" value="on" />
+  <form>
+    <input type="hidden" name="admin" value="off" />
+    <label for="admin">Admin</label>
+    <input id="admin" type="checkbox" name="admin" value="on" />
+  </form>
   ```
 
   We can uncheck the "Admin" option:
@@ -563,28 +632,58 @@ defmodule PhoenixTest do
   Note that unchecking a checkbox in HTML doesn't actually send any data to the
   server. That's why we have to have a hidden input with the default value (in
   the example above: `admin="off"`).
+
+  ## Outside of a form
+
+  If the checkbox exists outside of a form, `uncheck/2` will trigger the
+  `phx-click` event and send an empty (`%{}`) payload.
+
+  ## Example
+
+  ```heex
+  <label for="admin">Admin</label>
+  <input phx-click="toggle-admin" id="admin" type="checkbox" name="admin" value="on" />
+  ```
+
+  We can uncheck the "Admin" option:
+
+  ```elixir
+  session
+  |> uncheck("Admin")
+  ```
+
+  And that will send a `"toggle-admin"` event with an empty map `%{}` as a
+  payload.
   """
   defdelegate uncheck(session, label), to: Driver
 
   @doc """
   Choose a radio button option.
 
+
+  ## Inside a form
+
   If the form is a LiveView form, and if the form has a `phx-change` attribute
   defined, `choose/3` will trigger the `phx-change` event.
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  If the radio button exists outside of a form, `choose/3` will trigger the
+  `phx-click` event.
 
   ## Example
 
   Given we have a form that contains this:
 
   ```heex
-  <input type="radio" id="email" name="contact" value="email" />
-  <label for="email">Email</label>
-  <input type="radio" id="phone" name="contact" value="phone" />
-  <label for="phone">Phone</label>
-  <input type="radio" id="mail" name="contact" value="mail" checked />
-  <label for="mail">Mail</label>
+  <form>
+    <input type="radio" id="email" name="contact" value="email" />
+    <label for="email">Email</label>
+    <input type="radio" id="phone" name="contact" value="phone" />
+    <label for="phone">Phone</label>
+    <input type="radio" id="mail" name="contact" value="mail" checked />
+    <label for="mail">Mail</label>
+  </form>
   ```
 
   We can choose to be contacted by email:
@@ -593,6 +692,27 @@ defmodule PhoenixTest do
   session
   |> choose("Email")
   ```
+
+  ## Outside of a form
+
+  If the checkbox exists outside of a form, `choose/2` will trigger the
+  `phx-click` event.
+
+  ## Example
+
+  ```heex
+  <input phx-click="select-contact" type="radio" id="email" name="contact" value="email" />
+  <label for="email">Email</label>
+  ```
+
+  We can choose to be contacted by email:
+
+  ```elixir
+  session
+  |> choose("Email")
+  ```
+
+  And we'll get a `"select-contact"` event with the input's value in the payload.
   """
   defdelegate choose(session, label), to: Driver
 
