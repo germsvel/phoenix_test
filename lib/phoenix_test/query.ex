@@ -51,8 +51,8 @@ defmodule PhoenixTest.Query do
 
   Raises `ArgumentError` if no element is found with the given selector or if multiple elements are found.
   """
-  def find!(html, selector, text) do
-    case find(html, selector, text) do
+  def find!(html, selector, text, opts \\ []) do
+    case find(html, selector, text, opts) do
       {:not_found, elements} ->
         msg =
           if Enum.any?(elements) do

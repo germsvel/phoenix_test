@@ -9,7 +9,7 @@ defmodule PhoenixTest.Select do
   @enforce_keys ~w[source_raw selected_options parsed label id name value selector]a
   defstruct ~w[source_raw selected_options parsed label id name value selector]a
 
-  def find_select_option!(html, label, option) do
+  def find_select_option!(html, label, option, opts \\ []) do
     field = Query.find_by_label!(html, "select", label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
@@ -20,11 +20,11 @@ defmodule PhoenixTest.Select do
       case {multiple, option} do
         {true, [_ | _]} ->
           Enum.map(option, fn opt ->
-            Query.find!(Html.raw(field), "option", opt)
+            Query.find!(Html.raw(field), "option", opt, opts)
           end)
 
         {true, _} ->
-          [Query.find!(Html.raw(field), "option", option)]
+          [Query.find!(Html.raw(field), "option", option, opts)]
 
         {false, [_ | _]} ->
           msg = """
@@ -38,7 +38,7 @@ defmodule PhoenixTest.Select do
           raise ArgumentError, msg
 
         {false, _} ->
-          [field |> Html.raw() |> Query.find!("option", option)]
+          [field |> Html.raw() |> Query.find!("option", option, opts)]
       end
 
     values = Enum.map(selected_options, fn option -> Html.attribute(option, "value") end)
