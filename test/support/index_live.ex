@@ -272,6 +272,21 @@ defmodule PhoenixTest.IndexLive do
         <option phx-click="select-pet" value="dog">Dog</option>
         <option phx-click="select-pet" value="cat">Cat</option>
       </select>
+
+      <fieldset>
+        <legend>Select to get second breakfast:</legend>
+
+        <div>
+          <input
+            phx-click="toggle-second-breakfast"
+            type="checkbox"
+            id="second-breakfast"
+            name="second-breakfast"
+            value="second-breakfast"
+          />
+          <label for="second-breakfast">Second Breakfast</label>
+        </div>
+      </fieldset>
     </div>
 
     <label for="no-form-no-phx-click">Invalid Radio Button</label>
@@ -281,6 +296,9 @@ defmodule PhoenixTest.IndexLive do
     <select name="pets" id="no-form-no-phx-click-select">
       <option value="dog">Dog</option>
     </select>
+
+    <label for="no-form-no-phx-click-checkbox">Invalid Checkbox</label>
+    <input type="checkbox" id="no-form-no-phx-click-checkbox" name="no-breakfast" />
 
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
@@ -382,6 +400,13 @@ defmodule PhoenixTest.IndexLive do
     socket
     |> assign(:form_saved, true)
     |> assign(:form_data, form_data)
+    |> then(&{:noreply, &1})
+  end
+
+  def handle_event("toggle-second-breakfast", params, socket) do
+    socket
+    |> assign(:form_saved, true)
+    |> assign(:form_data, params)
     |> then(&{:noreply, &1})
   end
 

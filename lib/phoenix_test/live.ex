@@ -126,17 +126,50 @@ defmodule PhoenixTest.Live do
   end
 
   def check(session, label) do
-    session
-    |> render_html()
-    |> Field.find_checkbox!(label)
-    |> then(&fill_in_field_data(session, &1))
+    field =
+      session
+      |> render_html()
+      |> Field.find_checkbox!(label)
+
+    cond do
+      Field.phx_click?(field) ->
+        session.view
+        |> element(field.selector)
+        |> render_click()
+        |> maybe_redirect(session)
+
+      Field.belongs_to_form?(field) ->
+        fill_in_field_data(session, field)
+
+      true ->
+        raise ArgumentError, """
+        Expected checkbox with selector #{inspect(field.selector)} to have a `phx-click` attribute or belong to a `form` element.
+        """
+    end
   end
 
   def uncheck(session, label) do
-    session
-    |> render_html()
-    |> Field.find_hidden_uncheckbox!(label)
-    |> then(&fill_in_field_data(session, &1))
+    html = render_html(session)
+    field = Field.find_checkbox!(html, label)
+
+    cond do
+      Field.phx_click?(field) ->
+        event = Html.attribute(field.parsed, "phx-click")
+
+        session.view
+        |> render_click(event, %{})
+        |> maybe_redirect(session)
+
+      Field.belongs_to_form?(field) ->
+        html
+        |> Field.find_hidden_uncheckbox!(label)
+        |> then(&fill_in_field_data(session, &1))
+
+      true ->
+        raise ArgumentError, """
+        Expected checkbox with selector #{inspect(field.selector)} to have a `phx-click` attribute or belong to a `form` element.
+        """
+    end
   end
 
   def choose(session, label) do
