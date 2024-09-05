@@ -101,6 +101,19 @@ defmodule PhoenixTest.IndexLive do
       Save Owner Form
     </button>
 
+    <form id="nested-form-with-hidden-inputs" phx-submit="save-form" phx-change="validate">
+      <input type="hidden" name="elf[cloak][_persistent_id]" value="0">
+      <input type="hidden" name="elf[cloak][_touched]" value="">
+      <input type="hidden" name="elf[cloak][_form_type]" value="create">
+      <label for="elf_cloak_color">Elf Cloak Color</label>
+      <input type="text" name="elf[cloak][color]" id="elf_cloak_color" phx-debounce="300">
+      <label for="elf_cloak_size">Elf Cloak Size</label>
+      <select name="elf[cloak][size]" id="elf_cloak_size">
+        <option value="small">Small</option>
+        <option value="large">Large</option>
+      </select>
+    </form>
+
     <form id="nested-form" phx-submit="save-form">
       <label for="user-name">User Name</label>
       <input id="user-name" name="user[name]" />
@@ -341,6 +354,10 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_saved, true)
       |> assign(:form_data, form_data)
     }
+  end
+
+  def handle_event("validate", _form_data, socket) do
+    {:noreply, socket}
   end
 
   def handle_event("save-redirect-form", _, socket) do
