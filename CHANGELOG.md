@@ -26,6 +26,16 @@ page](https://hex.pm/packages/phoenix_test)
 
 - Fix `refute_has/2` to handle `:at` option without `text`. Commit [33a02bf]
 
+[82fa973]: https://github.com/germsvel/phoenix_test/commit/82fa973
+[1493897]: https://github.com/germsvel/phoenix_test/commit/1493897
+[8745ee1]: https://github.com/germsvel/phoenix_test/commit/8745ee1
+[ce093f1]: https://github.com/germsvel/phoenix_test/commit/ce093f1
+[5dd10f5]: https://github.com/germsvel/phoenix_test/commit/5dd10f5
+[b79e8a3]: https://github.com/germsvel/phoenix_test/commit/b79e8a3
+[5cc0936]: https://github.com/germsvel/phoenix_test/commit/5cc0936
+[41c70e0]: https://github.com/germsvel/phoenix_test/commit/41c70e0
+[33a02bf]: https://github.com/germsvel/phoenix_test/commit/33a02bf
+
 ## 0.3.1
 
 ### Improvements
