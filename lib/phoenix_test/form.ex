@@ -63,7 +63,7 @@ defmodule PhoenixTest.Form do
 
   def has_action?(form), do: Utils.present?(form.action)
 
-  defp descendant_selector(%{id: id}) when is_binary(id), do: "##{id}"
+  defp descendant_selector(%{id: id}) when is_binary(id), do: "[id=#{inspect(id)}]"
   defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
   defp descendant_selector(%{selector: selector}), do: selector
 

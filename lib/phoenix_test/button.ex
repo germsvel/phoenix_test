@@ -80,7 +80,7 @@ defmodule PhoenixTest.Button do
 
   def parent_form!(button) do
     if button.form_id do
-      Form.find!(button.source_raw, "##{button.form_id}")
+      Form.find!(button.source_raw, "[id=#{inspect(button.form_id)}]")
     else
       Form.find_by_descendant!(button.source_raw, button)
     end
