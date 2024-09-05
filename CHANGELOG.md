@@ -7,6 +7,25 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.3.2
+
+### Added
+
+- Check/uncheck works with phx-click outside forms. Commit [82fa973]
+- Select works with phx-click outside forms. Commit [1493897]
+- Radio buttons work with phx-click outside forms. Commit [8745ee1]
+
+### Improvements
+
+- Send `_target` event with phx-change events. Commit [ce093f1]
+- Use `[id=<id>]` when querying by ID. Commits [5dd10f5] and [b79e8a3]
+- Allow non-string data types as inputs to fields. Commit [5cc0936]
+- Support default values on textareas. Commit [41c70e0]
+
+### Fixes
+
+- Fix `refute_has/2` to handle `:at` option without `text`. Commit [33a02bf]
+
 ## 0.3.1
 
 ### Improvements
