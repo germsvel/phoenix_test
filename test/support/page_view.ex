@@ -216,6 +216,27 @@ defmodule PhoenixTest.PageView do
       <button name="full_form_button" value="save">Save Full Form</button>
     </form>
 
+    <form
+      id="file-upload-form"
+      method="post"
+      action="/page/create_record"
+      enctype="multipart/form-data"
+    >
+      <label for="avatar">Avatar</label>
+      <input id="avatar" name="avatar" type="file" />
+
+      <label for="nested_avatar">Nested Avatar</label>
+      <input id="nested_avatar" name="user[avatar]" type="file" />
+
+      <label for="avatars_0">Avatar list 0</label>
+      <input id="avatars_0" name="avatars[]" type="file" />
+
+      <label for="avatars_1">Avatar list 1</label>
+      <input id="avatars_1" name="avatars[]" type="file" />
+
+      <button type="submit">Save File upload Form</button>
+    </form>
+
     <form id="redirect-to-liveview-form" method="post" action="/page/redirect_to_liveview">
       <label for="name">Name</label>
       <input name="name" />
@@ -310,6 +331,10 @@ defmodule PhoenixTest.PageView do
 
   defp render_input_data(key, value) when is_list(value) do
     "#{key}: [#{Enum.join(value, ",")}]"
+  end
+
+  defp render_input_data(key, %Plug.Upload{} = upload) do
+    "#{key}: #{upload.filename}"
   end
 
   defp render_input_data(key, value) when is_boolean(value) do

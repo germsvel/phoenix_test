@@ -6,6 +6,7 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Button
   alias PhoenixTest.Field
+  alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
   alias PhoenixTest.FormData
   alias PhoenixTest.Html
@@ -213,6 +214,32 @@ defmodule PhoenixTest.Live do
     fill_form(session, form.selector, form_data, additional_data)
   end
 
+  def upload(session, label, path) do
+    field =
+      session
+      |> render_html()
+      |> Field.find_input!(label)
+
+    file_stat = File.stat!(path)
+    file_name = Path.basename(path)
+    form = Field.parent_form!(field)
+    live_upload_name = String.to_existing_atom(field.name)
+    mime_type = FileUpload.mime_type(path)
+
+    entry = %{
+      last_modified: file_stat.mtime,
+      name: file_name,
+      content: File.read!(path),
+      size: file_stat.size,
+      type: mime_type
+    }
+
+    session.view
+    |> file_input(form.selector, live_upload_name, [entry])
+    |> render_upload(file_name)
+    |> maybe_redirect(session)
+  end
+
   defp fill_form(session, selector, form_data, additional_data) do
     form =
       session
@@ -371,6 +398,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate check(session, label), to: Live
   defdelegate uncheck(session, label), to: Live
   defdelegate choose(session, label), to: Live
+  defdelegate upload(session, label, path), to: Live
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live

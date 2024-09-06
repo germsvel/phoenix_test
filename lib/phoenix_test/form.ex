@@ -49,6 +49,28 @@ defmodule PhoenixTest.Form do
     }
   end
 
+  def inject_uploads(data, uploads) when is_map(data) and is_list(uploads) do
+    uploads
+    |> Enum.with_index()
+    |> Enum.reduce(data, fn {{name, upload}, index}, acc ->
+      path =
+        "#{URI.encode_www_form(name)}=placeholder_#{index}"
+        |> Plug.Conn.Query.decode()
+        |> placeholder_path([])
+        |> Enum.map(&Access.key(&1, %{}))
+
+      put_in(acc, path, upload)
+    end)
+  end
+
+  defp placeholder_path("placeholder_" <> _index, path), do: Enum.reverse(path)
+  defp placeholder_path(["placeholder_" <> index], path), do: Enum.reverse([String.to_integer(index) | path])
+
+  defp placeholder_path(map, path) when is_map(map) do
+    [{key, value}] = Map.to_list(map)
+    placeholder_path(value, [key | path])
+  end
+
   def phx_change?(form) do
     form.parsed
     |> Html.attribute("phx-change")
