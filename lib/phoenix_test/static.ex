@@ -165,12 +165,18 @@ defmodule PhoenixTest.Static do
   def upload(session, label, path) do
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
+    field = session |> render_html() |> Field.find_input!(label)
+    form = Field.parent_form!(field)
 
-    session
-    |> render_html()
-    |> Field.find_input!(label)
-    |> Map.put(:value, upload)
-    |> then(&fill_in_field_data(session, &1))
+    Map.update!(session, :active_form, fn active_form ->
+      if active_form.selector == form.selector do
+        ActiveForm.add_upload(active_form, {field.name, upload})
+      else
+        form
+        |> new_active_form()
+        |> ActiveForm.add_upload({field.name, upload})
+      end
+    end)
   end
 
   def submit(session) do
@@ -204,12 +210,17 @@ defmodule PhoenixTest.Static do
       |> Form.find!(selector)
 
     active_form =
-      [id: form.id, selector: form.selector]
-      |> ActiveForm.new()
-      |> ActiveForm.prepend_form_data(form.form_data)
+      form
+      |> new_active_form()
       |> ActiveForm.add_form_data(form_data)
 
     Map.put(session, :active_form, active_form)
+  end
+
+  defp new_active_form(form) do
+    [id: form.id, selector: form.selector]
+    |> ActiveForm.new()
+    |> ActiveForm.prepend_form_data(form.form_data)
   end
 
   def submit_form(session, selector, form_data) do
@@ -225,27 +236,24 @@ defmodule PhoenixTest.Static do
 
   defp submit_active_form(session, form) do
     active_form = session.active_form
-    form_data = form.form_data ++ active_form.form_data
 
     session = Map.put(session, :active_form, ActiveForm.new())
 
     session.conn
-    |> dispatch(@endpoint, form.method, form.action, build_data(form_data))
+    |> dispatch(@endpoint, form.method, form.action, build_data(form, active_form))
     |> maybe_redirect(session)
   end
 
   defp submit(session, form) do
     session.conn
-    |> dispatch(@endpoint, form.method, form.action, build_data(form.form_data))
+    |> dispatch(@endpoint, form.method, form.action, build_data(form))
     |> maybe_redirect(session)
   end
 
-  defp build_data(form_data) do
-    {uploads, regular} = Enum.split_with(form_data, fn {_, value} -> is_struct(value, Plug.Upload) end)
-
-    regular
+  defp build_data(form, active_form \\ ActiveForm.new()) do
+    (form.form_data ++ active_form.form_data)
     |> Form.build_data()
-    |> Form.inject_uploads(uploads)
+    |> Form.inject_uploads(active_form.uploads)
   end
 
   def open_browser(session, open_fun \\ &OpenBrowser.open_with_system_cmd/1) do
