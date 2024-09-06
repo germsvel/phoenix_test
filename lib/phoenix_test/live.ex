@@ -247,9 +247,8 @@ defmodule PhoenixTest.Live do
       |> Form.find!(selector)
 
     active_form =
-      [id: form.id, selector: form.selector]
+      form
       |> ActiveForm.new()
-      |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
     session = Map.put(session, :active_form, active_form)

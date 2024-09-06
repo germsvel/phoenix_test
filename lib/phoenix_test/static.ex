@@ -173,7 +173,7 @@ defmodule PhoenixTest.Static do
         ActiveForm.add_upload(active_form, {field.name, upload})
       else
         form
-        |> new_active_form()
+        |> ActiveForm.new()
         |> ActiveForm.add_upload({field.name, upload})
       end
     end)
@@ -211,16 +211,10 @@ defmodule PhoenixTest.Static do
 
     active_form =
       form
-      |> new_active_form()
+      |> ActiveForm.new()
       |> ActiveForm.add_form_data(form_data)
 
     Map.put(session, :active_form, active_form)
-  end
-
-  defp new_active_form(form) do
-    [id: form.id, selector: form.selector]
-    |> ActiveForm.new()
-    |> ActiveForm.prepend_form_data(form.form_data)
   end
 
   def submit_form(session, selector, form_data) do
