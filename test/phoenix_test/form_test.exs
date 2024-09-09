@@ -376,17 +376,16 @@ defmodule PhoenixTest.FormTest do
 
       injected = Form.inject_uploads(form_data, uploads)
 
-      assert injected == %{"avatar" => %{0 => upload(0), 1 => upload(1)}}
+      assert injected == %{"avatar" => [upload(0), upload(1)]}
     end
 
-    @tag :skip
-    test "resets index to 0 for each list" do
+    test "handles all files in inputs_for pseudo list" do
       form_data = %{}
-      uploads = [{"other", upload(0)}, {"avatar[]", upload(1)}, {"avatar[]", upload(2)}]
+      uploads = [{"avatar[0][file]", upload(0)}, {"avatar[1][file]", upload(1)}]
 
       injected = Form.inject_uploads(form_data, uploads)
 
-      assert injected == %{"other" => upload(0), "avatar" => %{0 => upload(1), 1 => upload(2)}}
+      assert injected == %{"avatar" => %{"0" => %{"file" => upload(0)}, "1" => %{"file" => upload(1)}}}
     end
 
     defp upload(filename \\ 0), do: %Plug.Upload{filename: filename}

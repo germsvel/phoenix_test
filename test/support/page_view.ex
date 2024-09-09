@@ -329,8 +329,8 @@ defmodule PhoenixTest.PageView do
     "#{key}'s value is empty"
   end
 
-  defp render_input_data(key, value) when is_list(value) do
-    "#{key}: [#{Enum.join(value, ",")}]"
+  defp render_input_data(key, [value | _] = values) when is_binary(value) do
+    "#{key}: [#{Enum.join(values, ",")}]"
   end
 
   defp render_input_data(key, %Plug.Upload{} = upload) do
@@ -346,8 +346,9 @@ defmodule PhoenixTest.PageView do
   end
 
   defp render_input_data(key, values) do
-    Enum.map_join(values, "\n", fn {nested_key, value} ->
-      render_input_data("#{key}:#{nested_key}", value)
+    Enum.map_join(values, "\n", fn
+      {nested_key, value} -> render_input_data("#{key}:#{nested_key}", value)
+      value -> render_input_data("#{key}:[]", value)
     end)
   end
 end

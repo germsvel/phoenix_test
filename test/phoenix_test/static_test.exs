@@ -553,10 +553,10 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> upload("Avatar list 0", "test/files/elixir.jpg")
-      |> upload("Avatar list 1", "test/files/elixir.jpg")
+      |> upload("Avatar list 1", "test/files/phoenix.jpg")
       |> click_button("Save File upload Form")
-      |> assert_has("#form-data", text: "avatars:0: elixir.jpg")
-      |> assert_has("#form-data", text: "avatars:1: elixir.jpg")
+      |> assert_has("#form-data", text: "avatars:[]: elixir.jpg")
+      |> assert_has("#form-data", text: "avatars:[]: phoenix.jpg")
     end
 
     test "uploads an image in nested forms", %{conn: conn} do
