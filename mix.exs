@@ -46,9 +46,11 @@ defmodule PhoenixTest.MixProject do
       {:jason, "~> 1.4"},
       {:phoenix, "~> 1.7.10"},
       {:phoenix_live_view, "~> 0.20.1"},
-      {:esbuild, "~> 0.8", only: :test, runtime: false},
+      {:esbuild, "~> 0.8", runtime: false},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false},
-      {:plug_cowboy, "~> 2.7", only: :test, runtime: false}
+      {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
+      {:cowlib, "~> 2.13", override: true},
+      {:playwright, "~> 1.44.0-alpha.4"}
     ]
   end
 

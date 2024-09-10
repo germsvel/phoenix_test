@@ -199,6 +199,11 @@ defmodule PhoenixTest do
   alias PhoenixTest.Driver
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
+  def with_playwright(%Plug.Conn{} = conn, browser \\ :chromium) do
+    Plug.Conn.assign(conn, :phoenix_test_playwright, browser)
+  end
+
   @doc """
   Entrypoint to create a session.
 
@@ -210,6 +215,10 @@ defmodule PhoenixTest do
   LiveView or a static view. You don't need to worry about which type of page
   you're visiting.
   """
+  def visit(%Plug.Conn{assigns: %{phoenix_test_playwright: browser}} = conn, path) do
+    PhoenixTest.Playwright.build(conn, path, browser)
+  end
+
   def visit(conn, path) do
     case get(conn, path) do
       %{assigns: %{live_module: _}} = conn ->

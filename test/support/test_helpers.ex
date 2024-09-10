@@ -12,4 +12,15 @@ defmodule PhoenixTest.TestHelpers do
     |> Enum.map_join("\n", fn s -> "\\s*" <> s <> "\\s*" end)
     |> Regex.compile!([:dotall])
   end
+
+  defmacro test_also_with_playwright(message, var \\ quote(do: _), contents) do
+    quote location: :keep do
+      tags = Module.get_attribute(__MODULE__, :tag)
+      ExUnit.Case.test(unquote(message), unquote(var), unquote(contents))
+
+      for tag <- tags, do: @tag(tag)
+      @tag :playwright
+      ExUnit.Case.test(unquote(message) <> " (playwright)", unquote(var), unquote(contents))
+    end
+  end
 end

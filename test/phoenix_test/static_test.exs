@@ -4,12 +4,14 @@ defmodule PhoenixTest.StaticTest do
   import PhoenixTest
   import PhoenixTest.TestHelpers
 
-  setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
+  setup context do
+    conn = Phoenix.ConnTest.build_conn()
+    conn = if context[:playwright], do: with_playwright(conn), else: conn
+    %{conn: conn}
   end
 
   describe "render_page_title/1" do
-    test "renders the page title", %{conn: conn} do
+    test_also_with_playwright "renders the page title", %{conn: conn} do
       title =
         conn
         |> visit("/page/index")
