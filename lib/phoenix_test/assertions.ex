@@ -5,8 +5,10 @@ defmodule PhoenixTest.Assertions do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Html
+  alias PhoenixTest.Live
   alias PhoenixTest.Locators
   alias PhoenixTest.Query
+  alias PhoenixTest.Static
   alias PhoenixTest.Utils
 
   @doc """
@@ -68,6 +70,57 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_has(session, selector, opts) when is_list(opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 100)
+
+    assert_with_timeout(session, selector, opts, timeout)
+
+    session
+  end
+
+  defp assert_with_timeout(%Static{} = session, selector, opts, _timeout) do
+    make_assertion(session, selector, opts)
+  end
+
+  defp assert_with_timeout(%Live{} = session, selector, opts, timeout) when timeout <= 0 do
+    make_assertion(session, selector, opts)
+  end
+
+  defp assert_with_timeout(%Live{} = session, selector, opts, timeout) do
+    make_assertion(session, selector, opts)
+  rescue
+    AssertionError ->
+      watch_view_and_assert(session, selector, opts, timeout)
+  end
+
+  defp watch_view_and_assert(%Live{} = session, selector, opts, timeout) do
+    :ok = PhoenixTest.LiveViewWatcher.watch_view(session.watcher, timeout)
+    handle_watched_view_messages_and_assert(session, selector, opts)
+  end
+
+  defp handle_watched_view_messages_and_assert(%Live{} = session, selector, opts) do
+    receive do
+      :timeout ->
+        make_assertion(session, selector, opts)
+
+      :async_process_completed ->
+        make_assertion_with_retry(session, selector, opts)
+
+      {:live_redirect, path} ->
+        session.conn
+        |> Phoenix.ConnTest.recycle()
+        |> PhoenixTest.visit(path)
+        |> assert_has(selector, opts)
+    end
+  end
+
+  defp make_assertion_with_retry(session, selector, opts) do
+    make_assertion(session, selector, opts)
+  rescue
+    AssertionError ->
+      handle_watched_view_messages_and_assert(session, selector, opts)
+  end
+
+  defp make_assertion(session, selector, opts) when is_struct(session) do
     count = Keyword.get(opts, :count, :any)
     finder = finder_fun(selector, opts)
 
@@ -100,8 +153,6 @@ defmodule PhoenixTest.Assertions do
             message: assert_incorrect_count_error_msg(selector, opts, found)
         end
     end
-
-    session
   end
 
   @doc """

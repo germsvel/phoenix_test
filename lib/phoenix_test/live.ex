@@ -16,12 +16,13 @@ defmodule PhoenixTest.Live do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
     current_path = append_query_string(conn.request_path, conn.query_string)
-    %__MODULE__{view: view, conn: conn, current_path: current_path}
+    {:ok, watcher} = PhoenixTest.LiveViewWatcher.start_link(%{view: view, caller: self()})
+    %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
   end
 
   def current_path(session), do: session.current_path

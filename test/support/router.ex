@@ -42,6 +42,7 @@ defmodule PhoenixTest.Router do
 
       live "/live/index", IndexLive
       live "/live/page_2", Page2Live
+      live "/live/async_page", AsyncPageLive
     end
 
     live "/live/index_no_layout", IndexLive

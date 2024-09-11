@@ -302,6 +302,49 @@ defmodule PhoenixTest.AssertionsTest do
     end
   end
 
+  describe "assert_has/3 with timeout" do
+    test "ignores timeout for static pages", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("h1", text: "Main", timeout: :timer.minutes(2))
+    end
+
+    test "ignores timeout for regular LiveView events", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Change h3")
+      |> assert_has("h3", text: "I've been changed!", timeout: :timer.minutes(2))
+    end
+
+    test "honors timeout 0", %{conn: conn} do
+      assert_raise AssertionError, ~r/Could not find any elements/, fn ->
+        conn
+        |> visit("/live/async_page")
+        |> assert_has("h1", text: "Title loaded async", timeout: 0)
+      end
+    end
+
+    test "changes to LiveView as a result of messages", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Change h2")
+      |> assert_has("h2", text: "I've been changed!", timeout: 100)
+    end
+
+    test "timeout waits for async assigns", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> assert_has("h1", text: "Title loaded async", timeout: 150)
+    end
+
+    test "timeout handles async redirects", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async redirect!")
+      |> assert_has("h1", text: "LiveView page 2", timeout: 250)
+    end
+  end
+
   describe "refute_has/2" do
     test "succeeds if no element is found with CSS selector (Static)", %{conn: conn} do
       conn
