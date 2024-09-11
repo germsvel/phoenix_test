@@ -519,6 +519,14 @@ defmodule PhoenixTest.LiveTest do
         check(session, "Invalid Checkbox")
       end
     end
+
+    test "check via substring label match", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("fellowship", exact: false)
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "member_of_fellowship: on")
+    end
   end
 
   describe "uncheck/2" do

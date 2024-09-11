@@ -254,8 +254,8 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_label!(html, label) do
-    case find_by_label(html, label) do
+  def find_by_label!(html, label, opts \\ []) do
+    case find_by_label(html, label, opts) do
       {:found, element} ->
         element
 
@@ -314,8 +314,8 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_label(html, label) do
-    with {:explicit_association, label_element} <- find_label_element(html, label),
+  def find_by_label(html, label, opts \\ []) do
+    with {:explicit_association, label_element} <- find_label_element(html, label, opts),
          {:ok, label_for} <- label_for(label_element),
          {:found, element} <- find_element_with_id(html, label_for, label_element) do
       {:found, element}
@@ -461,9 +461,11 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_label_element(html, label) do
+  defp find_label_element(html, label, opts) do
+    opts = Keyword.put_new(opts, :exact, true)
+
     html
-    |> find("label", label, exact: true)
+    |> find("label", label, opts)
     |> case do
       {:not_found, potential_matches} ->
         {:not_found, :no_label, potential_matches}

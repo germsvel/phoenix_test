@@ -123,17 +123,17 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def check(session, label) do
+  def check(session, label, opts) do
     session
     |> render_html()
-    |> Field.find_checkbox!(label)
+    |> Field.find_checkbox!(label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def uncheck(session, label) do
+  def uncheck(session, label, opts) do
     session
     |> render_html()
-    |> Field.find_hidden_uncheckbox!(label)
+    |> Field.find_hidden_uncheckbox!(label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
 
@@ -274,8 +274,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate within(session, selector, fun), to: Static
   defdelegate fill_in(session, label, attrs), to: Static
   defdelegate select(session, option, attrs), to: Static
-  defdelegate check(session, label), to: Static
-  defdelegate uncheck(session, label), to: Static
+  defdelegate check(session, label, opts), to: Static
+  defdelegate uncheck(session, label, opts), to: Static
   defdelegate choose(session, label), to: Static
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static

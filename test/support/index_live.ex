@@ -174,10 +174,13 @@ defmodule PhoenixTest.IndexLive do
       Prefilled notes
       </textarea>
 
-      <label for="disabled_textarea">Disabled textaread</label>
+      <label for="disabled_textarea">Disabled textarea</label>
       <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>
       Prefilled content
       </textarea>
+
+      <label for="member_of_fellowship">Member of fellowship</label>
+      <input type="checkbox" id="member_of_fellowship" name="member_of_fellowship" value="on" />
 
       <button type="submit" name="full_form_button" value="save">Save Full Form</button>
     </form>

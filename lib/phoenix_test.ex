@@ -611,7 +611,7 @@ defmodule PhoenixTest do
   payload.
 
   """
-  defdelegate check(session, label), to: Driver
+  defdelegate check(session, label, opts \\ []), to: Driver
 
   @doc """
   Uncheck a checkbox.
@@ -670,7 +670,7 @@ defmodule PhoenixTest do
   And that will send a `"toggle-admin"` event with an empty map `%{}` as a
   payload.
   """
-  defdelegate uncheck(session, label), to: Driver
+  defdelegate uncheck(session, label, opts \\ []), to: Driver
 
   @doc """
   Choose a radio button option.
