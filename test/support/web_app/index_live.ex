@@ -18,6 +18,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <h2 :if={@details}>LiveView main page details</h2>
 
+    <h3><%= @h3 %></h3>
+
+    <button phx-click="change-h3">Change h3</button>
+
     <button phx-click="push-navigate">Button with push navigation</button>
     <button phx-click="push-patch">Button with push patch</button>
 
@@ -513,6 +517,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
     {
       :ok,
       socket
+      |> assign(:h3, "this is an h3")
       |> assign(:details, false)
       |> assign(:show_tab, false)
       |> assign(:form_saved, false)
@@ -527,6 +532,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
     }
+  end
+
+  def handle_event("change-h3", _, socket) do
+    {:noreply, assign(socket, :h3, "I've been changed!")}
   end
 
   def handle_event("change-page-title", _, socket) do

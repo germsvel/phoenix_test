@@ -5,6 +5,7 @@ defmodule PhoenixTest.Live do
   import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.Assertions
   alias PhoenixTest.ConnHandler
   alias PhoenixTest.Element.Button
   alias PhoenixTest.Element.Field
@@ -14,16 +15,18 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
+  alias PhoenixTest.LiveViewTimeout
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct view: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
     current_path = append_query_string(conn.request_path, conn.query_string)
-    %__MODULE__{view: view, conn: conn, current_path: current_path}
+    {:ok, watcher} = PhoenixTest.LiveViewWatcher.start_link(%{view: view, caller: self()})
+    %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
   end
 
   def current_path(session), do: session.current_path
@@ -357,6 +360,26 @@ defmodule PhoenixTest.Live do
     |> maybe_redirect(session)
   end
 
+  def assert_has(session, selector, opts) when is_list(opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 0)
+
+    LiveViewTimeout.with_timeout(session, timeout, fn session ->
+      Assertions.assert_has(session, selector, opts)
+    end)
+  end
+
+  def refute_has(session, selector, opts) when is_list(opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 0)
+
+    LiveViewTimeout.with_timeout(session, timeout, fn session ->
+      Assertions.refute_has(session, selector, opts)
+    end)
+  end
+
+  def handle_redirect(session, redirect_tuple) do
+    maybe_redirect({:error, redirect_tuple}, session)
+  end
+
   defp maybe_redirect({:error, {kind, %{to: path}}} = result, session) when kind in [:redirect, :live_redirect] do
     session = %{session | current_path: path}
     conn = session.conn
@@ -442,9 +465,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate current_path(session), to: Live
 
   defdelegate assert_has(session, selector), to: Assertions
-  defdelegate assert_has(session, selector, opts), to: Assertions
+  defdelegate assert_has(session, selector, opts), to: Live
   defdelegate refute_has(session, selector), to: Assertions
-  defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate refute_has(session, selector, opts), to: Live
   defdelegate assert_path(session, path), to: Assertions
   defdelegate assert_path(session, path, opts), to: Assertions
   defdelegate refute_path(session, path), to: Assertions

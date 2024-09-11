@@ -4,6 +4,7 @@ defmodule PhoenixTest.LiveTest do
   import PhoenixTest
   import PhoenixTest.Locators
 
+  alias ExUnit.AssertionError
   alias PhoenixTest.Driver
 
   setup do
@@ -1129,6 +1130,94 @@ defmodule PhoenixTest.LiveTest do
           fill_in(session, "No Name Attribute", with: "random")
         end)
       end
+    end
+  end
+
+  describe "assert_has/3 with timeout" do
+    test "defaults to timeout 0", %{conn: conn} do
+      assert_raise AssertionError, ~r/Could not find any elements/, fn ->
+        conn
+        |> visit("/live/async_page")
+        |> assert_has("h1", text: "Title loaded async")
+      end
+    end
+
+    test "timeout waits for changes to LiveView as a result of info messages", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Change h2")
+      |> assert_has("h2", text: "I've been changed!", timeout: 100)
+    end
+
+    test "timeout waits for async assigns", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> assert_has("h1", text: "Title loaded async", timeout: 350)
+    end
+
+    test "timeout handles async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async navigate!")
+      |> assert_has("h1", text: "LiveView page 2", timeout: 250)
+    end
+
+    test "timeout handles fast async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Navigate quickly")
+      |> assert_has("h1", text: "LiveView page 2", timeout: 150)
+    end
+
+    test "timeout handles redirects", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async redirect!")
+      |> assert_has("h1", text: "Main page", timeout: 250)
+    end
+  end
+
+  describe "refute_has/3 with timeout" do
+    test "defaults to timeout 0", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> refute_has("h1")
+    end
+
+    test "timeout waits for changes to LiveView as a result of info messages", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Change h2")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 100)
+    end
+
+    test "timeout waits for async assigns", %{conn: conn} do
+      assert_raise AssertionError, ~r/Expected not to find/, fn ->
+        conn
+        |> visit("/live/async_page")
+        |> refute_has("h1", text: "Title loaded async", timeout: 250)
+      end
+    end
+
+    test "timeout handles async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async navigate!")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
+    end
+
+    test "timeout handles fast async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Navigate quickly")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 150)
+    end
+
+    test "timeout handles redirects", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async redirect!")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
     end
   end
 end

@@ -1194,7 +1194,12 @@ defmodule PhoenixTest do
   - `count`: the number of items you expect to match CSS selector (and `text` if
   provided)
 
-  - `at`: the element to be asserted against
+  - `at`: (integer) position of the element to be asserted against
+
+  - `timeout`: experimental option that only works with LiveViews. If you pass a
+  positive `timeout`, PhoenixTest will wait for any async operations (i.e.
+  LiveView's `assign_async` and `start_async`) and handle redirects that happen
+  as result of a `handle_async` or `handle_info`. (defaults to `0`)
 
   ## Examples
 
@@ -1215,6 +1220,10 @@ defmodule PhoenixTest do
 
   # assert the second element in the list of ".posts" has text "Hello"
   assert_has(session, ".posts", at: 2, text: "Hello")
+
+  # assert the h1 has text "Hello" in the next 100ms (perhaps as a result of an
+  # async assign)
+  assert_has(session, "h1", text: "Hello", timeout: 100)
   ```
   """
   defdelegate assert_has(session, selector, opts), to: Driver
@@ -1257,7 +1266,12 @@ defmodule PhoenixTest do
   - `count`: the number of items you're expecting _should not_ match the CSS
   selector (and `text` if provided)
 
-  - `at`: the element to be refuted against
+  - `at`: (integer) position of the element to be refuted against
+
+  - `timeout`: experimental option that only works with LiveViews. If you pass a
+  positive `timeout`, PhoenixTest will wait for any async operations (i.e.
+  LiveView's `assign_async` and `start_async`) and handle redirects that happen
+  as result of a `handle_async` or `handle_info`. (defaults to `0`)
 
   ## Examples
 
@@ -1276,6 +1290,10 @@ defmodule PhoenixTest do
 
   # refute the second element with class "posts" has text "Hello"
   refute_has(session, ".posts", at: 2, text: "Hello")
+
+  # refute the "h1" has text "Hello" in the next 100ms (perhaps as a result of
+  # an async assign)
+  refute_has(session, "h1", text: "Hello", timeout: 100)
   ```
   """
   defdelegate refute_has(session, selector, opts), to: Driver
