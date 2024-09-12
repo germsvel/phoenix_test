@@ -47,4 +47,24 @@ defmodule PhoenixTest.ElementTest do
       assert ~s(input[type="text"][name="name"]) = selector
     end
   end
+
+  describe "selector_has_id?" do
+    test "returns true if selector has #<id>" do
+      selector = "#name"
+
+      assert Element.selector_has_id?(selector)
+    end
+
+    test "returns true if selector has [id=<id>]" do
+      selector = "[id='name']"
+
+      assert Element.selector_has_id?(selector)
+    end
+
+    test "returns false if selector doesn't have id" do
+      selector = "[data-role='name']"
+
+      refute Element.selector_has_id?(selector)
+    end
+  end
 end

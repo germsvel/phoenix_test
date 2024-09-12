@@ -1,6 +1,7 @@
 defmodule PhoenixTest.Query do
   @moduledoc false
 
+  alias PhoenixTest.Element
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
 
@@ -314,10 +315,120 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  def find_by_label!(html, input_selector, label) do
+    case find_by_label(html, input_selector, label) do
+      {:found, element} ->
+        element
+
+      {:not_found, :no_label, []} ->
+        msg = """
+        Could not find element with label #{inspect(label)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :no_label, potential_matches} ->
+        msg = """
+        Could not find element with selector #{inspect(input_selector)} and label #{inspect(label)}.
+
+        Found the following labels:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :missing_for, found_label} ->
+        msg = """
+        Found label but doesn't have `for` attribute.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        #{Html.raw(found_label)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :missing_input, found_label} ->
+        msg = """
+        Found label but can't find element with selector
+        #{inspect(input_selector)} whose `id` matches label's `for` attribute.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        #{Html.raw(found_label)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :found_many_labels, potential_matches} ->
+        msg = """
+        Found many labels with text #{inspect(label)}:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :found_many_labels_with_inputs, label_elements, input_elements} ->
+        msg = """
+        Found many elements with selector #{inspect(input_selector)} and label #{inspect(label)}.
+
+        Found the following labels:
+
+        #{Enum.map_join(label_elements, "\n", &Html.raw/1)}
+
+        And the following inputs:
+
+        #{Enum.map_join(input_elements, "\n", &Html.raw/1)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :mismatched_id, label_element, input_element} ->
+        msg = """
+        Found an element with selector #{inspect(input_selector)} and label #{inspect(label)}.
+
+        But the selector provided did not match the labeled element's `id`:
+
+        Label found:
+
+        #{Html.raw(label_element)}
+
+        Element found:
+
+        #{Html.raw(input_element)}
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, :missing_id, found_label, found_input} ->
+        msg = """
+        Found label and element with selector #{inspect(input_selector)}, but input did not have matching `id`.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        #{Html.raw(found_label)}
+
+        Element found:
+
+        #{Html.raw(found_input)}
+        """
+
+        raise ArgumentError, msg
+    end
+  end
+
   def find_by_label(html, label) do
     with {:explicit_association, label_element} <- find_label_element(html, label),
          {:ok, label_for} <- label_for(label_element),
-         {:found, element} <- find_element_with_id(html, label_for, label_element) do
+         {:found, element} <- find_associated_input(html, label_for, label_element) do
       {:found, element}
     else
       {:implicit_association, _label_element, element} ->
@@ -325,6 +436,53 @@ defmodule PhoenixTest.Query do
 
       not_found ->
         not_found
+    end
+  end
+
+  def find_by_label(html, input_selector, label) do
+    case find_labels(html, input_selector, label) do
+      {:implicit_association, _label_element, element} ->
+        {:found, element}
+
+      {:explicit_association, label_element} ->
+        find_label_input(html, input_selector, label_element)
+
+      {:found_many, label_elements} ->
+        label_elements
+        |> Enum.map(&find_label_input(html, input_selector, &1))
+        |> Enum.filter(fn
+          {:found, _} -> true
+          _ -> false
+        end)
+        |> case do
+          [] -> {:not_found, :found_many_labels, label_elements}
+          [{:found, element}] -> {:found, element}
+          [_ | _] = found -> {:not_found, :found_many_labels_with_inputs, label_elements, Enum.map(found, &elem(&1, 1))}
+        end
+
+      {:not_found, potential_matches} ->
+        {:not_found, :no_label, potential_matches}
+    end
+  end
+
+  defp find_labels(html, input_selector, label) do
+    html
+    |> find("label", label, exact: true)
+    |> case do
+      {:not_found, potential_matches} ->
+        {:not_found, potential_matches}
+
+      {:found, element} ->
+        determine_implicit_or_explicit_label(element, input_selector)
+
+      {:found_many, elements} ->
+        {:found_many, elements}
+    end
+  end
+
+  defp find_label_input(html, input_selector, label_element) do
+    with {:ok, label_for} <- label_for(label_element) do
+      find_associated_input(html, input_selector, label_for, label_element)
     end
   end
 
@@ -486,6 +644,16 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  defp determine_implicit_or_explicit_label(label, input_selector) do
+    case find(Html.raw(label), input_selector) do
+      :not_found ->
+        {:explicit_association, label}
+
+      {:found, element} ->
+        {:implicit_association, label, element}
+    end
+  end
+
   defp label_for(label) do
     case Html.attribute(label, "for") do
       nil ->
@@ -496,10 +664,33 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_element_with_id(html, id, label) do
-    case find(html, "[id='#{id}']") do
+  defp find_associated_input(html, label_for, label) do
+    case find(html, "[id='#{label_for}']") do
       :not_found -> {:not_found, :missing_id, label}
       {:found, _el} = found -> found
+    end
+  end
+
+  defp find_associated_input(html, input_selector, label_for, label) do
+    selector = combine_selector(input_selector, label_for)
+
+    case find(html, selector) do
+      :not_found ->
+        {:not_found, :missing_input, label}
+
+      {:found, element} = found ->
+        case Html.attribute(element, "id") do
+          ^label_for -> found
+          _ -> {:not_found, :mismatched_id, label, element}
+        end
+    end
+  end
+
+  defp combine_selector(input_selector, label_for) do
+    if Element.selector_has_id?(input_selector) do
+      input_selector
+    else
+      input_selector <> "[id='#{label_for}']"
     end
   end
 

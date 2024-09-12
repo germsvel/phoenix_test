@@ -675,15 +675,14 @@ defmodule PhoenixTest do
   @doc """
   Choose a radio button option.
 
-
   ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
-  defined, `choose/3` will trigger the `phx-change` event.
+  defined, `choose/2` will trigger the `phx-change` event.
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
 
-  If the radio button exists outside of a form, `choose/3` will trigger the
+  If the radio button exists outside of a form, `choose/2` will trigger the
   `phx-click` event.
 
   ## Example
@@ -729,7 +728,55 @@ defmodule PhoenixTest do
 
   And we'll get a `"select-contact"` event with the input's value in the payload.
   """
-  defdelegate choose(session, label), to: Driver
+  def choose(session, label) do
+    choose(session, "input[type='radio']", label)
+  end
+
+  @doc """
+  Like `choose/2` but you can specify an input's selector (in addition to the
+  label).
+
+  Helpful for cases when you have multiple radio buttons with the same label.
+
+  ## Example
+
+  Consider a form containig the following:
+
+  ```heex
+  <fieldset>
+    <legend>Do you like Elixir:</legend>
+
+    <div>
+      <input name="elixir-yes" type="radio" id="elixir-yes" value="yes" />
+      <label for="elixir-yes">Yes</label>
+    </div>
+    <div>
+      <input name="elixir-no" type="radio" id="elixir-no" value="no" />
+      <label for="elixir-no">No</label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Do you like Erlang:</legend>
+
+    <div>
+      <input name="erlang-yes" type="radio" id="erlang-yes" value="yes" />
+      <label for="erlang-yes">Yes</label>
+    </div>
+    <div>
+      <input name="erlang-yes" type="radio" id="erlang-no" value="no" />
+      <label for="erlang-no">No</label>
+    </div>
+  </fieldset>
+  ```
+
+  Since all radio buttons have the labels "Yes" or "No", you can target a
+  specific radio button like so:
+
+  ```elixir
+  choose(session, "#elixir-yes", "Yes")
+  ```
+  """
+  defdelegate choose(session, selector, label), to: Driver
 
   @doc """
   Upload a file.

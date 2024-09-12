@@ -9,4 +9,8 @@ defmodule PhoenixTest.Element do
       {k, v}, acc -> {:cont, acc <> "[#{k}=#{inspect(v)}]"}
     end)
   end
+
+  def selector_has_id?(selector) when is_binary(selector) do
+    String.contains?(selector, ["[id=", "#"])
+  end
 end

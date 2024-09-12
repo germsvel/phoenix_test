@@ -173,11 +173,11 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def choose(session, label) do
+  def choose(session, input_selector, label) do
     field =
       session
       |> render_html()
-      |> Field.find_input!(label)
+      |> Field.find_input!(input_selector, label)
 
     cond do
       Field.phx_click?(field) ->
@@ -396,7 +396,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate select(session, option, attrs), to: Live
   defdelegate check(session, label), to: Live
   defdelegate uncheck(session, label), to: Live
-  defdelegate choose(session, label), to: Live
+  defdelegate choose(session, input_selector, label), to: Live
   defdelegate upload(session, label, path), to: Live
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live

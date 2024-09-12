@@ -250,6 +250,33 @@ defmodule PhoenixTest.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
+    <form id="same-labels" phx-change="save-form">
+      <fieldset name="like-elixir">
+        <legend>Do you like Elixir:</legend>
+
+        <div>
+          <input name="elixir-yes" type="radio" id="elixir-yes" value="yes" />
+          <label for="elixir-yes">Yes</label>
+        </div>
+        <div>
+          <input name="elixir-no" type="radio" id="elixir-no" value="no" />
+          <label for="elixir-no">No</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Do you like Erlang:</legend>
+
+        <div>
+          <input name="erlang-yes" type="radio" id="erlang-yes" value="yes" />
+          <label for="erlang-yes">Yes</label>
+        </div>
+        <div>
+          <input name="erlang-yes" type="radio" id="erlang-no" value="no" />
+          <label for="erlang-no">No</label>
+        </div>
+      </fieldset>
+    </form>
+
     <div id="not-a-form">
       <fieldset>
         <legend>Select a maintenance drone:</legend>

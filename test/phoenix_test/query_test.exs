@@ -500,6 +500,187 @@ defmodule PhoenixTest.QueryTest do
     end
   end
 
+  describe "find_by_label!/3" do
+    test "raises error if no label is found" do
+      html = """
+      <input id="name"/>
+      """
+
+      msg = """
+      Could not find element with label "Name"
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Name")
+      end
+    end
+
+    test "raises if label isn't found (but other labels are present)" do
+      html = """
+      <label for="name">Names</label>
+      """
+
+      msg = """
+      Could not find element with selector "input" and label "Name".
+
+      Found the following labels:
+
+      <label for="name">
+        Names
+      </label>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Name")
+      end
+    end
+
+    test "raises error if label doesn't have a `for` attribute" do
+      html = """
+      <label>Name</label>
+      """
+
+      msg =
+        """
+        Found label but doesn't have `for` attribute.
+
+        (Label's `for` attribute must point to element's `id`)
+
+        Label found:
+
+        <label>
+          Name
+        </label>\n
+        """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Name")
+      end
+    end
+
+    test "raises error if label's `for` doesn't have corresponding `id`" do
+      html = """
+      <label for="name">Name</label>
+      <input type="text" name="name" />
+      """
+
+      msg = """
+      Found label but can't find element with selector
+      "input" whose `id` matches label's `for` attribute.
+
+      (Label's `for` attribute must point to element's `id`)
+
+      Label found:
+
+      <label for="name">
+        Name
+      </label>\n
+      """
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Name")
+      end
+    end
+
+    test "raises error if multiple labels match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <label for="second_greeting">Hello</label>
+      """
+
+      msg = ~r/Found many labels with text "Hello"/
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Hello")
+      end
+    end
+
+    test "raises error if multiple multiple labels and inputs match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting" />
+      <label for="second_greeting">Hello</label>
+      <input id="second_greeting" />
+      """
+
+      msg = ~r/Found many elements with selector "input" and label "Hello"/
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Hello")
+      end
+    end
+
+    test "returns found element" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      """
+
+      element = Query.find_by_label!(html, "input", "Hello")
+
+      assert {"input", [{"id", "greeting"}], []} = element
+    end
+
+    test "returns found element when association is implicit" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      element = Query.find_by_label!(html, "input", "Hello")
+
+      assert {"input", [{"name", "greeting"}], []} = element
+    end
+
+    test "raises error if label's for doesn't have matching element with id" do
+      html = """
+      <label for="name">Name</label>
+      <input id="not-name" type="text" name="name" />
+      """
+
+      assert_raise ArgumentError, ~r/Found an element with selector "#not-name" and label "Name"/, fn ->
+        Query.find_by_label!(html, "#not-name", "Name")
+      end
+    end
+
+    test "raises error if label matches element with id but not the provided selector" do
+      html = """
+      <label for="name">Name</label>
+      <input id="not-name" type="text" name="name" />
+      """
+
+      assert_raise ArgumentError, ~r/Found an element with selector "input\[id='not-name'\]" and label "Name"/, fn ->
+        Query.find_by_label!(html, "input[id='not-name']", "Name")
+      end
+    end
+
+    test "raises error if label matches element with provided selector but input doesn't have matching id" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input name="greeting"/>
+      """
+
+      assert_raise ArgumentError, ~r/Found label but can't find element with selector/, fn ->
+        Query.find_by_label!(html, "input[name='greeting']", "Hello")
+      end
+    end
+
+    test "raises error if label with element and implicit association but input selector doesn't match" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      assert_raise ArgumentError, ~r/Found label but doesn't have `for` attribute/, fn ->
+        Query.find_by_label!(html, "input[name='not-greeting']", "Hello")
+      end
+    end
+  end
+
   describe "find_by_label/2" do
     test "returns error if no label is found" do
       html = """
@@ -598,6 +779,160 @@ defmodule PhoenixTest.QueryTest do
       {:found, element} = Query.find_by_label(html, "Checkbox")
 
       assert {"input", [{"type", "checkbox"}, {"name", "admin"}, {"value", "true"}], []} = element
+    end
+  end
+
+  describe "find_by_label/3" do
+    test "returns error if no label is found" do
+      html = """
+      <input id="name"/>
+      """
+
+      assert {:not_found, :no_label, []} = Query.find_by_label(html, "input", "Name")
+    end
+
+    test "returns error with other labels if others are found" do
+      html = """
+      <label name="name">Helpful for typo</label>
+      """
+
+      {:not_found, :no_label, [potential_match]} = Query.find_by_label(html, "input", "Name")
+
+      assert {"label", _, ["Helpful for typo"]} = potential_match
+    end
+
+    test "returns error if label doesn't have `for` attribute set" do
+      html = """
+      <label>Name</label>
+      """
+
+      {:not_found, :missing_for, label_without_for_element} = Query.find_by_label(html, "input", "Name")
+
+      assert {"label", _, ["Name"]} = label_without_for_element
+    end
+
+    test "returns error if label's for doesn't have matching element with id" do
+      html = """
+      <label for="name">Name</label>
+      <input id="not-name" type="text" name="name" />
+      """
+
+      {:not_found, :mismatched_id, found_label, found_input} = Query.find_by_label(html, "#not-name", "Name")
+
+      assert {"label", _, _} = found_label
+      assert {"input", _, _} = found_input
+    end
+
+    test "returns error with matching elements if multiple labels match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <label for="second_greeting">Hello</label>
+      """
+
+      {:not_found, :found_many_labels, elements} = Query.find_by_label(html, "input", "Hello")
+
+      assert Enum.count(elements) == 2
+    end
+
+    test "returns error with matching labels and inputs if multiple labels match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      <label for="second_greeting">Hello</label>
+      <input id="second_greeting"/>
+      """
+
+      {:not_found, :found_many_labels_with_inputs, [label1, label2], [input1, input2]} =
+        Query.find_by_label(html, "input", "Hello")
+
+      assert {"label", [{"for", "greeting"}], ["Hello"]} = label1
+      assert {"label", [{"for", "second_greeting"}], ["Hello"]} = label2
+      assert {"input", [{"id", "greeting"}], []} = input1
+      assert {"input", [{"id", "second_greeting"}], []} = input2
+    end
+
+    test "returns the element the label points to" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Hello")
+
+      assert {"input", [{"id", "greeting"}], []} = element
+    end
+
+    test "returns found element label points to (even if id has ? character)" do
+      html = """
+      <label for="greeting?">Hello</label>
+      <input id="greeting?"/>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Hello")
+
+      assert {"input", [{"id", "greeting?"}], []} = element
+    end
+
+    test "returns found element when association is implicit" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Hello")
+
+      assert {"input", [{"name", "greeting"}], []} = element
+    end
+
+    test "returns error if label matches element with id but not the provided selector" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      """
+
+      {:not_found, :missing_input, label} = Query.find_by_label(html, "input[id='not-greeting']", "Hello")
+
+      assert {"label", [{"for", "greeting"}], ["Hello"]} = label
+    end
+
+    test "returns error if label matches element with provided selector but input doesn't have matching id" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input name="greeting"/>
+      """
+
+      {:not_found, :missing_input, label} = Query.find_by_label(html, "input[name='greeting']", "Hello")
+
+      assert {"label", [{"for", "greeting"}], ["Hello"]} = label
+    end
+
+    test "returns error if label with element and implicit association but input selector doesn't match" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      {:not_found, :missing_for, label} = Query.find_by_label(html, "input[name='not-greeting']", "Hello")
+
+      assert {"label", [], _} = label
+    end
+
+    test "can filter labels based on associated input's selector" do
+      html = """
+      <input id="greeting" value="greeting" name="greeting" />
+      <label for="greeting">Hello</label>
+
+      <input id="second_greeting" value="second_greeting" name="second_greeting"/>
+      <label for="second_greeting">Hello</label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "#greeting", "Hello")
+
+      assert {"input", [{"id", "greeting"} | _], []} = element
     end
   end
 
