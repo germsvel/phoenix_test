@@ -500,6 +500,122 @@ defmodule PhoenixTest.QueryTest do
     end
   end
 
+  describe "find_by_label/3" do
+    test "returns error if no label is found" do
+      html = """
+      <input id="name"/>
+      """
+
+      assert {:not_found, :no_label, []} = Query.find_by_label(html, "input", "Name")
+    end
+
+    test "returns error with other labels if others are found" do
+      html = """
+      <label name="name">Helpful for typo</label>
+      """
+
+      {:not_found, :no_label, [potential_match]} = Query.find_by_label(html, "input", "Name")
+
+      assert {"label", _, ["Helpful for typo"]} = potential_match
+    end
+
+    test "returns error if label doesn't have `for` attribute set" do
+      html = """
+      <label>Name</label>
+      """
+
+      {:not_found, :missing_for, label_without_for_element} = Query.find_by_label(html, "input", "Name")
+
+      assert {"label", _, ["Name"]} = label_without_for_element
+    end
+
+    test "returns error if label's for doesn't have matching element with id" do
+      html = """
+      <label for="name">Name</label>
+      <input type="text" name="name" />
+      """
+
+      {:not_found, :missing_id, found_label} = Query.find_by_label(html, "input", "Name")
+
+      assert {"label", _, ["Name"]} = found_label
+    end
+
+    test "returns matching elements if multiple labels match" do
+      html = """
+      <label for="greeting">Hello</label>
+      <label for="second_greeting">Hello</label>
+      """
+
+      {:not_found, :no_matching_input, elements} = Query.find_by_label(html, "input", "Hello")
+
+      assert Enum.count(elements) == 2
+    end
+
+    test "returns the element the label points to" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting"/>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Hello")
+
+      assert {"input", [{"id", "greeting"}], []} = element
+    end
+
+    test "returns found element label points to (even if id has ? character)" do
+      html = """
+      <label for="greeting?">Hello</label>
+      <input id="greeting?"/>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Hello")
+
+      assert {"input", [{"id", "greeting?"}], []} = element
+    end
+
+    test "returns found element when association is implicit" do
+      html = """
+      <label>
+        Hello
+        <input name="greeting" />
+      </label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Hello")
+
+      assert {"input", [{"name", "greeting"}], []} = element
+    end
+
+    test "handles multiple linputs when implicit and one is hidden" do
+      html = """
+      <label>
+        Checkbox
+        <input type="hidden" name="admin" value="false" />
+        <input type="checkbox" name="admin" value="true" />
+      </label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "input", "Checkbox")
+
+      assert {"input", [{"type", "checkbox"}, {"name", "admin"}, {"value", "true"}], []} = element
+    end
+
+    # TODO: This is the test we're testing
+    test "can filter labels based on associated input's selector" do
+      html = """
+      <input id="greeting" value="greeting" name="greeting" />
+      <label for="greeting">Hello</label>
+
+      <input id="second_greeting" value="second_greeting" name="second_greeting"/>
+      <label for="second_greeting">Hello</label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "#greeting", "Hello")
+
+      assert {"input", [{"id", "greeting"} | _], []} = element
+    end
+  end
+
   describe "find_by_label/2" do
     test "returns error if no label is found" do
       html = """

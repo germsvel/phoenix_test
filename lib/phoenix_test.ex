@@ -675,7 +675,6 @@ defmodule PhoenixTest do
   @doc """
   Choose a radio button option.
 
-
   ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
@@ -729,7 +728,11 @@ defmodule PhoenixTest do
 
   And we'll get a `"select-contact"` event with the input's value in the payload.
   """
-  defdelegate choose(session, label), to: Driver
+  def choose(session, label) do
+    choose(session, "input[type='radio']", label)
+  end
+
+  defdelegate choose(session, selector, label), to: Driver
 
   @doc """
   Upload a file.

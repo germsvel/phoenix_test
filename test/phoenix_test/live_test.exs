@@ -568,7 +568,7 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "choose/2" do
+  describe "choose/3" do
     test "chooses an option in radio button", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -591,6 +591,15 @@ defmodule PhoenixTest.LiveTest do
         choose(session, "Huey")
       end)
       |> assert_has("#form-data", text: "value: huey")
+    end
+
+    test "can be used to choose options even with the same label in same form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#same-labels", fn session ->
+        choose(session, "#elixir-yes", "Yes")
+      end)
+      |> assert_has("#form-data", text: "elixir-yes: yes")
     end
 
     test "raises an error if radio is neither in a form nor has a phx-click", %{conn: conn} do

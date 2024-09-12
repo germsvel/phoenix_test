@@ -27,6 +27,23 @@ defmodule PhoenixTest.Field do
     }
   end
 
+  def find_input!(html, input_selector, label) do
+    field = Query.find_by_label!(html, input_selector, label)
+    id = Html.attribute(field, "id")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value")
+
+    %__MODULE__{
+      source_raw: html,
+      parsed: field,
+      label: label,
+      id: id,
+      name: name,
+      value: value,
+      selector: Element.build_selector(field)
+    }
+  end
+
   def find_checkbox!(html, label) do
     field = Query.find_by_label!(html, label)
     id = Html.attribute(field, "id")
