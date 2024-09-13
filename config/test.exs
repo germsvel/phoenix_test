@@ -8,7 +8,8 @@ config :phoenix_test, PhoenixTest.Endpoint,
   server: true,
   http: [port: 4000],
   live_view: [signing_salt: "112345678212345678312345678412"],
-  secret_key_base: String.duplicate("57689", 50)
+  secret_key_base: String.duplicate("57689", 50),
+  pubsub_server: PhoenixTest.PubSub
 
 config :logger, level: :error
 

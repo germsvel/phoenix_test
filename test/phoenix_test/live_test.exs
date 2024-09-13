@@ -602,6 +602,16 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "upload/2" do
+    test "uploads an image", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> upload("Avatar", "test/files/elixir.jpg")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "avatar: elixir.jpg")
+    end
+  end
+
   describe "filling out full form with field functions" do
     test "populates all fields", %{conn: conn} do
       conn

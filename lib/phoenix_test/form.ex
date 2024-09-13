@@ -49,6 +49,22 @@ defmodule PhoenixTest.Form do
     }
   end
 
+  def inject_uploads(data, uploads) when is_map(data) and is_list(uploads) do
+    Enum.reduce(uploads, data, fn {name, upload}, acc ->
+      with_placeholder = Plug.Conn.Query.decode("#{URI.encode_www_form(name)}=placeholder")
+      put_at_placeholder(acc, with_placeholder, upload)
+    end)
+  end
+
+  defp put_at_placeholder(_, "placeholder", upload), do: upload
+  defp put_at_placeholder(list, ["placeholder"], upload), do: (list || []) ++ [upload]
+
+  defp put_at_placeholder(map, with_placeholder, upload) do
+    map = map || %{}
+    [{key, value}] = Map.to_list(with_placeholder)
+    Map.put(map, key, put_at_placeholder(map[key], value, upload))
+  end
+
   def phx_change?(form) do
     form.parsed
     |> Html.attribute("phx-change")

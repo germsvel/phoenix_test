@@ -520,6 +520,34 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "upload/2" do
+    test "uploads image", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> upload("Avatar", "test/files/elixir.jpg")
+      |> click_button("Save File upload Form")
+      |> assert_has("#form-data", text: "avatar: elixir.jpg")
+    end
+
+    test "uploads image list", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> upload("Avatar list 0", "test/files/elixir.jpg")
+      |> upload("Avatar list 1", "test/files/phoenix.jpg")
+      |> click_button("Save File upload Form")
+      |> assert_has("#form-data", text: "avatars:[]: elixir.jpg")
+      |> assert_has("#form-data", text: "avatars:[]: phoenix.jpg")
+    end
+
+    test "uploads an image in nested forms", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> upload("Nested Avatar", "test/files/elixir.jpg")
+      |> click_button("Save File upload Form")
+      |> assert_has("#form-data", text: "user:avatar: elixir.jpg")
+    end
+  end
+
   describe "filling out full form with field functions" do
     test "populates all fields", %{conn: conn} do
       conn

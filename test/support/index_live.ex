@@ -179,6 +179,9 @@ defmodule PhoenixTest.IndexLive do
       Prefilled content
       </textarea>
 
+      <label for={@uploads.avatar.ref}>Avatar</label>
+      <.live_file_input upload={@uploads.avatar} />
+
       <button type="submit" name="full_form_button" value="save">Save Full Form</button>
     </form>
 
@@ -323,6 +326,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_data, %{})
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
+      |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
     }
   end
 
@@ -335,6 +339,13 @@ defmodule PhoenixTest.IndexLive do
   end
 
   def handle_event("save-form", form_data, socket) do
+    avatars =
+      consume_uploaded_entries(socket, :avatar, fn _, %{client_name: name} ->
+        {:ok, name}
+      end)
+
+    form_data = Map.put(form_data, "avatar", List.first(avatars))
+
     {
       :noreply,
       socket

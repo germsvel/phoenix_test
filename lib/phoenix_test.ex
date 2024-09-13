@@ -732,6 +732,31 @@ defmodule PhoenixTest do
   defdelegate choose(session, label), to: Driver
 
   @doc """
+  Upload a file.
+
+  If the form is a LiveView form, this will perform a live file upload.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ## Example
+
+  Given we have a form that contains this:
+
+  ```heex
+  <label for="avatar">Avatar</label>
+  <input type="file" id="avatar" name="avatar" />
+  ```
+
+  We can upload a file:
+
+  ```elixir
+  session
+  |> upload("Avatar", "/path/to/file")
+  ```
+  """
+  defdelegate upload(session, label, path), to: Driver
+
+  @doc """
   Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,
   `select/3`, `choose/2`, etc. for how to fill a form.)
 

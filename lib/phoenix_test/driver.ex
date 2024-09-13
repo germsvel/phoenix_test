@@ -10,6 +10,7 @@ defprotocol PhoenixTest.Driver do
   def check(session, label)
   def uncheck(session, label)
   def choose(session, label)
+  def upload(session, label, path)
   def submit(session)
   def unwrap(session, fun)
   def open_browser(session)

@@ -341,4 +341,53 @@ defmodule PhoenixTest.FormTest do
       assert form.method == "put"
     end
   end
+
+  describe "inject_uploads" do
+    test "injects top-level upload" do
+      form_data = %{"name" => "Frodo"}
+      uploads = [{"avatar", upload()}]
+
+      injected = Form.inject_uploads(form_data, uploads)
+
+      assert injected == %{"name" => "Frodo", "avatar" => upload()}
+    end
+
+    test "overwrites existing field value" do
+      form_data = %{"avatar" => "how did this string get here?"}
+      uploads = [{"avatar", upload()}]
+
+      injected = Form.inject_uploads(form_data, uploads)
+
+      assert injected == %{"avatar" => upload()}
+    end
+
+    test "injects nested upload" do
+      form_data = %{"user" => %{"name" => "Frodo"}}
+      uploads = [{"user[avatar]", upload()}]
+
+      injected = Form.inject_uploads(form_data, uploads)
+
+      assert injected == %{"user" => %{"name" => "Frodo", "avatar" => upload()}}
+    end
+
+    test "handles all files in list" do
+      form_data = %{}
+      uploads = [{"avatar[]", upload(0)}, {"avatar[]", upload(1)}]
+
+      injected = Form.inject_uploads(form_data, uploads)
+
+      assert injected == %{"avatar" => [upload(0), upload(1)]}
+    end
+
+    test "handles all files in inputs_for pseudo list" do
+      form_data = %{}
+      uploads = [{"avatar[0][file]", upload(0)}, {"avatar[1][file]", upload(1)}]
+
+      injected = Form.inject_uploads(form_data, uploads)
+
+      assert injected == %{"avatar" => %{"0" => %{"file" => upload(0)}, "1" => %{"file" => upload(1)}}}
+    end
+
+    defp upload(filename \\ 0), do: %Plug.Upload{filename: filename}
+  end
 end

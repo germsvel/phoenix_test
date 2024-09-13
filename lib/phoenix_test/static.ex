@@ -7,6 +7,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.Button
   alias PhoenixTest.DataAttributeForm
   alias PhoenixTest.Field
+  alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
   alias PhoenixTest.FormData
   alias PhoenixTest.Html
@@ -161,6 +162,23 @@ defmodule PhoenixTest.Static do
     fill_form(session, form.selector, form_data)
   end
 
+  def upload(session, label, path) do
+    mime_type = FileUpload.mime_type(path)
+    upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
+    field = session |> render_html() |> Field.find_input!(label)
+    form = Field.parent_form!(field)
+
+    Map.update!(session, :active_form, fn active_form ->
+      if active_form.selector == form.selector do
+        ActiveForm.add_upload(active_form, {field.name, upload})
+      else
+        form
+        |> ActiveForm.new()
+        |> ActiveForm.add_upload({field.name, upload})
+      end
+    end)
+  end
+
   def submit(session) do
     active_form = session.active_form
 
@@ -192,9 +210,8 @@ defmodule PhoenixTest.Static do
       |> Form.find!(selector)
 
     active_form =
-      [id: form.id, selector: form.selector]
+      form
       |> ActiveForm.new()
-      |> ActiveForm.prepend_form_data(form.form_data)
       |> ActiveForm.add_form_data(form_data)
 
     Map.put(session, :active_form, active_form)
@@ -213,19 +230,24 @@ defmodule PhoenixTest.Static do
 
   defp submit_active_form(session, form) do
     active_form = session.active_form
-    form_data = form.form_data ++ active_form.form_data
 
     session = Map.put(session, :active_form, ActiveForm.new())
 
     session.conn
-    |> dispatch(@endpoint, form.method, form.action, Form.build_data(form_data))
+    |> dispatch(@endpoint, form.method, form.action, build_data(form, active_form))
     |> maybe_redirect(session)
   end
 
   defp submit(session, form) do
     session.conn
-    |> dispatch(@endpoint, form.method, form.action, Form.build_data(form))
+    |> dispatch(@endpoint, form.method, form.action, build_data(form))
     |> maybe_redirect(session)
+  end
+
+  defp build_data(form, active_form \\ ActiveForm.new()) do
+    (form.form_data ++ active_form.form_data)
+    |> Form.build_data()
+    |> Form.inject_uploads(active_form.uploads)
   end
 
   def open_browser(session, open_fun \\ &OpenBrowser.open_with_system_cmd/1) do
@@ -277,6 +299,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate check(session, label), to: Static
   defdelegate uncheck(session, label), to: Static
   defdelegate choose(session, label), to: Static
+  defdelegate upload(session, label, path), to: Static
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static

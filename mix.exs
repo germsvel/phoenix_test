@@ -48,7 +48,8 @@ defmodule PhoenixTest.MixProject do
       {:phoenix_live_view, "~> 0.20.1"},
       {:esbuild, "~> 0.8", only: :test, runtime: false},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false},
-      {:plug_cowboy, "~> 2.7", only: :test, runtime: false}
+      {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
+      {:mime, ">= 1.0.0", optional: true}
     ]
   end
 

@@ -216,6 +216,27 @@ defmodule PhoenixTest.PageView do
       <button name="full_form_button" value="save">Save Full Form</button>
     </form>
 
+    <form
+      id="file-upload-form"
+      method="post"
+      action="/page/create_record"
+      enctype="multipart/form-data"
+    >
+      <label for="avatar">Avatar</label>
+      <input id="avatar" name="avatar" type="file" />
+
+      <label for="nested_avatar">Nested Avatar</label>
+      <input id="nested_avatar" name="user[avatar]" type="file" />
+
+      <label for="avatars_0">Avatar list 0</label>
+      <input id="avatars_0" name="avatars[]" type="file" />
+
+      <label for="avatars_1">Avatar list 1</label>
+      <input id="avatars_1" name="avatars[]" type="file" />
+
+      <button type="submit">Save File upload Form</button>
+    </form>
+
     <form id="redirect-to-liveview-form" method="post" action="/page/redirect_to_liveview">
       <label for="name">Name</label>
       <input name="name" />
@@ -308,8 +329,12 @@ defmodule PhoenixTest.PageView do
     "#{key}'s value is empty"
   end
 
-  defp render_input_data(key, value) when is_list(value) do
-    "#{key}: [#{Enum.join(value, ",")}]"
+  defp render_input_data(key, [value | _] = values) when is_binary(value) do
+    "#{key}: [#{Enum.join(values, ",")}]"
+  end
+
+  defp render_input_data(key, %Plug.Upload{} = upload) do
+    "#{key}: #{upload.filename}"
   end
 
   defp render_input_data(key, value) when is_boolean(value) do
@@ -321,8 +346,9 @@ defmodule PhoenixTest.PageView do
   end
 
   defp render_input_data(key, values) do
-    Enum.map_join(values, "\n", fn {nested_key, value} ->
-      render_input_data("#{key}:#{nested_key}", value)
+    Enum.map_join(values, "\n", fn
+      {nested_key, value} -> render_input_data("#{key}:#{nested_key}", value)
+      value -> render_input_data("#{key}:[]", value)
     end)
   end
 end
