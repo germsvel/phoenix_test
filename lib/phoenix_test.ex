@@ -276,7 +276,7 @@ defmodule PhoenixTest do
 
   ### Example
 
-  ```heex
+  ```html
   <a href="/users/2" data-method="delete" data-to="/users/2" data-csrf="token">
     Delete
   </a>
@@ -310,7 +310,7 @@ defmodule PhoenixTest do
 
   ### Example
 
-  ```heex
+  ```html
   <button phx-click="save">Save</button>
   ```
 
@@ -333,7 +333,7 @@ defmodule PhoenixTest do
 
   ### Example
 
-  ```heex
+  ```html
   <button data-method="delete" data-to="/users/2" data-csrf="token">Delete</button>
   ```
 
@@ -365,7 +365,7 @@ defmodule PhoenixTest do
 
   ### Example
 
-  ```heex
+  ```html
   <form method="post" action="/users/2">
     <input type="hidden" name="admin" value="true"/>
     <button name="complete" value="true">Complete</button>
@@ -388,7 +388,7 @@ defmodule PhoenixTest do
 
   ### Example
 
-  ```heex
+  ```html
   <form method="post" action="/users/2">
     <input type="hidden" name="_method" value="delete" />
     <button>Delete</button>
@@ -431,7 +431,7 @@ defmodule PhoenixTest do
 
   Given we have some HTML like this:
 
-  ```heex
+  ```html
   <form id="user-form" action="/users" method="post">
     <label for="name">Name</label>
     <input id="name" name="name"/>
@@ -469,14 +469,14 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <label for="name">Name</label>
   <input id="name" name="name"/>
   ```
 
   or this:
 
-  ```heex
+  ```html
   <label>
     Name
     <input name="name"/>
@@ -506,7 +506,7 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <form>
     <label for="race">Race</label>
     <select id="race" name="race">
@@ -535,7 +535,7 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <label for="race">Race</label>
   <select id="race" name="race">
     <option phx-click="select-race" value="human">Human</option>
@@ -573,7 +573,7 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <form>
     <input type="hidden" name="admin" value="off" />
     <label for="admin">Admin</label>
@@ -595,7 +595,7 @@ defmodule PhoenixTest do
 
   ## Example
 
-  ```heex
+  ```html
   <label for="admin">Admin</label>
   <input phx-click="toggle-admin" id="admin" type="checkbox" name="admin" value="on" />
   ```
@@ -629,7 +629,7 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <form>
     <input type="hidden" name="admin" value="off" />
     <label for="admin">Admin</label>
@@ -655,7 +655,7 @@ defmodule PhoenixTest do
 
   ## Example
 
-  ```heex
+  ```html
   <label for="admin">Admin</label>
   <input phx-click="toggle-admin" id="admin" type="checkbox" name="admin" value="on" />
   ```
@@ -689,7 +689,7 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <form>
     <input type="radio" id="email" name="contact" value="email" />
     <label for="email">Email</label>
@@ -714,7 +714,7 @@ defmodule PhoenixTest do
 
   ## Example
 
-  ```heex
+  ```html
   <input phx-click="select-contact" type="radio" id="email" name="contact" value="email" />
   <label for="email">Email</label>
   ```
@@ -742,7 +742,7 @@ defmodule PhoenixTest do
 
   Consider a form containig the following:
 
-  ```heex
+  ```html
   <fieldset>
     <legend>Do you like Elixir:</legend>
 
@@ -789,7 +789,7 @@ defmodule PhoenixTest do
 
   Given we have a form that contains this:
 
-  ```heex
+  ```html
   <label for="avatar">Avatar</label>
   <input type="file" id="avatar" name="avatar" />
   ```
