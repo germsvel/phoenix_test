@@ -593,7 +593,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "value: huey")
     end
 
-    test "can be used to choose options even with the same label in same form", %{conn: conn} do
+    test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#same-labels", fn session ->

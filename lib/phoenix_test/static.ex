@@ -138,10 +138,10 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def choose(session, label) do
+  def choose(session, input_selector, label) do
     session
     |> render_html()
-    |> Field.find_input!(label)
+    |> Field.find_input!(input_selector, label)
     |> then(&fill_in_field_data(session, &1))
   end
 
@@ -298,7 +298,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate select(session, option, attrs), to: Static
   defdelegate check(session, label), to: Static
   defdelegate uncheck(session, label), to: Static
-  defdelegate choose(session, label), to: Static
+  defdelegate choose(session, input_selector, label), to: Static
   defdelegate upload(session, label, path), to: Static
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static

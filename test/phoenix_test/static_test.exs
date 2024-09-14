@@ -503,7 +503,7 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
-  describe "choose/2" do
+  describe "choose/3" do
     test "chooses an option in radio button", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -517,6 +517,17 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
+    end
+
+    test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#same-labels", fn session ->
+        session
+        |> choose("#elixir-yes", "Yes")
+        |> click_button("Save form")
+      end)
+      |> assert_has("#form-data", text: "elixir-yes: yes")
     end
   end
 
