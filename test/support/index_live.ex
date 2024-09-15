@@ -275,6 +275,12 @@ defmodule PhoenixTest.IndexLive do
           <label for="erlang-no">No</label>
         </div>
       </fieldset>
+
+      <label for="book-characters">Character</label>
+      <input type="text" id="book-characters" name="book-characters" />
+
+      <label for="movie-character">Character</label>
+      <input type="text" id="movie-characters" name="movie-characters" />
     </form>
 
     <div id="not-a-form">

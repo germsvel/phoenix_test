@@ -490,7 +490,11 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn")
   ```
   """
-  defdelegate fill_in(session, label, attrs), to: Driver
+  def fill_in(session, label, attrs) do
+    fill_in(session, "input", label, attrs)
+  end
+
+  defdelegate fill_in(session, input_selectors, label, attrs), to: Driver
 
   @doc """
   Selects an option from a select dropdown.
