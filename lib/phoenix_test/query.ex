@@ -322,7 +322,7 @@ defmodule PhoenixTest.Query do
 
       {:not_found, :no_matching_input, label_elements} ->
         msg = """
-        Could not find element with input selctor #{inspect(input_selector)} and label #{inspect(label)}.
+        Could not find element with input selector #{inspect(input_selector)} and label #{inspect(label)}.
 
         Found the following labels:
 
@@ -340,7 +340,7 @@ defmodule PhoenixTest.Query do
 
       {:not_found, :no_label, potential_matches} ->
         msg = """
-        Could not find element with input selctor #{inspect(input_selector)} and label #{inspect(label)}.
+        Could not find element with input selector #{inspect(input_selector)} and label #{inspect(label)}.
 
         Found the following labels:
 
