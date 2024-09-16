@@ -305,6 +305,8 @@ defmodule PhoenixTest.IndexLive do
 
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
+
+    <button phx-click={Phoenix.LiveView.JS.navigate("/live/page_2")}>Navigate</button>
     """
   end
 

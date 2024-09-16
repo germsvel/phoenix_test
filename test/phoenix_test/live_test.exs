@@ -259,6 +259,13 @@ defmodule PhoenixTest.LiveTest do
         end)
       end
     end
+
+    test "works without button ID", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Navigate")
+      |> assert_path("/live/page_2")
+    end
   end
 
   describe "within/3" do
