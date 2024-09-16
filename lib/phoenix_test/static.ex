@@ -117,10 +117,10 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def select(session, option, [{:from, label} | opts]) do
+  def select(session, option, from: label) do
     session
     |> render_html()
-    |> Select.find_select_option!(label, option, opts)
+    |> Select.find_select_option!(label, option)
     |> then(&fill_in_field_data(session, &1))
   end
 

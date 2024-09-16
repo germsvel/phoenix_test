@@ -425,19 +425,10 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race: human")
     end
 
-    test "option fails to be selected if similar option exists", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Found more than one element/, fn ->
-        conn
-        |> visit("/page/index")
-        |> select("Orc", from: "Race")
-        |> assert_has("#full-form option[value='orc']")
-      end
-    end
-
-    test "exact=true allows selecting option if a similar option exists", %{conn: conn} do
+    test "allows selecting option if a similar option exists", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> select("Orc", from: "Race", exact: true)
+      |> select("Orc", from: "Race")
       |> assert_has("#full-form option[value='orc']")
     end
 

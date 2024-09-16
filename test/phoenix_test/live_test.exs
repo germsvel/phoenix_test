@@ -424,23 +424,14 @@ defmodule PhoenixTest.LiveTest do
     test "selects given option for a label", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Elf", from: "Race", exact: true)
+      |> select("Elf", from: "Race")
       |> assert_has("#full-form option[value='elf']")
     end
 
-    test "option fails to be selected if similar option exists", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Found more than one element/, fn ->
-        conn
-        |> visit("/live/index")
-        |> select("Orc", from: "Race")
-        |> assert_has("#full-form option[value='orc']")
-      end
-    end
-
-    test "exact=true allows selecting option if a similar option exists", %{conn: conn} do
+    test "allows selecting option if a similar option exists", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Orc", from: "Race", exact: true)
+      |> select("Orc", from: "Race")
       |> assert_has("#full-form option[value='orc']")
     end
 
