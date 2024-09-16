@@ -342,7 +342,19 @@ defmodule PhoenixTest.QueryTest do
       assert {"h1", [{"id", "title"}], ["Hello"]} = element
     end
 
-    test "returns {:found_many, found} when several match" do
+    test "returns {:found_many, found} when several simple selectors match" do
+      html = """
+      <h1 id="title">Hello</h1>
+      <h1 id="subtitle">Hi</h1>
+      """
+
+      {:found_many, [elem1, elem2]} = Query.find_one_of(html, ["h1"])
+
+      assert {"h1", _, ["Hello"]} = elem1
+      assert {"h1", _, ["Hi"]} = elem2
+    end
+
+    test "returns {:found_many, found} when several selectors + text match" do
       html = """
       <h1 id="title">Hello</h1>
       <h2 id="subtitle">Hi</h2>

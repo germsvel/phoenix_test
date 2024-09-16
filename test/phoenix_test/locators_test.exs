@@ -3,6 +3,23 @@ defmodule PhoenixTest.LocatorsTest do
 
   alias PhoenixTest.Locators
 
+  describe "textbox" do
+    test "includes provided label" do
+      {:textbox, data} = Locators.textbox(label: "Hello")
+
+      assert data.label == "Hello"
+    end
+
+    test "has list of valid roles" do
+      valid_roles =
+        ~w|input:not([type]) input[type="text"] input[type="tel"] input[type="email"] input[type="url"] textarea|
+
+      {:textbox, data} = Locators.textbox(text: "doesn't matter")
+
+      assert data.roles == valid_roles
+    end
+  end
+
   describe "button" do
     test "includes provided text" do
       {:button, data} = Locators.button(text: "Hello")
@@ -34,6 +51,17 @@ defmodule PhoenixTest.LocatorsTest do
       roles = Locators.role_selectors(locator)
 
       assert ~s|input[type="button"][value="Hello"]| in roles
+    end
+  end
+
+  describe "role_selectors for textbox" do
+    test "returns list of valid roles" do
+      locator = Locators.textbox(label: "Doesn't matter")
+      {:textbox, data} = locator
+
+      roles = Locators.role_selectors(locator)
+
+      assert roles == data.roles
     end
   end
 end

@@ -12,6 +12,13 @@ defmodule PhoenixTest.Locators do
     {:input, %{type: type, label: label, value: value}}
   end
 
+  def textbox(opts) do
+    label = Keyword.get(opts, :label)
+    roles = ~w|input:not([type]) input[type="text"] input[type="tel"] input[type="email"] input[type="url"] textarea|
+
+    {:textbox, %{label: label, roles: roles}}
+  end
+
   def button(opts) do
     text = Keyword.get(opts, :text)
     roles = ~w|button input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
@@ -26,6 +33,11 @@ defmodule PhoenixTest.Locators do
       "button" -> {"button", text}
       role -> role <> "[value=#{inspect(text)}]"
     end)
+  end
+
+  def role_selectors({:textbox, data}) do
+    %{label: _, roles: roles} = data
+    roles
   end
 
   def compile({:input, attrs}, html) do

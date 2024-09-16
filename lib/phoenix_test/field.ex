@@ -11,24 +11,18 @@ defmodule PhoenixTest.Field do
   defstruct ~w[source_raw parsed label id name value selector]a
 
   def find_input!(html, label) do
-    field = Query.find_by_label!(html, label)
-    id = Html.attribute(field, "id")
-    name = Html.attribute(field, "name")
-    value = Html.attribute(field, "value")
-
-    %__MODULE__{
-      source_raw: html,
-      parsed: field,
-      label: label,
-      id: id,
-      name: name,
-      value: value,
-      selector: Element.build_selector(field)
-    }
+    html
+    |> Query.find_by_label!(label)
+    |> build_input(label, html)
   end
 
   def find_input!(html, input_selector, label) do
-    field = Query.find_by_label!(html, input_selector, label)
+    html
+    |> Query.find_by_label!(input_selector, label)
+    |> build_input(label, html)
+  end
+
+  def build_input(field, label, html) do
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value")

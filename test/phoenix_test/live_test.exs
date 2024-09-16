@@ -308,6 +308,16 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "input's value is empty")
     end
 
+    test "can fill-in textareas", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data",
+        text: "notes: Dunedain. Heir to the throne. King of Arnor and Gondor"
+      )
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")

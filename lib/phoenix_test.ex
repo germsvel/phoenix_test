@@ -199,6 +199,7 @@ defmodule PhoenixTest do
 
   alias PhoenixTest.Button
   alias PhoenixTest.Driver
+  alias PhoenixTest.Field
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
@@ -491,10 +492,22 @@ defmodule PhoenixTest do
   ```
   """
   def fill_in(session, label, attrs) do
-    fill_in(session, "input", label, attrs)
+    textbox = textbox(label: label)
+    do_fill_in(session, textbox, attrs)
   end
 
-  defdelegate fill_in(session, input_selectors, label, attrs), to: Driver
+  defdelegate fill_in(session, input_selector, label, attrs), to: Driver
+
+  defp do_fill_in(session, {:textbox, data} = locator, attrs) do
+    html = Driver.render_html(session)
+
+    field =
+      html
+      |> Query.find_by_role_and_label!(locator)
+      |> Field.build_input(data.label, html)
+
+    fill_in(session, field.selector, data.label, attrs)
+  end
 
   @doc """
   Selects an option from a select dropdown.
