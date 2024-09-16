@@ -91,14 +91,17 @@ defmodule PhoenixTest.Form do
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
 
   defp form_data(form) do
-    form_data(@hidden_inputs, form) ++
-      form_data(@checked_radio_buttons, form) ++
-      form_data(@checked_checkboxes, form) ++
-      form_data(@pre_filled_text_inputs, form) ++
-      form_data(@pre_filled_number_inputs, form) ++
-      form_data(@pre_filled_default_text_inputs, form) ++
-      form_data_textarea(form) ++
-      form_data_select(form)
+    Enum.reject(
+      form_data(@hidden_inputs, form) ++
+        form_data(@checked_radio_buttons, form) ++
+        form_data(@checked_checkboxes, form) ++
+        form_data(@pre_filled_text_inputs, form) ++
+        form_data(@pre_filled_number_inputs, form) ++
+        form_data(@pre_filled_default_text_inputs, form) ++
+        form_data_textarea(form) ++
+        form_data_select(form),
+      fn {key, _value} -> is_nil(key) end
+    )
   end
 
   defp form_data(selector, form) do
