@@ -32,5 +32,19 @@ defmodule PhoenixTest.ElementTest do
 
       assert ~s(input[type="text"][name="name"]) = selector
     end
+
+    test "ignores `phx-*` attributes when id isn't present" do
+      data =
+        Query.find!(
+          """
+          <input phx-click="ignore-complex-liveview-js" type="text" name="name" />
+          """,
+          "input"
+        )
+
+      selector = Element.build_selector(data)
+
+      assert ~s(input[type="text"][name="name"]) = selector
+    end
   end
 end
