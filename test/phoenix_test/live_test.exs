@@ -308,6 +308,16 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "input's value is empty")
     end
 
+    test "can fill-in textareas", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Notes", with: "Dunedain. Heir to the throne. King of Arnor and Gondor")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data",
+        text: "notes: Dunedain. Heir to the throne. King of Arnor and Gondor"
+      )
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -383,9 +393,10 @@ defmodule PhoenixTest.LiveTest do
     test "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Country", with: "Bolivia")
-      |> fill_in("City", with: "La Paz")
-      |> assert_has("#form-data", text: "Bolivia: La Paz")
+      |> fill_in("Email", with: "frodo@example.com")
+      |> fill_in("Comments", with: "Hobbit")
+      |> assert_has("#form-data", text: "comments: Hobbit")
+      |> refute_has("#form-data", text: "email: frodo@example.com")
     end
 
     test "raises an error when element can't be found with label", %{conn: conn} do
@@ -399,7 +410,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
-      msg = ~r/Found label but could not find corresponding element with matching `id`./
+      msg = ~r/Found label but can't find labeled element whose `id` matches/
 
       assert_raise ArgumentError, msg, fn ->
         conn

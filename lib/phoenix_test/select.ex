@@ -10,7 +10,7 @@ defmodule PhoenixTest.Select do
   defstruct ~w[source_raw selected_options parsed label id name value selector]a
 
   def find_select_option!(html, label, option) do
-    field = Query.find_by_label!(html, label)
+    field = Query.find_by_label!(html, "select", label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 

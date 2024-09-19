@@ -31,7 +31,7 @@ defmodule PhoenixTest.Locators do
   def compile({:input, attrs}, html) do
     {label, attrs} = Map.pop(attrs, :label)
 
-    element = Query.find_by_label!(html, label)
+    element = Query.find_by_label!(html, "input:not([type='hidden'])", label)
     id = Html.attribute(element, "id")
 
     existing_attrs =

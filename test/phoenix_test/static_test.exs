@@ -399,7 +399,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
-      msg = ~r/Found label but could not find corresponding element with matching `id`./
+      msg = ~r/Found label but can't find labeled element whose `id` matches/
 
       assert_raise ArgumentError, msg, fn ->
         conn

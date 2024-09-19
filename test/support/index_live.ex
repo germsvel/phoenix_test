@@ -58,6 +58,10 @@ defmodule PhoenixTest.IndexLive do
 
       <input name="radio" type="radio" value="not_checked" />
       <input name="radio" type="radio" value="checked" checked />
+
+      <label>
+        Comments <input type="text" name="comments" />
+      </label>
     </form>
 
     <form id="country-form" phx-change="select-country">

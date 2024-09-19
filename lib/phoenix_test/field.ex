@@ -11,7 +11,8 @@ defmodule PhoenixTest.Field do
   defstruct ~w[source_raw parsed label id name value selector]a
 
   def find_input!(html, label) do
-    field = Query.find_by_label!(html, label)
+    selectors = ["input:not([type='hidden'])", "textarea"]
+    field = Query.find_by_label!(html, selectors, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value")
@@ -27,8 +28,8 @@ defmodule PhoenixTest.Field do
     }
   end
 
-  def find_input!(html, input_selector, label) do
-    field = Query.find_by_label!(html, input_selector, label)
+  def find_input!(html, input_selectors, label) do
+    field = Query.find_by_label!(html, input_selectors, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value")
@@ -45,7 +46,7 @@ defmodule PhoenixTest.Field do
   end
 
   def find_checkbox!(html, label) do
-    field = Query.find_by_label!(html, label)
+    field = Query.find_by_label!(html, "input[type='checkbox']", label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value") || "on"
@@ -62,7 +63,7 @@ defmodule PhoenixTest.Field do
   end
 
   def find_hidden_uncheckbox!(html, label) do
-    field = Query.find_by_label!(html, label)
+    field = Query.find_by_label!(html, "input[type='checkbox']", label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 

@@ -273,14 +273,7 @@ defmodule PhoenixTest.QueryTest do
       <h1>Hello</h1>
       """
 
-      msg = """
-      Could not find an element with given selectors.
-
-      I was looking for an element with one of these selectors:
-
-      - "h2" with content "Hi"
-      - "h3"
-      """
+      msg = ~r/Could not find an element with given selectors./
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
@@ -520,18 +513,8 @@ defmodule PhoenixTest.QueryTest do
       <label for="name">Names</label>
       """
 
-      msg = """
-      Could not find element with selector "input" and label "Name".
-
-      Found the following labels:
-
-      <label for="name">
-        Names
-      </label>\n
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input", "Name")
+      assert_raise ArgumentError, ~r/Could not find element with label "Email"/, fn ->
+        Query.find_by_label!(html, "input", "Email")
       end
     end
 
@@ -540,20 +523,7 @@ defmodule PhoenixTest.QueryTest do
       <label>Name</label>
       """
 
-      msg =
-        """
-        Found label but doesn't have `for` attribute.
-
-        (Label's `for` attribute must point to element's `id`)
-
-        Label found:
-
-        <label>
-          Name
-        </label>\n
-        """
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r/Found label, but it doesn't have `for` attribute/, fn ->
         Query.find_by_label!(html, "input", "Name")
       end
     end
@@ -564,20 +534,7 @@ defmodule PhoenixTest.QueryTest do
       <input type="text" name="name" />
       """
 
-      msg = """
-      Found label but can't find element with selector
-      "input" whose `id` matches label's `for` attribute.
-
-      (Label's `for` attribute must point to element's `id`)
-
-      Label found:
-
-      <label for="name">
-        Name
-      </label>\n
-      """
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r/but can't find labeled element whose `id` matches label's `for` attribute/, fn ->
         Query.find_by_label!(html, "input", "Name")
       end
     end
@@ -603,7 +560,7 @@ defmodule PhoenixTest.QueryTest do
       <input id="second_greeting" />
       """
 
-      msg = ~r/Found many elements with selector "input" and label "Hello"/
+      msg = ~r/Found many elements with label "Hello" and matching the provided selectors/
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_by_label!(html, "input", "Hello")
@@ -640,7 +597,7 @@ defmodule PhoenixTest.QueryTest do
       <input id="not-name" type="text" name="name" />
       """
 
-      assert_raise ArgumentError, ~r/Found an element with selector "#not-name" and label "Name"/, fn ->
+      assert_raise ArgumentError, ~r/label's `for` attribute did not match the labeled element's `id`/, fn ->
         Query.find_by_label!(html, "#not-name", "Name")
       end
     end
@@ -651,7 +608,7 @@ defmodule PhoenixTest.QueryTest do
       <input id="not-name" type="text" name="name" />
       """
 
-      assert_raise ArgumentError, ~r/Found an element with selector "input\[id='not-name'\]" and label "Name"/, fn ->
+      assert_raise ArgumentError, ~r/label's `for` attribute did not match the labeled element's `id`/, fn ->
         Query.find_by_label!(html, "input[id='not-name']", "Name")
       end
     end
@@ -662,7 +619,7 @@ defmodule PhoenixTest.QueryTest do
       <input name="greeting"/>
       """
 
-      assert_raise ArgumentError, ~r/Found label but can't find element with selector/, fn ->
+      assert_raise ArgumentError, ~r/can't find labeled element whose `id` matches/, fn ->
         Query.find_by_label!(html, "input[name='greeting']", "Hello")
       end
     end
@@ -675,7 +632,7 @@ defmodule PhoenixTest.QueryTest do
       </label>
       """
 
-      assert_raise ArgumentError, ~r/Found label but doesn't have `for` attribute/, fn ->
+      assert_raise ArgumentError, ~r/Found label, but it doesn't have `for` attribute/, fn ->
         Query.find_by_label!(html, "input[name='not-greeting']", "Hello")
       end
     end

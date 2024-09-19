@@ -181,18 +181,14 @@ defmodule PhoenixTest.Query do
         raise ArgumentError, """
         Could not find an element with given selectors.
 
-        I was looking for an element with one of these selectors:
-
-        #{format_find_one_of_elements_for_error(elements)}
+        I was looking for an element with one of these selectors: #{format_selectors_for_error_msg(elements)}
         """
 
       {:not_found, potential_matches} ->
         raise ArgumentError, """
         Could not find an element with given selectors.
 
-        I was looking for an element with one of these selectors:
-
-        #{format_find_one_of_elements_for_error(elements)}
+        I was looking for an element with one of these selectors: #{format_selectors_for_error_msg(elements)}
 
         I found some elements that match the selector but not the content:
 
@@ -204,9 +200,7 @@ defmodule PhoenixTest.Query do
 
       {:found_many, found_elements} ->
         raise ArgumentError, """
-        Found too many matches for given selectors:
-
-        #{format_find_one_of_elements_for_error(elements)}
+        Found too many matches for given selectors: #{format_selectors_for_error_msg(elements)}
 
         Here's what I found:
 
@@ -315,8 +309,10 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_label!(html, input_selector, label) do
-    case find_by_label(html, input_selector, label) do
+  def find_by_label!(html, input_selectors, label) do
+    input_selectors = List.wrap(input_selectors)
+
+    case find_by_label(html, input_selectors, label) do
       {:found, element} ->
         element
 
@@ -329,22 +325,26 @@ defmodule PhoenixTest.Query do
 
       {:not_found, :no_label, potential_matches} ->
         msg = """
-        Could not find element with selector #{inspect(input_selector)} and label #{inspect(label)}.
+        Could not find element with label #{inspect(label)} and provided selectors.
 
-        Found the following labels:
+        Labels found
+        ============
 
         #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+
+        Searched for labeled elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
         """
 
         raise ArgumentError, msg
 
       {:not_found, :missing_for, found_label} ->
         msg = """
-        Found label but doesn't have `for` attribute.
+        Found label, but it doesn't have `for` attribute.
 
         (Label's `for` attribute must point to element's `id`)
 
-        Label found:
+        Label found
+        ===========
 
         #{Html.raw(found_label)}
         """
@@ -353,14 +353,16 @@ defmodule PhoenixTest.Query do
 
       {:not_found, :missing_input, found_label} ->
         msg = """
-        Found label but can't find element with selector
-        #{inspect(input_selector)} whose `id` matches label's `for` attribute.
+        Found label but can't find labeled element whose `id` matches label's `for` attribute.
 
         (Label's `for` attribute must point to element's `id`)
 
-        Label found:
+        Label found
+        ===========
 
         #{Html.raw(found_label)}
+
+        Searched for elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
         """
 
         raise ArgumentError, msg
@@ -376,13 +378,15 @@ defmodule PhoenixTest.Query do
 
       {:not_found, :found_many_labels_with_inputs, label_elements, input_elements} ->
         msg = """
-        Found many elements with selector #{inspect(input_selector)} and label #{inspect(label)}.
+        Found many elements with label #{inspect(label)} and matching the provided selectors.
 
-        Found the following labels:
+        Labels found
+        ============
 
         #{Enum.map_join(label_elements, "\n", &Html.raw/1)}
 
-        And the following inputs:
+        Elements found
+        ==============
 
         #{Enum.map_join(input_elements, "\n", &Html.raw/1)}
         """
@@ -391,34 +395,20 @@ defmodule PhoenixTest.Query do
 
       {:not_found, :mismatched_id, label_element, input_element} ->
         msg = """
-        Found an element with selector #{inspect(input_selector)} and label #{inspect(label)}.
+        Found label and labeled element matching provided selectors. But the
+        label's `for` attribute did not match the labeled element's `id`.
 
-        But the selector provided did not match the labeled element's `id`:
-
-        Label found:
+        Label found
+        ============
 
         #{Html.raw(label_element)}
 
-        Element found:
+        Element found
+        =============
 
         #{Html.raw(input_element)}
-        """
 
-        raise ArgumentError, msg
-
-      {:not_found, :missing_id, found_label, found_input} ->
-        msg = """
-        Found label and element with selector #{inspect(input_selector)}, but input did not have matching `id`.
-
-        (Label's `for` attribute must point to element's `id`)
-
-        Label found:
-
-        #{Html.raw(found_label)}
-
-        Element found:
-
-        #{Html.raw(found_input)}
+        Searched for elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
         """
 
         raise ArgumentError, msg
@@ -426,7 +416,9 @@ defmodule PhoenixTest.Query do
   end
 
   def find_by_label(html, label) do
-    with {:explicit_association, label_element} <- find_label_element(html, label),
+    selectors = ["input:not([type='hidden'])", "select", "textarea"]
+
+    with {:explicit_association, label_element} <- find_label_element(html, selectors, label),
          {:ok, label_for} <- label_for(label_element),
          {:found, element} <- find_associated_input(html, label_for, label_element) do
       {:found, element}
@@ -439,17 +431,19 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_label(html, input_selector, label) do
-    case find_labels(html, input_selector, label) do
+  def find_by_label(html, input_selectors, label) do
+    input_selectors = List.wrap(input_selectors)
+
+    case find_labels(html, input_selectors, label) do
       {:implicit_association, _label_element, element} ->
         {:found, element}
 
       {:explicit_association, label_element} ->
-        find_label_input(html, input_selector, label_element)
+        find_label_input(html, input_selectors, label_element)
 
       {:found_many, label_elements} ->
         label_elements
-        |> Enum.map(&find_label_input(html, input_selector, &1))
+        |> Enum.map(&find_label_input(html, input_selectors, &1))
         |> Enum.filter(fn
           {:found, _} -> true
           _ -> false
@@ -465,7 +459,7 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_labels(html, input_selector, label) do
+  defp find_labels(html, input_selectors, label) do
     html
     |> find("label", label, exact: true)
     |> case do
@@ -473,16 +467,16 @@ defmodule PhoenixTest.Query do
         {:not_found, potential_matches}
 
       {:found, element} ->
-        determine_implicit_or_explicit_label(element, input_selector)
+        determine_implicit_or_explicit_label(element, input_selectors)
 
       {:found_many, elements} ->
         {:found_many, elements}
     end
   end
 
-  defp find_label_input(html, input_selector, label_element) do
+  defp find_label_input(html, input_selectors, label_element) do
     with {:ok, label_for} <- label_for(label_element) do
-      find_associated_input(html, input_selector, label_for, label_element)
+      find_associated_input(html, input_selectors, label_for, label_element)
     end
   end
 
@@ -619,7 +613,7 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_label_element(html, label) do
+  defp find_label_element(html, selectors, label) do
     html
     |> find("label", label, exact: true)
     |> case do
@@ -627,26 +621,16 @@ defmodule PhoenixTest.Query do
         {:not_found, :no_label, potential_matches}
 
       {:found, element} ->
-        determine_implicit_or_explicit_label(element)
+        determine_implicit_or_explicit_label(element, selectors)
 
       {:found_many, elements} ->
         {:not_found, :found_many_labels, elements}
     end
   end
 
-  defp determine_implicit_or_explicit_label(label) do
-    case find_one_of(Html.raw(label), ["input:not([type='hidden'])", "select", "textarea"]) do
+  defp determine_implicit_or_explicit_label(label, input_selectors) do
+    case find_one_of(Html.raw(label), input_selectors) do
       {:not_found, _} ->
-        {:explicit_association, label}
-
-      {:found, element} ->
-        {:implicit_association, label, element}
-    end
-  end
-
-  defp determine_implicit_or_explicit_label(label, input_selector) do
-    case find(Html.raw(label), input_selector) do
-      :not_found ->
         {:explicit_association, label}
 
       {:found, element} ->
@@ -671,11 +655,11 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_associated_input(html, input_selector, label_for, label) do
-    selector = combine_selector(input_selector, label_for)
+  defp find_associated_input(html, input_selectors, label_for, label) do
+    selectors = combine_selectors(input_selectors, label_for)
 
-    case find(html, selector) do
-      :not_found ->
+    case find_one_of(html, selectors) do
+      {:not_found, _} ->
         {:not_found, :missing_input, label}
 
       {:found, element} = found ->
@@ -684,6 +668,10 @@ defmodule PhoenixTest.Query do
           _ -> {:not_found, :mismatched_id, label, element}
         end
     end
+  end
+
+  defp combine_selectors(input_selectors, label_for) when is_list(input_selectors) do
+    Enum.map(input_selectors, &combine_selector(&1, label_for))
   end
 
   defp combine_selector(input_selector, label_for) do
@@ -734,13 +722,24 @@ defmodule PhoenixTest.Query do
     Enum.map_join(elements, "\n", &Html.raw/1)
   end
 
-  defp format_find_one_of_elements_for_error(selectors_and_text) do
-    Enum.map_join(selectors_and_text, "\n", fn
+  defp format_selectors_for_error_msg([selector_and_text]) do
+    case selector_and_text do
       {selector, text} ->
-        "- #{inspect(selector)} with content #{inspect(text)}"
+        "#{inspect(selector)} with content #{inspect(text)}"
 
       selector ->
-        "- #{inspect(selector)}"
-    end)
+        inspect(selector)
+    end
+  end
+
+  defp format_selectors_for_error_msg(selectors_and_text) do
+    "\n\n" <>
+      Enum.map_join(selectors_and_text, "\n", fn
+        {selector, text} ->
+          "- #{inspect(selector)} with content #{inspect(text)}"
+
+        selector ->
+          "- #{inspect(selector)}"
+      end)
   end
 end
