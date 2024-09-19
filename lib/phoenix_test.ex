@@ -495,6 +495,12 @@ defmodule PhoenixTest do
   @doc """
   Selects an option from a select dropdown.
 
+  ## Options
+
+  - `exact`: by default `select/3` will find the option by exact label match.
+  If you want to find an option by substring, use `exact: false`.
+  (defaults to `true`)
+
   ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
@@ -514,6 +520,7 @@ defmodule PhoenixTest do
       <option value="elf">Elf</option>
       <option value="dwarf">Dwarf</option>
       <option value="orc">Orc</option>
+      <option value="other_orc">Other Orc</option>
     </select>
   </form>
   ```
@@ -523,6 +530,7 @@ defmodule PhoenixTest do
   ```elixir
   session
   |> select("Human", from: "Race")
+  |> select("Other", from: "Race", exact: false)
   ```
 
   ## Outside a form
