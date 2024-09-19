@@ -290,7 +290,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
-  defdelegate click(session, locator), to: Static
   defdelegate click_link(session, selector, text), to: Static
   defdelegate click_button(session, selector, text), to: Static
   defdelegate within(session, selector, fun), to: Static
