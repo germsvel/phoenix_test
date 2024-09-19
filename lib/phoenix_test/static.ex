@@ -109,10 +109,10 @@ defmodule PhoenixTest.Static do
     |> Map.put(:within, :none)
   end
 
-  def fill_in(session, label, with: value) do
+  def fill_in(session, input_selector, label, with: value) do
     session
     |> render_html()
-    |> Field.find_input!(label)
+    |> Field.find_input!(input_selector, label)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end
@@ -293,7 +293,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate click_link(session, selector, text), to: Static
   defdelegate click_button(session, selector, text), to: Static
   defdelegate within(session, selector, fun), to: Static
-  defdelegate fill_in(session, label, attrs), to: Static
+  defdelegate fill_in(session, input_selector, label, attrs), to: Static
   defdelegate select(session, option, attrs), to: Static
   defdelegate check(session, label), to: Static
   defdelegate uncheck(session, label), to: Static

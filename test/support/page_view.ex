@@ -295,6 +295,17 @@ defmodule PhoenixTest.PageView do
         </div>
       </fieldset>
 
+      <div>
+        Favorite characters?
+        <div>Book</div>
+        <label for="book-characters">Character</label>
+        <input type="text" name="book-characters" id="book-characters" />
+
+        <div>Movies</div>
+        <label for="movie-characters">Character</label>
+        <input type="text" name="movie-characters" id="movie-characters" />
+      </div>
+
       <input type="submit" name="button" value="Save form" />
     </form>
     """

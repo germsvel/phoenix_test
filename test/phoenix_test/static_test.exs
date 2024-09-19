@@ -330,7 +330,7 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
-  describe "fill_in/3" do
+  describe "fill_in/4" do
     test "fills in a single text field based on the label", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -386,6 +386,16 @@ defmodule PhoenixTest.StaticTest do
       |> submit()
       |> refute_has("#form-data", text: "name: Aragorn")
       |> assert_has("#form-data", text: "user:name: Legolas")
+    end
+
+    test "can target input with selector if multiple labels have same text", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#same-labels", fn session ->
+        fill_in(session, "#book-characters", "Character", with: "Frodo")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "book-characters: Frodo")
     end
 
     test "raises an error when element can't be found with label", %{conn: conn} do

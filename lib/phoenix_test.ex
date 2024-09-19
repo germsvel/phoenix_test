@@ -490,7 +490,45 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn")
   ```
   """
-  defdelegate fill_in(session, label, attrs), to: Driver
+  def fill_in(session, label, attrs) do
+    fill_in(session, ["input:not([type='hidden'])", "textarea"], label, attrs)
+  end
+
+  @doc """
+  Like `fill_in/3` but you can specify an input's selector (in addition to the
+  label).
+
+  Helpful for cases when you have multiple fields with the same label.
+
+  ## Example
+
+  Consider a form containig the following:
+
+  ```html
+  <div>
+    <div>
+      <label for="contact_0_first_name">First Name</label>
+      <input type="text" name="contact[0][first_name]" id="contact_0_first_name" />
+    </div>
+  </div>
+
+  <div>
+    <div>
+      <label for="contact_1_first_name">First Name</label>
+      <input type="text" name="contact[1][first_name]" id="contact_1_first_name" value="">
+    </div>
+  </div>
+  ```
+
+  Since each new contact gets the same "First Name" label, you can target a
+  specific input like so:
+
+  ```elixir
+  session
+  |> fill_in("#contact_1_first_name", with: "First Name")
+  ```
+  """
+  defdelegate fill_in(session, input_selectors, label, attrs), to: Driver
 
   @doc """
   Selects an option from a select dropdown.
@@ -773,7 +811,8 @@ defmodule PhoenixTest do
   specific radio button like so:
 
   ```elixir
-  choose(session, "#elixir-yes", "Yes")
+  session
+  |> choose("#elixir-yes", "Yes")
   ```
   """
   defdelegate choose(session, selector, label), to: Driver

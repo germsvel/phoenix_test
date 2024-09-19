@@ -10,25 +10,8 @@ defmodule PhoenixTest.Field do
   @enforce_keys ~w[source_raw parsed label id name value selector]a
   defstruct ~w[source_raw parsed label id name value selector]a
 
-  def find_input!(html, label) do
-    selectors = ["input:not([type='hidden'])", "textarea"]
-    field = Query.find_by_label!(html, selectors, label)
-    id = Html.attribute(field, "id")
-    name = Html.attribute(field, "name")
-    value = Html.attribute(field, "value")
-
-    %__MODULE__{
-      source_raw: html,
-      parsed: field,
-      label: label,
-      id: id,
-      name: name,
-      value: value,
-      selector: Element.build_selector(field)
-    }
-  end
-
-  def find_input!(html, input_selectors, label) do
+  @fillable_input_selector ["input:not([type='hidden'])", "textarea"]
+  def find_input!(html, input_selectors \\ @fillable_input_selector, label) do
     field = Query.find_by_label!(html, input_selectors, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")

@@ -291,7 +291,7 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "fill_in/3" do
+  describe "fill_in/4" do
     test "fills in a single text field based on the label", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -397,6 +397,15 @@ defmodule PhoenixTest.LiveTest do
       |> fill_in("Comments", with: "Hobbit")
       |> assert_has("#form-data", text: "comments: Hobbit")
       |> refute_has("#form-data", text: "email: frodo@example.com")
+    end
+
+    test "can target input with selector if multiple labels have same text", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#same-labels", fn session ->
+        fill_in(session, "#book-characters", "Character", with: "Frodo")
+      end)
+      |> assert_has("#form-data", text: "book-characters: Frodo")
     end
 
     test "raises an error when element can't be found with label", %{conn: conn} do

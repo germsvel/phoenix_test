@@ -278,6 +278,17 @@ defmodule PhoenixTest.IndexLive do
           <input name="erlang-yes" type="radio" id="erlang-no" value="no" />
           <label for="erlang-no">No</label>
         </div>
+
+        <div>
+          Favorite characters?
+          <div>Book</div>
+          <label for="book-characters">Character</label>
+          <input type="text" name="book-characters" id="book-characters" />
+
+          <div>Movies</div>
+          <label for="movie-characters">Character</label>
+          <input type="text" name="movie-characters" id="movie-characters" />
+        </div>
       </fieldset>
     </form>
 
