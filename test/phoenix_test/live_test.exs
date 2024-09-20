@@ -505,7 +505,7 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "check/2" do
+  describe "check/3" do
     test "checks a checkbox", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -548,6 +548,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "value: second-breakfast")
     end
 
+    test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#same-labels", fn session ->
+        check(session, "#like-elixir", "Yes")
+      end)
+      |> assert_has("#form-data", text: "like-elixir: yes")
+    end
+
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
@@ -557,7 +566,7 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "uncheck/2" do
+  describe "uncheck/3" do
     test "sends the default value (in hidden input)", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -593,6 +602,18 @@ defmodule PhoenixTest.LiveTest do
         |> uncheck("Second Breakfast")
       end)
       |> refute_has("#form-data", text: "value: second-breakfast")
+    end
+
+    test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#same-labels", fn session ->
+        session
+        |> check("#like-elixir", "Yes")
+        |> uncheck("#like-elixir", "Yes")
+      end)
+      |> refute_has("#form-data", text: "like-elixir: yes")
+      |> assert_has("#form-data", text: "like-elixir: no")
     end
 
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do

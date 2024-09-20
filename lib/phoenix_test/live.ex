@@ -128,11 +128,11 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def check(session, label) do
+  def check(session, input_selector, label) do
     field =
       session
       |> render_html()
-      |> Field.find_checkbox!(label)
+      |> Field.find_checkbox!(input_selector, label)
 
     cond do
       Field.phx_click?(field) ->
@@ -151,9 +151,9 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def uncheck(session, label) do
+  def uncheck(session, input_selector, label) do
     html = render_html(session)
-    field = Field.find_checkbox!(html, label)
+    field = Field.find_checkbox!(html, input_selector, label)
 
     cond do
       Field.phx_click?(field) ->
@@ -165,7 +165,7 @@ defmodule PhoenixTest.Live do
 
       Field.belongs_to_form?(field) ->
         html
-        |> Field.find_hidden_uncheckbox!(label)
+        |> Field.find_hidden_uncheckbox!(input_selector, label)
         |> then(&fill_in_field_data(session, &1))
 
       true ->
@@ -396,8 +396,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate within(session, selector, fun), to: Live
   defdelegate fill_in(session, input_selector, label, attrs), to: Live
   defdelegate select(session, option, attrs), to: Live
-  defdelegate check(session, label), to: Live
-  defdelegate uncheck(session, label), to: Live
+  defdelegate check(session, input_selector, label), to: Live
+  defdelegate uncheck(session, input_selector, label), to: Live
   defdelegate choose(session, input_selector, label), to: Live
   defdelegate upload(session, label, path), to: Live
   defdelegate submit(session), to: Live

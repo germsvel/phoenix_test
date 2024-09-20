@@ -279,17 +279,29 @@ defmodule PhoenixTest.IndexLive do
           <input name="erlang-yes" type="radio" id="erlang-no" value="no" />
           <label for="erlang-no">No</label>
         </div>
+      </fieldset>
 
-        <div>
-          Favorite characters?
-          <div>Book</div>
-          <label for="book-characters">Character</label>
-          <input type="text" name="book-characters" id="book-characters" />
+      <fieldset>
+        <legend>Favorite characters?</legend>
+        <div>Book</div>
+        <label for="book-characters">Character</label>
+        <input type="text" name="book-characters" id="book-characters" />
 
-          <div>Movies</div>
-          <label for="movie-characters">Character</label>
-          <input type="text" name="movie-characters" id="movie-characters" />
-        </div>
+        <div>Movies</div>
+        <label for="movie-characters">Character</label>
+        <input type="text" name="movie-characters" id="movie-characters" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Do you like Elixir?</legend>
+        <label for="like-elixir">Yes</label>
+        <input type="hidden" name="like-elixir" value="no" />
+        <input type="check" name="like-elixir" id="like-elixir" value="yes" />
+
+        <legend>Do you like Erlang</legend>
+        <label for="like-erlang">Yes</label>
+        <input type="hidden" name="like-erlang" value="no" />
+        <input type="check" name="like-erlang" id="like-erlang" value="yes" />
       </fieldset>
     </form>
 

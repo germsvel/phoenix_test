@@ -508,6 +508,16 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "subscribe?: on")
     end
+
+    test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#same-labels", fn session ->
+        check(session, "#like-elixir", "Yes")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "like-elixir: yes")
+    end
   end
 
   describe "uncheck/3" do
@@ -526,6 +536,19 @@ defmodule PhoenixTest.StaticTest do
       |> uncheck("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
+    end
+
+    test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#same-labels", fn session ->
+        session
+        |> check("#like-elixir", "Yes")
+        |> uncheck("#like-elixir", "Yes")
+      end)
+      |> submit()
+      |> refute_has("#form-data", text: "like-elixir: yes")
+      |> assert_has("#form-data", text: "like-elixir: no")
     end
   end
 

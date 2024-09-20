@@ -296,8 +296,8 @@ defmodule PhoenixTest.PageView do
         </div>
       </fieldset>
 
-      <div>
-        Favorite characters?
+      <fieldset>
+        <legend>Favorite characters?</legend>
         <div>Book</div>
         <label for="book-characters">Character</label>
         <input type="text" name="book-characters" id="book-characters" />
@@ -305,7 +305,19 @@ defmodule PhoenixTest.PageView do
         <div>Movies</div>
         <label for="movie-characters">Character</label>
         <input type="text" name="movie-characters" id="movie-characters" />
-      </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Do you like Elixir?</legend>
+        <label for="like-elixir">Yes</label>
+        <input type="hidden" name="like-elixir" value="no" />
+        <input type="check" name="like-elixir" id="like-elixir" value="yes" />
+
+        <legend>Do you like Erlang</legend>
+        <label for="like-erlang">Yes</label>
+        <input type="hidden" name="like-erlang" value="no" />
+        <input type="check" name="like-erlang" id="like-erlang" value="yes" />
+      </fieldset>
 
       <input type="submit" name="button" value="Save form" />
     </form>

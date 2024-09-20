@@ -28,8 +28,9 @@ defmodule PhoenixTest.Field do
     }
   end
 
-  def find_checkbox!(html, label) do
-    field = Query.find_by_label!(html, "input[type='checkbox']", label)
+  def find_checkbox!(html, input_selector, label) do
+    field = Query.find_by_label!(html, input_selector, label)
+
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value") || "on"
@@ -45,8 +46,8 @@ defmodule PhoenixTest.Field do
     }
   end
 
-  def find_hidden_uncheckbox!(html, label) do
-    field = Query.find_by_label!(html, "input[type='checkbox']", label)
+  def find_hidden_uncheckbox!(html, input_selector, label) do
+    field = Query.find_by_label!(html, input_selector, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 

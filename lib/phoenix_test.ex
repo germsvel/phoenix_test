@@ -528,7 +528,7 @@ defmodule PhoenixTest do
   |> fill_in("#contact_1_first_name", with: "First Name")
   ```
   """
-  defdelegate fill_in(session, input_selectors, label, attrs), to: Driver
+  defdelegate fill_in(session, input_selector, label, attrs), to: Driver
 
   @doc """
   Selects an option from a select dropdown.
@@ -657,7 +657,20 @@ defmodule PhoenixTest do
   payload.
 
   """
-  defdelegate check(session, label), to: Driver
+  def check(session, label) do
+    check(session, "input[type='checkbox']", label)
+  end
+
+  @doc """
+  Like `check/2` but allows you to specify the checkbox's CSS selector.
+
+  Helpful in cases when you have multiple checkboxes with the same label on the
+  same form.
+
+  For more on checking boxes, see `check/2`. To uncheck a checkbox, see
+  `uncheck/2` and `uncheck/3`.
+  """
+  defdelegate check(session, checkbox_selector, label), to: Driver
 
   @doc """
   Uncheck a checkbox.
@@ -716,7 +729,23 @@ defmodule PhoenixTest do
   And that will send a `"toggle-admin"` event with an empty map `%{}` as a
   payload.
   """
-  defdelegate uncheck(session, label), to: Driver
+  def uncheck(session, label) do
+    uncheck(session, "input[type='checkbox']", label)
+  end
+
+  @doc """
+  Like `uncheck/2` but allows you to specify the checkbox's CSS selector.
+
+  Helpful when you have multiple checkboxes with the same label. In those cases,
+  you might need to specify the selector of the labeled element.
+
+  Note that in those cases, the selector should point to the checkbox that is
+  visible, not to the hidden input. For more, see `uncheck/2`.
+
+  For more on unchecking boxes, see `uncheck/2`. To check a checkbox, see
+  `check/2` and `check/3`.
+  """
+  defdelegate uncheck(session, checkbox_selector, label), to: Driver
 
   @doc """
   Choose a radio button option.
@@ -823,7 +852,7 @@ defmodule PhoenixTest do
   |> choose("#elixir-yes", "Yes")
   ```
   """
-  defdelegate choose(session, selector, label), to: Driver
+  defdelegate choose(session, radio_selector, label), to: Driver
 
   @doc """
   Upload a file.
