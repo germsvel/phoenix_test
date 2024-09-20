@@ -117,7 +117,9 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def select(session, option, [{:from, label} | opts]) do
+  def select(session, option, opts) do
+    label = Keyword.fetch!(opts, :from)
+
     session
     |> render_html()
     |> Select.find_select_option!(label, option, opts)
