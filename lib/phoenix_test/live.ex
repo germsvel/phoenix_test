@@ -101,11 +101,13 @@ defmodule PhoenixTest.Live do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def select(session, option, from: label) do
+  def select(session, option, opts) do
+    label = Keyword.fetch!(opts, :from)
+
     field =
       session
       |> render_html()
-      |> Select.find_select_option!(label, option)
+      |> Select.find_select_option!(label, option, opts)
 
     cond do
       Select.belongs_to_form?(field) ->

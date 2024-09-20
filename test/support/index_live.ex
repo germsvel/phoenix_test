@@ -151,6 +151,7 @@ defmodule PhoenixTest.IndexLive do
         <option value="elf">Elf</option>
         <option value="dwarf">Dwarf</option>
         <option value="orc">Orc</option>
+        <option value="other_orc">Other Orc</option>
       </select>
 
       <label for="race_2">Race 2</label>
