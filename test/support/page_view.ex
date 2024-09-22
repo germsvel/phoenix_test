@@ -341,6 +341,16 @@ defmodule PhoenixTest.PageView do
         </select>
       </fieldset>
 
+      <fieldset>
+        <legend>Upload your avatars</legend>
+
+        <label for="main-avatar">Avatar</label>
+        <input id="main-avatar" name="main-avatar" type="file" />
+
+        <label for="backup-avatar">Avatar</label>
+        <input id="backup-avatar" name="backup-avatar" type="file" />
+      </fieldset>
+
       <input type="submit" name="button" value="Save form" />
     </form>
     """

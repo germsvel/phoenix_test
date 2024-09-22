@@ -164,10 +164,10 @@ defmodule PhoenixTest.Static do
     fill_form(session, form.selector, form_data)
   end
 
-  def upload(session, label, path) do
+  def upload(session, input_selector, label, path) do
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
-    field = session |> render_html() |> Field.find_input!(label)
+    field = session |> render_html() |> Field.find_input!(input_selector, label)
     form = Field.parent_form!(field)
 
     Map.update!(session, :active_form, fn active_form ->
@@ -300,7 +300,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate check(session, input_selector, label), to: Static
   defdelegate uncheck(session, input_selector, label), to: Static
   defdelegate choose(session, input_selector, label), to: Static
-  defdelegate upload(session, label, path), to: Static
+  defdelegate upload(session, input_selector, label, path), to: Static
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static

@@ -255,7 +255,7 @@ defmodule PhoenixTest.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
-    <form id="same-labels" phx-change="save-form">
+    <form id="same-labels" phx-submit="save-form" phx-change="save-form">
       <fieldset name="like-elixir">
         <legend>Do you like Elixir:</legend>
 
@@ -325,6 +325,20 @@ defmodule PhoenixTest.IndexLive do
           <option value="Merry">Merry</option>
         </select>
       </fieldset>
+
+      <fieldset>
+        <legend>Upload your avatars</legend>
+
+        <label for={@uploads.main_avatar.ref}>Avatar</label>
+        <.live_file_input upload={@uploads.main_avatar} />
+
+        <label for={@uploads.backup_avatar.ref}>Avatar</label>
+        <.live_file_input upload={@uploads.backup_avatar} />
+      </fieldset>
+
+      <button type="submit">
+        Submit Form
+      </button>
     </form>
 
     <div id="not-a-form">
@@ -404,6 +418,8 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
     }
   end
 
@@ -421,7 +437,13 @@ defmodule PhoenixTest.IndexLive do
         {:ok, name}
       end)
 
-    form_data = Map.put(form_data, "avatar", List.first(avatars))
+    main_avatars =
+      consume_uploaded_entries(socket, :main_avatar, fn _, %{client_name: name} -> {:ok, name} end)
+
+    form_data =
+      form_data
+      |> Map.put("avatar", List.first(avatars))
+      |> Map.put("main_avatar", List.first(main_avatars))
 
     {
       :noreply,

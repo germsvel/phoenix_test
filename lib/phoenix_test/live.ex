@@ -216,11 +216,11 @@ defmodule PhoenixTest.Live do
     fill_form(session, form.selector, form_data, additional_data)
   end
 
-  def upload(session, label, path) do
+  def upload(session, input_selector, label, path) do
     field =
       session
       |> render_html()
-      |> Field.find_input!(label)
+      |> Field.find_input!(input_selector, label)
 
     file_stat = File.stat!(path)
     file_name = Path.basename(path)
@@ -399,7 +399,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate check(session, input_selector, label), to: Live
   defdelegate uncheck(session, input_selector, label), to: Live
   defdelegate choose(session, input_selector, label), to: Live
-  defdelegate upload(session, label, path), to: Live
+  defdelegate upload(session, input_selector, label, path), to: Live
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live

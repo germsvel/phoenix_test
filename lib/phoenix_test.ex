@@ -895,7 +895,19 @@ defmodule PhoenixTest do
   |> upload("Avatar", "/path/to/file")
   ```
   """
-  defdelegate upload(session, label, path), to: Driver
+  def upload(session, label, path) do
+    upload(session, "input[type='file']", label, path)
+  end
+
+  @doc """
+  Like `upload/3` but you can specify an input's selector (in addition to the
+  label).
+
+  Helpful in cases when you have uploads with the same label on the same form.
+
+  For more, see `upload/3`.
+  """
+  defdelegate upload(session, input_selector, label, path), to: Driver
 
   @doc """
   Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,

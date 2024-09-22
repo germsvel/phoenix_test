@@ -677,13 +677,27 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "upload/2" do
+  describe "upload/4" do
     test "uploads an image", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> upload("Avatar", "test/files/elixir.jpg")
-      |> click_button("Save Full Form")
+      |> within("#full-form", fn session ->
+        session
+        |> upload("Avatar", "test/files/elixir.jpg")
+        |> click_button("Save Full Form")
+      end)
       |> assert_has("#form-data", text: "avatar: elixir.jpg")
+    end
+
+    test "can specify input selector when multiple inputs have same label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#same-labels", fn session ->
+        session
+        |> upload("[name='main_avatar']", "Avatar", "test/files/elixir.jpg")
+        |> click_button("Submit Form")
+      end)
+      |> assert_has("#form-data", text: "main_avatar: elixir.jpg")
     end
   end
 

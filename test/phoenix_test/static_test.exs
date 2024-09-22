@@ -590,12 +590,15 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
-  describe "upload/2" do
+  describe "upload/4" do
     test "uploads image", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> upload("Avatar", "test/files/elixir.jpg")
-      |> click_button("Save File upload Form")
+      |> within("#file-upload-form", fn session ->
+        session
+        |> upload("Avatar", "test/files/elixir.jpg")
+        |> click_button("Save File upload Form")
+      end)
       |> assert_has("#form-data", text: "avatar: elixir.jpg")
     end
 
@@ -615,6 +618,16 @@ defmodule PhoenixTest.StaticTest do
       |> upload("Nested Avatar", "test/files/elixir.jpg")
       |> click_button("Save File upload Form")
       |> assert_has("#form-data", text: "user:avatar: elixir.jpg")
+    end
+
+    test "can specify input selector when multiple inputs have same label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#same-labels", fn session ->
+        upload(session, "#main-avatar", "Avatar", "test/files/elixir.jpg")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "main-avatar: elixir.jpg")
     end
   end
 
