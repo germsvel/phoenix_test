@@ -13,7 +13,7 @@ defmodule PhoenixTest.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "Name", "Select 2")
+      field = Select.find_select_option!(html, "select", "Name", "Select 2")
 
       assert ~s|[id="name"]| = field.selector
       assert ["select_2"] = field.value
@@ -29,7 +29,7 @@ defmodule PhoenixTest.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "Name", ["Select 2", "Select 3"])
+      field = Select.find_select_option!(html, "select", "Name", ["Select 2", "Select 3"])
 
       assert ~s|[id="name"]| = field.selector
       assert ["select_2", "select_3"] = field.value
@@ -46,7 +46,7 @@ defmodule PhoenixTest.SelectTest do
       """
 
       assert_raise ArgumentError, ~r/Could not find a select with a "multiple" attribute set/, fn ->
-        Select.find_select_option!(html, "Name", ["Select 2", "Select 3"])
+        Select.find_select_option!(html, "select", "Name", ["Select 2", "Select 3"])
       end
     end
   end
@@ -62,7 +62,7 @@ defmodule PhoenixTest.SelectTest do
       </form>
       """
 
-      field = Select.find_select_option!(html, "Name", "Select 1")
+      field = Select.find_select_option!(html, "select", "Name", "Select 1")
 
       assert Select.belongs_to_form?(field)
     end
@@ -75,7 +75,7 @@ defmodule PhoenixTest.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "Name", "Select 1")
+      field = Select.find_select_option!(html, "select", "Name", "Select 1")
 
       refute Select.belongs_to_form?(field)
     end
@@ -91,7 +91,7 @@ defmodule PhoenixTest.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "Name", "Select 2")
+      field = Select.find_select_option!(html, "select", "Name", "Select 2")
 
       assert Select.phx_click_options?(field)
     end
@@ -105,7 +105,7 @@ defmodule PhoenixTest.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "Name", "Select 2")
+      field = Select.find_select_option!(html, "select", "Name", "Select 2")
 
       refute Select.phx_click_options?(field)
     end

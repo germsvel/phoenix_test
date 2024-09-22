@@ -101,13 +101,13 @@ defmodule PhoenixTest.Live do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def select(session, option, opts) do
+  def select(session, input_selector, option, opts) do
     label = Keyword.fetch!(opts, :from)
 
     field =
       session
       |> render_html()
-      |> Select.find_select_option!(label, option, opts)
+      |> Select.find_select_option!(input_selector, label, option, opts)
 
     cond do
       Select.belongs_to_form?(field) ->
@@ -395,7 +395,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate click_button(session, selector, text), to: Live
   defdelegate within(session, selector, fun), to: Live
   defdelegate fill_in(session, input_selector, label, attrs), to: Live
-  defdelegate select(session, option, attrs), to: Live
+  defdelegate select(session, input_selector, option, attrs), to: Live
   defdelegate check(session, input_selector, label), to: Live
   defdelegate uncheck(session, input_selector, label), to: Live
   defdelegate choose(session, input_selector, label), to: Live

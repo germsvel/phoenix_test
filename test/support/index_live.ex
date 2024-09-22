@@ -303,6 +303,28 @@ defmodule PhoenixTest.IndexLive do
         <input type="hidden" name="like-erlang" value="no" />
         <input type="check" name="like-erlang" id="like-erlang" value="yes" />
       </fieldset>
+
+      <fieldset>
+        <legend>Select your favorite character</legend>
+
+        <label for="select-favorite-character">Character</label>
+        <select id="select-favorite-character" name="favorite-character">
+          <option value="Frodo">Frodo</option>
+          <option value="Sam">Sam</option>
+          <option value="Pippin">Pippin</option>
+          <option value="Merry">Merry</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <label for="select-least-favorite-character">Character</label>
+        <select id="select-least-favorite-character" name="least-favorite-character">
+          <option value="Frodo">Frodo</option>
+          <option value="Sam">Sam</option>
+          <option value="Pippin">Pippin</option>
+          <option value="Merry">Merry</option>
+        </select>
+      </fieldset>
     </form>
 
     <div id="not-a-form">

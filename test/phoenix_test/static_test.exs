@@ -473,6 +473,16 @@ defmodule PhoenixTest.StaticTest do
       |> click_button("Save Full Form")
       |> refute_has("#form-data", text: "race_2")
     end
+
+    test "can target option with selector if multiple labels have same text", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#same-labels", fn session ->
+        select(session, "#select-favorite-character", "Frodo", from: "Character")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "favorite-character: Frodo")
+    end
   end
 
   describe "check/3" do

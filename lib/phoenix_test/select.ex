@@ -9,9 +9,9 @@ defmodule PhoenixTest.Select do
   @enforce_keys ~w[source_raw selected_options parsed label id name value selector]a
   defstruct ~w[source_raw selected_options parsed label id name value selector]a
 
-  def find_select_option!(html, label, option, opts \\ []) do
+  def find_select_option!(html, input_selector, label, option, opts \\ []) do
     opts = Keyword.put_new(opts, :exact, true)
-    field = Query.find_by_label!(html, "select", label)
+    field = Query.find_by_label!(html, input_selector, label)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 

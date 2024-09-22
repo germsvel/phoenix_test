@@ -489,6 +489,10 @@ defmodule PhoenixTest do
   session
   |> fill_in("Name", with: "Aragorn")
   ```
+
+  ## Options
+
+  - `with` (required): the text to fill in.
   """
   def fill_in(session, label, attrs) do
     fill_in(session, ["input:not([type='hidden'])", "textarea"], label, attrs)
@@ -532,12 +536,6 @@ defmodule PhoenixTest do
 
   @doc """
   Selects an option from a select dropdown.
-
-  ## Options
-
-  - `exact`: by default `select/3` will find the option by exact label match.
-  If you want to find an option by substring, use `exact: false`.
-  (defaults to `true`)
 
   ## Inside a form
 
@@ -600,8 +598,28 @@ defmodule PhoenixTest do
 
   And we'll get an event `"select-race"` with the payload `%{"value" =>
   "human"}`.
+
+  ## Options
+
+  - `from` (required): the label of the select dropdown.
+
+  - `exact`: by default `select/3` will find the option by exact label match.
+  If you want to find an option by substring, use `exact: false`.
+  (defaults to `true`)
   """
-  defdelegate select(session, option, attrs), to: Driver
+  def select(session, option, attrs) do
+    select(session, "select", option, attrs)
+  end
+
+  @doc """
+  Like `select/3` but you can specify a select's CSS selector (in addition to
+  the label).
+
+  Helpful when you have multiple selects with the same label.
+
+  For more on selecting options, see `select/3`.
+  """
+  defdelegate select(session, select_selector, option, attrs), to: Driver
 
   @doc """
   Check a checkbox.

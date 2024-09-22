@@ -496,6 +496,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "selected: [dog, cat]")
     end
 
+    test "can target option with selector if multiple labels have same text", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#same-labels", fn session ->
+        select(session, "#select-favorite-character", "Frodo", from: "Character")
+      end)
+      |> assert_has("#form-data", text: "favorite-character: Frodo")
+    end
+
     test "raises an error if select option is neither in a form nor has a phx-click", %{conn: conn} do
       session = visit(conn, "/live/index")
 

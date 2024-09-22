@@ -6,7 +6,7 @@ defprotocol PhoenixTest.Driver do
   def click_button(session, selector, text)
   def within(session, selector, fun)
   def fill_in(session, input_selector, label, attrs)
-  def select(session, option, attrs)
+  def select(session, input_selector, option, attrs)
   def check(session, input_selector, label)
   def uncheck(session, input_selector, label)
   def choose(session, input_selector, label)
