@@ -163,6 +163,20 @@ defmodule PhoenixTest.FormTest do
       assert %{} == Form.build_data(form.form_data)
     end
 
+    test "does not include inputs with a `name` attribute" do
+      html = """
+      <form id="form">
+        <label>
+          Ignored presentational input <input value="123" />
+        </label>
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert %{} == Form.build_data(form.form_data)
+    end
+
     test "ignores hidden value for checkbox when checked" do
       html = """
       <form id="form">

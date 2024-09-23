@@ -100,7 +100,7 @@ defmodule PhoenixTest.Form do
         form_data(@pre_filled_default_text_inputs, form) ++
         form_data_textarea(form) ++
         form_data_select(form),
-      fn {key, _value} -> is_nil(key) end
+      &empty_name?/1
     )
   end
 
@@ -153,6 +153,13 @@ defmodule PhoenixTest.Form do
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
     [{name, element_value(value_element)}]
+  end
+
+  defp empty_name?(form_field) do
+    case form_field do
+      {nil, _value} -> true
+      {_name, _value} -> false
+    end
   end
 
   defp element_value(element) do

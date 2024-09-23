@@ -214,10 +214,6 @@ defmodule PhoenixTest.PageView do
         <input type="checkbox" name="member_of_fellowship" />
       </div>
 
-      <label>
-        Ignored presentational input input <input value="123" />
-      </label>
-
       <button name="full_form_button" value="save">Save Full Form</button>
     </form>
 
