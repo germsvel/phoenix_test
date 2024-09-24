@@ -5,22 +5,6 @@ defmodule PhoenixTest.Query do
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
 
-  @doc """
-  Finds the first element in the HTML content with the specified CSS selector.
-
-  ## Parameters
-
-  - `html`: The HTML content to search within.
-  - `selector`: The CSS selector for the element.
-
-  ## Returns
-
-  - `element`: If a the element is found.
-
-  ## Raises
-
-  Raises `ArgumentError` if no element is found with the given selector or if multiple elements are found.
-  """
   def find!(html, selector) do
     case find(html, selector) do
       :not_found ->
@@ -34,23 +18,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  @doc """
-  Finds the first element in the HTML content with the specified CSS selector and text.
-
-  ## Parameters
-
-  - `html`: The HTML content to search within.
-  - `selector`: The CSS selector for the element.
-  - `text`: The text for the element.
-
-  ## Returns
-
-  - `element`: If a the element is found.
-
-  ## Raises
-
-  Raises `ArgumentError` if no element is found with the given selector or if multiple elements are found.
-  """
   def find!(html, selector, text, opts \\ []) do
     case find(html, selector, text, opts) do
       {:not_found, elements} ->
@@ -84,21 +51,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  @doc """
-  Finds the first element in the HTML content with the specified CSS selector.
-
-  ## Parameters
-
-  - `html`: The HTML content to search within.
-  - `selector`: The CSS selector for the element.
-  - `text`: The text for the element.
-
-  ## Returns
-
-  - `{:found, element}`: If a single element is found.
-  - `:not_found`: If no elements are found.
-  - `{:found_many, elements}`: If more than one element is found.
-  """
   def find(html, selector) do
     find(html, selector, [])
   end
@@ -120,20 +72,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  @doc """
-  Finds the first element in the HTML content with the specified CSS selector and text.
-
-  ## Parameters
-
-  - `html`: The HTML content to search within.
-  - `selector`: The CSS selector for the element.
-
-  ## Returns
-
-  - `{:found, element}`: If a single element is found.
-  - `{:not_found, elements_matched_selector}`: If no elements are found.
-  - `{:found_many, elements}`: If more than one element is found.
-  """
   def find(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
     elements_matched_selector =
       html
@@ -156,23 +94,6 @@ defmodule PhoenixTest.Query do
     find_one_of!(html, selectors)
   end
 
-  @doc """
-  Finds one element from the given list of selectors in the HTML content, raising an error if not found.
-
-  ## Parameters
-
-  - `html`: The HTML content to search within.
-  - `elements`: A list of tuples where each tuple contains a CSS selector and optional text content.
-
-  ## Returns
-
-  - `found_element`: The found element.
-  - `found_element`: In case a list of possible matches, returns the first one.
-
-  ## Raises
-
-  Raises `ArgumentError` if no element is found with the given selectors or if multiple elements are found.
-  """
   def find_one_of!(html, elements) do
     html
     |> find_one_of(elements)
@@ -209,20 +130,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  @doc """
-  Finds one element from the given list of selectors in the HTML content.
-
-  ## Parameters
-
-  - `html`: The HTML content to search within.
-  - `elements`: A list of tuples where each tuple contains a CSS selector and optional text content.
-
-  ## Returns
-
-  - `found`: If a single element is found.
-  - `found`: If a many elements are found.
-  - `{:not_found, potential_matches}`: If no elements match the content criteria but elements match the selector.
-  """
   def find_one_of(html, elements) do
     results =
       Enum.map(elements, fn
@@ -246,66 +153,6 @@ defmodule PhoenixTest.Query do
 
       [_, _] = found_many ->
         {:found_many, Enum.map(found_many, &elem(&1, 1))}
-    end
-  end
-
-  def find_by_label!(html, label) do
-    case find_by_label(html, label) do
-      {:found, element} ->
-        element
-
-      {:not_found, :no_label, []} ->
-        msg = """
-        Could not find element with label #{inspect(label)}
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, :no_label, potential_matches} ->
-        msg = """
-        Could not find element with label #{inspect(label)}.
-
-        Found the following labels:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, :found_many_labels, potential_matches} ->
-        msg = """
-        Found many elements with label #{inspect(label)}:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, :missing_for, found_label} ->
-        msg = """
-        Found label but doesn't have `for` attribute.
-
-        (Label's `for` attribute must point to element's `id`)
-
-        Label found:
-
-        #{Html.raw(found_label)}
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, :missing_id, found_label} ->
-        msg = """
-        Found label but could not find corresponding element with matching `id`.
-
-        (Label's `for` attribute must point to element's `id`)
-
-        Label found:
-
-        #{Html.raw(found_label)}
-        """
-
-        raise ArgumentError, msg
     end
   end
 
@@ -412,22 +259,6 @@ defmodule PhoenixTest.Query do
         """
 
         raise ArgumentError, msg
-    end
-  end
-
-  def find_by_label(html, label) do
-    selectors = ["input:not([type='hidden'])", "select", "textarea"]
-
-    with {:explicit_association, label_element} <- find_label_element(html, selectors, label),
-         {:ok, label_for} <- label_for(label_element),
-         {:found, element} <- find_associated_input(html, label_for, label_element) do
-      {:found, element}
-    else
-      {:implicit_association, _label_element, element} ->
-        {:found, element}
-
-      not_found ->
-        not_found
     end
   end
 
@@ -613,21 +444,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_label_element(html, selectors, label) do
-    html
-    |> find("label", label, exact: true)
-    |> case do
-      {:not_found, potential_matches} ->
-        {:not_found, :no_label, potential_matches}
-
-      {:found, element} ->
-        determine_implicit_or_explicit_label(element, selectors)
-
-      {:found_many, elements} ->
-        {:not_found, :found_many_labels, elements}
-    end
-  end
-
   defp determine_implicit_or_explicit_label(label, input_selectors) do
     case find_one_of(Html.raw(label), input_selectors) do
       {:not_found, _} ->
@@ -645,13 +461,6 @@ defmodule PhoenixTest.Query do
 
       for_attr ->
         {:ok, for_attr}
-    end
-  end
-
-  defp find_associated_input(html, label_for, label) do
-    case find(html, "[id='#{label_for}']") do
-      :not_found -> {:not_found, :missing_id, label}
-      {:found, _el} = found -> found
     end
   end
 
