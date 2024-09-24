@@ -71,6 +71,70 @@ defmodule PhoenixTest.FieldTest do
     end
   end
 
+  describe "find_checkbox!" do
+    test "finds a checkbox and defaults value to 'on'" do
+      html = """
+      <label for="yes">Yes</label>
+      <input id="yes" type="checkbox" name="yes" />
+      """
+
+      field = Field.find_checkbox!(html, "input", "Yes")
+
+      assert %{source_raw: ^html, id: "yes", label: "Yes", name: "yes", value: "on"} =
+               field
+    end
+
+    test "finds a checkbox and uses value if present" do
+      html = """
+      <label for="yes">Yes</label>
+      <input id="yes" type="checkbox" name="yes" value="yes"/>
+      """
+
+      field = Field.find_checkbox!(html, "input", "Yes")
+
+      assert %{value: "yes"} = field
+    end
+  end
+
+  describe "find_hidden_uncheckbox!" do
+    test "finds and uses hidden input's value that is associated to the checkbox" do
+      html = """
+      <label for="yes">Yes</label>
+      <input type="hidden" name="yes" value="no" />
+      <input id="yes" type="checkbox" name="yes" value="yes" />
+      """
+
+      field = Field.find_hidden_uncheckbox!(html, "input", "Yes")
+
+      assert %{source_raw: ^html, id: "yes", label: "Yes", name: "yes", value: "no"} =
+               field
+    end
+
+    test "raises an error if checkbox input doesn't have a `name` (needed to find hidden input)" do
+      html = """
+      <label for="yes">Yes</label>
+      <input type="hidden" name="yes" value="no" />
+      <input id="yes" type="checkbox" value="yes" />
+      """
+
+      assert_raise ArgumentError, ~r/Could not find element/, fn ->
+        Field.find_hidden_uncheckbox!(html, "input", "Yes")
+      end
+    end
+
+    test "raises an error if hidden input doesn't have a `name`" do
+      html = """
+      <label for="yes">Yes</label>
+      <input type="hidden" value="no" />
+      <input id="yes" type="checkbox" name="yes" value="yes" />
+      """
+
+      assert_raise ArgumentError, ~r/Could not find element/, fn ->
+        Field.find_hidden_uncheckbox!(html, "input", "Yes")
+      end
+    end
+  end
+
   describe "phx_click?" do
     test "returns true if field has a phx-click handler" do
       html = """

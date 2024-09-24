@@ -201,7 +201,7 @@ defmodule PhoenixTest.Live do
   defp fill_in_field_data(session, field) do
     active_form = session.active_form
     existing_data = active_form.form_data
-    new_form_data = FormData.to_form_data(field)
+    new_form_data = FormData.to_form_data!(field)
     form = Field.parent_form!(field)
 
     form_data =
