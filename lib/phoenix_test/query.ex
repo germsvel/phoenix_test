@@ -156,10 +156,10 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_label!(html, input_selectors, label) do
+  def find_by_label!(html, input_selectors, label, opts \\ [exact: true]) do
     input_selectors = List.wrap(input_selectors)
 
-    case find_by_label(html, input_selectors, label) do
+    case find_by_label(html, input_selectors, label, opts) do
       {:found, element} ->
         element
 
@@ -262,10 +262,10 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_label(html, input_selectors, label) do
+  defp find_by_label(html, input_selectors, label, opts) do
     input_selectors = List.wrap(input_selectors)
 
-    case find_labels(html, input_selectors, label) do
+    case find_labels(html, input_selectors, label, opts) do
       {:implicit_association, _label_element, element} ->
         {:found, element}
 
@@ -290,9 +290,9 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp find_labels(html, input_selectors, label) do
+  defp find_labels(html, input_selectors, label, opts) do
     html
-    |> find("label", label, exact: true)
+    |> find("label", label, opts)
     |> case do
       {:not_found, potential_matches} ->
         {:not_found, potential_matches}

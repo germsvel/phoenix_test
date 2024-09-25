@@ -109,16 +109,18 @@ defmodule PhoenixTest.Static do
     |> Map.put(:within, :none)
   end
 
-  def fill_in(session, input_selector, label, with: value) do
+  def fill_in(session, input_selector, label, opts) do
+    {value, opts} = Keyword.pop!(opts, :with)
+
     session
     |> render_html()
-    |> Field.find_input!(input_selector, label)
+    |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end
 
   def select(session, input_selector, option, opts) do
-    label = Keyword.fetch!(opts, :from)
+    {label, opts} = Keyword.pop!(opts, :from)
 
     session
     |> render_html()
@@ -126,24 +128,24 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def check(session, input_selector, label) do
+  def check(session, input_selector, label, opts) do
     session
     |> render_html()
-    |> Field.find_checkbox!(input_selector, label)
+    |> Field.find_checkbox!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def uncheck(session, input_selector, label) do
+  def uncheck(session, input_selector, label, opts) do
     session
     |> render_html()
-    |> Field.find_hidden_uncheckbox!(input_selector, label)
+    |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
 
-  def choose(session, input_selector, label) do
+  def choose(session, input_selector, label, opts) do
     session
     |> render_html()
-    |> Field.find_input!(input_selector, label)
+    |> Field.find_input!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
 
@@ -164,10 +166,10 @@ defmodule PhoenixTest.Static do
     fill_form(session, form.selector, form_data)
   end
 
-  def upload(session, input_selector, label, path) do
+  def upload(session, input_selector, label, path, opts) do
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
-    field = session |> render_html() |> Field.find_input!(input_selector, label)
+    field = session |> render_html() |> Field.find_input!(input_selector, label, opts)
     form = Field.parent_form!(field)
 
     Map.update!(session, :active_form, fn active_form ->
@@ -295,12 +297,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate click_link(session, selector, text), to: Static
   defdelegate click_button(session, selector, text), to: Static
   defdelegate within(session, selector, fun), to: Static
-  defdelegate fill_in(session, input_selector, label, attrs), to: Static
-  defdelegate select(session, input_selector, option, attrs), to: Static
-  defdelegate check(session, input_selector, label), to: Static
-  defdelegate uncheck(session, input_selector, label), to: Static
-  defdelegate choose(session, input_selector, label), to: Static
-  defdelegate upload(session, input_selector, label, path), to: Static
+  defdelegate fill_in(session, input_selector, label, opts), to: Static
+  defdelegate select(session, input_selector, option, opts), to: Static
+  defdelegate check(session, input_selector, label, opts), to: Static
+  defdelegate uncheck(session, input_selector, label, opts), to: Static
+  defdelegate choose(session, input_selector, label, opts), to: Static
+  defdelegate upload(session, input_selector, label, path, opts), to: Static
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static

@@ -11,7 +11,7 @@ defmodule PhoenixTest.FormDataTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert [{"name", "Hello world"}] = FormData.to_form_data!(field)
     end
@@ -22,7 +22,7 @@ defmodule PhoenixTest.FormDataTest do
       <input id="name" type="text" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert_raise ArgumentError, ~r/missing a `name`/, fn ->
         FormData.to_form_data!(field)

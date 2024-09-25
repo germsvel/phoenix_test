@@ -46,7 +46,7 @@ defmodule PhoenixTest.FormTest do
       </form>
       """
 
-      field = Field.find_input!(html, "input", "Email")
+      field = Field.find_input!(html, "input", "Email", exact: true)
 
       form = Form.find_by_descendant!(html, field)
 
@@ -63,7 +63,7 @@ defmodule PhoenixTest.FormTest do
       </form>
       """
 
-      field = Field.find_input!(html, "input", "Email")
+      field = Field.find_input!(html, "input", "Email", exact: true)
 
       input_form = Form.find_by_descendant!(html, field)
       find_form = Form.find!(html, "#user-form")

@@ -10,7 +10,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert %{source_raw: ^html, id: "name", label: "Name", name: "name", value: "Hello world"} =
                field
@@ -28,7 +28,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="orc" type="radio" name="race" value="orc"/>
       """
 
-      field = Field.find_input!(html, "input", "Elf")
+      field = Field.find_input!(html, "input", "Elf", exact: true)
 
       assert %{source_raw: ^html, id: "elf", label: "Elf", name: "race", value: "elf"} = field
     end
@@ -41,7 +41,7 @@ defmodule PhoenixTest.FieldTest do
       </label>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert %{source_raw: ^html, label: "Name", name: "name", value: "Hello world"} = field
     end
@@ -52,7 +52,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert %{selector: ~s|[id="name"]|} = field
     end
@@ -65,7 +65,7 @@ defmodule PhoenixTest.FieldTest do
       </label>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert ~s(input[type="text"][name="name"]) = field.selector
     end
@@ -78,7 +78,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="yes" type="checkbox" name="yes" />
       """
 
-      field = Field.find_checkbox!(html, "input", "Yes")
+      field = Field.find_checkbox!(html, "input", "Yes", exact: true)
 
       assert %{source_raw: ^html, id: "yes", label: "Yes", name: "yes", value: "on"} =
                field
@@ -90,7 +90,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="yes" type="checkbox" name="yes" value="yes"/>
       """
 
-      field = Field.find_checkbox!(html, "input", "Yes")
+      field = Field.find_checkbox!(html, "input", "Yes", exact: true)
 
       assert %{value: "yes"} = field
     end
@@ -104,7 +104,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="yes" type="checkbox" name="yes" value="yes" />
       """
 
-      field = Field.find_hidden_uncheckbox!(html, "input", "Yes")
+      field = Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
 
       assert %{source_raw: ^html, id: "yes", label: "Yes", name: "yes", value: "no"} =
                field
@@ -118,7 +118,7 @@ defmodule PhoenixTest.FieldTest do
       """
 
       assert_raise ArgumentError, ~r/Could not find element/, fn ->
-        Field.find_hidden_uncheckbox!(html, "input", "Yes")
+        Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
       end
     end
 
@@ -130,7 +130,7 @@ defmodule PhoenixTest.FieldTest do
       """
 
       assert_raise ArgumentError, ~r/Could not find element/, fn ->
-        Field.find_hidden_uncheckbox!(html, "input", "Yes")
+        Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
       end
     end
   end
@@ -142,7 +142,7 @@ defmodule PhoenixTest.FieldTest do
       <input phx-click="save" id="name" type="radio" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert Field.phx_click?(field)
     end
@@ -153,7 +153,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="name" type="radio" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       refute Field.phx_click?(field)
     end
@@ -168,7 +168,7 @@ defmodule PhoenixTest.FieldTest do
       </form>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       assert Field.belongs_to_form?(field)
     end
@@ -179,7 +179,7 @@ defmodule PhoenixTest.FieldTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name")
+      field = Field.find_input!(html, "input", "Name", exact: true)
 
       refute Field.belongs_to_form?(field)
     end

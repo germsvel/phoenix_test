@@ -93,16 +93,18 @@ defmodule PhoenixTest.Live do
     |> Map.put(:within, :none)
   end
 
-  def fill_in(session, input_selector, label, with: value) do
+  def fill_in(session, input_selector, label, opts) do
+    {value, opts} = Keyword.pop!(opts, :with)
+
     session
     |> render_html()
-    |> Field.find_input!(input_selector, label)
+    |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end
 
   def select(session, input_selector, option, opts) do
-    label = Keyword.fetch!(opts, :from)
+    {label, opts} = Keyword.pop!(opts, :from)
 
     field =
       session
@@ -128,11 +130,11 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def check(session, input_selector, label) do
+  def check(session, input_selector, label, opts) do
     field =
       session
       |> render_html()
-      |> Field.find_checkbox!(input_selector, label)
+      |> Field.find_checkbox!(input_selector, label, opts)
 
     cond do
       Field.phx_click?(field) ->
@@ -151,9 +153,9 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def uncheck(session, input_selector, label) do
+  def uncheck(session, input_selector, label, opts) do
     html = render_html(session)
-    field = Field.find_checkbox!(html, input_selector, label)
+    field = Field.find_checkbox!(html, input_selector, label, opts)
 
     cond do
       Field.phx_click?(field) ->
@@ -165,7 +167,7 @@ defmodule PhoenixTest.Live do
 
       Field.belongs_to_form?(field) ->
         html
-        |> Field.find_hidden_uncheckbox!(input_selector, label)
+        |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
         |> then(&fill_in_field_data(session, &1))
 
       true ->
@@ -175,11 +177,11 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def choose(session, input_selector, label) do
+  def choose(session, input_selector, label, opts) do
     field =
       session
       |> render_html()
-      |> Field.find_input!(input_selector, label)
+      |> Field.find_input!(input_selector, label, opts)
 
     cond do
       Field.phx_click?(field) ->
@@ -216,11 +218,11 @@ defmodule PhoenixTest.Live do
     fill_form(session, form.selector, form_data, additional_data)
   end
 
-  def upload(session, input_selector, label, path) do
+  def upload(session, input_selector, label, path, opts) do
     field =
       session
       |> render_html()
-      |> Field.find_input!(input_selector, label)
+      |> Field.find_input!(input_selector, label, opts)
 
     file_stat = File.stat!(path)
     file_name = Path.basename(path)
@@ -394,12 +396,12 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate click_link(session, selector, text), to: Live
   defdelegate click_button(session, selector, text), to: Live
   defdelegate within(session, selector, fun), to: Live
-  defdelegate fill_in(session, input_selector, label, attrs), to: Live
-  defdelegate select(session, input_selector, option, attrs), to: Live
-  defdelegate check(session, input_selector, label), to: Live
-  defdelegate uncheck(session, input_selector, label), to: Live
-  defdelegate choose(session, input_selector, label), to: Live
-  defdelegate upload(session, input_selector, label, path), to: Live
+  defdelegate fill_in(session, input_selector, label, opts), to: Live
+  defdelegate select(session, input_selector, option, opts), to: Live
+  defdelegate check(session, input_selector, label, opts), to: Live
+  defdelegate uncheck(session, input_selector, label, opts), to: Live
+  defdelegate choose(session, input_selector, label, opts), to: Live
+  defdelegate upload(session, input_selector, label, path, opts), to: Live
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live

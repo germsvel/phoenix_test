@@ -443,7 +443,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "'exact: false' raises error if similar option exists", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Found more than one element/, fn ->
+      assert_raise ArgumentError, ~r/Found many elements/, fn ->
         conn
         |> visit("/page/index")
         |> select("Orc", from: "Race", exact: false)

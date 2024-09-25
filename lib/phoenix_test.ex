@@ -495,7 +495,8 @@ defmodule PhoenixTest do
   - `with` (required): the text to fill in.
   """
   def fill_in(session, label, attrs) do
-    fill_in(session, ["input:not([type='hidden'])", "textarea"], label, attrs)
+    opts = Keyword.validate!(attrs, [:with, exact: true])
+    fill_in(session, ["input:not([type='hidden'])", "textarea"], label, opts)
   end
 
   @doc """
@@ -532,7 +533,10 @@ defmodule PhoenixTest do
   |> fill_in("#contact_1_first_name", with: "First Name")
   ```
   """
-  defdelegate fill_in(session, input_selector, label, attrs), to: Driver
+  def fill_in(session, input_selector, label, attrs) do
+    opts = Keyword.validate!(attrs, [:with, exact: true])
+    Driver.fill_in(session, input_selector, label, opts)
+  end
 
   @doc """
   Selects an option from a select dropdown.
@@ -608,7 +612,8 @@ defmodule PhoenixTest do
   (defaults to `true`)
   """
   def select(session, option, attrs) do
-    select(session, "select", option, attrs)
+    opts = Keyword.validate!(attrs, [:from, exact: true])
+    select(session, "select", option, opts)
   end
 
   @doc """
@@ -676,7 +681,7 @@ defmodule PhoenixTest do
 
   """
   def check(session, label) do
-    check(session, "input[type='checkbox']", label)
+    check(session, "input[type='checkbox']", label, exact: true)
   end
 
   @doc """
@@ -688,7 +693,11 @@ defmodule PhoenixTest do
   For more on checking boxes, see `check/2`. To uncheck a checkbox, see
   `uncheck/2` and `uncheck/3`.
   """
-  defdelegate check(session, checkbox_selector, label), to: Driver
+  def check(session, checkbox_selector, label) do
+    check(session, checkbox_selector, label, exact: true)
+  end
+
+  defdelegate check(session, checkbox_selector, label, opts), to: Driver
 
   @doc """
   Uncheck a checkbox.
@@ -748,7 +757,7 @@ defmodule PhoenixTest do
   payload.
   """
   def uncheck(session, label) do
-    uncheck(session, "input[type='checkbox']", label)
+    uncheck(session, "input[type='checkbox']", label, exact: true)
   end
 
   @doc """
@@ -763,7 +772,11 @@ defmodule PhoenixTest do
   For more on unchecking boxes, see `uncheck/2`. To check a checkbox, see
   `check/2` and `check/3`.
   """
-  defdelegate uncheck(session, checkbox_selector, label), to: Driver
+  def uncheck(session, checkbox_selector, label) do
+    uncheck(session, checkbox_selector, label, exact: true)
+  end
+
+  defdelegate uncheck(session, checkbox_selector, label, opts), to: Driver
 
   @doc """
   Choose a radio button option.
@@ -822,7 +835,7 @@ defmodule PhoenixTest do
   And we'll get a `"select-contact"` event with the input's value in the payload.
   """
   def choose(session, label) do
-    choose(session, "input[type='radio']", label)
+    choose(session, "input[type='radio']", label, exact: true)
   end
 
   @doc """
@@ -870,7 +883,11 @@ defmodule PhoenixTest do
   |> choose("#elixir-yes", "Yes")
   ```
   """
-  defdelegate choose(session, radio_selector, label), to: Driver
+  def choose(session, radio_selector, label) when is_binary(label) do
+    choose(session, radio_selector, label, exact: true)
+  end
+
+  defdelegate choose(session, radio_selector, label, opts), to: Driver
 
   @doc """
   Upload a file.
@@ -896,7 +913,7 @@ defmodule PhoenixTest do
   ```
   """
   def upload(session, label, path) do
-    upload(session, "input[type='file']", label, path)
+    upload(session, "input[type='file']", label, path, exact: true)
   end
 
   @doc """
@@ -907,7 +924,11 @@ defmodule PhoenixTest do
 
   For more, see `upload/3`.
   """
-  defdelegate upload(session, input_selector, label, path), to: Driver
+  def upload(session, input_selector, label, path) do
+    upload(session, input_selector, label, path, exact: true)
+  end
+
+  defdelegate upload(session, input_selector, label, path, opts), to: Driver
 
   @doc """
   Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,
