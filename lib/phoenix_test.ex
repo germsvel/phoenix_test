@@ -152,7 +152,7 @@ defmodule PhoenixTest do
   end
   ```
 
-  For more info, see `fill_in/3`, `select/3`, `choose/2`, `check/2`,
+  For more info, see `fill_in/3`, `select/3`, `choose/3`, `check/2`,
   `uncheck/2`.
 
   ### Submitting forms without clicking a button
@@ -460,10 +460,16 @@ defmodule PhoenixTest do
   @doc """
   Fills text inputs and textareas, targetting the elements by their labels.
 
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
   If the form is a LiveView form, and if the form has a `phx-change` attribute
   defined, `fill_in/3` will trigger the `phx-change` event.
 
-  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+  ## Options
+
+  - `with` (required): the text to fill in.
+
+  - `exact`: whether to match label text exactly. (Defaults to `true`)
 
   ## Examples
 
@@ -490,11 +496,28 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn")
   ```
 
-  ## Options
+  ## Complex labels
 
-  - `with` (required): the text to fill in.
+  If we have a complex label, you can use `exact: false` to target part of the
+  label.
+
+  ### Example
+
+  Given the following:
+
+  ```html
+  <label for="name">Name <span>*</span></label>
+  <input id="name" name="name"/>
+  ```
+
+  We can fill in the `name` field:
+
+  ```elixir
+  session
+  |> fill_in("Name", with: "Aragorn", exact: false)
+  ```
   """
-  def fill_in(session, label, attrs) do
+  def fill_in(session, label, attrs) when is_binary(label) and is_list(attrs) do
     opts = Keyword.validate!(attrs, [:with, exact: true])
     fill_in(session, ["input:not([type='hidden'])", "textarea"], label, opts)
   end
@@ -533,13 +556,19 @@ defmodule PhoenixTest do
   |> fill_in("#contact_1_first_name", with: "First Name")
   ```
   """
-  def fill_in(session, input_selector, label, attrs) do
+  def fill_in(session, input_selector, label, attrs) when is_binary(label) and is_list(attrs) do
     opts = Keyword.validate!(attrs, [:with, exact: true])
     Driver.fill_in(session, input_selector, label, opts)
   end
 
   @doc """
   Selects an option from a select dropdown.
+
+  ## Options
+
+  - `from` (required): the label of the select dropdown.
+
+  - `exact`: whether to match label text exactly. (Defaults to `true`)
 
   ## Inside a form
 
@@ -548,7 +577,7 @@ defmodule PhoenixTest do
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
 
-  ## Example
+  ### Example
 
   Given we have a form that contains this:
 
@@ -577,7 +606,7 @@ defmodule PhoenixTest do
   `phx-click` event associated to the option being selected (note that all
   options must have a `phx-click` in that case).
 
-  ## Examples
+  ### Examples
 
   Given we have a form that contains this:
 
@@ -601,13 +630,34 @@ defmodule PhoenixTest do
   And we'll get an event `"select-race"` with the payload `%{"value" =>
   "human"}`.
 
-  ## Options
+  ## Complex labels
 
-  - `from` (required): the label of the select dropdown.
+  If we have a complex label, you can use `exact: false` to target part of the
+  label.
+
+  ### Example
+
+  Given we have a form that contains this:
+
+  ```html
+  <label for="race">Race <span>*</span></label>
+  <select id="race" name="race">
+    <option value="human">Human</option>
+    <option value="elf">Elf</option>
+    <option value="dwarf">Dwarf</option>
+    <option value="orc">Orc</option>
+  </select>
+  ```
+
+  We can select an option:
+
+  ```elixir
+  session
+  |> select("Human", from: "Race", exact: false)
+  ```
   """
-  def select(session, option, attrs) do
-    opts = Keyword.validate!(attrs, [:from, exact: true])
-    select(session, "select", option, opts)
+  def select(session, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
+    select(session, "select", option, attrs)
   end
 
   @doc """
@@ -618,30 +668,35 @@ defmodule PhoenixTest do
 
   For more on selecting options, see `select/3`.
   """
-  defdelegate select(session, select_selector, option, attrs), to: Driver
+  def select(session, select_selector, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
+    opts = Keyword.validate!(attrs, [:from, exact: true])
+    Driver.select(session, select_selector, option, opts)
+  end
 
   @doc """
   Check a checkbox.
 
-  To uncheck a checkbox, see `uncheck/2`.
+  To uncheck a checkbox, see `uncheck/3`.
+
+  ## Options
+
+  - `exact`: whether to match label text exactly. (Defaults to `true`)
 
   ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
-  defined, `check/2` will trigger the `phx-change` event.
+  defined, `check/3` will trigger the `phx-change` event.
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
 
-  ## Example
+  ### Example
 
   Given we have a form that contains this:
 
   ```html
-  <form>
-    <input type="hidden" name="admin" value="off" />
-    <label for="admin">Admin</label>
-    <input id="admin" type="checkbox" name="admin" value="on" />
-  </form>
+  <label for="admin">Admin</label>
+  <input type="hidden" name="admin" value="off" />
+  <input id="admin" type="checkbox" name="admin" value="on" />
   ```
 
   We can check the "Admin" option:
@@ -653,10 +708,10 @@ defmodule PhoenixTest do
 
   ## Outside of a form
 
-  If the checkbox exists outside of a form, `check/2` will trigger the
+  If the checkbox exists outside of a form, `check/3` will trigger the
   `phx-click` event.
 
-  ## Example
+  ### Example
 
   ```html
   <label for="admin">Admin</label>
@@ -673,48 +728,77 @@ defmodule PhoenixTest do
   And that will send a `"toggle-admin"` event with the input's `value` as the
   payload.
 
-  """
-  def check(session, label) do
-    check(session, "input[type='checkbox']", label, exact: true)
-  end
+  ## Complex labels
 
-  @doc """
-  Like `check/2` but allows you to specify the checkbox's CSS selector.
+  If we have a complex label, you can use `exact: false` to target part of the
+  label.
 
-  Helpful in cases when you have multiple checkboxes with the same label on the
-  same form.
-
-  For more on checking boxes, see `check/2`. To uncheck a checkbox, see
-  `uncheck/2` and `uncheck/3`.
-  """
-  def check(session, checkbox_selector, label) do
-    check(session, checkbox_selector, label, exact: true)
-  end
-
-  defdelegate check(session, checkbox_selector, label, opts), to: Driver
-
-  @doc """
-  Uncheck a checkbox.
-
-  To check a checkbox, see `check/2`.
-
-  ## Inside a form
-
-  If the form is a LiveView form, and if the form has a `phx-change` attribute
-  defined, `uncheck/2` will trigger the `phx-change` event.
-
-  This can be followed by a `click_button/3` or `submit/1` to submit the form.
-
-  ## Example
+  ### Example
 
   Given we have a form that contains this:
 
   ```html
-  <form>
-    <input type="hidden" name="admin" value="off" />
-    <label for="admin">Admin</label>
-    <input id="admin" type="checkbox" name="admin" value="on" />
-  </form>
+  <label for="admin">Admin <span>*</span></label>
+  <input type="hidden" name="admin" value="off" />
+  <input id="admin" type="checkbox" name="admin" value="on" />
+  ```
+
+  We can check the "Admin" option:
+
+  ```elixir
+  session
+  |> check("Admin", exact: false)
+  ```
+  """
+  def check(session, label, opts \\ [exact: true])
+
+  def check(session, label, opts) when is_binary(label) and is_list(opts) do
+    check(session, "input[type='checkbox']", label, opts)
+  end
+
+  def check(session, checkbox_selector, label) when is_binary(label) do
+    check(session, checkbox_selector, label, exact: true)
+  end
+
+  @doc """
+  Like `check/3` but allows you to specify the checkbox's CSS selector.
+
+  Helpful in cases when you have multiple checkboxes with the same label on the
+  same form.
+
+  For more on checking boxes, see `check/3`. To uncheck a checkbox, see
+  `uncheck/3` and `uncheck/4`.
+  """
+
+  def check(session, checkbox_selector, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.check(session, checkbox_selector, label, opts)
+  end
+
+  @doc """
+  Uncheck a checkbox.
+
+  To check a checkbox, see `check/3`.
+
+  ## Options
+
+  - `exact`: whether to match label text exactly. (Defaults to `true`)
+
+  ## Inside a form
+
+  If the form is a LiveView form, and if the form has a `phx-change` attribute
+  defined, `uncheck/3` will trigger the `phx-change` event.
+
+  This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  ### Example
+
+  Given we have a form that contains this:
+
+  ```html
+  <label for="admin">Admin</label>
+  <input type="hidden" name="admin" value="off" />
+  <input id="admin" type="checkbox" name="admin" value="on" />
   ```
 
   We can uncheck the "Admin" option:
@@ -730,10 +814,10 @@ defmodule PhoenixTest do
 
   ## Outside of a form
 
-  If the checkbox exists outside of a form, `uncheck/2` will trigger the
+  If the checkbox exists outside of a form, `uncheck/3` will trigger the
   `phx-click` event and send an empty (`%{}`) payload.
 
-  ## Example
+  ### Example
 
   ```html
   <label for="admin">Admin</label>
@@ -749,13 +833,41 @@ defmodule PhoenixTest do
 
   And that will send a `"toggle-admin"` event with an empty map `%{}` as a
   payload.
+
+  ## Complex labels
+
+  If we have a complex label, you can use `exact: false` to target part of the
+  label.
+
+  ### Example
+
+  Given we have a form that contains this:
+
+  ```html
+  <label for="admin">Admin <span>*</span></label>
+  <input type="hidden" name="admin" value="off" />
+  <input id="admin" type="checkbox" name="admin" value="on" />
+  ```
+
+  We can uncheck the "Admin" option:
+
+  ```elixir
+  session
+  |> uncheck("Admin", exact: false)
+  ```
   """
-  def uncheck(session, label) do
-    uncheck(session, "input[type='checkbox']", label, exact: true)
+  def uncheck(session, label, opts \\ [exact: true])
+
+  def uncheck(session, label, opts) when is_binary(label) and is_list(opts) do
+    uncheck(session, "input[type='checkbox']", label, opts)
+  end
+
+  def uncheck(session, checkbox_selector, label) when is_binary(label) do
+    uncheck(session, checkbox_selector, label, exact: true)
   end
 
   @doc """
-  Like `uncheck/2` but allows you to specify the checkbox's CSS selector.
+  Like `uncheck/3` but allows you to specify the checkbox's CSS selector.
 
   Helpful when you have multiple checkboxes with the same label. In those cases,
   you might need to specify the selector of the labeled element.
@@ -763,41 +875,41 @@ defmodule PhoenixTest do
   Note that in those cases, the selector should point to the checkbox that is
   visible, not to the hidden input. For more, see `uncheck/2`.
 
-  For more on unchecking boxes, see `uncheck/2`. To check a checkbox, see
-  `check/2` and `check/3`.
+  For more on unchecking boxes, see `uncheck/3`. To check a checkbox, see
+  `check/3` and `check/4`.
   """
-  def uncheck(session, checkbox_selector, label) do
-    uncheck(session, checkbox_selector, label, exact: true)
+  def uncheck(session, checkbox_selector, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.uncheck(session, checkbox_selector, label, opts)
   end
-
-  defdelegate uncheck(session, checkbox_selector, label, opts), to: Driver
 
   @doc """
   Choose a radio button option.
 
+  ## Options
+
+  - `exact`: whether to match label text exactly. (Defaults to `true`)
+
   ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
-  defined, `choose/2` will trigger the `phx-change` event.
+  defined, `choose/3` will trigger the `phx-change` event.
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
 
-  If the radio button exists outside of a form, `choose/2` will trigger the
+  If the radio button exists outside of a form, `choose/3` will trigger the
   `phx-click` event.
 
-  ## Example
+  ### Example
 
   Given we have a form that contains this:
 
   ```html
-  <form>
-    <input type="radio" id="email" name="contact" value="email" />
-    <label for="email">Email</label>
-    <input type="radio" id="phone" name="contact" value="phone" />
-    <label for="phone">Phone</label>
-    <input type="radio" id="mail" name="contact" value="mail" checked />
-    <label for="mail">Mail</label>
-  </form>
+  <input type="radio" id="email" name="contact" value="email" />
+  <label for="email">Email</label>
+
+  <input type="radio" id="phone" name="contact" value="phone" />
+  <label for="phone">Phone</label>
   ```
 
   We can choose to be contacted by email:
@@ -809,10 +921,10 @@ defmodule PhoenixTest do
 
   ## Outside of a form
 
-  If the checkbox exists outside of a form, `choose/2` will trigger the
+  If the checkbox exists outside of a form, `choose/3` will trigger the
   `phx-click` event.
 
-  ## Example
+  ### Example
 
   ```html
   <input phx-click="select-contact" type="radio" id="email" name="contact" value="email" />
@@ -827,13 +939,40 @@ defmodule PhoenixTest do
   ```
 
   And we'll get a `"select-contact"` event with the input's value in the payload.
+
+  ## Complex labels
+
+  If we have a complex label, you can use `exact: false` to target part of the
+  label.
+
+  ### Example
+
+  Given we have a form that contains this:
+
+  ```html
+  <input type="radio" id="email" name="contact" value="email" />
+  <label for="email">Email <span>*</span></label>
+  ```
+
+  We can choose to be contacted by email:
+
+  ```elixir
+  session
+  |> choose("Email", exact: false)
+  ```
   """
-  def choose(session, label) do
-    choose(session, "input[type='radio']", label, exact: true)
+  def choose(session, label, opts \\ [exact: true])
+
+  def choose(session, label, opts) when is_binary(label) and is_list(opts) do
+    choose(session, "input[type='radio']", label, opts)
+  end
+
+  def choose(session, radio_selector, label) when is_binary(label) do
+    choose(session, radio_selector, label, exact: true)
   end
 
   @doc """
-  Like `choose/2` but you can specify an input's selector (in addition to the
+  Like `choose/3` but you can specify an input's selector (in addition to the
   label).
 
   Helpful for cases when you have multiple radio buttons with the same label.
@@ -855,6 +994,7 @@ defmodule PhoenixTest do
       <label for="elixir-no">No</label>
     </div>
   </fieldset>
+
   <fieldset>
     <legend>Do you like Erlang:</legend>
 
@@ -877,11 +1017,10 @@ defmodule PhoenixTest do
   |> choose("#elixir-yes", "Yes")
   ```
   """
-  def choose(session, radio_selector, label) when is_binary(label) do
-    choose(session, radio_selector, label, exact: true)
+  def choose(session, radio_selector, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.choose(session, radio_selector, label, opts)
   end
-
-  defdelegate choose(session, radio_selector, label, opts), to: Driver
 
   @doc """
   Upload a file.
@@ -890,7 +1029,11 @@ defmodule PhoenixTest do
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
 
-  ## Example
+  ## Options
+
+  - `exact`: whether to match the entire label. (Defaults to `true`)
+
+  ## Examples
 
   Given we have a form that contains this:
 
@@ -905,28 +1048,54 @@ defmodule PhoenixTest do
   session
   |> upload("Avatar", "/path/to/file")
   ```
+
+  ## Complex labels
+
+  If we have a complex label, you can use `exact: false` to target part of the
+  label.
+
+  ### Example
+
+  Given the following:
+
+  ```html
+  <label for="avatar">Avatar <span>*</span></label>
+  <input type="file" id="avatar" name="avatar" />
+  ```
+
+  We can upload a file:
+
+  ```elixir
+  session
+  |> upload("Avatar", "/path/to/file", exact: false)
+  ```
   """
-  def upload(session, label, path) do
-    upload(session, "input[type='file']", label, path, exact: true)
+  def upload(session, label, path, opts \\ [exact: true])
+
+  def upload(session, label, path, opts) when is_binary(label) and is_binary(path) and is_list(opts) do
+    upload(session, "input[type='file']", label, path, opts)
+  end
+
+  def upload(session, input_selector, label, path) when is_binary(label) and is_binary(path) do
+    upload(session, input_selector, label, path, exact: true)
   end
 
   @doc """
-  Like `upload/3` but you can specify an input's selector (in addition to the
+  Like `upload/4` but you can specify an input's selector (in addition to the
   label).
 
   Helpful in cases when you have uploads with the same label on the same form.
 
-  For more, see `upload/3`.
+  For more, see `upload/4`.
   """
-  def upload(session, input_selector, label, path) do
-    upload(session, input_selector, label, path, exact: true)
+  def upload(session, input_selector, label, path, opts) when is_binary(label) and is_binary(path) and is_list(opts) do
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.upload(session, input_selector, label, path, opts)
   end
-
-  defdelegate upload(session, input_selector, label, path, opts), to: Driver
 
   @doc """
   Helper to submit a pre-filled form without clicking a button (see `fill_in/3`,
-  `select/3`, `choose/2`, etc. for how to fill a form.)
+  `select/3`, `choose/3`, etc. for how to fill a form.)
 
   Forms are typically submitted by clicking buttons. But sometimes we want to
   emulate what happens when we submit a form hitting <Enter>. That's what this

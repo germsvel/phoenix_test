@@ -388,6 +388,16 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "user:name: Legolas")
     end
 
+    test "can target a label with exact: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#complex-labels", fn session ->
+        fill_in(session, "Name", with: "Frodo", exact: false)
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "name: Frodo")
+    end
+
     test "can target input with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -465,6 +475,16 @@ defmodule PhoenixTest.StaticTest do
       |> refute_has("#form-data", text: "race_2")
     end
 
+    test "can target a label with exact: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#complex-labels", fn session ->
+        select(session, "Dog", from: "Choose a pet:", exact: false)
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "pet: dog")
+    end
+
     test "can target option with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -510,6 +530,16 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "subscribe?: on")
     end
 
+    test "can target a label with exact: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#complex-labels", fn session ->
+        check(session, "Human", exact: false)
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "human: yes")
+    end
+
     test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -537,6 +567,18 @@ defmodule PhoenixTest.StaticTest do
       |> uncheck("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
+    end
+
+    test "can target a label with exact: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#complex-labels", fn session ->
+        session
+        |> check("Human", exact: false)
+        |> uncheck("Human", exact: false)
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "human: no")
     end
 
     test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
@@ -567,6 +609,16 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
+    end
+
+    test "can target a label with exact: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#complex-labels", fn session ->
+        choose(session, "Book", exact: false)
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "book-or-movie: book")
     end
 
     test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
@@ -609,6 +661,17 @@ defmodule PhoenixTest.StaticTest do
       |> upload("Nested Avatar", "test/files/elixir.jpg")
       |> click_button("Save File upload Form")
       |> assert_has("#form-data", text: "user:avatar: elixir.jpg")
+    end
+
+    test "can target a label with exact: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#complex-labels", fn session ->
+        session
+        |> upload("Avatar", "test/files/elixir.jpg", exact: false)
+        |> click_button("Save")
+      end)
+      |> assert_has("#form-data", text: "avatar: elixir.jpg")
     end
 
     test "can specify input selector when multiple inputs have same label", %{conn: conn} do
