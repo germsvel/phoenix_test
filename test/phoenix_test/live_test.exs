@@ -748,6 +748,19 @@ defmodule PhoenixTest.LiveTest do
       end)
       |> assert_has("#form-data", text: "main_avatar: elixir.jpg")
     end
+
+    test "upload (without other form actions) does not work with submit (matches browser behavior)", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> within("#full-form", fn session ->
+          upload(session, "Avatar", "test/files/elixir.jpg")
+        end)
+
+      assert_raise ArgumentError, ~r/no active form/, fn ->
+        submit(session)
+      end
+    end
   end
 
   describe "filling out full form with field functions" do
