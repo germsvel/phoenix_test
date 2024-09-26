@@ -270,7 +270,41 @@ defmodule PhoenixTest.PageView do
     </form>
     <button form="owner-form">Save Owner Form</button>
 
-    <form action="/page/create_record" method="post" id="same-labels">
+    <form id="complex-labels" method="post" action="/page/create_record">
+      <label for="complex-name">
+        Name <span>*</span>
+      </label>
+      <input id="complex-name" name="name" />
+
+      <label for="complex-human">
+        Human <span>*</span>
+      </label>
+      <input type="hidden" name="human" value="no" />
+      <input type="checkbox" id="complex-human" name="human" value="yes" />
+
+      <fieldset>
+        <legend>Book or movie?</legend>
+
+        <input type="radio" id="complex-book" name="book-or-movie" value="book" />
+        <label for="complex-book">Book <span>*</span></label>
+
+        <input type="radio" id="complex-movie" name="book-or-movie" value="movie" />
+        <label for="complex-movie">Movie <span>*</span></label>
+      </fieldset>
+
+      <label for="complex-animals">Choose a pet: <span>*</span></label>
+      <select id="complex-animals" name="pet">
+        <option value="dog">Dog</option>
+        <option value="cat">Cat</option>
+      </select>
+
+      <label for="complex-avatar">Avatar <span>*</span></label>
+      <input id="complex-avatar" name="avatar" type="file" />
+
+      <button type="submit">Save</button>
+    </form>
+
+    <form id="same-labels" action="/page/create_record" method="post">
       <fieldset>
         <legend>Do you like Elixir:</legend>
 

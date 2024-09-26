@@ -255,6 +255,40 @@ defmodule PhoenixTest.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
+    <form id="complex-labels" phx-change="save-form" phx-submit="save-form">
+      <label for="complex-name">
+        Name <span>*</span>
+      </label>
+      <input id="complex-name" name="name" />
+
+      <label for="complex-human">
+        Human <span>*</span>
+      </label>
+      <input type="hidden" name="human" value="no" />
+      <input type="checkbox" id="complex-human" name="human" value="yes" />
+
+      <label for="complex-animals">Choose a pet: <span>*</span></label>
+      <select id="complex-animals" name="pet">
+        <option value="dog">Dog</option>
+        <option value="cat">Cat</option>
+      </select>
+
+      <fieldset>
+        <legend>Book or movie?</legend>
+
+        <input type="radio" id="complex-book" name="book-or-movie" value="book" />
+        <label for="complex-book">Book <span>*</span></label>
+
+        <input type="radio" id="complex-movie" name="book-or-movie" value="movie" />
+        <label for="complex-movie">Movie <span>*</span></label>
+      </fieldset>
+
+      <label for={@uploads.avatar.ref}>Avatar <span>*</span></label>
+      <.live_file_input upload={@uploads.avatar} />
+
+      <button type="submit">Save</button>
+    </form>
+
     <form id="same-labels" phx-submit="save-form" phx-change="save-form">
       <fieldset name="like-elixir">
         <legend>Do you like Elixir:</legend>
@@ -268,6 +302,7 @@ defmodule PhoenixTest.IndexLive do
           <label for="elixir-no">No</label>
         </div>
       </fieldset>
+
       <fieldset>
         <legend>Do you like Erlang:</legend>
 
