@@ -7,6 +7,57 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.4.0
+
+### Breaking
+
+- Select options were previously matched inexactly (as a substring match). That
+  made it impossible to differentiate between two options where one was a subset
+  of the other.
+
+  For example, using `select(session, "Email", from: "Contact")` could not
+  differentiate between the `Email` and `Email and SMS` options. Select options
+  are now matched exactly. Commits [dc7ba01] and [e675561].
+
+  This is a technically a bug fix, but it's also a potentially breaking change
+  for existing tests that accidentally relied on that behavior. If you need
+  inexact matches on options, please open an issue describing your use case.
+
+[dc7ba01]: https://github.com/germsvel/phoenix_test/commit/dc7ba01
+[e675561]: https://github.com/germsvel/phoenix_test/commit/e675561
+
+### Added
+
+- Adds `PhoenixTest.upload/3` to test file uploads. Commit [d717970]
+- ✨ Form helpers now take `:exact` option. Commits [c4f9164] and [cb19f86]
+- Form helpers now allow passing CSS selectors to target inputs. Commits
+  [30b4eca], [12934b8], [bd595f8], [250e25e], [ef2999e]
+
+[d717970]: https://github.com/germsvel/phoenix_test/commit/d717970
+[c4f9164]: https://github.com/germsvel/phoenix_test/commit/c4f9164
+[cb19f86]: https://github.com/germsvel/phoenix_test/commit/cb19f86
+[30b4eca]: https://github.com/germsvel/phoenix_test/commit/30b4eca
+[12934b8]: https://github.com/germsvel/phoenix_test/commit/12934b8
+[bd595f8]: https://github.com/germsvel/phoenix_test/commit/bd595f8
+[250e25e]: https://github.com/germsvel/phoenix_test/commit/250e25e
+[ef2999e]: https://github.com/germsvel/phoenix_test/commit/ef2999e
+
+### Improvements
+
+- Raise nice error if field is missing `name` attribute. Commit [bb6950f]
+- Docs: Add syntax highlighting for heex and html. Commit [e308f9f]
+
+[bb6950f]: https://github.com/germsvel/phoenix_test/commit/bb6950f
+[e308f9f]: https://github.com/germsvel/phoenix_test/commit/e308f9f
+
+### Fixes
+
+- Ignore `phx-*` attrs when inferring selector. Commit [b5d28c8]
+- Don't error on default form input without name attribute. Commit [3bd6d7a]
+
+[b5d28c8]: https://github.com/germsvel/phoenix_test/commit/b5d28c8
+[3bd6d7a]: https://github.com/germsvel/phoenix_test/commit/3bd6d7a
+
 ## 0.3.2
 
 ### Added

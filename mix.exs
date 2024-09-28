@@ -1,7 +1,7 @@
 defmodule PhoenixTest.MixProject do
   use Mix.Project
 
-  @version "0.3.2"
+  @version "0.4.0"
   @source_url "https://github.com/germsvel/phoenix_test"
   @description """
   Write pipeable, fast, and easy-to-read feature tests for your Phoenix apps in
