@@ -77,6 +77,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    test "handles links with query parameters and no path", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("English")
+      |> assert_has("h1", text: "Main page")
+    end
+
     test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
       conn
       |> visit("/page/index")
