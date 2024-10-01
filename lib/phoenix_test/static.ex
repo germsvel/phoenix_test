@@ -65,9 +65,7 @@ defmodule PhoenixTest.Static do
         |> DataAttributeForm.build()
         |> DataAttributeForm.validate!(selector, text)
 
-      session.conn
-      |> dispatch(@endpoint, form.method, form.action, form.data)
-      |> maybe_redirect(session)
+      perform_submit(session, form, form.data)
     else
       PhoenixTest.visit(session.conn, link.href)
     end
@@ -85,9 +83,7 @@ defmodule PhoenixTest.Static do
         |> DataAttributeForm.build()
         |> DataAttributeForm.validate!(selector, text)
 
-      session.conn
-      |> dispatch(@endpoint, form.method, form.action, form.data)
-      |> maybe_redirect(session)
+      perform_submit(session, form, form.data)
     else
       form =
         button
@@ -97,7 +93,7 @@ defmodule PhoenixTest.Static do
       if active_form.selector == form.selector do
         submit_active_form(session, form)
       else
-        submit(session, form)
+        perform_submit(session, form, build_data(form))
       end
     end
   end
@@ -149,23 +145,6 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
-  defp fill_in_field_data(session, field) do
-    active_form = session.active_form
-    existing_data = active_form.form_data
-    new_form_data = FormData.to_form_data!(field)
-
-    form = Field.parent_form!(field)
-
-    form_data =
-      if active_form.selector == form.selector do
-        existing_data ++ new_form_data
-      else
-        new_form_data
-      end
-
-    fill_form(session, form.selector, form_data)
-  end
-
   def upload(session, input_selector, label, path, opts) do
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
@@ -201,26 +180,6 @@ defmodule PhoenixTest.Static do
     submit_active_form(session, form)
   end
 
-  defp no_active_form_error do
-    %ArgumentError{
-      message: "There's no active form. Fill in a form with `fill_in`, `select`, etc."
-    }
-  end
-
-  def fill_form(session, selector, form_data) do
-    form =
-      session
-      |> render_html()
-      |> Form.find!(selector)
-
-    active_form =
-      form
-      |> ActiveForm.new()
-      |> ActiveForm.add_form_data(form_data)
-
-    Map.put(session, :active_form, active_form)
-  end
-
   def submit_form(session, selector, form_data) do
     form =
       session
@@ -228,30 +187,8 @@ defmodule PhoenixTest.Static do
       |> Form.find!(selector)
 
     session
-    |> fill_form(selector, form_data)
-    |> submit_active_form(form)
-  end
-
-  defp submit_active_form(session, form) do
-    active_form = session.active_form
-
-    session = Map.put(session, :active_form, ActiveForm.new())
-
-    session.conn
-    |> dispatch(@endpoint, form.method, form.action, build_data(form, active_form))
-    |> maybe_redirect(session)
-  end
-
-  defp submit(session, form) do
-    session.conn
-    |> dispatch(@endpoint, form.method, form.action, build_data(form))
-    |> maybe_redirect(session)
-  end
-
-  defp build_data(form, active_form \\ ActiveForm.new()) do
-    (form.form_data ++ active_form.form_data)
-    |> Form.build_data()
-    |> Form.inject_uploads(active_form.uploads)
+    |> update_active_form(form, form_data)
+    |> submit()
   end
 
   def open_browser(session, open_fun \\ &OpenBrowser.open_with_system_cmd/1) do
@@ -274,6 +211,58 @@ defmodule PhoenixTest.Static do
     conn
     |> fun.()
     |> maybe_redirect(session)
+  end
+
+  defp fill_in_field_data(session, field) do
+    active_form = session.active_form
+    existing_data = active_form.form_data
+    new_form_data = FormData.to_form_data!(field)
+
+    form = Field.parent_form!(field)
+
+    form_data =
+      if active_form.selector == form.selector do
+        existing_data ++ new_form_data
+      else
+        new_form_data
+      end
+
+    update_active_form(session, form, form_data)
+  end
+
+  defp submit_active_form(session, form) do
+    active_form = session.active_form
+
+    session
+    |> Map.put(:active_form, ActiveForm.new())
+    |> perform_submit(form, build_data(form, active_form))
+  end
+
+  defp perform_submit(session, form, form_data) do
+    session.conn
+    |> dispatch(@endpoint, form.method, form.action, form_data)
+    |> maybe_redirect(session)
+  end
+
+  defp update_active_form(session, form, form_data) do
+    active_form =
+      form
+      |> ActiveForm.new()
+      |> ActiveForm.add_form_data(form_data)
+
+    Map.put(session, :active_form, active_form)
+  end
+
+  defp no_active_form_error do
+    %ArgumentError{
+      message: "There's no active form. Fill in a form with `fill_in`, `select`, etc."
+    }
+  end
+
+  defp build_data(form, active_form \\ ActiveForm.new()) do
+    (form.form_data ++ active_form.form_data)
+    |> Form.build_data()
+    |> Form.inject_uploads(active_form.uploads)
   end
 
   defp maybe_redirect(conn, session) do

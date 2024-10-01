@@ -298,8 +298,7 @@ defmodule PhoenixTest.Live do
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.Static.fill_form(selector, form_data)
-        |> PhoenixTest.submit()
+        |> PhoenixTest.Static.submit_form(selector, form_data)
 
       true ->
         raise ArgumentError,
