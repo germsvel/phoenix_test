@@ -485,6 +485,16 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "pet: dog")
     end
 
+    test "can target an option's text with exact_option: false", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#full-form", fn session ->
+        select(session, "Hum", from: "Race", exact_option: false)
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "race: human")
+    end
+
     test "can target option with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/page/index")

@@ -35,6 +35,21 @@ defmodule PhoenixTest.SelectTest do
       assert ["select_2", "select_3"] = field.value
     end
 
+    test "can target option with substring match" do
+      html = """
+      <label for="name">Name</label>
+      <select multiple id="name" name="name">
+        <option value="one">One</option>
+        <option value="two">Two</option>
+      </select>
+      """
+
+      field = Select.find_select_option!(html, "select", "Name", "On", exact_option: false)
+
+      assert ~s|[id="name"]| = field.selector
+      assert ["one"] = field.value
+    end
+
     test "returns multiple selected option value without multiple attribute to select raises error" do
       html = """
       <label for="name">Name</label>

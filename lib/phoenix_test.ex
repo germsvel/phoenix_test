@@ -570,6 +570,8 @@ defmodule PhoenixTest do
 
   - `exact`: whether to match label text exactly. (Defaults to `true`)
 
+  - `exact_option`: whether to match the option's text exactly. (Defaults to `true`)
+
   ## Inside a form
 
   If the form is a LiveView form, and if the form has a `phx-change` attribute
@@ -669,7 +671,7 @@ defmodule PhoenixTest do
   For more on selecting options, see `select/3`.
   """
   def select(session, select_selector, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:from, exact: true])
+    opts = Keyword.validate!(attrs, [:from, exact: true, exact_option: true])
     Driver.select(session, select_selector, option, opts)
   end
 
