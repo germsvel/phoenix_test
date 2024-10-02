@@ -41,6 +41,16 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    test "preserves headers across redirects", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
+      |> visit("/page/redirect_to_static")
+      |> assert_has("h1", text: "Main page")
+      |> then(fn %{conn: conn} ->
+        assert {"x-custom-header", "Some-Value"} in conn.req_headers
+      end)
+    end
+
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise ArgumentError, ~r/404/, fn ->
         visit(conn, "/non_route")
@@ -68,6 +78,17 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_link("a", "Page 2")
       |> assert_has("h1", text: "Page 2")
+    end
+
+    test "preserves headers across navigation", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
+      |> visit("/page/index")
+      |> click_link("a", "Page 2")
+      |> assert_has("h1", text: "Page 2")
+      |> then(fn %{conn: conn} ->
+        assert {"x-custom-header", "Some-Value"} in conn.req_headers
+      end)
     end
 
     test "handles navigation to a LiveView", %{conn: conn} do
@@ -772,6 +793,21 @@ defmodule PhoenixTest.StaticTest do
         |> submit()
       end)
       |> assert_has("h1", text: "LiveView main page")
+    end
+
+    test "preserves headers after form submission and redirect", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
+      |> visit("/page/index")
+      |> within("#no-submit-button-and-redirect", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("h1", text: "LiveView main page")
+      |> then(fn %{conn: conn} ->
+        assert {"x-custom-header", "Some-Value"} in conn.req_headers
+      end)
     end
 
     test "handles when form PUTs data through hidden input", %{conn: conn} do
