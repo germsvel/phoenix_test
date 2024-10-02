@@ -239,9 +239,16 @@ defmodule PhoenixTest.Static do
   end
 
   defp perform_submit(session, form, form_data) do
-    session.conn
+    conn = session.conn
+
+    conn
+    |> recycle(all_headers(conn))
     |> dispatch(@endpoint, form.method, form.action, form_data)
     |> maybe_redirect(session)
+  end
+
+  defp all_headers(conn) do
+    Enum.map(conn.req_headers, &elem(&1, 0))
   end
 
   defp update_active_form(session, form, form_data) do

@@ -59,6 +59,16 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    test "preserves headers across redirects", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
+      |> visit("/live/redirect_on_mount/redirect")
+      |> assert_has("h1", text: "LiveView main page")
+      |> then(fn %{conn: conn} ->
+        assert {"x-custom-header", "Some-Value"} in conn.req_headers
+      end)
+    end
+
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise ArgumentError, ~r/404/, fn ->
         visit(conn, "/live/non_route")
@@ -100,6 +110,17 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> click_link("Navigate to non-liveview")
       |> assert_has("h1", text: "Main page")
+    end
+
+    test "preserves headers across navigation", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
+      |> visit("/live/index")
+      |> click_link("Navigate to non-liveview")
+      |> assert_has("h1", text: "Main page")
+      |> then(fn %{conn: conn} ->
+        assert {"x-custom-header", "Some-Value"} in conn.req_headers
+      end)
     end
 
     test "raises error when there are multiple links with same text", %{conn: conn} do
@@ -858,6 +879,21 @@ defmodule PhoenixTest.LiveTest do
         |> submit()
       end)
       |> assert_has("h1", text: "Main page")
+    end
+
+    test "preserves headers after form submission and redirect", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
+      |> visit("/live/index")
+      |> within("#redirect-form-to-static", fn session ->
+        session
+        |> fill_in("Name", with: "Aragorn")
+        |> submit()
+      end)
+      |> assert_has("h1", text: "Main page")
+      |> then(fn %{conn: conn} ->
+        assert {"x-custom-header", "Some-Value"} in conn.req_headers
+      end)
     end
 
     test "submits regular (non phx-submit) form", %{conn: conn} do
