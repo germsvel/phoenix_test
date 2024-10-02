@@ -4,6 +4,8 @@ defmodule PhoenixTest.StaticTest do
   import PhoenixTest
   import PhoenixTest.TestHelpers
 
+  alias ExUnit.AssertionError
+
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
   end
@@ -889,6 +891,31 @@ defmodule PhoenixTest.StaticTest do
         |> click_link("Navigate away and redirect back")
 
       assert PhoenixTest.Driver.current_path(session) == "/page/index"
+    end
+  end
+
+  describe "assert_download" do
+    test "asserts on file name", %{conn: conn} do
+      conn
+      |> visit("/page/download")
+      |> assert_download("elixir.jpg")
+    end
+
+    test "custom assertion via function", %{conn: conn} do
+      conn
+      |> visit("/page/download")
+      |> assert_download(fn file ->
+        assert file.mime_type == "image/jpeg"
+        assert file.content == File.read!("test/files/elixir.jpg")
+      end)
+    end
+
+    test "fails on non-download page", %{conn: conn} do
+      assert_raise AssertionError, ~r/No download detected/, fn ->
+        conn
+        |> visit("/page/index")
+        |> assert_download("elixir.jpg")
+      end
     end
   end
 end

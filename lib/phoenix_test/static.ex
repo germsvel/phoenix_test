@@ -3,10 +3,12 @@ defmodule PhoenixTest.Static do
 
   import Phoenix.ConnTest
 
+  alias ExUnit.AssertionError
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Button
   alias PhoenixTest.DataAttributeForm
   alias PhoenixTest.Field
+  alias PhoenixTest.FileDownload
   alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
   alias PhoenixTest.FormData
@@ -51,6 +53,20 @@ defmodule PhoenixTest.Static do
         |> Query.find!(selector)
         |> Html.raw()
     end
+  end
+
+  def download_file(%{conn: conn}) do
+    file_name =
+      case Plug.Conn.get_resp_header(conn, "content-disposition") do
+        ["attachment; filename=\"" <> name | _] -> String.trim_trailing(name, "\"")
+        other -> raise AssertionError, message: "No download detected. Could not find filename in #{inspect(other)}"
+      end
+
+    %FileDownload{
+      mime_type: conn |> Plug.Conn.get_resp_header("content-type") |> List.first(),
+      name: file_name,
+      content: conn.resp_body
+    }
   end
 
   def click_link(session, selector, text) do
@@ -302,6 +318,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate assert_has(session, selector, opts), to: Assertions
   defdelegate refute_has(session, selector), to: Assertions
   defdelegate refute_has(session, selector, opts), to: Assertions
+  defdelegate assert_download(session, file_name), to: Assertions
   defdelegate assert_path(session, path), to: Assertions
   defdelegate assert_path(session, path, opts), to: Assertions
   defdelegate refute_path(session, path), to: Assertions
