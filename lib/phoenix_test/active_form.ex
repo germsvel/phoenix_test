@@ -1,17 +1,15 @@
 defmodule PhoenixTest.ActiveForm do
   @moduledoc false
 
-  alias PhoenixTest.Form
-
   defstruct [:id, :selector, form_data: [], uploads: []]
 
-  def new(form_or_opts \\ [])
+  @doc """
+  Data structure for tracking active form fields filled.
 
-  def new(%Form{} = form) do
-    %__MODULE__{id: form.id, selector: form.selector, form_data: form.form_data}
-  end
-
-  def new(opts) when is_list(opts) do
+  Do not keep track of default form data on the page. That's what
+  `PhoenixTest.Form.form_data` is for.
+  """
+  def new(opts \\ []) when is_list(opts) do
     struct!(%__MODULE__{}, opts)
   end
 
