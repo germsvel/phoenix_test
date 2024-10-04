@@ -260,36 +260,7 @@ defmodule PhoenixTest.Live do
 
     selector = active_form.selector
 
-    form =
-      session
-      |> render_html()
-      |> Form.find!(selector)
-
-    additional_data =
-      if form.submit_button do
-        Button.to_form_data(form.submit_button)
-      else
-        []
-      end
-
-    form_data = form.form_data ++ active_form.form_data
-
-    cond do
-      Form.phx_submit?(form) ->
-        session.view
-        |> form(selector, Form.build_data(form_data))
-        |> render_submit(Form.build_data(additional_data))
-        |> maybe_redirect(session)
-
-      Form.has_action?(form) ->
-        session.conn
-        |> PhoenixTest.Static.build()
-        |> PhoenixTest.Static.submit_form(selector, form_data)
-
-      true ->
-        raise ArgumentError,
-              "Expected form with selector #{inspect(selector)} to have a `phx-submit` or `action` defined."
-    end
+    submit_form(session, selector, active_form.form_data)
   end
 
   defp no_active_form_error do
@@ -298,7 +269,7 @@ defmodule PhoenixTest.Live do
     }
   end
 
-  def submit_form(session, selector, form_data, event_data) do
+  def submit_form(session, selector, form_data, additional_data \\ []) do
     form =
       session
       |> render_html()
@@ -306,11 +277,18 @@ defmodule PhoenixTest.Live do
 
     form_data = form.form_data ++ form_data
 
+    additional_data =
+      if form.submit_button do
+        Button.to_form_data(form.submit_button) ++ additional_data
+      else
+        additional_data
+      end
+
     cond do
       Form.phx_submit?(form) ->
         session.view
         |> form(selector, Form.build_data(form_data))
-        |> render_submit(Form.build_data(event_data))
+        |> render_submit(Form.build_data(additional_data))
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->

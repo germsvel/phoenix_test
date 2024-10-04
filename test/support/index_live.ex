@@ -101,7 +101,7 @@ defmodule PhoenixTest.IndexLive do
       <input id="name" name="name" />
     </form>
 
-    <button form="owner-form">
+    <button form="owner-form" name="form-button" value="save-owner-form">
       Save Owner Form
     </button>
 
