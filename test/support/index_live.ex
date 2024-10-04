@@ -376,6 +376,13 @@ defmodule PhoenixTest.IndexLive do
       </button>
     </form>
 
+    <form id="changes-hidden-input-form" phx-change="set-hidden-race">
+      <input type="hidden" name="hidden_race" value={@hidden_input_race} />
+
+      <label>Email <input type="email" name="email" /></label>
+      <label>Name <input type="name" name="name" /></label>
+    </form>
+
     <div id="not-a-form">
       <fieldset>
         <legend>Select a maintenance drone:</legend>
@@ -452,6 +459,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_data, %{})
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
+      |> assign(:hidden_input_race, "human")
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
@@ -485,6 +493,22 @@ defmodule PhoenixTest.IndexLive do
       socket
       |> assign(:form_saved, true)
       |> assign(:form_data, form_data)
+    }
+  end
+
+  def handle_event("set-hidden-race", form_data, socket) do
+    race =
+      case form_data["name"] do
+        "Frodo" -> "hobbit"
+        _ -> "human"
+      end
+
+    {
+      :noreply,
+      socket
+      |> assign(:form_saved, true)
+      |> assign(:form_data, form_data)
+      |> assign(:hidden_input_race, race)
     }
   end
 

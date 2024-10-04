@@ -155,7 +155,7 @@ defmodule PhoenixTest.Static do
       if active_form.selector == form.selector do
         ActiveForm.add_upload(active_form, {field.name, upload})
       else
-        form
+        [id: form.id, selector: form.selector]
         |> ActiveForm.new()
         |> ActiveForm.add_upload({field.name, upload})
       end
@@ -185,10 +185,15 @@ defmodule PhoenixTest.Static do
       session
       |> render_html()
       |> Form.find!(selector)
+      |> then(fn form ->
+        Form.put_button_data(form, form.submit_button)
+      end)
+
+    to_submit = Form.build_data(form.form_data ++ form_data)
 
     session
-    |> update_active_form(form, form_data)
-    |> submit()
+    |> Map.put(:active_form, ActiveForm.new())
+    |> perform_submit(form, to_submit)
   end
 
   def open_browser(session, open_fun \\ &OpenBrowser.open_with_system_cmd/1) do
@@ -214,20 +219,16 @@ defmodule PhoenixTest.Static do
   end
 
   defp fill_in_field_data(session, field) do
-    active_form = session.active_form
-    existing_data = active_form.form_data
     new_form_data = FormData.to_form_data!(field)
-
     form = Field.parent_form!(field)
 
-    form_data =
+    Map.update!(session, :active_form, fn active_form ->
       if active_form.selector == form.selector do
-        existing_data ++ new_form_data
+        ActiveForm.add_form_data(active_form, new_form_data)
       else
-        new_form_data
+        ActiveForm.new(id: form.id, selector: form.selector, form_data: new_form_data)
       end
-
-    update_active_form(session, form, form_data)
+    end)
   end
 
   defp submit_active_form(session, form) do
@@ -249,15 +250,6 @@ defmodule PhoenixTest.Static do
 
   defp all_headers(conn) do
     Enum.map(conn.req_headers, &elem(&1, 0))
-  end
-
-  defp update_active_form(session, form, form_data) do
-    active_form =
-      form
-      |> ActiveForm.new()
-      |> ActiveForm.add_form_data(form_data)
-
-    Map.put(session, :active_form, active_form)
   end
 
   defp no_active_form_error do

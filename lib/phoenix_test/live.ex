@@ -70,7 +70,7 @@ defmodule PhoenixTest.Live do
 
         form_data =
           if active_form.selector == form.selector do
-            active_form.form_data
+            form.form_data ++ active_form.form_data
           else
             form.form_data
           end
@@ -200,24 +200,6 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  defp fill_in_field_data(session, field) do
-    active_form = session.active_form
-    existing_data = active_form.form_data
-    new_form_data = FormData.to_form_data!(field)
-    form = Field.parent_form!(field)
-
-    form_data =
-      if active_form.selector == form.selector do
-        existing_data ++ new_form_data
-      else
-        new_form_data
-      end
-
-    additional_data = %{"_target" => field.name}
-
-    fill_form(session, form.selector, form_data, additional_data)
-  end
-
   def upload(session, input_selector, label, path, opts) do
     field =
       session
@@ -244,22 +226,26 @@ defmodule PhoenixTest.Live do
     |> maybe_redirect(session)
   end
 
-  defp fill_form(session, selector, form_data, additional_data) do
-    form =
-      session
-      |> render_html()
-      |> Form.find!(selector)
+  defp fill_in_field_data(session, field) do
+    new_form_data = FormData.to_form_data!(field)
+    form = Field.parent_form!(field)
 
-    active_form =
-      form
-      |> ActiveForm.new()
-      |> ActiveForm.add_form_data(form_data)
-
-    session = Map.put(session, :active_form, active_form)
+    session =
+      Map.update!(session, :active_form, fn active_form ->
+        if active_form.selector == form.selector do
+          ActiveForm.add_form_data(session.active_form, new_form_data)
+        else
+          ActiveForm.new(id: form.id, form_data: new_form_data, selector: form.selector)
+        end
+      end)
 
     if Form.phx_change?(form) do
+      active_form = session.active_form
+      data_to_submit = form.form_data ++ active_form.form_data
+      additional_data = %{"_target" => field.name}
+
       session.view
-      |> form(selector, Form.build_data(active_form.form_data))
+      |> form(form.selector, Form.build_data(data_to_submit))
       |> render_change(additional_data)
       |> maybe_redirect(session)
     else

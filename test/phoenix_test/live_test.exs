@@ -369,40 +369,6 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "user:role: El Jefe")
     end
 
-    test "triggers phx-change validations", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> fill_in("Email", with: nil)
-      |> assert_has("#form-errors", text: "Errors present")
-    end
-
-    test "sends _target with phx-change events", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> fill_in("Email", with: "frodo@example.com")
-      |> assert_has("#form-data", text: "_target: [email]")
-    end
-
-    test "does not trigger phx-change event if one isn't present", %{conn: conn} do
-      session = visit(conn, "/live/index")
-
-      starting_html = Driver.render_html(session)
-
-      ending_html =
-        session
-        |> within("#no-phx-change-form", &fill_in(&1, "Name", with: "Aragorn"))
-        |> Driver.render_html()
-
-      assert starting_html == ending_html
-    end
-
-    test "follows redirects on phx-change", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> fill_in("Email with redirect", with: "someone@example.com")
-      |> assert_has("h1", text: "LiveView page 2")
-    end
-
     test "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -1030,6 +996,55 @@ defmodule PhoenixTest.LiveTest do
         |> click_button("Button with push patch")
 
       assert PhoenixTest.Driver.current_path(session) == "/live/index?foo=bar"
+    end
+  end
+
+  describe "shared form helpers behavior" do
+    test "triggers phx-change validations", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: nil)
+      |> assert_has("#form-errors", text: "Errors present")
+    end
+
+    test "sends _target with phx-change events", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email", with: "frodo@example.com")
+      |> assert_has("#form-data", text: "_target: [email]")
+    end
+
+    test "does not trigger phx-change event if one isn't present", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      starting_html = Driver.render_html(session)
+
+      ending_html =
+        session
+        |> within("#no-phx-change-form", &fill_in(&1, "Name", with: "Aragorn"))
+        |> Driver.render_html()
+
+      assert starting_html == ending_html
+    end
+
+    test "follows redirects on phx-change", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Email with redirect", with: "someone@example.com")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "preserves correct order of active form vs form data", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#changes-hidden-input-form", fn session ->
+        session
+        |> fill_in("Name", with: "Frodo")
+        |> fill_in("Email", with: "frodo@example.com")
+      end)
+      |> assert_has("#form-data", text: "name: Frodo")
+      |> assert_has("#form-data", text: "email: frodo@example.com")
+      |> assert_has("#form-data", text: "hidden_race: hobbit")
     end
   end
 end
