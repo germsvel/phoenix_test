@@ -438,6 +438,17 @@ defmodule PhoenixTest.IndexLive do
 
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
+
+    <form
+      id="trigger-form"
+      phx-submit="trigger-form"
+      phx-trigger-action={@trigger_submit}
+      action="/page/create_record"
+      method="post"
+    >
+      <input type="hidden" name="hidden" value="included" />
+      <label>Trigger action <input type="text" name="trigger_action" /></label>
+    </form>
     """
   end
 
@@ -460,6 +471,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
       |> assign(:hidden_input_race, "human")
+      |> assign(:trigger_submit, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
@@ -494,6 +506,10 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:form_saved, true)
       |> assign(:form_data, form_data)
     }
+  end
+
+  def handle_event("trigger-form", _form_data, socket) do
+    {:noreply, assign(socket, :trigger_submit, true)}
   end
 
   def handle_event("set-hidden-race", form_data, socket) do

@@ -330,7 +330,22 @@ defmodule PhoenixTest.Live do
   end
 
   defp maybe_redirect(html, session) when is_binary(html) do
-    maybe_put_patch_path(session)
+    case Form.find(html, "form[phx-trigger-action]") do
+      :not_found ->
+        maybe_put_patch_path(session)
+
+      {:found, form} ->
+        active_form = session.active_form
+        active_form? = form.selector == active_form.selector
+        form_data = form.form_data ++ if(active_form?, do: active_form.form_data, else: [])
+
+        session.conn
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.Static.submit_form(form.selector, form_data)
+
+      {:found_many, _} ->
+        raise raise ArgumentError, "Found multiple forms with phx-trigger-action."
+    end
   end
 
   defp maybe_put_patch_path(session) do

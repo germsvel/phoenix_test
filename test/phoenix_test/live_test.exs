@@ -875,6 +875,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "button: save")
     end
 
+    test "supports phx-trigger-action to submit form over HTTP", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Trigger action", with: "Engage!")
+      |> submit()
+      |> assert_has("#form-data", text: "hidden: included")
+      |> assert_has("#form-data", text: "trigger_action: Engage!")
+    end
+
     test "raises an error if there's no active form", %{conn: conn} do
       message = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
 

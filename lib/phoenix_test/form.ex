@@ -15,6 +15,16 @@ defmodule PhoenixTest.Form do
     |> build()
   end
 
+  def find(html, selector) do
+    html
+    |> Query.find(selector)
+    |> case do
+      {:found, element} -> {:found, build(element)}
+      {:found_many, elements} -> {:found_many, Enum.map(elements, &build/1)}
+      :not_found -> :not_found
+    end
+  end
+
   def find_by_descendant!(html, descendant) do
     html
     |> Query.find_ancestor!("form", descendant_selector(descendant))
