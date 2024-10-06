@@ -8,7 +8,6 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Field
   alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
-  alias PhoenixTest.FormData
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Select
@@ -227,7 +226,7 @@ defmodule PhoenixTest.Live do
   end
 
   defp fill_in_field_data(session, field) do
-    new_form_data = FormData.to_form_data!(field)
+    new_form_data = Field.to_form_data!(field)
     form = Field.parent_form!(field)
 
     session =

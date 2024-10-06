@@ -184,4 +184,30 @@ defmodule PhoenixTest.FieldTest do
       refute Field.belongs_to_form?(field)
     end
   end
+
+  describe "to_form_data!" do
+    test "transforms a field into a name/value pair" do
+      html = """
+      <label for="name">Name</label>
+      <input id="name" type="text" name="name" value="Hello world"/>
+      """
+
+      field = Field.find_input!(html, "input", "Name", exact: true)
+
+      assert [{"name", "Hello world"}] = Field.to_form_data!(field)
+    end
+
+    test "raises error if name attribute is missing" do
+      html = """
+      <label for="name">Name</label>
+      <input id="name" type="text" value="Hello world"/>
+      """
+
+      field = Field.find_input!(html, "input", "Name", exact: true)
+
+      assert_raise ArgumentError, ~r/missing a `name`/, fn ->
+        Field.to_form_data!(field)
+      end
+    end
+  end
 end
