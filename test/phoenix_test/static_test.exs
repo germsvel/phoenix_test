@@ -1,15 +1,12 @@
 defmodule PhoenixTest.StaticTest do
   use ExUnit.Case, async: true
+  use PhoenixTest.Case, playwright: :chromium
 
   import PhoenixTest
   import PhoenixTest.TestHelpers
 
-  setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
-  end
-
   describe "render_page_title/1" do
-    test "renders the page title", %{conn: conn} do
+    test_also_with_playwright "renders the page title", %{conn: conn} do
       title =
         conn
         |> visit("/page/index")
@@ -18,6 +15,7 @@ defmodule PhoenixTest.StaticTest do
       assert title == "PhoenixTest is the best!"
     end
 
+    # TODO Playwright "" vs nil
     test "renders nil if there's no page title", %{conn: conn} do
       title =
         conn
@@ -29,13 +27,13 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "visit/2" do
-    test "navigates to given static page", %{conn: conn} do
+    test_also_with_playwright "navigates to given static page", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> assert_has("h1", text: "Main page")
     end
 
-    test "follows redirects", %{conn: conn} do
+    test_also_with_playwright "follows redirects", %{conn: conn} do
       conn
       |> visit("/page/redirect_to_static")
       |> assert_has("h1", text: "Main page")
@@ -59,21 +57,21 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "click_link/2" do
-    test "follows link's path", %{conn: conn} do
+    test_also_with_playwright "follows link's path", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("Page 2")
       |> assert_has("h1", text: "Page 2")
     end
 
-    test "follows link that subsequently redirects", %{conn: conn} do
+    test_also_with_playwright "follows link that subsequently redirects", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("Navigate away and redirect back")
       |> assert_has("h1", text: "Main page")
     end
 
-    test "accepts selector for link", %{conn: conn} do
+    test_also_with_playwright "accepts selector for link", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("a", "Page 2")
@@ -91,17 +89,17 @@ defmodule PhoenixTest.StaticTest do
       end)
     end
 
-    test "handles navigation to a LiveView", %{conn: conn} do
+    test_also_with_playwright "handles navigation to a LiveView", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("To LiveView!")
       |> assert_has("h1", text: "LiveView main page")
     end
 
-    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+    test_also_with_playwright "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> click_link("Data-method Delete")
+      |> click_link("Data_method Delete")
       |> assert_has("h1", text: "Record deleted")
     end
 
@@ -135,7 +133,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises error when there are multiple links with same text", %{conn: conn} do
+    test_also_with_playwright "raises error when there are multiple links with same text", %{conn: conn} do
       assert_raise ArgumentError, ~r/Found more than one element with selector/, fn ->
         conn
         |> visit("/page/index")
@@ -143,7 +141,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error when link element can't be found with given text", %{conn: conn} do
+    test_also_with_playwright "raises an error when link element can't be found with given text", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
         conn
         |> visit("/page/index")
@@ -151,7 +149,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error when there are no links on the page", %{conn: conn} do
+    test_also_with_playwright "raises an error when there are no links on the page", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
         conn
         |> visit("/page/page_2")
@@ -161,35 +159,35 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "click_button/2" do
-    test "handles a button that defaults to GET", %{conn: conn} do
+    test_also_with_playwright "handles a button that defaults to GET", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Get record")
       |> assert_has("h1", text: "Record received")
     end
 
-    test "accepts selector for button", %{conn: conn} do
+    test_also_with_playwright "accepts selector for button", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("button", "Get record")
       |> assert_has("h1", text: "Record received")
     end
 
-    test "handles a button clicks when button PUTs data (hidden input)", %{conn: conn} do
+    test_also_with_playwright "handles a button clicks when button PUTs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Mark as active")
       |> assert_has("h1", text: "Record updated")
     end
 
-    test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
+    test_also_with_playwright "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Delete record")
       |> assert_has("h1", text: "Record deleted")
     end
 
-    test "can submit forms with input type submit", %{conn: conn} do
+    test_also_with_playwright "can submit forms with input type submit", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Email", with: "sample@example.com")
@@ -197,7 +195,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "email: sample@example.com")
     end
 
-    test "can handle clicking button that does not submit form after filling a form", %{conn: conn} do
+    test_also_with_playwright "can handle clicking button that does not submit form after filling a form", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Email", with: "some@example.com")
@@ -205,7 +203,7 @@ defmodule PhoenixTest.StaticTest do
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 
-    test "submits owner form if button isn't nested inside form", %{conn: conn} do
+    test_also_with_playwright "submits owner form if button isn't nested inside form", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#owner-form", fn session ->
@@ -215,17 +213,17 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
-    test "can handle redirects to a LiveView", %{conn: conn} do
+    test_also_with_playwright "can handle redirects to a LiveView", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Post and Redirect")
       |> assert_has("h1", text: "LiveView main page")
     end
 
-    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+    test_also_with_playwright "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> click_button("Data-method Delete")
+      |> click_button("Data_method Delete")
       |> assert_has("h1", text: "Record deleted")
     end
 
@@ -249,7 +247,7 @@ defmodule PhoenixTest.StaticTest do
       refute PhoenixTest.ActiveForm.active?(session.active_form)
     end
 
-    test "includes name and value if specified", %{conn: conn} do
+    test_also_with_playwright "includes name and value if specified", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("User Name", with: "Aragorn")
@@ -257,7 +255,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "user:save-button: nested-form-save")
     end
 
-    test "can handle clicking button that does not submit form after fill_in", %{conn: conn} do
+    test_also_with_playwright "can handle clicking button that does not submit form after fill_in", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Email", with: "some@example.com")
@@ -265,7 +263,7 @@ defmodule PhoenixTest.StaticTest do
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 
-    test "includes default data if form is untouched", %{conn: conn} do
+    test_also_with_playwright "includes default data if form is untouched", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Save Full Form")
@@ -287,7 +285,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error when there are no buttons on page", %{conn: conn} do
+    test_also_with_playwright "raises an error when there are no buttons on page", %{conn: conn} do
       msg = ~r/Could not find an element with given selectors/
 
       assert_raise ArgumentError, msg, fn ->
@@ -297,7 +295,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error if can't find button", %{conn: conn} do
+    test_also_with_playwright "raises an error if can't find button", %{conn: conn} do
       msg = ~r/Could not find an element with given selectors/
 
       assert_raise ArgumentError, msg, fn ->
@@ -320,6 +318,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "within/3" do
+    # TODO Playwright: Fix refute_has
     test "scopes assertions within selector", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -329,7 +328,7 @@ defmodule PhoenixTest.StaticTest do
       end)
     end
 
-    test "scopes further form actions within a selector", %{conn: conn} do
+    test_also_with_playwright "scopes further form actions within a selector", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#email-form", fn session ->
@@ -340,7 +339,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
-    test "raises when data is not in scoped HTML", %{conn: conn} do
+    test_also_with_playwright "raises when data is not in scoped HTML", %{conn: conn} do
       assert_raise ArgumentError, ~r/Could not find element with label "User Name"/, fn ->
         conn
         |> visit("/page/index")
@@ -352,7 +351,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "fill_in/4" do
-    test "fills in a single text field based on the label", %{conn: conn} do
+    test_also_with_playwright "fills in a single text field based on the label", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Email", with: "someone@example.com")
@@ -360,7 +359,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
-    test "can fill input with `nil` to override existing value", %{conn: conn} do
+    test_also_with_playwright "can fill input with `nil` to override existing value", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Pre Rendered Input", with: nil)
@@ -368,7 +367,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "input's value is empty")
     end
 
-    test "can fill-in complex form fields", %{conn: conn} do
+    test_also_with_playwright "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -380,7 +379,7 @@ defmodule PhoenixTest.StaticTest do
       )
     end
 
-    test "can fill in numbers", %{conn: conn} do
+    test_also_with_playwright "can fill in numbers", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Level (number)", with: 10)
@@ -388,7 +387,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "level: 10")
     end
 
-    test "works in 'nested' forms", %{conn: conn} do
+    test_also_with_playwright "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("User Name", with: "Aragorn")
@@ -399,7 +398,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "user:role: El Jefe")
     end
 
-    test "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
+    test_also_with_playwright "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -409,7 +408,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "user:name: Legolas")
     end
 
-    test "can target a label with exact: false", %{conn: conn} do
+    test_also_with_playwright "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#complex-labels", fn session ->
@@ -419,7 +418,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "name: Frodo")
     end
 
-    test "can target input with selector if multiple labels have same text", %{conn: conn} do
+    test_also_with_playwright "can target input with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->
@@ -429,7 +428,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "book-characters: Frodo")
     end
 
-    test "raises an error when element can't be found with label", %{conn: conn} do
+    test_also_with_playwright "raises an error when element can't be found with label", %{conn: conn} do
       msg = ~r/Could not find element with label "Non-existent Email Label"./
 
       assert_raise ArgumentError, msg, fn ->
@@ -439,6 +438,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
+    # TODO Playwright: Fix error message
     test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
       msg = ~r/Found label but can't find labeled element whose `id` matches/
 
@@ -451,7 +451,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "select/3" do
-    test "selects given option for a label", %{conn: conn} do
+    test_also_with_playwright "selects given option for a label", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> select("Elf", from: "Race")
@@ -459,21 +459,21 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
-    test "picks first by default", %{conn: conn} do
+    test_also_with_playwright "picks first by default", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race: human")
     end
 
-    test "allows selecting option if a similar option exists", %{conn: conn} do
+    test_also_with_playwright "allows selecting option if a similar option exists", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> select("Orc", from: "Race")
       |> assert_has("#full-form option[value='orc']")
     end
 
-    test "works in 'nested' forms", %{conn: conn} do
+    test_also_with_playwright "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> select("False", from: "User Admin")
@@ -481,6 +481,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "user:admin: false")
     end
 
+    # TODO Playwright: Support selecting multiple
     test "handles multi select", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -489,13 +490,14 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race_2: [elf,dwarf]")
     end
 
-    test "contains no data for empty multi select", %{conn: conn} do
+    test_also_with_playwright "contains no data for empty multi select", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Save Full Form")
       |> refute_has("#form-data", text: "race_2")
     end
 
+    # TODO Playwright: Support submit() when select is focused
     test "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -506,6 +508,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "pet: dog")
     end
 
+    # TODO Playwright: Use strict=false
     test "can target an option's text with exact_option: false", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -516,6 +519,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race: human")
     end
 
+    # TODO Playwright: Support submit() when select is focused
     test "can target option with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -528,7 +532,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "check/3" do
-    test "checks a checkbox", %{conn: conn} do
+    test_also_with_playwright "checks a checkbox", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> check("Admin (boolean)")
@@ -536,7 +540,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "admin_boolean: true")
     end
 
-    test "sets checkbox value as 'on' by default", %{conn: conn} do
+    test_also_with_playwright "sets checkbox value as 'on' by default", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> check("Admin")
@@ -544,7 +548,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "admin: on")
     end
 
-    test "can check an unchecked checkbox", %{conn: conn} do
+    test_also_with_playwright "can check an unchecked checkbox", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> uncheck("Admin")
@@ -553,7 +557,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "admin: on")
     end
 
-    test "handle checkbox name with '?'", %{conn: conn} do
+    test_also_with_playwright "handle checkbox name with '?'", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> check("Subscribe")
@@ -561,7 +565,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "subscribe?: on")
     end
 
-    test "can target a label with exact: false", %{conn: conn} do
+    test_also_with_playwright "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#complex-labels", fn session ->
@@ -571,7 +575,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "human: yes")
     end
 
-    test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
+    test_also_with_playwright "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->
@@ -583,7 +587,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "uncheck/3" do
-    test "sends the default value (in hidden input)", %{conn: conn} do
+    test_also_with_playwright "sends the default value (in hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> uncheck("Admin")
@@ -591,7 +595,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "admin: off")
     end
 
-    test "can uncheck a previous check/2 in the test", %{conn: conn} do
+    test_also_with_playwright "can uncheck a previous check/2 in the test", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> check("Admin")
@@ -600,7 +604,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "admin: off")
     end
 
-    test "can target a label with exact: false", %{conn: conn} do
+    test_also_with_playwright "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#complex-labels", fn session ->
@@ -612,7 +616,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "human: no")
     end
 
-    test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
+    test_also_with_playwright "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->
@@ -627,7 +631,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "choose/3" do
-    test "chooses an option in radio button", %{conn: conn} do
+    test_also_with_playwright "chooses an option in radio button", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> choose("Email Choice")
@@ -635,14 +639,14 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "contact: email")
     end
 
-    test "uses the default 'checked' if present", %{conn: conn} do
+    test_also_with_playwright "uses the default 'checked' if present", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
     end
 
-    test "can target a label with exact: false", %{conn: conn} do
+    test_also_with_playwright "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#complex-labels", fn session ->
@@ -652,7 +656,9 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "book-or-movie: book")
     end
 
-    test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
+    test_also_with_playwright "can specify input selector when multiple options have same label in same form", %{
+      conn: conn
+    } do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->
@@ -665,7 +671,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "upload/4" do
-    test "uploads image", %{conn: conn} do
+    test_also_with_playwright "uploads image", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#file-upload-form", fn session ->
@@ -676,6 +682,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "avatar: elixir.jpg")
     end
 
+    # TODO Playwright: Support multiple subsequent upload calls for same field
     test "uploads image list", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -686,7 +693,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "avatars:[]: phoenix.jpg")
     end
 
-    test "uploads an image in nested forms", %{conn: conn} do
+    test_also_with_playwright "uploads an image in nested forms", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> upload("Nested Avatar", "test/files/elixir.jpg")
@@ -694,7 +701,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "user:avatar: elixir.jpg")
     end
 
-    test "can target a label with exact: false", %{conn: conn} do
+    test_also_with_playwright "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#complex-labels", fn session ->
@@ -705,6 +712,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "avatar: elixir.jpg")
     end
 
+    # TODO Playwright: fix
     test "can specify input selector when multiple inputs have same label", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -717,7 +725,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "filling out full form with field functions" do
-    test "populates all fields", %{conn: conn} do
+    test_also_with_playwright "populates all fields", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("First Name", with: "Legolas")
@@ -735,7 +743,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "notes: Woodland Elf")
     end
 
-    test "populates all fields in nested forms", %{conn: conn} do
+    test_also_with_playwright "populates all fields in nested forms", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("User Name", with: "Legolas")
@@ -747,7 +755,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "submit/1" do
-    test "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
+    test_also_with_playwright "submits form even if no submit is present (acts as <Enter>)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#no-submit-button-form", fn session ->
@@ -758,8 +766,8 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
-    test "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button)",
-         %{conn: conn} do
+    test_also_with_playwright "includes pre-rendered data (input value, selected option, checked checkbox, checked radio button)",
+                              %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -768,7 +776,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race: human")
     end
 
-    test "includes the first button's name and value if present", %{conn: conn} do
+    test_also_with_playwright "includes the first button's name and value if present", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("First Name", with: "Aragorn")
@@ -776,7 +784,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "full_form_button: save")
     end
 
-    test "can submit form without button", %{conn: conn} do
+    test_also_with_playwright "can submit form without button", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> fill_in("Country of Origin", with: "Arnor")
@@ -784,7 +792,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "country: Arnor")
     end
 
-    test "can handle redirects", %{conn: conn} do
+    test_also_with_playwright "can handle redirects", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#no-submit-button-and-redirect", fn session ->
@@ -810,7 +818,7 @@ defmodule PhoenixTest.StaticTest do
       end)
     end
 
-    test "handles when form PUTs data through hidden input", %{conn: conn} do
+    test_also_with_playwright "handles when form PUTs data through hidden input", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#update-form", fn session ->
@@ -821,7 +829,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
-    test "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
+    test_also_with_playwright "handles a button clicks when button DELETEs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Delete record")
@@ -862,7 +870,7 @@ defmodule PhoenixTest.StaticTest do
       %{open_fun: open_fun}
     end
 
-    test "opens the browser ", %{conn: conn, open_fun: open_fun} do
+    test_also_with_playwright "opens the browser ", %{conn: conn, open_fun: open_fun} do
       conn
       |> visit("/page/index")
       |> open_browser(open_fun)
@@ -897,18 +905,19 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "current_path" do
-    test "it is set on visit", %{conn: conn} do
+    test_also_with_playwright "it is set on visit", %{conn: conn} do
       session = visit(conn, "/page/index")
 
       assert PhoenixTest.Driver.current_path(session) == "/page/index"
     end
 
-    test "it includes query string if available", %{conn: conn} do
+    test_also_with_playwright "it includes query string if available", %{conn: conn} do
       session = visit(conn, "/page/index?foo=bar")
 
       assert PhoenixTest.Driver.current_path(session) == "/page/index?foo=bar"
     end
 
+    # TODO Playwright: Fix (maybe not possible, because need to await navigation)
     test "it is updated on href navigation", %{conn: conn} do
       session =
         conn
@@ -918,7 +927,7 @@ defmodule PhoenixTest.StaticTest do
       assert PhoenixTest.Driver.current_path(session) == "/page/page_2?foo=bar"
     end
 
-    test "it is updated on redirects", %{conn: conn} do
+    test_also_with_playwright "it is updated on redirects", %{conn: conn} do
       session =
         conn
         |> visit("/page/index")

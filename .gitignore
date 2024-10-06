@@ -27,3 +27,5 @@ phoenix_test-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
+
+.envrc

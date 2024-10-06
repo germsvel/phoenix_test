@@ -66,13 +66,13 @@ defmodule PhoenixTest.PageView do
       data-to="/page/delete_record"
       data-csrf="sometoken"
     >
-      Data-method Delete
+      Data_method Delete
     </a>
 
     <button data-method="delete">Incomplete data-method Delete</button>
 
     <button data-method="delete" data-to="/page/delete_record" data-csrf="sometoken">
-      Data-method Delete
+      Data_method Delete
     </button>
 
     <form action="/page/get_record">
@@ -345,12 +345,12 @@ defmodule PhoenixTest.PageView do
         <legend>Do you like Elixir?</legend>
         <label for="like-elixir">Yes</label>
         <input type="hidden" name="like-elixir" value="no" />
-        <input type="check" name="like-elixir" id="like-elixir" value="yes" />
+        <input type="checkbox" name="like-elixir" id="like-elixir" value="yes" />
 
         <legend>Do you like Erlang</legend>
         <label for="like-erlang">Yes</label>
         <input type="hidden" name="like-erlang" value="no" />
-        <input type="check" name="like-erlang" id="like-erlang" value="yes" />
+        <input type="checkbox" name="like-erlang" id="like-erlang" value="yes" />
       </fieldset>
 
       <fieldset>
