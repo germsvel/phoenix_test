@@ -213,6 +213,12 @@ defmodule PhoenixTest do
   LiveView or a static view. You don't need to worry about which type of page
   you're visiting.
   """
+  if Code.ensure_loaded?(Playwright.Page) do
+    def visit(%Playwright.Page{} = page, path) do
+      PhoenixTest.Playwright.build(page, path)
+    end
+  end
+
   def visit(conn, path) do
     case get(conn, path) do
       %{assigns: %{live_module: _}} = conn ->

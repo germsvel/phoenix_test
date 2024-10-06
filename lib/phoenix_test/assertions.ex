@@ -285,7 +285,7 @@ defmodule PhoenixTest.Assertions do
     |> append_found(found)
   end
 
-  defp assert_not_found_error_msg(selector, opts, other_matches \\ []) do
+  def assert_not_found_error_msg(selector, opts, other_matches \\ []) do
     count = Keyword.get(opts, :count, :any)
     position = Keyword.get(opts, :at, :any)
     text = Keyword.get(opts, :text, :no_text)

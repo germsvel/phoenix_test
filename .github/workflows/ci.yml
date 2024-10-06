@@ -69,5 +69,11 @@ jobs:
     - name: Check Formatting
       run: mix format --check-formatted
 
+    - name: Install playwright browsers
+      run: mix playwright.install
+
+    - name: Build assets for browser tests
+      run: mix do assets.setup, assets.build
+
     - name: Run tests
       run: mix test

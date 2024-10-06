@@ -41,7 +41,7 @@ defmodule PhoenixTest.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:esbuild, "~> 0.8", only: :test, runtime: false},
+      {:esbuild, "~> 0.8", runtime: false},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:floki, ">= 0.30.0"},
       {:jason, "~> 1.4"},
@@ -51,7 +51,9 @@ defmodule PhoenixTest.MixProject do
       {:phoenix, "~> 1.7.10"},
       {:phoenix_live_view, "~> 0.20.1"},
       {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
-      {:styler, "~> 0.11", only: [:dev, :test], runtime: false}
+      {:styler, "~> 0.11", only: [:dev, :test], runtime: false},
+      {:cowlib, "~> 2.13.0", override: true},
+      {:playwright, github: "ftes/playwright-elixir", ref: "phoenix-test", optional: true}
     ]
   end
 
