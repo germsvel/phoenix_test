@@ -80,4 +80,14 @@ defmodule PhoenixTest.Field do
       _ -> false
     end
   end
+
+  def validate_name!(field) do
+    if field.name == nil do
+      raise ArgumentError, """
+      Field is missing a `name` attribute:
+
+      #{Html.raw(field.parsed)}
+      """
+    end
+  end
 end

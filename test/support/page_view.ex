@@ -260,6 +260,9 @@ defmodule PhoenixTest.PageView do
 
     <form id="invalid-form">
       <label for="email-no-input">Email (no input)</label>
+
+      <label for="no-name-attribute">No Name Attribute</label>
+      <input id="no-name-attribute" />
     </form>
 
     <button type="button">Actionless Button</button>

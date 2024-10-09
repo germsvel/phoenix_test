@@ -209,6 +209,9 @@ defmodule PhoenixTest.IndexLive do
     <form id="invalid-form">
       <label for="invalid-form-email">Email (no input)</label>
 
+      <label for="no-name-attribute">No Name Attribute</label>
+      <input id="no-name-attribute" />
+
       <label for="invalid-form-name">Name</label>
       <input id="invalid-form-name" name="name" />
       <button type="submit">

@@ -3,7 +3,6 @@ defmodule PhoenixTest.FormData do
 
   alias PhoenixTest.Button
   alias PhoenixTest.Field
-  alias PhoenixTest.Html
   alias PhoenixTest.Select
 
   def new, do: []
@@ -29,14 +28,6 @@ defmodule PhoenixTest.FormData do
   end
 
   def to_form_data(%Field{} = field) do
-    if field.name == nil do
-      raise ArgumentError, """
-      Field is missing a `name` attribute:
-
-      #{Html.raw(field.parsed)}
-      """
-    end
-
     [{field.name, field.value}]
   end
 

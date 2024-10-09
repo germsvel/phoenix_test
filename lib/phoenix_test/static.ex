@@ -220,6 +220,7 @@ defmodule PhoenixTest.Static do
   end
 
   defp fill_in_field_data(session, field) do
+    Field.validate_name!(field)
     new_form_data = FormData.to_form_data(field)
     form = Field.parent_form!(field)
 

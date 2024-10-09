@@ -1047,5 +1047,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "email: frodo@example.com")
       |> assert_has("#form-data", text: "hidden_race: hobbit")
     end
+
+    test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
+        conn
+        |> visit("/live/index")
+        |> within("#invalid-form", fn session ->
+          fill_in(session, "No Name Attribute", with: "random")
+        end)
+      end
+    end
   end
 end

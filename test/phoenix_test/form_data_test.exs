@@ -78,19 +78,6 @@ defmodule PhoenixTest.FormDataTest do
 
       assert [{"name", "Hello world"}] = FormData.to_form_data(field)
     end
-
-    test "raises error if name attribute is missing" do
-      html = """
-      <label for="name">Name</label>
-      <input id="name" type="text" value="Hello world"/>
-      """
-
-      field = Field.find_input!(html, "input", "Name", exact: true)
-
-      assert_raise ArgumentError, ~r/missing a `name`/, fn ->
-        FormData.to_form_data(field)
-      end
-    end
   end
 
   describe "to_form_data" do

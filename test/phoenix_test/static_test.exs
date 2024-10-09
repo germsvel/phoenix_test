@@ -927,4 +927,16 @@ defmodule PhoenixTest.StaticTest do
       assert PhoenixTest.Driver.current_path(session) == "/page/index"
     end
   end
+
+  describe "shared form helpers behavior" do
+    test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
+        conn
+        |> visit("/page/index")
+        |> within("#invalid-form", fn session ->
+          fill_in(session, "No Name Attribute", with: "random")
+        end)
+      end
+    end
+  end
 end
