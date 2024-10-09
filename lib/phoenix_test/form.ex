@@ -21,14 +21,19 @@ defmodule PhoenixTest.Form do
     |> build()
   end
 
-  def build_data(%__MODULE__{} = form), do: build_data(form.form_data)
-
-  def build_data(data) when is_list(data) do
+  def build_payload(data) when is_list(data) do
     data
     |> Enum.map_join("&", fn {key, value} ->
       "#{URI.encode_www_form(key)}=#{if(value, do: URI.encode_www_form(value))}"
     end)
     |> Plug.Conn.Query.decode()
+  end
+
+  def add_upload_payloads(data, uploads) when is_map(data) and is_list(uploads) do
+    Enum.reduce(uploads, data, fn {name, upload}, acc ->
+      with_placeholder = Plug.Conn.Query.decode("#{URI.encode_www_form(name)}=placeholder")
+      put_at_placeholder(acc, with_placeholder, upload)
+    end)
   end
 
   defp build(form) do
@@ -47,13 +52,6 @@ defmodule PhoenixTest.Form do
       selector: selector,
       submit_button: Button.find_first(raw)
     }
-  end
-
-  def inject_uploads(data, uploads) when is_map(data) and is_list(uploads) do
-    Enum.reduce(uploads, data, fn {name, upload}, acc ->
-      with_placeholder = Plug.Conn.Query.decode("#{URI.encode_www_form(name)}=placeholder")
-      put_at_placeholder(acc, with_placeholder, upload)
-    end)
   end
 
   defp put_at_placeholder(_, "placeholder", upload), do: upload

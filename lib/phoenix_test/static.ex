@@ -92,7 +92,7 @@ defmodule PhoenixTest.Static do
       if active_form.selector == form.selector do
         submit_active_form(session, form)
       else
-        perform_submit(session, form, build_data(form))
+        perform_submit(session, form, build_payload(form))
       end
     end
   end
@@ -188,7 +188,7 @@ defmodule PhoenixTest.Static do
         Form.put_button_data(form, form.submit_button)
       end)
 
-    to_submit = Form.build_data(form.form_data ++ form_data)
+    to_submit = Form.build_payload(form.form_data ++ form_data)
 
     session
     |> Map.put(:active_form, ActiveForm.new())
@@ -235,15 +235,15 @@ defmodule PhoenixTest.Static do
 
     session
     |> Map.put(:active_form, ActiveForm.new())
-    |> perform_submit(form, build_data(form, active_form))
+    |> perform_submit(form, build_payload(form, active_form))
   end
 
-  defp perform_submit(session, form, form_data) do
+  defp perform_submit(session, form, payload) do
     conn = session.conn
 
     conn
     |> recycle(all_headers(conn))
-    |> dispatch(@endpoint, form.method, form.action, form_data)
+    |> dispatch(@endpoint, form.method, form.action, payload)
     |> maybe_redirect(session)
   end
 
@@ -257,10 +257,10 @@ defmodule PhoenixTest.Static do
     }
   end
 
-  defp build_data(form, active_form \\ ActiveForm.new()) do
+  defp build_payload(form, active_form \\ ActiveForm.new()) do
     (form.form_data ++ active_form.form_data)
-    |> Form.build_data()
-    |> Form.inject_uploads(active_form.uploads)
+    |> Form.build_payload()
+    |> Form.add_upload_payloads(active_form.uploads)
   end
 
   defp maybe_redirect(conn, session) do

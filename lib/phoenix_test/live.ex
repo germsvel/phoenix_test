@@ -244,7 +244,7 @@ defmodule PhoenixTest.Live do
       additional_data = %{"_target" => field.name}
 
       session.view
-      |> form(form.selector, Form.build_data(data_to_submit))
+      |> form(form.selector, Form.build_payload(data_to_submit))
       |> render_change(additional_data)
       |> maybe_redirect(session)
     else
@@ -286,8 +286,8 @@ defmodule PhoenixTest.Live do
     cond do
       Form.phx_submit?(form) ->
         session.view
-        |> form(selector, Form.build_data(form_data))
-        |> render_submit(Form.build_data(additional_data))
+        |> form(selector, Form.build_payload(form_data))
+        |> render_submit(Form.build_payload(additional_data))
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->
