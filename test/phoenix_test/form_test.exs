@@ -97,6 +97,8 @@ defmodule PhoenixTest.FormTest do
   end
 
   describe "form.form_data" do
+    alias PhoenixTest.FormData
+
     test "generates default form data from form's html" do
       html = """
       <form id="form">
@@ -135,17 +137,16 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "form")
 
-      assert %{
-               "method" => "delete",
-               "input" => "value",
-               "text-input" => "text value",
-               "number-input" => "123",
-               "select" => "selected",
-               "select_multiple" => ["select_1", "select_2"],
-               "checkbox" => "checked",
-               "radio" => "checked",
-               "textarea" => "Default text"
-             } = Form.build_payload(form.form_data)
+      assert FormData.has_data?(form.form_data, "method", "delete")
+      assert FormData.has_data?(form.form_data, "input", "value")
+      assert FormData.has_data?(form.form_data, "text-input", "text value")
+      assert FormData.has_data?(form.form_data, "number-input", "123")
+      assert FormData.has_data?(form.form_data, "select", "selected")
+      assert FormData.has_data?(form.form_data, "select_multiple[]", "select_1")
+      assert FormData.has_data?(form.form_data, "select_multiple[]", "select_2")
+      assert FormData.has_data?(form.form_data, "checkbox", "checked")
+      assert FormData.has_data?(form.form_data, "radio", "checked")
+      assert FormData.has_data?(form.form_data, "textarea", "Default text")
     end
 
     test "does not include disabled inputs in form_data" do
@@ -160,10 +161,10 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "form")
 
-      assert %{} == Form.build_payload(form.form_data)
+      refute FormData.has_data?(form.form_data, "input", "value")
     end
 
-    test "does not include inputs with a `name` attribute" do
+    test "does not include inputs without a `name` attribute" do
       html = """
       <form id="form">
         <label>
@@ -174,86 +175,31 @@ defmodule PhoenixTest.FormTest do
 
       form = Form.find!(html, "form")
 
-      assert %{} == Form.build_payload(form.form_data)
+      assert FormData.empty?(form.form_data)
     end
 
-    test "ignores hidden value for checkbox when checked" do
+    test "includes hidden inputs" do
       html = """
       <form id="form">
         <input name="checkbox" type="hidden" value="unchecked" />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert FormData.has_data?(form.form_data, "checkbox", "unchecked")
+    end
+
+    test "includes checked inputs" do
+      html = """
+      <form id="form">
         <input name="checkbox" type="checkbox" value="checked" checked />
       </form>
       """
 
       form = Form.find!(html, "form")
 
-      assert %{"checkbox" => "checked"} = Form.build_payload(form.form_data)
-    end
-
-    test "uses hidden value for checkbox when unchecked" do
-      html = """
-      <form id="form">
-        <input name="checkbox" type="hidden" value="unchecked" />
-        <input name="checkbox" type="checkbox" value="checked" />
-      </form>
-      """
-
-      form = Form.find!(html, "form")
-
-      assert %{"checkbox" => "unchecked"} = Form.build_payload(form.form_data)
-    end
-  end
-
-  describe "multiple values named with [] resolve to a list" do
-    test "checkboxes, multiple" do
-      html = """
-      <form id="form">
-        <input name="checkbox[]" type="checkbox" value="some_value" checked />
-        <input name="checkbox[]" type="checkbox" value="another_value" checked />
-      </form>
-      """
-
-      form = Form.find!(html, "form")
-
-      assert %{"checkbox" => ["some_value", "another_value"]} = Form.build_payload(form.form_data)
-    end
-
-    test "checkboxes, single" do
-      html = """
-      <form id="form">
-        <input name="checkbox[]" type="checkbox" value="some_value" checked />
-        <input name="checkbox[]" type="checkbox" value="another_value" />
-      </form>
-      """
-
-      form = Form.find!(html, "form")
-
-      assert %{"checkbox" => ["some_value"]} = Form.build_payload(form.form_data)
-    end
-
-    test "hidden, multiple" do
-      html = """
-      <form id="form">
-        <input name="hidden[]" type="hidden" value="some_value" />
-        <input name="hidden[]" type="hidden" value="another_value" />
-      </form>
-      """
-
-      form = Form.find!(html, "form")
-
-      assert %{"hidden" => ["some_value", "another_value"]} = Form.build_payload(form.form_data)
-    end
-
-    test "hidden, single" do
-      html = """
-      <form id="form">
-        <input name="hidden[]" type="hidden" value="some_value" />
-      </form>
-      """
-
-      form = Form.find!(html, "form")
-
-      assert %{"hidden" => ["some_value"]} = Form.build_payload(form.form_data)
+      assert FormData.has_data?(form.form_data, "checkbox", "checked")
     end
   end
 
@@ -354,54 +300,5 @@ defmodule PhoenixTest.FormTest do
 
       assert form.method == "put"
     end
-  end
-
-  describe "add_upload_payloads" do
-    test "injects top-level upload" do
-      form_data = %{"name" => "Frodo"}
-      uploads = [{"avatar", upload()}]
-
-      injected = Form.add_upload_payloads(form_data, uploads)
-
-      assert injected == %{"name" => "Frodo", "avatar" => upload()}
-    end
-
-    test "overwrites existing field value" do
-      form_data = %{"avatar" => "how did this string get here?"}
-      uploads = [{"avatar", upload()}]
-
-      injected = Form.add_upload_payloads(form_data, uploads)
-
-      assert injected == %{"avatar" => upload()}
-    end
-
-    test "injects nested upload" do
-      form_data = %{"user" => %{"name" => "Frodo"}}
-      uploads = [{"user[avatar]", upload()}]
-
-      injected = Form.add_upload_payloads(form_data, uploads)
-
-      assert injected == %{"user" => %{"name" => "Frodo", "avatar" => upload()}}
-    end
-
-    test "handles all files in list" do
-      form_data = %{}
-      uploads = [{"avatar[]", upload(0)}, {"avatar[]", upload(1)}]
-
-      injected = Form.add_upload_payloads(form_data, uploads)
-
-      assert injected == %{"avatar" => [upload(0), upload(1)]}
-    end
-
-    test "handles all files in inputs_for pseudo list" do
-      form_data = %{}
-      uploads = [{"avatar[0][file]", upload(0)}, {"avatar[1][file]", upload(1)}]
-
-      injected = Form.add_upload_payloads(form_data, uploads)
-
-      assert injected == %{"avatar" => %{"0" => %{"file" => upload(0)}, "1" => %{"file" => upload(1)}}}
-    end
-
-    defp upload(filename \\ 0), do: %Plug.Upload{filename: filename}
   end
 end

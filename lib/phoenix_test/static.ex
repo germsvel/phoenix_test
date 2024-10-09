@@ -10,6 +10,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
   alias PhoenixTest.FormData
+  alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
   alias PhoenixTest.Link
   alias PhoenixTest.OpenBrowser
@@ -190,7 +191,7 @@ defmodule PhoenixTest.Static do
         Form.put_button_data(form, form.submit_button)
       end)
 
-    to_submit = Form.build_payload(FormData.add_data(form.form_data, form_data))
+    to_submit = FormPayload.new(FormData.add_data(form.form_data, form_data))
 
     session
     |> Map.put(:active_form, ActiveForm.new())
@@ -263,8 +264,8 @@ defmodule PhoenixTest.Static do
   defp build_payload(form, active_form \\ ActiveForm.new()) do
     form.form_data
     |> FormData.add_data(active_form.form_data)
-    |> Form.build_payload()
-    |> Form.add_upload_payloads(active_form.uploads)
+    |> FormPayload.new()
+    |> FormPayload.add_form_data(active_form.uploads)
   end
 
   defp maybe_redirect(conn, session) do

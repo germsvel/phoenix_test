@@ -40,4 +40,8 @@ defmodule PhoenixTest.FormData do
   end
 
   def to_form_data(nil, _value), do: []
+
+  def has_data?(data, name, value) when is_list(data) do
+    {name, value} in data
+  end
 end

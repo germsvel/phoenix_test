@@ -9,6 +9,7 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
   alias PhoenixTest.FormData
+  alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Select
@@ -247,7 +248,7 @@ defmodule PhoenixTest.Live do
       additional_data = %{"_target" => field.name}
 
       session.view
-      |> form(form.selector, Form.build_payload(data_to_submit))
+      |> form(form.selector, FormPayload.new(data_to_submit))
       |> render_change(additional_data)
       |> maybe_redirect(session)
     else
@@ -291,8 +292,8 @@ defmodule PhoenixTest.Live do
     cond do
       Form.phx_submit?(form) ->
         session.view
-        |> form(selector, Form.build_payload(form_data))
-        |> render_submit(Form.build_payload(additional_data))
+        |> form(selector, FormPayload.new(form_data))
+        |> render_submit(FormPayload.new(additional_data))
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->
