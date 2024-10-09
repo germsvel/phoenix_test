@@ -70,14 +70,6 @@ defmodule PhoenixTest.Button do
     |> Utils.present?()
   end
 
-  def to_form_data(button) do
-    if button.name && button.value do
-      [{button.name, button.value}]
-    else
-      []
-    end
-  end
-
   def parent_form!(button) do
     if button.form_id do
       Form.find!(button.source_raw, "[id=#{inspect(button.form_id)}]")

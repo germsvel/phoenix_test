@@ -3,6 +3,7 @@ defmodule PhoenixTest.Form do
 
   alias PhoenixTest.Button
   alias PhoenixTest.Element
+  alias PhoenixTest.FormData
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
@@ -89,17 +90,15 @@ defmodule PhoenixTest.Form do
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
 
   defp form_data(form) do
-    Enum.reject(
-      form_data(@hidden_inputs, form) ++
-        form_data(@checked_radio_buttons, form) ++
-        form_data(@checked_checkboxes, form) ++
-        form_data(@pre_filled_text_inputs, form) ++
-        form_data(@pre_filled_number_inputs, form) ++
-        form_data(@pre_filled_default_text_inputs, form) ++
-        form_data_textarea(form) ++
-        form_data_select(form),
-      &empty_name?/1
-    )
+    FormData.new()
+    |> FormData.add_data(form_data(@hidden_inputs, form))
+    |> FormData.add_data(form_data(@checked_radio_buttons, form))
+    |> FormData.add_data(form_data(@checked_checkboxes, form))
+    |> FormData.add_data(form_data(@pre_filled_text_inputs, form))
+    |> FormData.add_data(form_data(@pre_filled_number_inputs, form))
+    |> FormData.add_data(form_data(@pre_filled_default_text_inputs, form))
+    |> FormData.add_data(form_data_textarea(form))
+    |> FormData.add_data(form_data_select(form))
   end
 
   defp form_data(selector, form) do
@@ -135,8 +134,8 @@ defmodule PhoenixTest.Form do
   def put_button_data(form, nil), do: form
 
   def put_button_data(form, %Button{} = button) do
-    button_data = Button.to_form_data(button)
-    Map.update!(form, :form_data, &(&1 ++ button_data))
+    button_data = FormData.to_form_data(button)
+    Map.update!(form, :form_data, &FormData.add_data(&1, button_data))
   end
 
   defp to_form_field(element) do
@@ -145,19 +144,13 @@ defmodule PhoenixTest.Form do
 
   defp to_form_field(name_element, value_elements) when is_list(value_elements) do
     name = Html.attribute(name_element, "name")
-    Enum.map(value_elements, &{name, element_value(&1)})
+    values = Enum.map(value_elements, &element_value/1)
+    FormData.to_form_data(name, values)
   end
 
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
-    [{name, element_value(value_element)}]
-  end
-
-  defp empty_name?(form_field) do
-    case form_field do
-      {nil, _value} -> true
-      {_name, _value} -> false
-    end
+    FormData.to_form_data(name, element_value(value_element))
   end
 
   defp element_value(element) do

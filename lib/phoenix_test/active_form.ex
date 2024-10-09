@@ -1,7 +1,9 @@
 defmodule PhoenixTest.ActiveForm do
   @moduledoc false
 
-  defstruct [:id, :selector, form_data: [], uploads: []]
+  alias PhoenixTest.FormData
+
+  defstruct [:id, :selector, form_data: FormData.new(), uploads: FormData.new()]
 
   @doc """
   Data structure for tracking active form fields filled.
@@ -14,14 +16,14 @@ defmodule PhoenixTest.ActiveForm do
   end
 
   def add_form_data(%__MODULE__{} = active_form, new_form_data) do
-    Map.update!(active_form, :form_data, &(&1 ++ new_form_data))
+    Map.update!(active_form, :form_data, &FormData.add_data(&1, new_form_data))
   end
 
   def add_upload(%__MODULE__{} = active_form, new_upload) do
-    Map.update!(active_form, :uploads, &(&1 ++ [new_upload]))
+    Map.update!(active_form, :uploads, &FormData.add_data(&1, new_upload))
   end
 
   def active?(%__MODULE__{} = active_form) do
-    not Enum.empty?(active_form.form_data) or not Enum.empty?(active_form.uploads)
+    not FormData.empty?(active_form.form_data) or not FormData.empty?(active_form.uploads)
   end
 end

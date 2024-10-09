@@ -9,6 +9,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.Field
   alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
+  alias PhoenixTest.FormData
   alias PhoenixTest.Html
   alias PhoenixTest.Link
   alias PhoenixTest.OpenBrowser
@@ -149,14 +150,15 @@ defmodule PhoenixTest.Static do
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
     field = session |> render_html() |> Field.find_input!(input_selector, label, opts)
     form = Field.parent_form!(field)
+    upload_data = FormData.to_form_data(field.name, upload)
 
     Map.update!(session, :active_form, fn active_form ->
       if active_form.selector == form.selector do
-        ActiveForm.add_upload(active_form, {field.name, upload})
+        ActiveForm.add_upload(active_form, upload_data)
       else
         [id: form.id, selector: form.selector]
         |> ActiveForm.new()
-        |> ActiveForm.add_upload({field.name, upload})
+        |> ActiveForm.add_upload(upload_data)
       end
     end)
   end
@@ -188,7 +190,7 @@ defmodule PhoenixTest.Static do
         Form.put_button_data(form, form.submit_button)
       end)
 
-    to_submit = Form.build_payload(form.form_data ++ form_data)
+    to_submit = Form.build_payload(FormData.add_data(form.form_data, form_data))
 
     session
     |> Map.put(:active_form, ActiveForm.new())
@@ -218,7 +220,7 @@ defmodule PhoenixTest.Static do
   end
 
   defp fill_in_field_data(session, field) do
-    new_form_data = Field.to_form_data!(field)
+    new_form_data = FormData.to_form_data(field)
     form = Field.parent_form!(field)
 
     Map.update!(session, :active_form, fn active_form ->
@@ -258,7 +260,8 @@ defmodule PhoenixTest.Static do
   end
 
   defp build_payload(form, active_form \\ ActiveForm.new()) do
-    (form.form_data ++ active_form.form_data)
+    form.form_data
+    |> FormData.add_data(active_form.form_data)
     |> Form.build_payload()
     |> Form.add_upload_payloads(active_form.uploads)
   end

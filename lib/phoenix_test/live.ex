@@ -8,6 +8,7 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Field
   alias PhoenixTest.FileUpload
   alias PhoenixTest.Form
+  alias PhoenixTest.FormData
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Select
@@ -64,12 +65,12 @@ defmodule PhoenixTest.Live do
 
       Button.belongs_to_form?(button) ->
         active_form = session.active_form
-        additional_data = Button.to_form_data(button)
+        additional_data = FormData.to_form_data(button)
         form = Button.parent_form!(button)
 
         form_data =
           if active_form.selector == form.selector do
-            form.form_data ++ active_form.form_data
+            FormData.add_data(form.form_data, active_form.form_data)
           else
             form.form_data
           end
@@ -226,7 +227,7 @@ defmodule PhoenixTest.Live do
   end
 
   defp fill_in_field_data(session, field) do
-    new_form_data = Field.to_form_data!(field)
+    new_form_data = FormData.to_form_data(field)
     form = Field.parent_form!(field)
 
     session =
@@ -240,7 +241,7 @@ defmodule PhoenixTest.Live do
 
     if Form.phx_change?(form) do
       active_form = session.active_form
-      data_to_submit = form.form_data ++ active_form.form_data
+      data_to_submit = FormData.add_data(form.form_data, active_form.form_data)
       additional_data = %{"_target" => field.name}
 
       session.view
@@ -274,11 +275,13 @@ defmodule PhoenixTest.Live do
       |> render_html()
       |> Form.find!(selector)
 
-    form_data = form.form_data ++ form_data
+    form_data = FormData.add_data(form.form_data, form_data)
 
     additional_data =
       if form.submit_button do
-        Button.to_form_data(form.submit_button) ++ additional_data
+        form.submit_button
+        |> FormData.to_form_data()
+        |> FormData.add_data(additional_data)
       else
         additional_data
       end
