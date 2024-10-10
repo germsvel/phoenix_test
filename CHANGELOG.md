@@ -7,6 +7,33 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.4.1
+
+### Added
+
+- Adds `select/4` `exact_option` option. Commit [f881da3]
+- Copy headers across redirects . Commit [7ad8cb1]
+
+### Fixes
+
+- 🛠️  Fix active form vs form data loading . Commit [37302b9]
+- Update `phx_click?` to check for valid JS commands. Commit [0d54b49]
+- Deduplicate data passed to FormPayload (multi checkbox fix). Commit [e950ae4]
+
+[0d54b49]: https://github.com/germsvel/phoenix_test/commit/0d54b49
+[e950ae4]: https://github.com/germsvel/phoenix_test/commit/e950ae4
+[7df460a]: https://github.com/germsvel/phoenix_test/commit/7df460a
+[06e43e9]: https://github.com/germsvel/phoenix_test/commit/06e43e9
+[ba34d9a]: https://github.com/germsvel/phoenix_test/commit/ba34d9a
+[b37199d]: https://github.com/germsvel/phoenix_test/commit/b37199d
+[3b175fb]: https://github.com/germsvel/phoenix_test/commit/3b175fb
+[73f2b83]: https://github.com/germsvel/phoenix_test/commit/73f2b83
+[37302b9]: https://github.com/germsvel/phoenix_test/commit/37302b9
+[7ad8cb1]: https://github.com/germsvel/phoenix_test/commit/7ad8cb1
+[5f106cd]: https://github.com/germsvel/phoenix_test/commit/5f106cd
+[f881da3]: https://github.com/germsvel/phoenix_test/commit/f881da3
+[5e05b4d]: https://github.com/germsvel/phoenix_test/commit/5e05b4d
+
 ## 0.4.0
 
 ### Breaking
