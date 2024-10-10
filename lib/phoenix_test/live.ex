@@ -82,7 +82,7 @@ defmodule PhoenixTest.Live do
 
       true ->
         raise ArgumentError, """
-        Expected element with selector #{inspect(selector)} and text #{inspect(text)} to have a `phx-click` attribute or belong to a `form` element.
+        Expected element with selector #{inspect(selector)} and text #{inspect(text)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
   end
@@ -126,7 +126,7 @@ defmodule PhoenixTest.Live do
 
       true ->
         raise ArgumentError, """
-        Expected select with selector #{inspect(field.selector)} to have a `phx-click` attribute on options or to belong to a `form` element.
+        Expected select with selector #{inspect(field.selector)} to have a valid `phx-click` attribute on options or to belong to a `form` element.
         """
     end
   end
@@ -149,7 +149,7 @@ defmodule PhoenixTest.Live do
 
       true ->
         raise ArgumentError, """
-        Expected checkbox with selector #{inspect(field.selector)} to have a `phx-click` attribute or belong to a `form` element.
+        Expected checkbox with selector #{inspect(field.selector)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
   end
@@ -173,7 +173,7 @@ defmodule PhoenixTest.Live do
 
       true ->
         raise ArgumentError, """
-        Expected checkbox with selector #{inspect(field.selector)} to have a `phx-click` attribute or belong to a `form` element.
+        Expected checkbox with selector #{inspect(field.selector)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
   end
@@ -196,7 +196,7 @@ defmodule PhoenixTest.Live do
 
       true ->
         raise ArgumentError, """
-        Expected radio input with selector #{inspect(field.selector)} to have a `phx-click` attribute or belong to a `form` element.
+        Expected radio input with selector #{inspect(field.selector)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
   end

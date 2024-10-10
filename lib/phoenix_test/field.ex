@@ -4,8 +4,8 @@ defmodule PhoenixTest.Field do
   alias PhoenixTest.Element
   alias PhoenixTest.Form
   alias PhoenixTest.Html
+  alias PhoenixTest.LiveViewBindings
   alias PhoenixTest.Query
-  alias PhoenixTest.Utils
 
   @enforce_keys ~w[source_raw parsed label id name value selector]a
   defstruct ~w[source_raw parsed label id name value selector]a
@@ -68,11 +68,7 @@ defmodule PhoenixTest.Field do
     Form.find_by_descendant!(field.source_raw, field)
   end
 
-  def phx_click?(field) do
-    field.parsed
-    |> Html.attribute("phx-click")
-    |> Utils.present?()
-  end
+  def phx_click?(field), do: LiveViewBindings.phx_click?(field.parsed)
 
   def belongs_to_form?(field) do
     case Query.find_ancestor(field.source_raw, "form", field.selector) do

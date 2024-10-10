@@ -3,8 +3,8 @@ defmodule PhoenixTest.Select do
 
   alias PhoenixTest.Element
   alias PhoenixTest.Html
+  alias PhoenixTest.LiveViewBindings
   alias PhoenixTest.Query
-  alias PhoenixTest.Utils
 
   @enforce_keys ~w[source_raw selected_options parsed label id name value selector]a
   defstruct ~w[source_raw selected_options parsed label id name value selector]a
@@ -58,11 +58,7 @@ defmodule PhoenixTest.Select do
   end
 
   def phx_click_options?(field) do
-    Enum.all?(field.selected_options, fn option ->
-      option
-      |> Html.attribute("phx-click")
-      |> Utils.present?()
-    end)
+    Enum.all?(field.selected_options, &LiveViewBindings.phx_click?/1)
   end
 
   def select_option_selector(field, value) do
