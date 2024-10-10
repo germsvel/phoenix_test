@@ -1,6 +1,7 @@
 defmodule PhoenixTest.Link do
   @moduledoc false
 
+  alias PhoenixTest.Element
   alias PhoenixTest.Html
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
@@ -17,7 +18,7 @@ defmodule PhoenixTest.Link do
       raw: link_html,
       parsed: link,
       id: id,
-      selector: selector,
+      selector: Element.build_selector(link),
       text: text,
       href: href
     }
