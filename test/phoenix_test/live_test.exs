@@ -259,7 +259,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if button is not part of form and has no phx-submit", %{conn: conn} do
-      msg = ~r/to have a `phx-click` attribute or belong to a `form` element/
+      msg = ~r/to have a valid `phx-click` attribute or belong to a `form` element/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -515,7 +515,7 @@ defmodule PhoenixTest.LiveTest do
     test "raises an error if select option is neither in a form nor has a phx-click", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/to have a `phx-click` attribute on options or to belong to a `form`/, fn ->
+      assert_raise ArgumentError, ~r/to have a valid `phx-click` attribute on options or to belong to a `form`/, fn ->
         select(session, "Dog", from: "Invalid Select Option")
       end
     end
@@ -585,7 +585,7 @@ defmodule PhoenixTest.LiveTest do
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/have a `phx-click` attribute or belong to a `form`/, fn ->
+      assert_raise ArgumentError, ~r/have a valid `phx-click` attribute or belong to a `form`/, fn ->
         check(session, "Invalid Checkbox")
       end
     end
@@ -655,7 +655,7 @@ defmodule PhoenixTest.LiveTest do
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/have a `phx-click` attribute or belong to a `form`/, fn ->
+      assert_raise ArgumentError, ~r/have a valid `phx-click` attribute or belong to a `form`/, fn ->
         uncheck(session, "Invalid Checkbox")
       end
     end
@@ -707,7 +707,7 @@ defmodule PhoenixTest.LiveTest do
     test "raises an error if radio is neither in a form nor has a phx-click", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/to have a `phx-click` attribute or belong to a `form` element/, fn ->
+      assert_raise ArgumentError, ~r/to have a valid `phx-click` attribute or belong to a `form` element/, fn ->
         choose(session, "Invalid Radio Button")
       end
     end

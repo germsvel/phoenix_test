@@ -4,6 +4,7 @@ defmodule PhoenixTest.Button do
   alias PhoenixTest.Element
   alias PhoenixTest.Form
   alias PhoenixTest.Html
+  alias PhoenixTest.LiveViewBindings
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
@@ -58,11 +59,7 @@ defmodule PhoenixTest.Button do
     end
   end
 
-  def phx_click?(button) do
-    button.parsed
-    |> Html.attribute("phx-click")
-    |> Utils.present?()
-  end
+  def phx_click?(button), do: LiveViewBindings.phx_click?(button.parsed)
 
   def has_data_method?(button) do
     button.parsed
