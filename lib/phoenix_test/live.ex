@@ -319,7 +319,11 @@ defmodule PhoenixTest.Live do
   end
 
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
-    PhoenixTest.visit(session.conn, path)
+    conn = session.conn
+
+    conn
+    |> recycle(all_headers(conn))
+    |> PhoenixTest.visit(path)
   end
 
   defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do
@@ -352,6 +356,10 @@ defmodule PhoenixTest.Live do
     assert_patch(view, 0)
   rescue
     ArgumentError -> :no_path
+  end
+
+  defp all_headers(conn) do
+    Enum.map(conn.req_headers, &elem(&1, 0))
   end
 end
 

@@ -68,7 +68,11 @@ defmodule PhoenixTest.Static do
 
       perform_submit(session, form, form.data)
     else
-      PhoenixTest.visit(session.conn, link.href)
+      conn = session.conn
+
+      conn
+      |> recycle(all_headers(conn))
+      |> PhoenixTest.visit(link.href)
     end
   end
 
@@ -251,10 +255,6 @@ defmodule PhoenixTest.Static do
     |> maybe_redirect(session)
   end
 
-  defp all_headers(conn) do
-    Enum.map(conn.req_headers, &elem(&1, 0))
-  end
-
   defp no_active_form_error do
     %ArgumentError{
       message: "There's no active form. Fill in a form with `fill_in`, `select`, etc."
@@ -272,11 +272,18 @@ defmodule PhoenixTest.Static do
     case conn do
       %{status: 302} ->
         path = redirected_to(conn)
-        PhoenixTest.visit(conn, path)
+
+        conn
+        |> recycle(all_headers(conn))
+        |> PhoenixTest.visit(path)
 
       %{status: _} ->
         %{session | conn: conn}
     end
+  end
+
+  defp all_headers(conn) do
+    Enum.map(conn.req_headers, &elem(&1, 0))
   end
 end
 

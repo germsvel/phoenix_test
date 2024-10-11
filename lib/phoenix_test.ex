@@ -214,10 +214,7 @@ defmodule PhoenixTest do
   you're visiting.
   """
   def visit(conn, path) do
-    conn
-    |> recycle(all_headers(conn))
-    |> get(path)
-    |> case do
+    case get(conn, path) do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
 
