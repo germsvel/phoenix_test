@@ -7,6 +7,14 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.4.2
+
+### Fixes
+
+- Fix: do not recycle fresh conn. Commit [24192e2]
+
+[24192e2]: https://github.com/germsvel/phoenix_test/commit/24192e2
+
 ## 0.4.1
 
 ### Added

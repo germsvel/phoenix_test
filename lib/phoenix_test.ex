@@ -39,7 +39,7 @@ defmodule PhoenixTest do
   ```elixir
   def deps do
     [
-      {:phoenix_test, "~> 0.4.1", only: :test, runtime: false}
+      {:phoenix_test, "~> 0.4.2", only: :test, runtime: false}
     ]
   end
   ```
