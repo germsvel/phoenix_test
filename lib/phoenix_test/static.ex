@@ -4,18 +4,18 @@ defmodule PhoenixTest.Static do
   import Phoenix.ConnTest
 
   alias PhoenixTest.ActiveForm
-  alias PhoenixTest.Button
   alias PhoenixTest.DataAttributeForm
-  alias PhoenixTest.Field
+  alias PhoenixTest.Element.Button
+  alias PhoenixTest.Element.Field
+  alias PhoenixTest.Element.Form
+  alias PhoenixTest.Element.Link
+  alias PhoenixTest.Element.Select
   alias PhoenixTest.FileUpload
-  alias PhoenixTest.Form
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
-  alias PhoenixTest.Link
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
-  alias PhoenixTest.Select
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 

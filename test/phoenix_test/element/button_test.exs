@@ -1,7 +1,7 @@
-defmodule PhoenixTest.ButtonTest do
+defmodule PhoenixTest.Element.ButtonTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Button
+  alias PhoenixTest.Element.Button
 
   describe "find!" do
     test "finds button by selector and text" do

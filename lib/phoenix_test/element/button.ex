@@ -1,8 +1,8 @@
-defmodule PhoenixTest.Button do
+defmodule PhoenixTest.Element.Button do
   @moduledoc false
 
   alias PhoenixTest.Element
-  alias PhoenixTest.Form
+  alias PhoenixTest.Element.Form
   alias PhoenixTest.Html
   alias PhoenixTest.LiveViewBindings
   alias PhoenixTest.Query

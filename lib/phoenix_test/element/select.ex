@@ -1,4 +1,4 @@
-defmodule PhoenixTest.Select do
+defmodule PhoenixTest.Element.Select do
   @moduledoc false
 
   alias PhoenixTest.Element

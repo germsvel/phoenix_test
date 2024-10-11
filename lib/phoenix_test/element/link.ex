@@ -1,4 +1,4 @@
-defmodule PhoenixTest.Link do
+defmodule PhoenixTest.Element.Link do
   @moduledoc false
 
   alias PhoenixTest.Html

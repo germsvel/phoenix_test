@@ -1,7 +1,7 @@
 defmodule PhoenixTest.FormPayloadTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Form
+  alias PhoenixTest.Element.Form
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
 

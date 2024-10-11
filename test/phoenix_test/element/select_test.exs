@@ -1,7 +1,7 @@
-defmodule PhoenixTest.SelectTest do
+defmodule PhoenixTest.Element.SelectTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Select
+  alias PhoenixTest.Element.Select
 
   describe "find_select_option!" do
     test "returns the selected option value" do

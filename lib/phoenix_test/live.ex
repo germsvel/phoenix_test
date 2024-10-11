@@ -4,15 +4,15 @@ defmodule PhoenixTest.Live do
   import Phoenix.LiveViewTest
 
   alias PhoenixTest.ActiveForm
-  alias PhoenixTest.Button
-  alias PhoenixTest.Field
+  alias PhoenixTest.Element.Button
+  alias PhoenixTest.Element.Field
+  alias PhoenixTest.Element.Form
+  alias PhoenixTest.Element.Select
   alias PhoenixTest.FileUpload
-  alias PhoenixTest.Form
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
   alias PhoenixTest.Query
-  alias PhoenixTest.Select
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 

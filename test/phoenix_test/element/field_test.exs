@@ -1,7 +1,7 @@
-defmodule PhoenixTest.FieldTest do
+defmodule PhoenixTest.Element.FieldTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Field
+  alias PhoenixTest.Element.Field
 
   describe "find_input!" do
     test "finds text field" do

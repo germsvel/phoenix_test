@@ -1,10 +1,10 @@
 defmodule PhoenixTest.FormDataTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Button
-  alias PhoenixTest.Field
+  alias PhoenixTest.Element.Button
+  alias PhoenixTest.Element.Field
+  alias PhoenixTest.Element.Select
   alias PhoenixTest.FormData
-  alias PhoenixTest.Select
 
   describe "add_data" do
     test "adds new data to existing data" do

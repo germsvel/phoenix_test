@@ -1,9 +1,9 @@
-defmodule PhoenixTest.FormTest do
+defmodule PhoenixTest.Element.FormTest do
   use ExUnit.Case, async: true
 
-  alias PhoenixTest.Button
-  alias PhoenixTest.Field
-  alias PhoenixTest.Form
+  alias PhoenixTest.Element.Button
+  alias PhoenixTest.Element.Field
+  alias PhoenixTest.Element.Form
 
   describe "find!" do
     test "finds a form by selector" do

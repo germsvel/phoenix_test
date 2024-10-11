@@ -197,8 +197,8 @@ defmodule PhoenixTest do
   import Phoenix.ConnTest
   import PhoenixTest.Locators
 
-  alias PhoenixTest.Button
   alias PhoenixTest.Driver
+  alias PhoenixTest.Element.Button
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)

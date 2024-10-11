@@ -1,9 +1,9 @@
 defmodule PhoenixTest.FormData do
   @moduledoc false
 
-  alias PhoenixTest.Button
-  alias PhoenixTest.Field
-  alias PhoenixTest.Select
+  alias PhoenixTest.Element.Button
+  alias PhoenixTest.Element.Field
+  alias PhoenixTest.Element.Select
 
   def new, do: []
 
