@@ -828,6 +828,15 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record deleted")
     end
 
+    test "submits input value with latest HTML position, not latest fill_in", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("Email duplicate 2", with: "Latest HTML position")
+      |> fill_in("Email duplicate 1", with: "Latest fill_in")
+      |> submit()
+      |> assert_has("#form-data", text: "email: Latest HTML position")
+    end
+
     test "raises an error if there's no active form", %{conn: conn} do
       msg = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
 
