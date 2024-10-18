@@ -4,23 +4,33 @@ defmodule PhoenixTest.Locators do
   alias PhoenixTest.Html
   alias PhoenixTest.Query
 
+  defmodule Button do
+    @moduledoc false
+    defstruct ~w[text roles]a
+  end
+
+  defmodule Input do
+    @moduledoc false
+    defstruct ~w[type label value]a
+  end
+
   def input(opts) do
     type = Keyword.get(opts, :type)
     label = Keyword.get(opts, :label)
     value = Keyword.get(opts, :value)
 
-    {:input, %{type: type, label: label, value: value}}
+    %Input{type: type, label: label, value: value}
   end
 
   def button(opts) do
     text = Keyword.get(opts, :text)
     roles = ~w|button input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
 
-    {:button, %{text: text, roles: roles}}
+    %Button{text: text, roles: roles}
   end
 
-  def role_selectors({:button, data}) do
-    %{text: text, roles: roles} = data
+  def role_selectors(%Button{} = button) do
+    %Button{text: text, roles: roles} = button
 
     Enum.map(roles, fn
       "button" -> {"button", text}
@@ -28,8 +38,9 @@ defmodule PhoenixTest.Locators do
     end)
   end
 
-  def compile({:input, attrs}, html) do
-    {label, attrs} = Map.pop(attrs, :label)
+  def compile(%Input{} = input, html) do
+    label = input.label
+    attrs = Map.take(input, [:type, :value])
 
     element = Query.find_by_label!(html, "input:not([type='hidden'])", label, exact: true)
     id = Html.attribute(element, "id")

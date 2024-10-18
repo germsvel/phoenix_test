@@ -2,24 +2,25 @@ defmodule PhoenixTest.LocatorsTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Locators
+  alias PhoenixTest.Locators.Button
 
   describe "button" do
     test "includes provided text" do
-      {:button, data} = Locators.button(text: "Hello")
+      %Button{text: text} = Locators.button(text: "Hello")
 
-      assert data.text == "Hello"
+      assert text == "Hello"
     end
 
     test "has list of valid roles" do
       valid_roles = ~w|button input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
 
-      {:button, data} = Locators.button(text: "doesn't matter")
+      %Button{roles: roles} = Locators.button(text: "doesn't matter")
 
-      assert data.roles == valid_roles
+      assert roles == valid_roles
     end
   end
 
-  describe "role_locators for button" do
+  describe "role_selectors for button" do
     test "returns {'button', text} in list" do
       locator = Locators.button(text: "Hello")
 

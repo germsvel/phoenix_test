@@ -419,7 +419,7 @@ defmodule PhoenixTest do
   """
   defdelegate click_button(session, selector, text), to: Driver
 
-  defp click(session, {:button, _} = locator) do
+  defp click(session, %PhoenixTest.Locators.Button{} = locator) do
     html = Driver.render_html(session)
 
     button =
