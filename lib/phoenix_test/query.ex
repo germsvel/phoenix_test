@@ -272,9 +272,16 @@ defmodule PhoenixTest.Query do
       {:explicit_association, label_element} ->
         find_label_input(html, input_selectors, label_element)
 
-      {:found_many, label_elements} ->
-        label_elements
-        |> Enum.map(&find_label_input(html, input_selectors, &1))
+      {:found_many, associations} ->
+        maybe_label_elements =
+          Enum.map(associations, fn
+            {:implicit_association, _label_element, element} -> {:found, element}
+            {:explicit_association, label_element} -> find_label_input(html, input_selectors, label_element)
+          end)
+
+        label_elements = for {:found, e} <- maybe_label_elements, do: e
+
+        maybe_label_elements
         |> Enum.filter(fn
           {:found, _} -> true
           _ -> false
@@ -301,7 +308,7 @@ defmodule PhoenixTest.Query do
         determine_implicit_or_explicit_label(element, input_selectors)
 
       {:found_many, elements} ->
-        {:found_many, elements}
+        {:found_many, Enum.map(elements, &determine_implicit_or_explicit_label(&1, input_selectors))}
     end
   end
 

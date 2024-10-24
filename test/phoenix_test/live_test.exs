@@ -1040,8 +1040,8 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> within("#changes-hidden-input-form", fn session ->
         session
-        |> fill_in("Name", with: "Frodo")
-        |> fill_in("Email", with: "frodo@example.com")
+        |> fill_in("Name for hidden", with: "Frodo")
+        |> fill_in("Email for hidden", with: "frodo@example.com")
       end)
       |> assert_has("#form-data", text: "name: Frodo")
       |> assert_has("#form-data", text: "email: frodo@example.com")
