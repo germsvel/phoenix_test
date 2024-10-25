@@ -367,6 +367,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Assertions
   alias PhoenixTest.Live
 
+  def visit(_, _), do: raise(ArgumentError, message: "Unexpected: Call visit/1 with a %Plug.Conn{}.")
+
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
   defdelegate click_link(session, selector, text), to: Live
