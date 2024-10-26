@@ -871,6 +871,7 @@ defmodule PhoenixTest.LiveTest do
         |> fill_in("Name", with: "Aragorn")
         |> submit()
       end)
+      |> assert_path("/page/create_record")
       |> assert_has("#form-data", text: "name: Aragorn")
       |> assert_has("#form-data", text: "button: save")
     end
