@@ -50,10 +50,7 @@ defmodule PhoenixTest.Live do
     session.view
     |> element(selector, text)
     |> render_click()
-    |> begin_post_processing(session)
-    |> maybe_trigger_form_action()
-    |> maybe_redirect()
-    |> finish_post_processing()
+    |> maybe_redirect(session)
   end
 
   def click_button(session, selector, text) do
@@ -65,10 +62,7 @@ defmodule PhoenixTest.Live do
         session.view
         |> element(selector, text)
         |> render_click()
-        |> begin_post_processing(session)
-        |> maybe_trigger_form_action()
-        |> maybe_redirect()
-        |> finish_post_processing()
+        |> maybe_redirect(session)
 
       Button.belongs_to_form?(button) ->
         active_form = session.active_form
@@ -127,10 +121,7 @@ defmodule PhoenixTest.Live do
           session.view
           |> element(Select.select_option_selector(field, value))
           |> render_click()
-          |> begin_post_processing(session)
-          |> maybe_trigger_form_action()
-          |> maybe_redirect()
-          |> finish_post_processing()
+          |> maybe_redirect(session)
         end)
 
       true ->
@@ -151,10 +142,7 @@ defmodule PhoenixTest.Live do
         session.view
         |> element(field.selector)
         |> render_click()
-        |> begin_post_processing(session)
-        |> maybe_trigger_form_action()
-        |> maybe_redirect()
-        |> finish_post_processing()
+        |> maybe_redirect(session)
 
       Field.belongs_to_form?(field) ->
         fill_in_field_data(session, field)
@@ -176,10 +164,7 @@ defmodule PhoenixTest.Live do
 
         session.view
         |> render_click(event, %{})
-        |> begin_post_processing(session)
-        |> maybe_trigger_form_action()
-        |> maybe_redirect()
-        |> finish_post_processing()
+        |> maybe_redirect(session)
 
       Field.belongs_to_form?(field) ->
         html
@@ -204,10 +189,7 @@ defmodule PhoenixTest.Live do
         session.view
         |> element(field.selector)
         |> render_click()
-        |> begin_post_processing(session)
-        |> maybe_trigger_form_action()
-        |> maybe_redirect()
-        |> finish_post_processing()
+        |> maybe_redirect(session)
 
       Field.belongs_to_form?(field) ->
         fill_in_field_data(session, field)
@@ -242,10 +224,7 @@ defmodule PhoenixTest.Live do
     session.view
     |> file_input(form.selector, live_upload_name, [entry])
     |> render_upload(file_name)
-    |> begin_post_processing(session)
-    |> maybe_trigger_form_action()
-    |> maybe_redirect()
-    |> finish_post_processing()
+    |> maybe_redirect(session)
   end
 
   defp fill_in_field_data(session, field) do
@@ -271,10 +250,7 @@ defmodule PhoenixTest.Live do
       session.view
       |> form(form.selector, FormPayload.new(data_to_submit))
       |> render_change(additional_data)
-      |> begin_post_processing(session)
-      |> maybe_trigger_form_action()
-      |> maybe_redirect()
-      |> finish_post_processing()
+      |> maybe_redirect(session)
     else
       session
     end
@@ -318,10 +294,7 @@ defmodule PhoenixTest.Live do
         session.view
         |> form(selector, FormPayload.new(form_data))
         |> render_submit(FormPayload.new(additional_data))
-        |> begin_post_processing(session)
-        |> maybe_trigger_form_action()
-        |> maybe_redirect()
-        |> finish_post_processing()
+        |> maybe_redirect(session)
 
       Form.has_action?(form) ->
         session.conn
@@ -342,77 +315,55 @@ defmodule PhoenixTest.Live do
   def unwrap(%{view: view} = session, fun) when is_function(fun, 1) do
     view
     |> fun.()
-    |> begin_post_processing(session)
-    |> maybe_trigger_form_action()
-    |> maybe_redirect()
-    |> finish_post_processing()
+    |> maybe_redirect(session)
   end
 
-  defp begin_post_processing(result, session), do: {:cont, result, session}
-  defp finish_post_processing({:halt, session}), do: session
-  defp finish_post_processing({:cont, _html, session}), do: session
+  defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
+    conn = session.conn
 
-  defp maybe_trigger_form_action({:halt, session}), do: session
+    conn
+    |> recycle(all_headers(conn))
+    |> PhoenixTest.visit(path)
+  end
 
-  defp maybe_trigger_form_action({:cont, html, session}) when is_binary(html) do
+  defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do
+    session = %{session | current_path: path}
+
+    result
+    |> follow_redirect(session.conn)
+    |> maybe_redirect(session)
+  end
+
+  defp maybe_redirect({:ok, view, _}, session) do
+    %{session | view: view}
+  end
+
+  defp maybe_redirect(html, session) when is_binary(html) do
     case Form.find(html, "form[phx-trigger-action]") do
       :not_found ->
-        {:cont, html, session}
+        maybe_put_patch_path(session)
 
       {:found, form} ->
         active_form = session.active_form
         active_form? = form.selector == active_form.selector
         form_data = form.form_data ++ if(active_form?, do: active_form.form_data, else: [])
 
-        session =
-          session.conn
-          |> PhoenixTest.Static.build()
-          |> PhoenixTest.Static.submit_form(form.selector, form_data)
-
-        {:halt, session}
+        session.conn
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.Static.submit_form(form.selector, form_data)
 
       {:found_many, _} ->
-        raise ArgumentError, "Found multiple forms with phx-trigger-action."
+        raise raise ArgumentError, "Found multiple forms with phx-trigger-action."
     end
   end
 
-  defp maybe_trigger_form_action({:cont, result, session}), do: {:cont, result, session}
-
-  defp maybe_redirect({:halt, session}), do: session
-
-  defp maybe_redirect({:cont, {:error, {:redirect, %{to: path}}}, session}) do
-    conn = session.conn
-
-    session =
-      conn
-      |> recycle(all_headers(conn))
-      |> PhoenixTest.visit(path)
-
-    {:halt, session}
-  end
-
-  defp maybe_redirect({:cont, {:error, {:live_redirect, %{to: path}}} = result, session}) do
-    session = %{session | current_path: path}
-    new_result = follow_redirect(result, session.conn)
-
-    maybe_redirect({:cont, new_result, session})
-  end
-
-  defp maybe_redirect({:cont, {:ok, view, _}, session}) do
-    {:halt, %{session | view: view}}
-  end
-
-  defp maybe_redirect({:cont, html, session}) when is_binary(html) do
-    maybe_put_patch_path(html, session)
-  end
-
-  defp maybe_put_patch_path(html, session) do
+  defp maybe_put_patch_path(session) do
     case fetch_patch_path(session.view) do
       :no_path ->
-        {:cont, html, session}
+        session
 
       path when is_binary(path) ->
-        {:halt, %{session | current_path: path}}
+        %{session | current_path: path}
     end
   end
 
