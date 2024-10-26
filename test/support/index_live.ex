@@ -452,6 +452,8 @@ defmodule PhoenixTest.IndexLive do
       <input type="hidden" name="hidden" value="included" />
       <label>Trigger action <input type="text" name="trigger_action" /></label>
     </form>
+
+    <button phx-click="trigger-form">Trigger from elsewhere</button>
     """
   end
 

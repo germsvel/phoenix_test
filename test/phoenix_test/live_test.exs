@@ -1049,6 +1049,22 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "hidden_race: hobbit")
     end
 
+    test "phx-trigger-action causes POST to static view", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Trigger action", with: "engage")
+      |> submit()
+      |> assert_has("#form-data", text: "hidden: included")
+      |> assert_has("#form-data", text: "trigger_action: engage")
+    end
+
+    test "phx-trigger-action from outside the form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Trigger from elsewhere")
+      |> assert_has("#form-data", text: "hidden: included")
+    end
+
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
         conn
