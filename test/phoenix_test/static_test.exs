@@ -784,6 +784,14 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "country: Arnor")
     end
 
+    test "updates current_path on submit", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> fill_in("First Name", with: "Aragorn")
+      |> submit()
+      |> assert_path("/page/create_record")
+    end
+
     test "can handle redirects", %{conn: conn} do
       conn
       |> visit("/page/index")
