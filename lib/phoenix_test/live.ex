@@ -353,7 +353,7 @@ defmodule PhoenixTest.Live do
         |> PhoenixTest.Static.submit_form(form.selector, form_data)
 
       {:found_many, _} ->
-        raise raise ArgumentError, "Found multiple forms with phx-trigger-action."
+        raise ArgumentError, "Found multiple forms with phx-trigger-action."
     end
   end
 

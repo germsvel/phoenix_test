@@ -1065,6 +1065,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "hidden: included")
     end
 
+    test "raises an error if multiple forms have phx-trigger-action", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Found multiple forms/, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_button("Trigger multiple")
+        |> assert_has("#form-data", text: "hidden: included")
+      end
+    end
+
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
         conn

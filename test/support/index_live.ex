@@ -454,6 +454,20 @@ defmodule PhoenixTest.IndexLive do
     </form>
 
     <button phx-click="trigger-form">Trigger from elsewhere</button>
+
+    <form
+      id="trigger-multiple-form-1"
+      phx-submit="trigger-form"
+      phx-trigger-action={@trigger_multiple_submit}
+    />
+
+    <form
+      id="trigger-multiple-form-2"
+      phx-submit="trigger-form"
+      phx-trigger-action={@trigger_multiple_submit}
+    />
+
+    <button phx-click="trigger-multiple-forms">Trigger multiple</button>
     """
   end
 
@@ -477,6 +491,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:cities, [])
       |> assign(:hidden_input_race, "human")
       |> assign(:trigger_submit, false)
+      |> assign(:trigger_multiple_submit, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
@@ -515,6 +530,10 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("trigger-form", _form_data, socket) do
     {:noreply, assign(socket, :trigger_submit, true)}
+  end
+
+  def handle_event("trigger-multiple-forms", _form_data, socket) do
+    {:noreply, assign(socket, :trigger_multiple_submit, true)}
   end
 
   def handle_event("set-hidden-race", form_data, socket) do
