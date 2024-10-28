@@ -453,6 +453,19 @@ defmodule PhoenixTest.QueryTest do
       end
     end
 
+    test "raises error if label has for attribute and nested input" do
+      html = """
+      <label for="other_greeting">Hello <input /></label>
+      <input id="other_greeting" />
+      """
+
+      msg = ~r/Found a label which references two different inputs/
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Hello")
+      end
+    end
+
     test "returns found element" do
       html = """
       <label for="greeting">Hello</label>

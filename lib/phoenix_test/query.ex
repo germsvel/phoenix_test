@@ -270,13 +270,13 @@ defmodule PhoenixTest.Query do
         {:found, element}
 
       {:explicit_association, label_element} ->
-        find_label_input(html, input_selectors, label_element)
+        find_explicit_label_input(html, input_selectors, label_element)
 
       {:found_many, associations} ->
         maybe_label_elements =
           Enum.map(associations, fn
             {:implicit_association, _label_element, element} -> {:found, element}
-            {:explicit_association, label_element} -> find_label_input(html, input_selectors, label_element)
+            {:explicit_association, label_element} -> find_explicit_label_input(html, input_selectors, label_element)
           end)
 
         label_elements = for {:found, e} <- maybe_label_elements, do: e
@@ -305,14 +305,14 @@ defmodule PhoenixTest.Query do
         {:not_found, potential_matches}
 
       {:found, element} ->
-        determine_implicit_or_explicit_label(element, input_selectors)
+        determine_implicit_or_explicit_label(html, element, input_selectors)
 
       {:found_many, elements} ->
-        {:found_many, Enum.map(elements, &determine_implicit_or_explicit_label(&1, input_selectors))}
+        {:found_many, Enum.map(elements, &determine_implicit_or_explicit_label(html, &1, input_selectors))}
     end
   end
 
-  defp find_label_input(html, input_selectors, label_element) do
+  defp find_explicit_label_input(html, input_selectors, label_element) do
     with {:ok, label_for} <- label_for(label_element) do
       find_associated_input(html, input_selectors, label_for, label_element)
     end
@@ -451,13 +451,29 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp determine_implicit_or_explicit_label(label, input_selectors) do
-    case find_one_of(Html.raw(label), input_selectors) do
-      {:not_found, _} ->
-        {:explicit_association, label}
+  defp determine_implicit_or_explicit_label(html, label, input_selectors) do
+    explicit = find_explicit_label_input(html, input_selectors, label)
+    implicit = find_one_of(Html.raw(label), input_selectors)
 
-      {:found, element} ->
-        {:implicit_association, label, element}
+    case {explicit, implicit} do
+      {{:found, explicit_el}, {:found, implicit_el}} when explicit_el != implicit_el ->
+        msg = """
+        Found a label which references two different inputs.
+
+        Please remove either the 'for' attribute or the nested input
+
+        to ensure the correct input can be targeted:
+
+        #{Html.raw(label)}
+        """
+
+        raise ArgumentError, msg
+
+      {_, {:found, implicit_el}} ->
+        {:implicit_association, label, implicit_el}
+
+      _ ->
+        {:explicit_association, label}
     end
   end
 
