@@ -1054,15 +1054,16 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("Trigger action", with: "engage")
       |> submit()
-      |> assert_has("#form-data", text: "hidden: included")
-      |> assert_has("#form-data", text: "trigger_action: engage")
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> assert_has("#form-data", text: "trigger_action_input: engage")
     end
 
     test "phx-trigger-action from outside the form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_button("Trigger from elsewhere")
-      |> assert_has("#form-data", text: "hidden: included")
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> refute_has("#form-data", text: "trigger_action_input:")
     end
 
     test "raises an error if multiple forms have phx-trigger-action", %{conn: conn} do
@@ -1070,7 +1071,7 @@ defmodule PhoenixTest.LiveTest do
         conn
         |> visit("/live/index")
         |> click_button("Trigger multiple")
-        |> assert_has("#form-data", text: "hidden: included")
+        |> assert_has("#form-data", text: "hidden: trigger_action_hidden_value")
       end
     end
 

@@ -449,8 +449,8 @@ defmodule PhoenixTest.IndexLive do
       action="/page/create_record"
       method="post"
     >
-      <input type="hidden" name="hidden" value="included" />
-      <label>Trigger action <input type="text" name="trigger_action" /></label>
+      <input type="hidden" name="trigger_action_hidden_input" value="trigger_action_hidden_value" />
+      <label>Trigger action <input type="text" name="trigger_action_input" /></label>
     </form>
 
     <button phx-click="trigger-form">Trigger from elsewhere</button>
