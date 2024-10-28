@@ -468,6 +468,20 @@ defmodule PhoenixTest.IndexLive do
     />
 
     <button phx-click="trigger-multiple-forms">Trigger multiple</button>
+
+    <form
+      id="redirect-and-trigger-form"
+      phx-change="patch-and-trigger-form"
+      phx-trigger-action={@redirect_and_trigger_submit}
+      action="/page/create_record"
+      method="post"
+    >
+      <label>
+        Patch and trigger action <input type="text" name="patch_and_trigger_action" />
+      </label>
+      <button phx-click="redirect-and-trigger-form">Redirect and trigger action</button>
+      <button phx-click="navigate-and-trigger-form">Navigate and trigger action</button>
+    </form>
     """
   end
 
@@ -492,6 +506,7 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:hidden_input_race, "human")
       |> assign(:trigger_submit, false)
       |> assign(:trigger_multiple_submit, false)
+      |> assign(:redirect_and_trigger_submit, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
@@ -534,6 +549,27 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("trigger-multiple-forms", _form_data, socket) do
     {:noreply, assign(socket, :trigger_multiple_submit, true)}
+  end
+
+  def handle_event("patch-and-trigger-form", _form_data, socket) do
+    {:noreply,
+     socket
+     |> assign(:redirect_and_trigger_submit, true)
+     |> push_patch(to: "/live/index_no_layout")}
+  end
+
+  def handle_event("redirect-and-trigger-form", _form_data, socket) do
+    {:noreply,
+     socket
+     |> redirect(to: "/live/page_2")
+     |> assign(:redirect_and_trigger_submit, true)}
+  end
+
+  def handle_event("navigate-and-trigger-form", _form_data, socket) do
+    {:noreply,
+     socket
+     |> push_navigate(to: "/live/page_2")
+     |> assign(:redirect_and_trigger_submit, true)}
   end
 
   def handle_event("set-hidden-race", form_data, socket) do

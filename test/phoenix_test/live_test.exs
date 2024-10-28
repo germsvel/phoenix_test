@@ -1066,6 +1066,27 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "trigger_action_input:")
     end
 
+    test "phx-trigger-action performed after patch", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Patch and trigger action", with: "let's go")
+      |> assert_path("/page/create_record")
+    end
+
+    test "phx-trigger-action ignored if view redirects", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Redirect and trigger action")
+      |> assert_path("/live/page_2")
+    end
+
+    test "phx-trigger-action ignored if view navigates", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Navigate and trigger action")
+      |> assert_path("/live/page_2")
+    end
+
     test "raises an error if multiple forms have phx-trigger-action", %{conn: conn} do
       assert_raise ArgumentError, ~r/Found multiple forms/, fn ->
         conn
