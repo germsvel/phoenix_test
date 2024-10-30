@@ -1,17 +1,19 @@
 defmodule PhoenixTest.PlaywrightTest do
-  use PhoenixTest.Case, async: true
+  use PhoenixTest.Case,
+    async: true,
+    parameterize: Enum.map(~w(chromium firefox)a, &%{playwright: [browser: &1]})
 
   import PhoenixTest
 
-  @moduletag :playwright
-
   describe "render_page_title/1" do
-    test "uses playwright driver by default", %{conn: conn} do
-      session = visit(conn, "/live/index")
-      assert %PhoenixTest.Playwright{} = session
+    unless System.version() in ~w(1.15.0 1.16.0 1.17.0) do
+      test "runs in multiple browsers via ExUnit `parameterize`", %{conn: conn} do
+        session = visit(conn, "/live/index")
+        assert %PhoenixTest.Playwright{} = session
 
-      title = PhoenixTest.Driver.render_page_title(session)
-      assert title == "PhoenixTest is the best!"
+        title = PhoenixTest.Driver.render_page_title(session)
+        assert title == "PhoenixTest is the best!"
+      end
     end
 
     @tag playwright: false
