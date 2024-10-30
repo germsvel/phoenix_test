@@ -296,7 +296,7 @@ defmodule PhoenixTest.Assertions do
     |> append_found_other_matches(selector, other_matches)
   end
 
-  defp refute_found_error_msg(selector, opts, found) do
+  def refute_found_error_msg(selector, opts, found) do
     refute_count = Keyword.get(opts, :count, :any)
     at = Keyword.get(opts, :at, :any)
     text = Keyword.get(opts, :text, :no_text)

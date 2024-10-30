@@ -1,8 +1,6 @@
 defmodule PhoenixTest.LiveTest do
   use PhoenixTest.Case, async: true, parameterize: [%{playwright: false}, %{playwright: true}]
 
-  import PhoenixTest
-
   alias PhoenixTest.Driver
 
   describe "assert_has/2 title" do
@@ -205,9 +203,7 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 
-    test "submits owner form if button isn't nested inside form (including button data)", %{
-      conn: conn
-    } do
+    test "submits owner form if button isn't nested inside form (including button data)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#owner-form", fn session ->
@@ -230,7 +226,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#redirect-form-to-static", &fill_in(&1, "Name", with: "Aragorn"))
-      |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static")
+      |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static Form")
       |> assert_has("h1", text: "Main page")
     end
 
@@ -692,9 +688,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "book-or-movie: book")
     end
 
-    test "can specify input selector when multiple options have same label in same form", %{
-      conn: conn
-    } do
+    test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#same-labels", fn session ->
@@ -748,8 +742,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     @tag playwright: false, reason: :known_inconsistency
-    test "upload (without other form actions) does not work with submit (matches browser behavior)",
-         %{conn: conn} do
+    test "upload (without other form actions) does not work with submit (matches browser behavior)", %{conn: conn} do
       session =
         conn
         |> visit("/live/index")

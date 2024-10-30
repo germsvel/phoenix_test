@@ -3,8 +3,6 @@ defmodule PhoenixTest.PlaywrightTest do
     async: true,
     parameterize: Enum.map(~w(chromium firefox)a, &%{playwright: [browser: &1]})
 
-  import PhoenixTest
-
   describe "render_page_title/1" do
     unless System.version() in ~w(1.15.0 1.16.0 1.17.0) do
       test "runs in multiple browsers via ExUnit `parameterize`", %{conn: conn} do

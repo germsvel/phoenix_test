@@ -1,5 +1,13 @@
 defmodule PhoenixTest.Playwright.Frame do
-  @moduledoc false
+  @moduledoc """
+  Interact with a Playwright `Frame` (usually the "main" frame of a browser page).
+
+  There is no official documentation, since this is considered Playwright internal.
+
+  References:
+  - https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/client/frame.ts
+  """
+
   import PhoenixTest.Playwright.Connection, only: [sync_post: 1]
 
   def goto(frame_id, url) do

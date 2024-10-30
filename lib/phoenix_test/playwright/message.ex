@@ -1,5 +1,9 @@
 defmodule PhoenixTest.Playwright.Message do
-  @moduledoc false
+  @moduledoc """
+  Prase playwright messages.
+  One message received by the `Port` might contain multiple Playwright messages.
+  Also, it might contain only part of a `Playwright` message, to be continued in the next `Port` message.
+  """
 
   def parse(<<head::unsigned-little-integer-size(32)>>, 0, "", accumulated) do
     %{

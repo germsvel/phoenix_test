@@ -1,7 +1,6 @@
 defmodule PhoenixTest.AssertionsTest do
   use PhoenixTest.Case, async: true, parameterize: [%{playwright: false}, %{playwright: true}]
 
-  import PhoenixTest
   import PhoenixTest.Locators
   import PhoenixTest.TestHelpers
 
@@ -43,6 +42,7 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("li")
     end
 
+    @tag playwright: false, reason: {:not_implemented, :locators}
     test "takes in input helper in assertion", %{conn: conn} do
       conn
       |> visit("/page/index")

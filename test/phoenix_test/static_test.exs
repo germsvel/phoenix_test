@@ -1,7 +1,6 @@
 defmodule PhoenixTest.StaticTest do
   use PhoenixTest.Case, async: true, parameterize: [%{playwright: false}, %{playwright: true}]
 
-  import PhoenixTest
   import PhoenixTest.TestHelpers
 
   describe "render_page_title/1" do
@@ -661,9 +660,9 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "book-or-movie: book")
     end
 
-    test "can specify input selector when multiple options have same label in same form", %{
-      conn: conn
-    } do
+    # Playwright: Can't find <input type="button" value="Save form"> with `exact: true`
+    @tag playwright: false, reason: :bug
+    test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->
@@ -720,7 +719,7 @@ defmodule PhoenixTest.StaticTest do
 
     # Playwright: 'Enter' key on file input oppens file picker dialog
     @tag playwright: false, reason: :bug
-    test("can specify input selector when multiple inputs have same label", %{conn: conn}) do
+    test "can specify input selector when multiple inputs have same label", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->

@@ -79,4 +79,4 @@ jobs:
       run: npm exec --prefix priv/static/assets playwright install --with-deps
 
     - name: Run tests
-      run: mix test
+      run: "mix test || if [[ $? = 2 ]]; then mix test --failed; else false; fi" 

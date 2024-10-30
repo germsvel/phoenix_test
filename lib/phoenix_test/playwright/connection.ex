@@ -1,8 +1,17 @@
 defmodule PhoenixTest.Playwright.Connection do
-  @moduledoc false
+  @moduledoc """
+  Stateful, `GenServer` based connection to a Playwright node.js server.
+  The connection is established via `Playwright.Port`.
+
+  You won't usually have to use this module directly.
+  `PhoenixTest.Case` uses this under the hood.
+  """
   use GenServer
 
   alias PhoenixTest.Playwright.Port, as: PlaywrightPort
+
+  @default_timeout_ms 1000
+  @playwright_timeout_grace_period_ms 100
 
   defstruct [
     :port,
@@ -12,33 +21,58 @@ defmodule PhoenixTest.Playwright.Connection do
     pending_response: %{}
   ]
 
+  @name __MODULE__
+
   def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: __MODULE__, timeout: 1000)
+    GenServer.start_link(__MODULE__, config, name: @name, timeout: timeout())
   end
 
-  def ensure_started(name \\ __MODULE__, config) do
-    case Process.whereis(name) do
+  @doc """
+  Lazy launch. Only start the playwright server if actually needed by a test.
+  """
+  def ensure_started(config) do
+    case Process.whereis(@name) do
       nil -> start_link(config)
       pid -> {:ok, pid}
     end
   end
 
-  def launch_browser(name \\ __MODULE__, type, opts) do
-    type_id = GenServer.call(name, {:browser_type_id, type})
+  @doc """
+  Launch a browser and return its `guid`.
+  """
+  def launch_browser(type, opts) do
+    type_id = GenServer.call(@name, {:browser_type_id, type})
     resp = sync_post(guid: type_id, method: "launch", params: Map.new(opts))
     resp.result.browser.guid
   end
 
-  def post(name \\ __MODULE__, msg) do
-    GenServer.cast(name, {:post, msg})
+  @doc """
+  Fire and forget.
+  """
+  def post(msg) do
+    GenServer.cast(@name, {:post, msg})
   end
 
-  def sync_post(name \\ __MODULE__, msg) do
-    GenServer.call(name, {:sync_post, msg})
+  @doc """
+  Post a message and await the response.
+  We wait for an additional grace period after the timeout that we pass to playwright.
+
+  We use double the default timeout if there is no message timeout, since some
+  playwright operations use a backoff internally ([100, 250, 500, 1000]).
+  """
+  def sync_post(msg) do
+    timeout = msg[:params][:timeout] || 2 * timeout()
+    timeout_with_grace_period = timeout + @playwright_timeout_grace_period_ms
+    GenServer.call(@name, {:sync_post, msg}, timeout_with_grace_period)
   end
 
-  def responses(name \\ __MODULE__, guid) do
-    GenServer.call(name, {:responses, guid})
+  @doc """
+  Get all past responses for a playwright `guid` (e.g. a `Frame`).
+  The internal map used to track these responses is never cleaned, it will keep on growing.
+  Since we're dealing with (short-lived) tests, that should be fine.
+  """
+  def responses(guid) do
+    GenServer.call(@name, {:responses, guid})
   end
 
   @impl GenServer
@@ -108,4 +142,8 @@ defmodule PhoenixTest.Playwright.Connection do
   defp handle_recv(_msg, state), do: state
 
   defp browser_type_id(init, type), do: Map.fetch!(init, type).guid
+
+  defp timeout do
+    Application.get_env(:phoenix_test, :timeout_ms, @default_timeout_ms)
+  end
 end

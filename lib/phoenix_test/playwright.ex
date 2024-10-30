@@ -1,5 +1,73 @@
 defmodule PhoenixTest.Playwright do
-  @moduledoc false
+  @moduledoc """
+  > #### Warning {: .warning}
+  >
+  > This feature is experimental.
+  > If you don't need browser based tests, see `m:PhoenixTest#module-usage` on regular usage.
+
+  Test driver to run tests in an actual (usually headless) browser via [Playwright](https://playwright.dev/).
+
+
+  ## Setup
+
+  1. Install [playwright](https://www.npmjs.com/package/playwright)
+  2. Install playwright browsers: `npm exec --prefix assets playwright install --with-deps`
+  3. Add to `config/test.exs`: `config :phoenix_test, playwright_cli: "assets/node_modules/playwright/cli.js"`
+  4. Add to `test/test_helpers.exs`: `Application.put_env(:phoenix_test, :base_url, YourWeb.Endpoint.url())`
+
+
+  ## Usage
+  ```ex
+  defmodule MyFeatureTest do
+    use PhoenixTest.Case,
+      async: true,
+      parameterize: [%{playwright: [browser: :chromium]}, %{playwright: [browser: :firefox]}]
+
+      test "heading", %{conn: conn} do
+        conn
+        |> visit("/")
+        |> assert_has("h1", text: "Heading")
+      end
+    end
+  end
+  ```
+
+  As shown above, you can use `m:ExUnit.Case#module-parameterized-tests` parameterized tests
+  to run tests concurrently in different browsers.
+
+
+  ## Known limitations and inconsistencies
+
+  - `PhoenixTest.select/4` option `exact_option` is not supported
+  - Playwright driver is less strict than `Live` and `Static` drivers. It does not raise errors
+    - when visiting a page that returns a `404` status
+    - when interactive elements such as forms and buttons are missing essential attributes (`phx-click`, `phx-submit`, `action`)
+  - A few small bugs
+
+  See tests tagged with [`@tag playwright: false`](https://github.com/search?q=repo%3Agermsvel%2Fphoenix_test%20%22%40tag%20playwright%3A%20false%22&type=code)
+  for details.
+
+
+  ## Configuration
+
+  In `config/test.exs`:
+
+  ```elixir
+  config :phoenix_test,
+    playwright_cli: "assets/node_modules/playwright/cli.js",
+    timeout_ms: 1000
+  ```
+
+  ## Ecto SQL.Sandbox
+
+  Pass the `repo` option to enable Ecto sandboxing.
+  This allows for concurrent browser tests (based on [this guide](https://hexdocs.pm/phoenix_ecto/main.html#concurrent-browser-tests)).
+
+  ```ex
+  defmodule MyTest do
+    use PhoenixTest.Case, async: true, repo: MyApp.Repo
+  ```
+  """
 
   alias PhoenixTest.Assertions
   alias PhoenixTest.Element.Button
@@ -13,13 +81,13 @@ defmodule PhoenixTest.Playwright do
   defstruct [:frame_id, :last_input_selector, within: :none]
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
-  @default_timeout :timer.seconds(1)
+  @default_timeout_ms 1000
 
   def build(frame_id) do
     %__MODULE__{frame_id: frame_id}
   end
 
-  def retry(fun, backoff_ms \\ [100, 250, 500, 1000])
+  def retry(fun, backoff_ms \\ [100, 250, 500, timeout()])
   def retry(fun, []), do: fun.()
 
   def retry(fun, [sleep_ms | backoff_ms]) do
@@ -80,7 +148,7 @@ defmodule PhoenixTest.Playwright do
     selector =
       session
       |> maybe_within()
-      |> Selector.concat(Selector.css_or_locator(selector))
+      |> Selector.concat(Selector.css(selector))
       |> Selector.concat(Selector.text(opts[:text], opts))
       |> Selector.concat(Selector.at(opts[:at]))
 
@@ -130,8 +198,8 @@ defmodule PhoenixTest.Playwright do
     selector =
       session
       |> maybe_within()
-      |> Selector.concat(Selector.css_or_locator(css_selector))
-      |> Selector.concat(Selector.text(text, exact: false))
+      |> Selector.concat(Selector.css(css_selector))
+      |> Selector.concat(Selector.text(text, exact: true))
 
     session.frame_id
     |> Frame.click(selector, %{timeout: timeout()})
@@ -144,8 +212,8 @@ defmodule PhoenixTest.Playwright do
     selector =
       session
       |> maybe_within()
-      |> Selector.concat(Selector.css_or_locator(css_selector))
-      |> Selector.concat(Selector.text(text, exact: false))
+      |> Selector.concat(Selector.css(css_selector))
+      |> Selector.concat(Selector.text(text, exact: true))
 
     session.frame_id
     |> Frame.click(selector, %{timeout: timeout()})
@@ -202,7 +270,7 @@ defmodule PhoenixTest.Playwright do
     selector =
       session
       |> maybe_within()
-      |> Selector.concat(Selector.css_or_locator(input_selector))
+      |> Selector.concat(Selector.css(input_selector))
       |> Selector.and(Selector.label(label, opts))
 
     selector
@@ -276,7 +344,7 @@ defmodule PhoenixTest.Playwright do
   end
 
   defp timeout(opts \\ []) do
-    default = Application.get_env(:phoenix_test, :timeout, @default_timeout)
+    default = Application.get_env(:phoenix_test, :timeout_ms, @default_timeout_ms)
     Keyword.get(opts, :timeout, default)
   end
 end

@@ -1,5 +1,7 @@
 defmodule PhoenixTest.Playwright.Port do
-  @moduledoc false
+  @moduledoc """
+  Start a Playwright node.js server and communicate with it via a `Port`.
+  """
 
   alias PhoenixTest.Playwright.Message
 
@@ -35,7 +37,8 @@ defmodule PhoenixTest.Playwright.Port do
   end
 
   defp default_cli do
-    Path.join(:code.priv_dir(:phoenix_test), "static/driver.js")
+    fallback = Path.join(:code.priv_dir(:phoenix_test), "static/driver.js")
+    Application.get_env(:phoenix_test, :playwright_cli, fallback)
   end
 
   defp deserialize(json) do
