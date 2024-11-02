@@ -2,21 +2,6 @@ defmodule PhoenixTest.Case do
   @moduledoc """
   ExUnit case module to assist with browser based tests.
   See `PhoenixTest.Playwright` for more information.
-
-  ## Configuration
-  Set browser launch options via a `@moduletag` or `setup_all`:application
-
-  ```ex
-  @moduletag playwright: [browser: :chromium, headless: false, slowMo: 1000]
-  ```
-
-  You can opt out of Playwright for selected tests via tags:
-
-  ```ex
-  describe "part of feature without javascript"
-    @describetag playwright: false
-
-    test "regular dead or live view without javascript" do
   """
 
   use ExUnit.CaseTemplate
@@ -67,6 +52,9 @@ defmodule PhoenixTest.Case do
     @moduledoc false
     import PhoenixTest.Playwright.Connection
 
+    @includes_ecto Code.ensure_loaded?(Ecto.Adapters.SQL.Sandbox) &&
+                     Code.ensure_loaded?(Phoenix.Ecto.SQL.Sandbox)
+
     def launch_browser(opts) do
       opts = Map.new(opts)
       ensure_started(opts)
@@ -76,7 +64,8 @@ defmodule PhoenixTest.Case do
     end
 
     def start_session(%{browser_id: browser_id} = context) do
-      params = browser_context_params(context)
+      user_agent = checkout_ecto_repos(context[:async])
+      params = if user_agent, do: %{userAgent: user_agent}, else: %{}
       context_id = sync_post(guid: browser_id, method: "newContext", params: params).result.context.guid
       on_exit(fn -> post(guid: context_id, method: "close") end)
 
@@ -86,16 +75,27 @@ defmodule PhoenixTest.Case do
       PhoenixTest.Playwright.build(frame_id)
     end
 
-    if Code.ensure_loaded?(Phoenix.Ecto.SQL.Sandbox) do
-      defp browser_context_params(%{repo: repo} = context) do
-        pid = Ecto.Adapters.SQL.Sandbox.start_owner!(repo, shared: not context[:async])
-        on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
-        metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(repo, pid)
-        encoded = {:v1, metadata} |> :erlang.term_to_binary() |> Base.url_encode64()
-        %{userAgent: "BeamMetadata (#{encoded})"}
+    if @includes_ecto do
+      def checkout_ecto_repos(async?) do
+        otp_app = Application.fetch_env!(:phoenix_test, :otp_app)
+        repos = Application.fetch_env!(otp_app, :ecto_repos)
+
+        repos
+        |> Enum.map(&checkout_ecto_repo(&1, async?))
+        |> Phoenix.Ecto.SQL.Sandbox.metadata_for(self())
+        |> Phoenix.Ecto.SQL.Sandbox.encode_metadata()
+      end
+
+      defp checkout_ecto_repo(repo, async?) do
+        :ok = Ecto.Adapters.SQL.Sandbox.checkout(repo)
+        unless async?, do: Ecto.Adapters.SQL.Sandbox.mode(repo, {:shared, self()})
+
+        repo
+      end
+    else
+      def checkout_ecto_repos(_) do
+        nil
       end
     end
-
-    defp browser_context_params(_), do: %{}
   end
 end

@@ -1,8 +1,8 @@
 defmodule PhoenixTest.Playwright.Message do
   @moduledoc """
-  Prase playwright messages.
-  One message received by the `Port` might contain multiple Playwright messages.
-  Also, it might contain only part of a `Playwright` message, to be continued in the next `Port` message.
+  Parse playwright messages.
+  A single `Port` message can contain multiple Playwright messages and/or a fraction of a message.
+  Such a message fraction is stored in `bufffer` and continued in the next `Port` message.
   """
 
   def parse(<<head::unsigned-little-integer-size(32)>>, 0, "", accumulated) do

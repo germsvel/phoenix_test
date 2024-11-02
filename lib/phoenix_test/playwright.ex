@@ -5,15 +5,15 @@ defmodule PhoenixTest.Playwright do
   > This feature is experimental.
   > If you don't need browser based tests, see `m:PhoenixTest#module-usage` on regular usage.
 
-  Test driver to run tests in an actual (usually headless) browser via [Playwright](https://playwright.dev/).
+  Run tests tests in a one or more browsers via [Playwright](https://playwright.dev/).
 
 
   ## Setup
 
-  1. Install [playwright](https://www.npmjs.com/package/playwright)
+  1. Install or vendor [playwright](https://www.npmjs.com/package/playwright) using your existing JS pipeline
   2. Install playwright browsers: `npm exec --prefix assets playwright install --with-deps`
-  3. Add to `config/test.exs`: `config :phoenix_test, playwright_cli: "assets/node_modules/playwright/cli.js"`
-  4. Add to `test/test_helpers.exs`: `Application.put_env(:phoenix_test, :base_url, YourWeb.Endpoint.url())`
+  3. Add to `config/test.exs`: `config :phoenix_test, otp_app: :your_app, playwright_cli: "assets/node_modules/playwright/cli.js"`
+  4. Add to `test/test_helpers.exs`: `Application.put_env(:phoenix_test, :base_url, YourAppWeb.Endpoint.url())`
 
 
   ## Usage
@@ -60,12 +60,13 @@ defmodule PhoenixTest.Playwright do
 
   ## Ecto SQL.Sandbox
 
-  Pass the `repo` option to enable Ecto sandboxing.
-  This allows for concurrent browser tests (based on [this guide](https://hexdocs.pm/phoenix_ecto/main.html#concurrent-browser-tests)).
+  `PhoenixTest.Case` automatically takes care of this.
+  It passes a user agent referencing your Ecto repos.
+  This allows for [concurrent browser tests](https://hexdocs.pm/phoenix_ecto/main.html#concurrent-browser-tests).
 
   ```ex
   defmodule MyTest do
-    use PhoenixTest.Case, async: true, repo: MyApp.Repo
+    use PhoenixTest.Case, async: true
   ```
   """
 

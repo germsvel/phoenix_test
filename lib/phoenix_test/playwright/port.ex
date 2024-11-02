@@ -12,7 +12,20 @@ defmodule PhoenixTest.Playwright.Port do
   ]
 
   def open(config) do
-    cli = Map.get(config, :driver_path, default_cli())
+    cli = Map.get_lazy(config, :driver_path, fn -> Application.fetch_env!(:phoenix_test, :playwright_cli) end)
+
+    unless File.exists?(cli) do
+      msg = """
+      Could not find playwright CLI at #{cli}.
+
+      To resolve this please
+      1. Install playwright, e.g. `npm i playwright`
+      2. Configure the path correctly, e.g. in `config/text.exs`: `config :phoenix_test, playwright_cli: "assets/node_modules/playwright/cli.js"`
+      """
+
+      raise ArgumentError, msg
+    end
+
     cmd = "run-driver"
     port = Port.open({:spawn, "#{cli} #{cmd}"}, [:binary])
 
@@ -34,11 +47,6 @@ defmodule PhoenixTest.Playwright.Port do
     msgs = Enum.map(frames, &deserialize/1)
 
     {state, msgs}
-  end
-
-  defp default_cli do
-    fallback = Path.join(:code.priv_dir(:phoenix_test), "static/driver.js")
-    Application.get_env(:phoenix_test, :playwright_cli, fallback)
   end
 
   defp deserialize(json) do

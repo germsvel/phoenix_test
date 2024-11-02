@@ -14,6 +14,19 @@ permissions:
 
 jobs:
   test:
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: phoenix_test_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     runs-on: ubuntu-latest
     name: Test on OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
@@ -75,8 +88,11 @@ jobs:
     - name: Build assets for browser tests
       run: mix do assets.setup, assets.build
 
+    - name: Setup database
+      run: mix ecto.setup
+
     - name: Install playwright browsers
       run: npm exec --prefix priv/static/assets playwright install --with-deps
 
     - name: Run tests
-      run: "mix test || if [[ $? = 2 ]]; then mix test --failed; else false; fi" 
+      run: "mix test || if [[ $? = 2 ]]; then mix test --failed; else false; fi"

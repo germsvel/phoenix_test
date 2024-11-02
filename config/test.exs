@@ -1,6 +1,10 @@
 import Config
 
-config :phoenix_test, :endpoint, PhoenixTest.Endpoint
+config :phoenix_test,
+  endpoint: PhoenixTest.Endpoint,
+  ecto_repos: [PhoenixTest.Repo],
+  otp_app: :phoenix_test,
+  playwright_cli: "priv/static/assets/node_modules/playwright/cli.js"
 
 config :logger, level: :warning
 
@@ -20,3 +24,11 @@ config :esbuild,
     cd: Path.expand("../test/assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
+
+config :phoenix_test, PhoenixTest.Repo,
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  database: "phoenix_test_test#{System.get_env("MIX_TEST_PARTITION")}",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: 10
