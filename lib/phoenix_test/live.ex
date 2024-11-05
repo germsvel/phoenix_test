@@ -328,9 +328,10 @@ defmodule PhoenixTest.Live do
 
   defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do
     session = %{session | current_path: path}
+    conn = session.conn
 
     result
-    |> follow_redirect(session.conn)
+    |> follow_redirect(recycle(conn, all_headers(conn)))
     |> maybe_redirect(session)
   end
 
