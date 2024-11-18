@@ -59,7 +59,7 @@ defmodule PhoenixTest.Static do
     link =
       session
       |> render_html()
-      |> Link.find!(selector, text)
+      |> Link.find!(selector, text, exacxt: false)
 
     if Link.has_data_method?(link) do
       form =
@@ -81,7 +81,7 @@ defmodule PhoenixTest.Static do
     active_form = session.active_form
 
     html = render_html(session)
-    button = Button.find!(html, selector, text)
+    button = Button.find!(html, selector, text, exact: false)
 
     if Button.has_data_method?(button) do
       form =

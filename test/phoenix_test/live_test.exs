@@ -91,6 +91,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    test "finds by substring", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("and redirect back")
+      |> assert_has("h1", text: "LiveView main page")
+    end
+
     test "accepts click_link with selector", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -149,6 +156,13 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "click_button/2" do
+    test "finds by substring", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Show")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
     test "handles a `phx-click` button", %{conn: conn} do
       conn
       |> visit("/live/index")

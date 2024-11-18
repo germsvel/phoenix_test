@@ -73,6 +73,13 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    test "fins by substring", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("and redirect back")
+      |> assert_has("h1", text: "Main page")
+    end
+
     test "accepts selector for link", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -161,6 +168,13 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "click_button/2" do
+    test "finds by substring", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("Get")
+      |> assert_has("h1", text: "Record received")
+    end
+
     test "handles a button that defaults to GET", %{conn: conn} do
       conn
       |> visit("/page/index")

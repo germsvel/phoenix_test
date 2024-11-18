@@ -10,9 +10,9 @@ defmodule PhoenixTest.Element.Button do
 
   defstruct ~w[source_raw raw parsed id selector text name value form_id]a
 
-  def find!(html, selector, text) do
+  def find!(html, selector, text, opts \\ []) do
     html
-    |> Query.find!(selector, text)
+    |> Query.find!(selector, text, opts)
     |> build(html)
   end
 
