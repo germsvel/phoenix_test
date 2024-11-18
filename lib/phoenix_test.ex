@@ -213,7 +213,7 @@ defmodule PhoenixTest do
   LiveView or a static view. You don't need to worry about which type of page
   you're visiting.
   """
-  def visit(conn, path) do
+  def visit(%Plug.Conn{} = conn, path) do
     case get(conn, path) do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
@@ -228,6 +228,10 @@ defmodule PhoenixTest do
       conn ->
         PhoenixTest.Static.build(conn)
     end
+  end
+
+  def visit(driver, path) when is_struct(driver) do
+    Driver.visit(driver, path)
   end
 
   defp all_headers(conn) do
