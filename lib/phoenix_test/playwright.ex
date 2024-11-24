@@ -12,7 +12,7 @@ defmodule PhoenixTest.Playwright do
 
   1. Install or vendor [playwright](https://www.npmjs.com/package/playwright) using your existing JS pipeline
   2. Install playwright browsers: `npm exec --prefix assets playwright install --with-deps`
-  3. Add to `config/test.exs`: `config :phoenix_test, otp_app: :your_app, playwright_cli: "assets/node_modules/playwright/cli.js"`
+  3. Add to `config/test.exs`: `config :phoenix_test, otp_app: :your_app, playwright: [cli: "assets/node_modules/playwright/cli.js"]`
   4. Add to `test/test_helpers.exs`: `Application.put_env(:phoenix_test, :base_url, YourAppWeb.Endpoint.url())`
 
 
@@ -54,7 +54,12 @@ defmodule PhoenixTest.Playwright do
 
   ```elixir
   config :phoenix_test,
-    playwright_cli: "assets/node_modules/playwright/cli.js",
+    playwright: [
+      cli: "assets/node_modules/playwright/cli.js",
+      browser: [browser: :chromium, headless: System.get_env("PLAYWRIGHT_HEADLESS", "t") in ~w(t true)],
+      trace: System.get_env("PLAYWRIGHT_TRACE", "false") in ~w(t true),
+      trace_dir: "tmp"
+    ],
     timeout_ms: 1000
   ```
 
@@ -79,13 +84,15 @@ defmodule PhoenixTest.Playwright do
   alias PhoenixTest.Playwright.Selector
   alias PhoenixTest.Query
 
-  defstruct [:frame_id, :last_input_selector, within: :none]
+  require Logger
+
+  defstruct [:page_id, :frame_id, :last_input_selector, within: :none]
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   @default_timeout_ms 1000
 
-  def build(frame_id) do
-    %__MODULE__{frame_id: frame_id}
+  def build(page_id, frame_id) do
+    %__MODULE__{page_id: page_id, frame_id: frame_id}
   end
 
   def retry(fun, backoff_ms \\ [100, 250, 500, timeout()])
@@ -100,8 +107,14 @@ defmodule PhoenixTest.Playwright do
   end
 
   def visit(session, path) do
-    base_url = Application.fetch_env!(:phoenix_test, :base_url)
-    Frame.goto(session.frame_id, base_url <> path)
+    url =
+      case path do
+        "http://" <> _ -> path
+        "https://" <> _ -> path
+        _ -> Application.fetch_env!(:phoenix_test, :base_url) <> path
+      end
+
+    Frame.goto(session.frame_id, url)
     session
   end
 
@@ -203,7 +216,7 @@ defmodule PhoenixTest.Playwright do
       |> Selector.concat(Selector.text(text, exact: true))
 
     session.frame_id
-    |> Frame.click(selector, %{timeout: timeout()})
+    |> Frame.click(selector)
     |> handle_response(fn -> Link.find!(render_html(session), css_selector, text) end)
 
     session
@@ -217,7 +230,7 @@ defmodule PhoenixTest.Playwright do
       |> Selector.concat(Selector.text(text, exact: true))
 
     session.frame_id
-    |> Frame.click(selector, %{timeout: timeout()})
+    |> Frame.click(selector)
     |> handle_response(fn -> Button.find!(render_html(session), css_selector, text) end)
 
     session
@@ -237,7 +250,6 @@ defmodule PhoenixTest.Playwright do
   end
 
   def select(session, input_selector, option_labels, opts) do
-    # TODO Support exact_option
     if opts[:exact_option] != true, do: raise("exact_option not implemented")
 
     {label, opts} = Keyword.pop!(opts, :from)
@@ -290,15 +302,17 @@ defmodule PhoenixTest.Playwright do
 
   defp handle_response(result, error_fun) do
     case result do
-      {:error, %{name: "TimeoutError"}} ->
+      {:error, %{error: %{error: %{name: "TimeoutError"}}} = error} ->
+        Logger.error(error)
         error_fun.()
         raise ExUnit.AssertionError, message: "Could not find element."
 
-      {:error, %{name: "Error", message: "Error: strict mode violation" <> _}} ->
+      {:error, %{error: %{error: %{name: "Error", message: "Error: strict mode violation" <> _}}} = error} ->
+        Logger.error(error)
         error_fun.()
         raise ExUnit.AssertionError, message: "Found more than one element."
 
-      {:error, %{name: "Error", message: "Clicking the checkbox did not change its state"}} ->
+      {:error, %{error: %{error: %{name: "Error", message: "Clicking the checkbox did not change its state"}}}} ->
         :ok
 
       {:ok, result} ->
@@ -335,7 +349,7 @@ defmodule PhoenixTest.Playwright do
   def current_path(session) do
     resp =
       session.frame_id
-      |> Connection.responses()
+      |> Connection.received()
       |> Enum.find(&match?(%{method: "navigated", params: %{url: _}}, &1))
 
     if resp == nil, do: raise(ArgumentError, "Could not find current path.")

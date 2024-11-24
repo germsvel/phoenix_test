@@ -25,13 +25,15 @@ defmodule PhoenixTest.Case do
   ]
 
   setup_all context do
+    trace = Application.fetch_env!(:phoenix_test, :playwright)[:trace]
+
     case context do
       %{playwright: true} ->
-        [browser_id: Case.Playwright.launch_browser(@playwright_opts)]
+        [browser_id: Case.Playwright.launch_browser(@playwright_opts), trace: trace]
 
       %{playwright: opts} when is_list(opts) ->
         opts = Keyword.merge(@playwright_opts, opts)
-        [browser_id: Case.Playwright.launch_browser(opts)]
+        [browser_id: Case.Playwright.launch_browser(opts), trace: trace]
 
       _ ->
         :ok
@@ -41,7 +43,7 @@ defmodule PhoenixTest.Case do
   setup context do
     case context do
       %{playwright: p} when p != false ->
-        [conn: Case.Playwright.start_session(context)]
+        [conn: Case.Playwright.new_session(context)]
 
       _ ->
         [conn: Phoenix.ConnTest.build_conn()]
@@ -52,27 +54,44 @@ defmodule PhoenixTest.Case do
     @moduledoc false
     import PhoenixTest.Playwright.Connection
 
+    alias PhoenixTest.Playwright.Browser
+    alias PhoenixTest.Playwright.BrowserContext
+
     @includes_ecto Code.ensure_loaded?(Ecto.Adapters.SQL.Sandbox) &&
                      Code.ensure_loaded?(Phoenix.Ecto.SQL.Sandbox)
 
     def launch_browser(opts) do
-      opts = Map.new(opts)
-      ensure_started(opts)
-      browser_id = launch_browser(opts.browser, opts)
-      on_exit(fn -> sync_post(guid: browser_id, method: "close") end)
+      ensure_started()
+      browser = Keyword.fetch!(opts, :browser)
+      browser_id = launch_browser(browser, opts)
+      on_exit(fn -> post(guid: browser_id, method: "close") end)
       browser_id
     end
 
-    def start_session(%{browser_id: browser_id} = context) do
-      user_agent = checkout_ecto_repos(context[:async])
-      params = if user_agent, do: %{userAgent: user_agent}, else: %{}
-      context_id = sync_post(guid: browser_id, method: "newContext", params: params).result.context.guid
+    def new_session(%{browser_id: browser_id} = context) do
+      context_id = Browser.new_context(browser_id)
+      subscribe(context_id)
+
+      page_id = BrowserContext.new_page(context_id)
+      post(%{method: :updateSubscription, guid: page_id, params: %{event: "console", enabled: true}})
+      frame_id = initializer(page_id).mainFrame.guid
       on_exit(fn -> post(guid: context_id, method: "close") end)
 
-      page_id = sync_post(guid: context_id, method: "newPage").result.page.guid
-      [%{params: %{guid: "frame" <> _ = frame_id}}] = responses(page_id)
+      if context[:trace] do
+        BrowserContext.start_tracing(context_id)
 
-      PhoenixTest.Playwright.build(frame_id)
+        dir = :phoenix_test |> Application.fetch_env!(:playwright) |> Keyword.fetch!(:trace_dir)
+        File.mkdir_p!(dir)
+
+        "Elixir." <> case = to_string(context.case)
+        session_id = System.unique_integer([:positive, :monotonic])
+        file = String.replace("#{case}.#{context.test}_#{session_id}.zip", ~r/[^a-zA-Z0-9 \.]/, "_")
+        path = Path.join(dir, file)
+
+        on_exit(fn -> BrowserContext.stop_tracing(context_id, path) end)
+      end
+
+      PhoenixTest.Playwright.build(page_id, frame_id)
     end
 
     if @includes_ecto do

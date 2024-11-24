@@ -4,7 +4,11 @@ config :phoenix_test,
   endpoint: PhoenixTest.Endpoint,
   ecto_repos: [PhoenixTest.Repo],
   otp_app: :phoenix_test,
-  playwright_cli: "priv/static/assets/node_modules/playwright/cli.js"
+  playwright: [
+    browser: [browser: :chromium, headless: System.get_env("PLAYWRIGHT_HEADLESS", "t") in ~w(t true)],
+    cli: "priv/static/assets/node_modules/playwright/cli.js",
+    trace: System.get_env("PLAYWRIGHT_TRACE", "false") in ~w(t true)
+  ]
 
 config :logger, level: :warning
 

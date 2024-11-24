@@ -11,8 +11,9 @@ defmodule PhoenixTest.Playwright.Port do
     :buffer
   ]
 
-  def open(config) do
-    cli = Map.get_lazy(config, :driver_path, fn -> Application.fetch_env!(:phoenix_test, :playwright_cli) end)
+  def open(config \\ []) do
+    config = :phoenix_test |> Application.fetch_env!(:playwright) |> Keyword.merge(config)
+    cli = Keyword.fetch!(config, :cli)
 
     unless File.exists?(cli) do
       msg = """
@@ -20,7 +21,7 @@ defmodule PhoenixTest.Playwright.Port do
 
       To resolve this please
       1. Install playwright, e.g. `npm i playwright`
-      2. Configure the path correctly, e.g. in `config/text.exs`: `config :phoenix_test, playwright_cli: "assets/node_modules/playwright/cli.js"`
+      2. Configure the path correctly, e.g. in `config/text.exs`: `config :phoenix_test, playwright: [cli: "assets/node_modules/playwright/cli.js"]`
       """
 
       raise ArgumentError, msg
@@ -33,8 +34,7 @@ defmodule PhoenixTest.Playwright.Port do
   end
 
   def post(state, msg) do
-    default = %{params: %{}, metadata: %{}}
-    frame = msg |> Enum.into(default) |> serialize()
+    frame = serialize(msg)
     length = byte_size(frame)
     padding = <<length::utf32-little>>
     Port.command(state.port, padding <> frame)

@@ -10,106 +10,123 @@ defmodule PhoenixTest.Playwright.Connection do
 
   alias PhoenixTest.Playwright.Port, as: PlaywrightPort
 
+  require Logger
+
   @default_timeout_ms 1000
   @playwright_timeout_grace_period_ms 100
 
   defstruct [
     :port,
-    :init,
-    responses: %{},
-    pending_init: [],
-    pending_response: %{}
+    status: :pending,
+    awaiting_started: [],
+    initializers: %{},
+    guid_ancestors: %{},
+    guid_subscribers: %{},
+    guid_received: %{},
+    posts_in_flight: %{}
   ]
 
   @name __MODULE__
 
-  def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: @name, timeout: timeout())
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: @name, timeout: timeout())
   end
 
   @doc """
   Lazy launch. Only start the playwright server if actually needed by a test.
   """
-  def ensure_started(config) do
+  def ensure_started(opts \\ []) do
     case Process.whereis(@name) do
-      nil -> start_link(config)
+      nil -> start_link(opts)
       pid -> {:ok, pid}
     end
+
+    GenServer.call(@name, :awaiting_started)
   end
 
   @doc """
   Launch a browser and return its `guid`.
   """
   def launch_browser(type, opts) do
-    type_id = GenServer.call(@name, {:browser_type_id, type})
-    resp = sync_post(guid: type_id, method: "launch", params: Map.new(opts))
+    types = initializer("Playwright")
+    type_id = Map.fetch!(types, type).guid
+    resp = post(guid: type_id, method: "launch", params: Map.new(opts))
     resp.result.browser.guid
   end
 
   @doc """
-  Fire and forget.
+  Subscribe to messages for a guid and its descendants.
   """
-  def post(msg) do
-    GenServer.cast(@name, {:post, msg})
+  def subscribe(pid \\ self(), guid) do
+    GenServer.cast(@name, {:subscribe, {pid, guid}})
   end
 
   @doc """
   Post a message and await the response.
   We wait for an additional grace period after the timeout that we pass to playwright.
-
-  We use double the default timeout if there is no message timeout, since some
-  playwright operations use a backoff internally ([100, 250, 500, 1000]).
   """
-  def sync_post(msg) do
-    timeout = msg[:params][:timeout] || 2 * timeout()
+  def post(msg) do
+    default = %{params: %{}, metadata: %{}}
+    msg = msg |> Enum.into(default) |> update_in(~w(params timeout)a, &(&1 || timeout()))
+    timeout = msg.params.timeout
     timeout_with_grace_period = timeout + @playwright_timeout_grace_period_ms
-    GenServer.call(@name, {:sync_post, msg}, timeout_with_grace_period)
+    GenServer.call(@name, {:post, msg}, timeout_with_grace_period)
   end
 
   @doc """
-  Get all past responses for a playwright `guid` (e.g. a `Frame`).
-  The internal map used to track these responses is never cleaned, it will keep on growing.
+  Get all past received messages for a playwright `guid` (e.g. a `Frame`).
+  The internal map used to track these messages is never cleaned, it will keep on growing.
   Since we're dealing with (short-lived) tests, that should be fine.
   """
-  def responses(guid) do
-    GenServer.call(@name, {:responses, guid})
+  def received(guid) do
+    GenServer.call(@name, {:received, guid})
+  end
+
+  @doc """
+  Get the initializer data for a channel.
+  """
+  def initializer(guid) do
+    GenServer.call(@name, {:initializer, guid})
   end
 
   @impl GenServer
   def init(config) do
     port = PlaywrightPort.open(config)
-    msg = %{guid: "", params: %{sdkLanguage: "javascript"}, method: "initialize"}
+    msg = %{guid: "", params: %{sdkLanguage: "javascript"}, method: "initialize", metadata: %{}}
     PlaywrightPort.post(port, msg)
 
     {:ok, %__MODULE__{port: port}}
   end
 
   @impl GenServer
-  def handle_cast({:post, msg}, state) do
-    PlaywrightPort.post(state.port, msg)
-    {:noreply, state}
+  def handle_cast({:subscribe, {recipient, guid}}, state) do
+    subscribers = Map.update(state.guid_subscribers, guid, [recipient], &[recipient | &1])
+    {:noreply, %{state | guid_subscribers: subscribers}}
   end
 
   @impl GenServer
-  def handle_call({:sync_post, msg}, from, state) do
+  def handle_call({:post, msg}, from, state) do
     msg_id = fn -> System.unique_integer([:positive, :monotonic]) end
     msg = msg |> Map.new() |> Map.put_new_lazy(:id, msg_id)
     PlaywrightPort.post(state.port, msg)
 
-    {:noreply, Map.update!(state, :pending_response, &Map.put(&1, msg.id, from))}
+    {:noreply, Map.update!(state, :posts_in_flight, &Map.put(&1, msg.id, from))}
   end
 
-  def handle_call({:responses, guid}, _from, state) do
-    {:reply, Map.get(state.responses, guid, []), state}
+  def handle_call({:received, guid}, _from, state) do
+    {:reply, Map.get(state.guid_received, guid, []), state}
   end
 
-  def handle_call({:browser_type_id, type}, from, %{init: nil} = state) do
-    fun = &GenServer.reply(from, browser_type_id(&1, type))
-    {:noreply, Map.update!(state, :pending_init, &[fun | &1])}
+  def handle_call({:initializer, guid}, _from, state) do
+    {:reply, Map.get(state.initializers, guid), state}
   end
 
-  def handle_call({:browser_type_id, type}, _from, state) do
-    {:reply, browser_type_id(state.init, type), state}
+  def handle_call(:awaiting_started, from, %{status: :pending} = state) do
+    {:noreply, Map.update!(state, :awaiting_started, &[from | &1])}
+  end
+
+  def handle_call(:awaiting_started, _from, %{status: :started} = state) do
+    {:reply, :ok, state}
   end
 
   @impl GenServer
@@ -121,27 +138,86 @@ defmodule PhoenixTest.Playwright.Connection do
     {:noreply, state}
   end
 
-  defp handle_recv(%{params: %{type: "Playwright"}} = msg, state) do
-    init = msg.params.initializer
-    for fun <- state.pending_init, do: fun.(init)
-
-    %{state | init: init, pending_init: :done}
+  defp handle_recv(msg, state) do
+    state
+    |> log_js_error(msg)
+    |> log_console(msg)
+    |> add_guid_ancestors(msg)
+    |> add_initializer(msg)
+    |> add_received(msg)
+    |> handle_started(msg)
+    |> reply_in_flight(msg)
+    |> notify_subscribers(msg)
   end
 
-  defp handle_recv(msg, %{pending_response: pending} = state) when is_map_key(pending, msg.id) do
-    {from, pending} = Map.pop(pending, msg.id)
+  defp log_js_error(state, %{method: "pageError"} = msg) do
+    Logger.error("Javascript error: #{inspect(msg.params.error)}")
+    state
+  end
+
+  defp log_js_error(state, _), do: state
+
+  defp log_console(state, %{method: "console"} = msg) do
+    level =
+      case msg.params.type do
+        "error" -> :error
+        "debug" -> :debug
+        _ -> :info
+      end
+
+    Logger.log(level, "Javascript console: #{msg.params.text}")
+    state
+  end
+
+  defp log_console(state, _), do: state
+
+  defp handle_started(state, %{method: "__create__", params: %{type: "Playwright"}}) do
+    for from <- state.awaiting_started, do: GenServer.reply(from, :ok)
+    %{state | status: :started, awaiting_started: :none}
+  end
+
+  defp handle_started(state, _), do: state
+
+  defp add_guid_ancestors(state, %{method: "__create__"} = msg) do
+    child = msg.params.guid
+    parent = msg.guid
+    parent_ancestors = Map.get(state.guid_ancestors, parent, [])
+
+    Map.update!(state, :guid_ancestors, &Map.put(&1, child, [parent | parent_ancestors]))
+  end
+
+  defp add_guid_ancestors(state, _), do: state
+
+  defp add_initializer(state, %{method: "__create__"} = msg) do
+    Map.update!(state, :initializers, &Map.put(&1, msg.params.guid, msg.params.initializer))
+  end
+
+  defp add_initializer(state, _), do: state
+
+  defp reply_in_flight(%{posts_in_flight: in_flight} = state, msg) when is_map_key(in_flight, msg.id) do
+    {from, in_flight} = Map.pop(in_flight, msg.id)
     GenServer.reply(from, msg)
 
-    %{state | pending_response: pending}
+    %{state | posts_in_flight: in_flight}
   end
 
-  defp handle_recv(%{guid: guid} = msg, state) do
-    update_in(state.responses[guid], &[msg | &1 || []])
+  defp reply_in_flight(state, _), do: state
+
+  defp add_received(state, %{guid: guid} = msg) do
+    update_in(state.guid_received[guid], &[msg | &1 || []])
   end
 
-  defp handle_recv(_msg, state), do: state
+  defp add_received(state, _), do: state
 
-  defp browser_type_id(init, type), do: Map.fetch!(init, type).guid
+  defp notify_subscribers(state, %{guid: guid} = msg) do
+    for guid <- [guid | Map.get(state.guid_ancestors, guid, [])], pid <- Map.get(state.guid_subscribers, guid, []) do
+      send(pid, {:playwright, msg})
+    end
+
+    state
+  end
+
+  defp notify_subscribers(state, _), do: state
 
   defp timeout do
     Application.get_env(:phoenix_test, :timeout_ms, @default_timeout_ms)
