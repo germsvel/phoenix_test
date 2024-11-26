@@ -73,8 +73,6 @@ defmodule PhoenixTest.Assertions do
     {timeout, opts} = Keyword.pop(opts, :timeout, 100)
 
     assert_with_timeout(session, selector, opts, timeout)
-
-    session
   end
 
   defp assert_with_timeout(%Static{} = session, selector, opts, _timeout) do
@@ -152,6 +150,8 @@ defmodule PhoenixTest.Assertions do
             message: assert_incorrect_count_error_msg(selector, opts, found)
         end
     end
+
+    session
   end
 
   @doc """
