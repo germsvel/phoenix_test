@@ -28,6 +28,10 @@ defmodule PhoenixTest.AsyncPageLive do
       Change h2
     </button>
 
+    <button phx-click="async-navigate">
+      Async navigate!
+    </button>
+
     <button phx-click="async-redirect">
       Async redirect!
     </button>
@@ -39,6 +43,14 @@ defmodule PhoenixTest.AsyncPageLive do
     {:noreply, socket}
   end
 
+  def handle_event("async-navigate", _, socket) do
+    {:noreply,
+     start_async(socket, :async_navigate, fn ->
+       Process.sleep(100)
+       :ok
+     end)}
+  end
+
   def handle_event("async-redirect", _, socket) do
     {:noreply,
      start_async(socket, :async_redirect, fn ->
@@ -47,8 +59,12 @@ defmodule PhoenixTest.AsyncPageLive do
      end)}
   end
 
-  def handle_async(:async_redirect, {:ok, _result}, socket) do
+  def handle_async(:async_navigate, {:ok, _result}, socket) do
     {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_async(:async_redirect, {:ok, _result}, socket) do
+    {:noreply, redirect(socket, to: "/page/index")}
   end
 
   def handle_info(:change_h2, socket) do

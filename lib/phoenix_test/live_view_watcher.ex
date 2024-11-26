@@ -70,9 +70,11 @@ defmodule PhoenixTest.LiveViewWatcher do
     GenServer.call(proxy_pid(view), tuple, :infinity)
   catch
     :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
+      # TODO: should we send a message to test process since it's a redirect?
       {:error, {kind, opts}}
 
     :exit, {{exception, stack}, _} ->
+      # TODO: can we handle this better?
       exit({{exception, stack}, {__MODULE__, :call, [view]}})
   else
     :ok -> :ok
