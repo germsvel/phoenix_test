@@ -42,10 +42,8 @@ defmodule PhoenixTest.LiveViewWatcher do
     {:stop, :normal, state}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, reason}, %{live_view_ref: ref} = state) do
-    {:shutdown, {live_or_redirect, %{kind: :push, to: path}}} = reason
-
-    send(state.caller, {live_or_redirect, path})
+  def handle_info({:DOWN, ref, :process, _pid, {:shutdown, redirect_tuple}}, %{live_view_ref: ref} = state) do
+    send(state.caller, {:live_view_redirected, redirect_tuple})
     Process.cancel_timer(state.timeout_ref)
     {:stop, :normal, state}
   end
@@ -66,7 +64,8 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   defp fetch_async_pids(view) do
-    # Code copied from LiveViewTest's `render_async`
+    # Code copied (and simplified) from LiveViewTest's `render_async`
+    # https://github.com/phoenixframework/phoenix_live_view/blob/09f7a8468ffd063a96b19767265c405898c9932e/lib/phoenix_live_view/test/live_view_test.ex#L940
     tuple = {:async_pids, {proxy_topic(view), nil, nil}}
     GenServer.call(proxy_pid(view), tuple, :infinity)
   catch
