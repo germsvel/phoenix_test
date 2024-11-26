@@ -105,10 +105,9 @@ defmodule PhoenixTest.Assertions do
       :async_process_completed ->
         make_assertion_with_retry(session, selector, opts)
 
-      {:live_redirect, path} ->
-        session.conn
-        |> Phoenix.ConnTest.recycle()
-        |> PhoenixTest.visit(path)
+      {:live_view_redirected, redirect_tuple} ->
+        session
+        |> PhoenixTest.Live.handle_redirect(redirect_tuple)
         |> assert_has(selector, opts)
     end
   end

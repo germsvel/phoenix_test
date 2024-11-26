@@ -319,6 +319,10 @@ defmodule PhoenixTest.Live do
     |> maybe_redirect(session)
   end
 
+  def handle_redirect(session, {kind, %{to: _path}} = redirect_tuple) when kind in [:redirect, :live_redirect] do
+    maybe_redirect({:error, redirect_tuple}, session)
+  end
+
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
     conn = session.conn
 
