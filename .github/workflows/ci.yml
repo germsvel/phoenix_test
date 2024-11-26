@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   MIX_ENV: test
@@ -31,68 +31,68 @@ jobs:
     name: Test on OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ['26.1.2']
-        elixir: ['1.15.0', '1.16.0', '1.17.0', 'main']
+        otp: ["26.1.2"]
+        elixir: ["1.15.0", "1.16.0", "1.17.0", "main"]
     steps:
-    - name: Set up Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        otp-version: ${{matrix.otp}}
-        elixir-version: ${{matrix.elixir}}
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
 
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Cache deps
-      id: cache-deps
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-elixir-deps
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-mix-${{ env.cache-name }}-
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
 
-    - name: Cache compiled build
-      id: cache-build
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-compiled-build
-      with:
-        path: _build
-        key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-mix-${{ env.cache-name }}-
-          ${{ runner.os }}-mix-
+      - name: Cache compiled build
+        id: cache-build
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-compiled-build
+        with:
+          path: _build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+            ${{ runner.os }}-mix-
 
-    - name: Bust cache on job rerun to rule out incremental build as a source of flakiness
-      if: github.run_attempt != '1'
-      run: |
-        mix deps.clean --all
-        mix clean
-      shell: sh
+      - name: Bust cache on job rerun to rule out incremental build as a source of flakiness
+        if: github.run_attempt != '1'
+        run: |
+          mix deps.clean --all
+          mix clean
+        shell: sh
 
-    - name: Install dependencies
-      run: mix deps.get
+      - name: Install dependencies
+        run: mix deps.get
 
-    - name: Install JS dependencies
-      run: npm ci --prefix priv/static/assets
+      - name: Install JS dependencies
+        run: npm ci --prefix priv/static/assets
 
-    - name: Compiles without warnings
-      run: mix compile --warnings-as-errors
+      - name: Compiles without warnings
+        run: mix compile --warnings-as-errors
 
-    - name: Check Formatting
-      run: mix format --check-formatted
+      - name: Check Formatting
+        run: mix format --check-formatted
 
-    - name: Build assets for browser tests
-      run: mix do assets.setup, assets.build
+      - name: Build assets for browser tests
+        run: mix do assets.setup, assets.build
 
-    - name: Setup database
-      run: mix ecto.setup
+      - name: Setup database
+        run: mix ecto.setup
 
-    - name: Install playwright browsers
-      run: npm exec --prefix priv/static/assets playwright install --with-deps
+      - name: Install playwright browsers
+        run: npm exec --prefix priv/static/assets playwright install --with-deps --only-shell
 
-    - name: Run tests
-      run: "mix test || if [[ $? = 2 ]]; then mix test --failed; else false; fi"
+      - name: Run tests
+        run: "mix test || if [[ $? = 2 ]]; then mix test --failed; else false; fi"
