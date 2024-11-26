@@ -71,9 +71,11 @@ defmodule PhoenixTest.LiveViewWatcher do
   catch
     :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
       # TODO: should we send a message to test process since it's a redirect?
+      dbg({kind, opts})
       {:error, {kind, opts}}
 
     :exit, {{exception, stack}, _} ->
+      dbg({exception, stack})
       # TODO: can we handle this better?
       exit({{exception, stack}, {__MODULE__, :call, [view]}})
   else
