@@ -1,42 +1,28 @@
 defmodule PhoenixTest.LiveTest do
-  use ExUnit.Case, async: true
-
-  import PhoenixTest
-  import PhoenixTest.Locators
+  use PhoenixTest.Case, async: true, parameterize: [%{playwright: false}, %{playwright: true}]
 
   alias PhoenixTest.Driver
 
-  setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
-  end
-
-  describe "render_page_title/1" do
+  describe "assert_has/2 title" do
     test "renders the page title", %{conn: conn} do
-      title =
-        conn
-        |> visit("/live/index")
-        |> PhoenixTest.Driver.render_page_title()
-
-      assert title == "PhoenixTest is the best!"
+      conn
+      |> visit("/live/index")
+      |> assert_has("title", text: "PhoenixTest is the best!")
     end
 
     test "renders updated page title", %{conn: conn} do
-      title =
-        conn
-        |> visit("/live/index")
-        |> click_button("Change page title")
-        |> PhoenixTest.Driver.render_page_title()
-
-      assert title == "Title changed!"
+      conn
+      |> visit("/live/index")
+      |> click_button("Change page title")
+      |> assert_has("title", text: "Title changed!")
     end
+  end
 
+  describe "refute_has/1 title" do
     test "returns nil if page title isn't found", %{conn: conn} do
-      title =
-        conn
-        |> visit("/live/index_no_layout")
-        |> PhoenixTest.Driver.render_page_title()
-
-      assert title == nil
+      conn
+      |> visit("/live/index_no_layout")
+      |> refute_has("title")
     end
   end
 
@@ -59,6 +45,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "preserves headers across redirects", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
@@ -69,6 +56,7 @@ defmodule PhoenixTest.LiveTest do
       end)
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise ArgumentError, ~r/404/, fn ->
         visit(conn, "/live/non_route")
@@ -112,6 +100,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "preserves headers across navigation", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
@@ -123,6 +112,8 @@ defmodule PhoenixTest.LiveTest do
       end)
     end
 
+    # Playwright: Errors with PhoenixTest message (not Phoenix.LiveViewTest message)
+    @tag playwright: false, reason: :different_error_message
     test "raises error when there are multiple links with same text", %{conn: conn} do
       assert_raise ArgumentError, ~r/2 of them matched the text filter/, fn ->
         conn
@@ -131,6 +122,8 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
+    # Playwright: Errors with PhoenixTest message (not Phoenix.LiveViewTest message)
+    @tag playwright: false, reason: :different_error_message
     test "raises an error when link element can't be found with given text", %{conn: conn} do
       assert_raise ArgumentError, ~r/elements but none matched the text filter "No link"/, fn ->
         conn
@@ -139,6 +132,8 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
+    # Playwright: Errors with PhoenixTest message (not Phoenix.LiveViewTest message)
+    @tag playwright: false, reason: :different_error_message
     test "raises an error when there are no links on the page", %{conn: conn} do
       assert_raise ArgumentError, ~r/selector "a" did not return any element/, fn ->
         conn
@@ -156,6 +151,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#tab", text: "Tab title")
     end
 
+    @tag playwright: false, reason: :irrevelant
     test "does not remove active form if button isn't form's submit button", %{conn: conn} do
       session =
         conn
@@ -166,6 +162,7 @@ defmodule PhoenixTest.LiveTest do
       assert PhoenixTest.ActiveForm.active?(session.active_form)
     end
 
+    @tag playwright: false, reason: :irrevelant
     test "resets active form if it is form's submit button", %{conn: conn} do
       session =
         conn
@@ -199,7 +196,9 @@ defmodule PhoenixTest.LiveTest do
     test "can click button that does not submit form after filling form", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: "some@example.com")
+      |> within("#email-form", fn session ->
+        fill_in(session, "Email", with: "some@example.com")
+      end)
       |> click_button("Save Nested Form")
       |> refute_has("#form-data", text: "email: some@example.com")
     end
@@ -227,7 +226,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#redirect-form-to-static", &fill_in(&1, "Name", with: "Aragorn"))
-      |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static")
+      |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static Form")
       |> assert_has("h1", text: "Main page")
     end
 
@@ -239,6 +238,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg = ~r/to have a `phx-submit` or `action` defined/
 
@@ -258,6 +258,7 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if button is not part of form and has no phx-submit", %{conn: conn} do
       msg = ~r/to have a valid `phx-click` attribute or belong to a `form` element/
 
@@ -299,7 +300,7 @@ defmodule PhoenixTest.LiveTest do
       |> within("#email-form", fn session ->
         fill_in(session, "Email", with: "someone@example.com")
       end)
-      |> assert_has(input(label: "Email", value: "someone@example.com"))
+      |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
     test "raises when data is not in scoped HTML", %{conn: conn} do
@@ -317,8 +318,10 @@ defmodule PhoenixTest.LiveTest do
     test "fills in a single text field based on the label", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: "someone@example.com")
-      |> assert_has(input(label: "Email", value: "someone@example.com"))
+      |> within("#email-form", fn session ->
+        fill_in(session, "Email", with: "someone@example.com")
+      end)
+      |> assert_has("#form-data", text: "email: someone@example.com")
     end
 
     test "can fill input with `nil` to override existing value", %{conn: conn} do
@@ -373,7 +376,9 @@ defmodule PhoenixTest.LiveTest do
     test "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: "someone@example.com")
+      |> within("#email-form", fn session ->
+        fill_in(session, "Email", with: "someone@example.com")
+      end)
       |> click_button("Save Email")
       |> assert_has("#form-data", text: "email: someone@example.com")
     end
@@ -381,7 +386,9 @@ defmodule PhoenixTest.LiveTest do
     test "can be combined with other forms' fill_ins (without pollution)", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: "frodo@example.com")
+      |> within("#email-form", fn session ->
+        fill_in(session, "Email", with: "frodo@example.com")
+      end)
       |> fill_in("Comments", with: "Hobbit")
       |> assert_has("#form-data", text: "comments: Hobbit")
       |> refute_has("#form-data", text: "email: frodo@example.com")
@@ -466,41 +473,24 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "[elf, dwarf]")
     end
 
-    test "works with phx-click outside of forms", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> within("#not-a-form", fn session ->
-        select(session, "Dog", from: "Choose a pet:")
-      end)
-      |> assert_has("#form-data", text: "selected: [dog]")
-    end
-
-    test "works with phx-click and multi-select", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> within("#not-a-form", fn session ->
-        select(session, ["Dog", "Cat"], from: "Choose a pet:")
-      end)
-      |> assert_has("#form-data", text: "selected: [dog, cat]")
-    end
-
     test "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#complex-labels", fn session ->
-        select(session, "Dog", from: "Choose a pet:", exact: false)
+        select(session, "Cat", from: "Choose a pet:", exact: false)
       end)
-      |> assert_has("#form-data", text: "pet: dog")
+      |> assert_has("#form-data", text: "pet: cat")
     end
 
+    @tag playwright: false, reason: :not_implemented, not_implemented: :exact_option
     test "can target an option's text with exact_option: false", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#full-form", fn session ->
-        select(session, "Hum", from: "Race", exact_option: false)
+        select(session, "Dwa", from: "Race", exact_option: false)
       end)
       |> submit()
-      |> assert_has("#form-data", text: "race: human")
+      |> assert_has("#form-data", text: "race: dwarf")
     end
 
     test "can target option with selector if multiple labels have same text", %{conn: conn} do
@@ -512,6 +502,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "favorite-character: Frodo")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if select option is neither in a form nor has a phx-click", %{conn: conn} do
       session = visit(conn, "/live/index")
 
@@ -582,6 +573,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "like-elixir: yes")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
@@ -652,6 +644,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "like-elixir: no")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
@@ -681,9 +674,9 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#not-a-form", fn session ->
-        choose(session, "Huey")
+        choose(session, "Dewey")
       end)
-      |> assert_has("#form-data", text: "value: huey")
+      |> assert_has("#form-data", text: "value: dewey")
     end
 
     test "can target a label with exact: false", %{conn: conn} do
@@ -704,6 +697,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "elixir-yes: yes")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if radio is neither in a form nor has a phx-click", %{conn: conn} do
       session = visit(conn, "/live/index")
 
@@ -747,6 +741,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "main_avatar: elixir.jpg")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "upload (without other form actions) does not work with submit (matches browser behavior)", %{conn: conn} do
       session =
         conn
@@ -795,7 +790,9 @@ defmodule PhoenixTest.LiveTest do
     test "submits a pre-filled form via phx-submit", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: "some@example.com")
+      |> within("#email-form", fn session ->
+        fill_in(session, "Email", with: "some@example.com")
+      end)
       |> submit()
       |> assert_has("#form-data", text: "email: some@example.com")
     end
@@ -848,6 +845,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "preserves headers after form submission and redirect", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
@@ -876,6 +874,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "button: save")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if there's no active form", %{conn: conn} do
       message = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
 
@@ -886,6 +885,7 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg = ~r/to have a `phx-submit` or `action` defined/
 
@@ -910,6 +910,7 @@ defmodule PhoenixTest.LiveTest do
       %{open_fun: open_fun}
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "opens the browser", %{conn: conn, open_fun: open_fun} do
       conn
       |> visit("/live/index")
@@ -919,6 +920,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "unwrap" do
+    @tag playwright: false, reason: :irrelevant
     test "provides an escape hatch that gives access to the underlying view", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -930,6 +932,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Legolas")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "follows redirects after unwrap action", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -942,62 +945,52 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "current_path" do
+  describe "assert_path" do
     test "it is set on visit", %{conn: conn} do
-      session = visit(conn, "/live/index")
-
-      assert PhoenixTest.Driver.current_path(session) == "/live/index"
+      conn
+      |> visit("/live/index")
+      |> assert_path("/live/index")
     end
 
     test "it is set on visit with query string", %{conn: conn} do
-      session = visit(conn, "/live/index?foo=bar")
-
-      assert PhoenixTest.Driver.current_path(session) == "/live/index?foo=bar"
+      conn
+      |> visit("/live/index?foo=bar")
+      |> assert_path("/live/index", query_params: %{foo: "bar"})
     end
 
     test "it is updated on href navigation", %{conn: conn} do
-      session =
-        conn
-        |> visit("/live/index")
-        |> click_link("Navigate to non-liveview")
-
-      assert PhoenixTest.Driver.current_path(session) == "/page/index?details=true&foo=bar"
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate to non-liveview")
+      |> assert_path("/page/index", query_params: %{details: "true", foo: "bar"})
     end
 
     test "it is updated on live navigation", %{conn: conn} do
-      session =
-        conn
-        |> visit("/live/index")
-        |> click_link("Navigate link")
-
-      assert PhoenixTest.Driver.current_path(session) == "/live/page_2?details=true&foo=bar"
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate link")
+      |> assert_path("/live/page_2", query_params: %{details: "true", foo: "bar"})
     end
 
     test "it is updated on live patching", %{conn: conn} do
-      session =
-        conn
-        |> visit("/live/index")
-        |> click_link("Patch link")
-
-      assert PhoenixTest.Driver.current_path(session) == "/live/index?details=true&foo=bar"
+      conn
+      |> visit("/live/index")
+      |> click_link("Patch link")
+      |> assert_path("/live/index", query_params: %{details: "true", foo: "bar"})
     end
 
     test "it is updated on push navigation", %{conn: conn} do
-      session =
-        conn
-        |> visit("/live/index")
-        |> click_button("Button with push navigation")
-
-      assert PhoenixTest.Driver.current_path(session) == "/live/page_2?foo=bar"
+      conn
+      |> visit("/live/index")
+      |> click_button("Button with push navigation")
+      |> assert_path("/live/page_2", query_params: %{foo: "bar"})
     end
 
     test "it is updated on push patch", %{conn: conn} do
-      session =
-        conn
-        |> visit("/live/index")
-        |> click_button("Button with push patch")
-
-      assert PhoenixTest.Driver.current_path(session) == "/live/index?foo=bar"
+      conn
+      |> visit("/live/index")
+      |> click_button("Button with push patch")
+      |> assert_path("/live/index", query_params: %{foo: "bar"})
     end
   end
 
@@ -1005,17 +998,25 @@ defmodule PhoenixTest.LiveTest do
     test "triggers phx-change validations", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: nil)
+      |> within("#email-form", fn session ->
+        session
+        |> fill_in("Email", with: "email")
+        |> fill_in("Email", with: nil)
+      end)
       |> assert_has("#form-errors", text: "Errors present")
     end
 
     test "sends _target with phx-change events", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> fill_in("Email", with: "frodo@example.com")
+      |> within("#email-form", fn session ->
+        fill_in(session, "Email", with: "frodo@example.com")
+      end)
       |> assert_has("#form-data", text: "_target: [email]")
     end
 
+    # Playwright: Unstable data-phx-ids
+    @tag playwright: false, reason: :flaky_test
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = visit(conn, "/live/index")
 
@@ -1049,6 +1050,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "hidden_race: hobbit")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
         conn

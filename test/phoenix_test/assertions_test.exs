@@ -1,16 +1,11 @@
 defmodule PhoenixTest.AssertionsTest do
-  use ExUnit.Case, async: true
+  use PhoenixTest.Case, async: true, parameterize: [%{playwright: false}, %{playwright: true}]
 
-  import PhoenixTest
   import PhoenixTest.Locators
   import PhoenixTest.TestHelpers
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Live
-
-  setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
-  end
 
   describe "assert_has/2" do
     test "succeeds if single element is found with CSS selector", %{conn: conn} do
@@ -47,6 +42,7 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("li")
     end
 
+    @tag playwright: false, reason: {:not_implemented, :locators}
     test "takes in input helper in assertion", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -282,6 +278,10 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    # Different semantics:
+    # - PhoenixTest: Assert second li has text is "Legolas"
+    # - Playwright: Assert two li with text "Legolas" exist
+    @tag playwright: false, reason: :known_inconsistency
     test "accepts an `at` option to assert on a specific element", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -553,6 +553,10 @@ defmodule PhoenixTest.AssertionsTest do
       |> refute_has("#multiple-items li", at: 2, text: "Aragorn")
     end
 
+    # Different semantics:
+    # - PhoenixTest: Assert second li has text is "Legolas"
+    # - Playwright: Assert two li with text "Legolas" exist
+    @tag playwright: false, reason: :known_inconsistency
     test "raises if it finds element at `at` position", %{conn: conn} do
       msg =
         ignore_whitespace("""

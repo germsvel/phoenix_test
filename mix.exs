@@ -50,6 +50,10 @@ defmodule PhoenixTest.MixProject do
       {:mime, ">= 1.0.0", optional: true},
       {:phoenix, "~> 1.7.10"},
       {:phoenix_live_view, "~> 0.20.1"},
+      {:ecto, "~> 3.12", optional: true},
+      {:ecto_sql, "~> 3.12", optional: true},
+      {:phoenix_ecto, "~> 4.6", optional: true},
+      {:postgrex, "~> 0.19.2", option: true},
       {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false}
     ]
@@ -77,7 +81,10 @@ defmodule PhoenixTest.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["esbuild.install --if-missing"],
       "assets.build": ["esbuild default"]
     ]

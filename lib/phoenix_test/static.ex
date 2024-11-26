@@ -292,6 +292,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Assertions
   alias PhoenixTest.Static
 
+  def visit(_, _), do: raise(ArgumentError, message: "Unexpected: Call visit/1 with a %Plug.Conn{}.")
+
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
   defdelegate click_link(session, selector, text), to: Static

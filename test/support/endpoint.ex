@@ -12,4 +12,6 @@ defmodule PhoenixTest.Endpoint do
 
   plug Plug.MethodOverride
   plug PhoenixTest.Router
+
+  plug Phoenix.Ecto.SQL.Sandbox
 end

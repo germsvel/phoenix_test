@@ -1,0 +1,6 @@
+{
+  "name": "phoenix_test",
+  "dependencies": {
+    "playwright": "^1.48.1"
+  }
+}

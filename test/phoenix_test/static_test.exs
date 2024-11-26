@@ -1,12 +1,7 @@
 defmodule PhoenixTest.StaticTest do
-  use ExUnit.Case, async: true
+  use PhoenixTest.Case, async: true, parameterize: [%{playwright: false}, %{playwright: true}]
 
-  import PhoenixTest
   import PhoenixTest.TestHelpers
-
-  setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
-  end
 
   describe "render_page_title/1" do
     test "renders the page title", %{conn: conn} do
@@ -41,6 +36,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "preserves headers across redirects", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
@@ -51,6 +47,7 @@ defmodule PhoenixTest.StaticTest do
       end)
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises error if route doesn't exist", %{conn: conn} do
       assert_raise ArgumentError, ~r/404/, fn ->
         visit(conn, "/non_route")
@@ -80,6 +77,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Page 2")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "preserves headers across navigation", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
@@ -98,6 +96,8 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    # Playwright: case insensitive when using exact=false semantics to find link by substring.
+    @tag playwright: false, reason: :known_inconsistency
     test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -105,6 +105,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record deleted")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
         ignore_whitespace("""
@@ -229,6 +230,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record deleted")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "does not remove active form if button isn't form's submit button", %{conn: conn} do
       session =
         conn
@@ -239,6 +241,7 @@ defmodule PhoenixTest.StaticTest do
       assert PhoenixTest.ActiveForm.active?(session.active_form)
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "resets active form if it is form's submit button", %{conn: conn} do
       session =
         conn
@@ -277,6 +280,7 @@ defmodule PhoenixTest.StaticTest do
       |> refute_has("#form-data", text: "disabled_textarea:")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg = ~r/Tried submitting form via `data-method` but some data attributes/
 
@@ -307,6 +311,7 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if button is not part of form", %{conn: conn} do
       msg =
         ~r/Could not find "form" for an element with selector/
@@ -496,6 +501,7 @@ defmodule PhoenixTest.StaticTest do
       |> refute_has("#form-data", text: "race_2")
     end
 
+    @tag playwright: false, reason: :flaky_test
     test "can target a label with exact: false", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -506,6 +512,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "pet: dog")
     end
 
+    @tag playwright: false, reason: :not_implemented, not_implemented: :exact_option
     test "can target an option's text with exact_option: false", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -516,6 +523,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "race: human")
     end
 
+    @tag playwright: false, reason: :flaky_test
     test "can target option with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -652,6 +660,8 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "book-or-movie: book")
     end
 
+    # Playwright: Can't find <input type="button" value="Save form"> with `exact: true`
+    @tag playwright: false, reason: :bug
     test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -676,6 +686,8 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "avatar: elixir.jpg")
     end
 
+    # Playwright: Can't find second input field (order of `upload` calls seems to matter, why?)
+    @tag playwright: false, reason: :bug
     test "uploads image list", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -705,6 +717,8 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "avatar: elixir.jpg")
     end
 
+    # Playwright: 'Enter' key on file input oppens file picker dialog
+    @tag playwright: false, reason: :bug
     test "can specify input selector when multiple inputs have same label", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -803,6 +817,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "preserves headers after form submission and redirect", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
@@ -836,6 +851,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record deleted")
     end
 
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if there's no active form", %{conn: conn} do
       msg = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
 
@@ -883,6 +899,7 @@ defmodule PhoenixTest.StaticTest do
 
     @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
+    @tag playwright: false, reason: :irrelevant
     test "provides an escape hatch that gives access to the underlying conn", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -894,6 +911,7 @@ defmodule PhoenixTest.StaticTest do
       end)
     end
 
+    @tag playwright: false, reason: :irrelevant
     test "follows redirects after unwrap action", %{conn: conn} do
       conn
       |> visit("/page/page_2")
@@ -904,39 +922,36 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
-  describe "current_path" do
+  describe "assert_path" do
     test "it is set on visit", %{conn: conn} do
-      session = visit(conn, "/page/index")
-
-      assert PhoenixTest.Driver.current_path(session) == "/page/index"
+      conn
+      |> visit("/page/index")
+      |> assert_path("/page/index")
     end
 
     test "it includes query string if available", %{conn: conn} do
-      session = visit(conn, "/page/index?foo=bar")
-
-      assert PhoenixTest.Driver.current_path(session) == "/page/index?foo=bar"
+      conn
+      |> visit("/page/index?foo=bar")
+      |> assert_path("/page/index", query_params: %{foo: "bar"})
     end
 
     test "it is updated on href navigation", %{conn: conn} do
-      session =
-        conn
-        |> visit("/page/index")
-        |> click_link("Page 2")
-
-      assert PhoenixTest.Driver.current_path(session) == "/page/page_2?foo=bar"
+      conn
+      |> visit("/page/index")
+      |> click_link("Page 2")
+      |> assert_path("/page/page_2", query_params: %{foo: "bar"})
     end
 
     test "it is updated on redirects", %{conn: conn} do
-      session =
-        conn
-        |> visit("/page/index")
-        |> click_link("Navigate away and redirect back")
-
-      assert PhoenixTest.Driver.current_path(session) == "/page/index"
+      conn
+      |> visit("/page/index")
+      |> click_link("Navigate away and redirect back")
+      |> assert_path("/page/index")
     end
   end
 
   describe "shared form helpers behavior" do
+    @tag playwright: false, reason: :known_inconsistency
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
         conn
