@@ -344,6 +344,13 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("h1", text: "LiveView page 2", timeout: 250)
     end
 
+    test "timeout handles fast async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Navigate quickly")
+      |> assert_has("h1", text: "LiveView page 2", timeout: 150)
+    end
+
     test "timeout handles redirects", %{conn: conn} do
       conn
       |> visit("/live/async_page")
