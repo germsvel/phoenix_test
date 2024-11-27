@@ -32,6 +32,10 @@ defmodule PhoenixTest.AsyncPageLive do
       Async navigate!
     </button>
 
+    <button phx-click="async-navigate-quickly">
+      Navigate quickly
+    </button>
+
     <button phx-click="async-redirect">
       Async redirect!
     </button>
@@ -41,6 +45,14 @@ defmodule PhoenixTest.AsyncPageLive do
   def handle_event("change-h2", _, socket) do
     Process.send_after(self(), :change_h2, 100)
     {:noreply, socket}
+  end
+
+  def handle_event("async-navigate-quickly", _, socket) do
+    {:noreply,
+     start_async(socket, :async_navigate, fn ->
+       # TODO: the redirect is so fast that we can't query the LiveView
+       :ok
+     end)}
   end
 
   def handle_event("async-navigate", _, socket) do
