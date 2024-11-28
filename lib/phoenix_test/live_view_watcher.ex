@@ -11,17 +11,19 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   def init(%{view: view, caller: from}) do
+    # NOTE: do we want to trap exits here?
     Process.flag(:trap_exit, true)
-    {:ok, %{caller: from, view: view}}
+
+    # Monitor the LiveView for exits and redirects
+    live_view_ref = Process.monitor(view.pid)
+
+    {:ok, %{caller: from, view: view, live_view_ref: live_view_ref}}
   end
 
   def handle_cast({:watch_view, timeout}, state) do
     # Set our timeout
     timeout_ref = make_ref()
     Process.send_after(self(), {timeout_ref, :timeout}, timeout)
-
-    # Monitor the LiveView for exits and redirects
-    live_view_ref = Process.monitor(state.view.pid)
 
     # Monitor all async processes
     pids = fetch_async_pids(state.view)
@@ -30,7 +32,6 @@ defmodule PhoenixTest.LiveViewWatcher do
     state =
       state
       |> Map.put(:timeout_ref, timeout_ref)
-      |> Map.put(:live_view_ref, live_view_ref)
       |> Map.put(:async_refs, async_refs)
 
     {:noreply, state}
@@ -44,7 +45,11 @@ defmodule PhoenixTest.LiveViewWatcher do
 
   def handle_info({:DOWN, ref, :process, _pid, {:shutdown, redirect_tuple}}, %{live_view_ref: ref} = state) do
     send(state.caller, {:live_view_redirected, redirect_tuple})
-    Process.cancel_timer(state.timeout_ref)
+
+    if Map.has_key?(state, :timeout_ref) do
+      Process.cancel_timer(state.timeout_ref)
+    end
+
     {:stop, :normal, state}
   end
 
@@ -69,6 +74,10 @@ defmodule PhoenixTest.LiveViewWatcher do
     tuple = {:async_pids, {proxy_topic(view), nil, nil}}
     GenServer.call(proxy_pid(view), tuple, :infinity)
   catch
+    :exit, {:noproc, {GenServer, :call, [_proxy_pid, {:async_pids, {_proxy_topic, nil, nil}}, _timeout]}} ->
+      # Proxy is down
+      []
+
     :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
       # TODO: should we send a message to test process since it's a redirect?
       dbg({kind, opts})
