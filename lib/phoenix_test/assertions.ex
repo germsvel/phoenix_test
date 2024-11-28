@@ -70,7 +70,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_has(session, selector, opts) when is_list(opts) do
-    {timeout, opts} = Keyword.pop(opts, :timeout, 100)
+    {timeout, opts} = Keyword.pop(opts, :timeout, 0)
 
     assert_with_timeout(session, selector, opts, timeout)
   end
@@ -84,13 +84,6 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp assert_with_timeout(%Live{} = session, selector, opts, timeout) do
-    make_assertion(session, selector, opts)
-  rescue
-    AssertionError ->
-      watch_view_and_assert(session, selector, opts, timeout)
-  end
-
-  defp watch_view_and_assert(%Live{} = session, selector, opts, timeout) do
     :ok = PhoenixTest.LiveViewWatcher.watch_view(session.watcher, timeout)
     handle_watched_view_messages_and_assert(session, selector, opts)
   end
@@ -98,12 +91,16 @@ defmodule PhoenixTest.Assertions do
   defp handle_watched_view_messages_and_assert(%Live{} = session, selector, opts) do
     receive do
       :timeout ->
+        dbg(:timeout)
         make_assertion(session, selector, opts)
 
       :async_process_completed ->
+        dbg(:async_process_completed)
         make_assertion_with_retry(session, selector, opts)
 
       {:live_view_redirected, redirect_tuple} ->
+        dbg(redirect_tuple)
+
         session
         |> PhoenixTest.Live.handle_redirect(redirect_tuple)
         |> assert_has(selector, opts)

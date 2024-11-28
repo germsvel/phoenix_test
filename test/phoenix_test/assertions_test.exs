@@ -309,22 +309,15 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("h1", text: "Main", timeout: :timer.minutes(2))
     end
 
-    test "ignores timeout for regular LiveView events", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> click_button("Change h3")
-      |> assert_has("h3", text: "I've been changed!", timeout: :timer.minutes(2))
-    end
-
-    test "honors timeout 0", %{conn: conn} do
+    test "defaults to timeout 0", %{conn: conn} do
       assert_raise AssertionError, ~r/Could not find any elements/, fn ->
         conn
         |> visit("/live/async_page")
-        |> assert_has("h1", text: "Title loaded async", timeout: 0)
+        |> assert_has("h1", text: "Title loaded async")
       end
     end
 
-    test "changes to LiveView as a result of messages", %{conn: conn} do
+    test "timeout waits for changes to LiveView as a result of info messages", %{conn: conn} do
       conn
       |> visit("/live/async_page")
       |> click_button("Change h2")
