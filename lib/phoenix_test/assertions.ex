@@ -94,6 +94,15 @@ defmodule PhoenixTest.Assertions do
         dbg(:timeout)
         make_assertion(session, selector, opts)
 
+      :live_view_died ->
+        dbg(:live_view_died)
+        {path, _flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 100)
+        dbg(path)
+
+        session.conn
+        |> PhoenixTest.visit(path)
+        |> assert_has(selector, opts)
+
       :async_process_completed ->
         dbg(:async_process_completed)
         make_assertion_with_retry(session, selector, opts)
