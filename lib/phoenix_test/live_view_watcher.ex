@@ -53,6 +53,11 @@ defmodule PhoenixTest.LiveViewWatcher do
     {:stop, :normal, state}
   end
 
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, %{live_view_ref: ref} = state) do
+    send(state.caller, :live_view_died)
+    {:stop, :normal, state}
+  end
+
   def handle_info({:DOWN, ref, :process, _pid, _reason}, %{async_refs: async_refs} = state) do
     if ref in async_refs do
       # NOTE: delay sending in case of redirect as a result of async operation
