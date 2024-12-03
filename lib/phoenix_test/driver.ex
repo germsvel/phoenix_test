@@ -2,7 +2,9 @@ defprotocol PhoenixTest.Driver do
   @moduledoc false
   def render_page_title(session)
   def render_html(session)
+  def click_link(session, text)
   def click_link(session, selector, text)
+  def click_button(session, text)
   def click_button(session, selector, text)
   def within(session, selector, fun)
   def fill_in(session, input_selector, label, opts)

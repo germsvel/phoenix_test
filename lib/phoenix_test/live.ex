@@ -2,6 +2,7 @@ defmodule PhoenixTest.Live do
   @moduledoc false
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
+  import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Element.Button
@@ -46,11 +47,23 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def click_link(session, selector, text) do
+  def click_link(session, selector \\ "a", text) do
     session.view
     |> element(selector, text)
     |> render_click()
     |> maybe_redirect(session)
+  end
+
+  def click_button(session, text) do
+    locator = button(text: text)
+    html = render_html(session)
+
+    button =
+      html
+      |> Query.find_by_role!(locator)
+      |> Button.build(html)
+
+    click_button(session, button.selector, button.text)
   end
 
   def click_button(session, selector, text) do
@@ -369,7 +382,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
+  defdelegate click_link(session, text), to: Live
   defdelegate click_link(session, selector, text), to: Live
+  defdelegate click_button(session, text), to: Live
   defdelegate click_button(session, selector, text), to: Live
   defdelegate within(session, selector, fun), to: Live
   defdelegate fill_in(session, input_selector, label, opts), to: Live
