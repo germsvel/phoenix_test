@@ -323,6 +323,22 @@ defmodule PhoenixTest.Live do
     maybe_redirect({:error, redirect_tuple}, session)
   end
 
+  @flash_cookie "__phoenix_flash__"
+  def handle_redirect(session, {path, flash}) when is_binary(path) and is_map(flash) do
+    # NOTE: flash knowledge comes from LiveView.Test's __follow_redirect__ function
+    # https://github.com/phoenixframework/phoenix_live_view/blob/f778e5bb1a4b0a29f8d688bbc6c0b7182dea51ca/lib/phoenix_live_view/test/live_view_test.ex#L1686
+    # We cannot simply put_flash b/c we need to fetch_session before and we
+    # don't have a session store configured for some reason
+    conn = session.conn
+    endpoint = Application.get_env(:phoenix_test, :endpoint)
+    signed_flash = Phoenix.LiveView.Utils.sign_flash(endpoint, flash)
+
+    conn
+    |> recycle(all_headers(conn))
+    |> Phoenix.ConnTest.put_req_cookie(@flash_cookie, signed_flash)
+    |> PhoenixTest.visit(path)
+  end
+
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
     conn = session.conn
 
