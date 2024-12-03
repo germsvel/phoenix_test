@@ -96,11 +96,10 @@ defmodule PhoenixTest.Assertions do
 
       :live_view_died ->
         dbg(:live_view_died)
-        {path, _flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 100)
-        dbg(path)
+        {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 0)
 
-        session.conn
-        |> PhoenixTest.visit(path)
+        session
+        |> PhoenixTest.Live.handle_redirect({path, flash})
         |> assert_has(selector, opts)
 
       :async_process_completed ->
