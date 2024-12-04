@@ -1049,6 +1049,53 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "hidden_race: hobbit")
     end
 
+    test "phx-trigger-action causes POST to static view", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Trigger action", with: "engage")
+      |> submit()
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> assert_has("#form-data", text: "trigger_action_input: engage")
+    end
+
+    test "phx-trigger-action from outside the form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Trigger from elsewhere")
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> refute_has("#form-data", text: "trigger_action_input:")
+    end
+
+    test "phx-trigger-action performed after patch", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Patch and trigger action", with: "let's go")
+      |> assert_path("/page/create_record")
+    end
+
+    test "phx-trigger-action ignored if view redirects", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Redirect and trigger action")
+      |> assert_path("/live/page_2")
+    end
+
+    test "phx-trigger-action ignored if view navigates", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Navigate and trigger action")
+      |> assert_path("/live/page_2")
+    end
+
+    test "raises an error if multiple forms have phx-trigger-action", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Found multiple forms/, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_button("Trigger multiple")
+        |> assert_has("#form-data", text: "hidden: trigger_action_hidden_value")
+      end
+    end
+
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
         conn
