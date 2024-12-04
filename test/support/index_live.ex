@@ -382,8 +382,8 @@ defmodule PhoenixTest.IndexLive do
     <form id="changes-hidden-input-form" phx-change="set-hidden-race">
       <input type="hidden" name="hidden_race" value={@hidden_input_race} />
 
-      <label>Email <input type="email" name="email" /></label>
-      <label>Name <input type="name" name="name" /></label>
+      <label>Email for hidden <input type="email" name="email" /></label>
+      <label>Name for hidden <input type="name" name="name" /></label>
     </form>
 
     <div id="not-a-form">
