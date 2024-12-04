@@ -78,14 +78,14 @@ defmodule PhoenixTest.IndexLive do
       <label for="city">City</label>
       <select id="city" name="city">
         <%= for city <- @cities do %>
-          <option value={city}><%= city %></option>
+          <option value={city}>{city}</option>
         <% end %>
       </select>
     </form>
 
     <div :if={@form_saved} id="form-data">
       <%= for {key, value} <- @form_data do %>
-        <%= render_input_data(key, value) %>
+        {render_input_data(key, value)}
       <% end %>
     </div>
 
