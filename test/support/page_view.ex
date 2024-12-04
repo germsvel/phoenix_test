@@ -390,6 +390,12 @@ defmodule PhoenixTest.PageView do
 
       <input type="submit" name="button" value="Save form" />
     </form>
+
+    <form id="duplicate-inputs" action="/page/create_record" method="POST">
+      <label>Email duplicate 1<input id="email-duplicate-1" name="email" /></label>
+      <label>Email duplicate 2<input id="email-duplicate-2" name="email" /></label>
+      <button>Submit</button>
+    </form>
     """
   end
 
