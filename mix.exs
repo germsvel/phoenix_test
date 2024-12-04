@@ -49,7 +49,7 @@ defmodule PhoenixTest.MixProject do
       {:makeup_html, "~> 0.1.0", only: :dev, runtime: false},
       {:mime, ">= 1.0.0", optional: true},
       {:phoenix, "~> 1.7.10"},
-      {:phoenix_live_view, "~> 0.20.1"},
+      {:phoenix_live_view, "~> 0.20 or ~> 1.0"},
       {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false}
     ]
