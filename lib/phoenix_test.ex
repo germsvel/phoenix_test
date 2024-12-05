@@ -195,11 +195,8 @@ defmodule PhoenixTest do
   """
 
   import Phoenix.ConnTest
-  import PhoenixTest.Locators
 
   alias PhoenixTest.Driver
-  alias PhoenixTest.Element.Button
-  alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
   @doc """
@@ -294,9 +291,7 @@ defmodule PhoenixTest do
   |> click_link("Delete") # <- will submit form like Phoenix.HTML.js does
   ```
   """
-  def click_link(session, text) do
-    click_link(session, "a", text)
-  end
+  defdelegate click_link(session, text), to: Driver
 
   @doc """
   Clicks a link with given CSS selector and text and performs the action.
@@ -407,10 +402,7 @@ defmodule PhoenixTest do
   |> click_button("Delete") # <- Triggers full form delete.
   ```
   """
-
-  def click_button(session, text) do
-    click(session, button(text: text))
-  end
+  defdelegate click_button(session, text), to: Driver
 
   @doc """
   Performs action defined by button with CSS selector and text.
@@ -418,17 +410,6 @@ defmodule PhoenixTest do
   See `click_button/2` for more details.
   """
   defdelegate click_button(session, selector, text), to: Driver
-
-  defp click(session, %PhoenixTest.Locators.Button{} = locator) do
-    html = Driver.render_html(session)
-
-    button =
-      html
-      |> Query.find_by_role!(locator)
-      |> Button.build(html)
-
-    Driver.click_button(session, button.selector, button.text)
-  end
 
   @doc """
   Helpers to scope filling out form within a given selector. Use this if you
