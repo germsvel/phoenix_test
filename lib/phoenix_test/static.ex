@@ -59,7 +59,7 @@ defmodule PhoenixTest.Static do
     link =
       session
       |> render_html()
-      |> Link.find!(selector, text, exacxt: false)
+      |> Link.find!(selector, text, exact: false)
 
     if Link.has_data_method?(link) do
       form =
