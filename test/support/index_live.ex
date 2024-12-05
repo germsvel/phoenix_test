@@ -198,6 +198,14 @@ defmodule PhoenixTest.IndexLive do
       </button>
     </form>
 
+    <form id="live-redirect-form" phx-change="change-redirect-form">
+      <label for="live-redirect-form-name">Name</label>
+      <select id="live-redirect-form-name" name="name">
+        <option value="1">One</option>
+        <option value="2">Two</option>
+      </select>
+    </form>
+
     <form id="redirect-form-to-static" phx-submit="save-redirect-form-to-static">
       <label for="redirect-to-static-name">Name</label>
       <input id="redirect-to-static-name" name="name" />
@@ -590,6 +598,10 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("save-redirect-form", _, socket) do
     {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_event("change-redirect-form", _, socket) do
+    {:noreply, push_navigate(socket, to: "/auth/live/page_2")}
   end
 
   def handle_event("save-redirect-form-to-static", _, socket) do

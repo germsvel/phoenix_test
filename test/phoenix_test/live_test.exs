@@ -223,6 +223,17 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView page 2")
     end
 
+    test "follows form's redirect and preserves headers", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-auth-header", "Some-Value")
+      |> visit("/auth/live/index")
+      |> within("#live-redirect-form", &select(&1, "Two", from: "Name"))
+      |> assert_path("/auth/live/page_2")
+      |> then(fn %{conn: conn} ->
+        assert {"x-auth-header", "Some-Value"} in conn.req_headers
+      end)
+    end
+
     test "follows form's redirect to static page", %{conn: conn} do
       conn
       |> visit("/live/index")
