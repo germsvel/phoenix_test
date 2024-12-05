@@ -524,9 +524,9 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn", exact: false)
   ```
   """
-  def fill_in(session, label, attrs) when is_binary(label) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:with, exact: true])
-    fill_in(session, ["input:not([type='hidden'])", "textarea"], label, opts)
+  def fill_in(session, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:with, exact: true])
+    Driver.fill_in(session, label, opts)
   end
 
   @doc """
@@ -563,8 +563,8 @@ defmodule PhoenixTest do
   |> fill_in("#contact_1_first_name", with: "First Name")
   ```
   """
-  def fill_in(session, input_selector, label, attrs) when is_binary(label) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:with, exact: true])
+  def fill_in(session, input_selector, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:with, exact: true])
     Driver.fill_in(session, input_selector, label, opts)
   end
 
