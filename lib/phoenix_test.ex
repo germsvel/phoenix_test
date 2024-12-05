@@ -665,8 +665,9 @@ defmodule PhoenixTest do
   |> select("Human", from: "Race", exact: false)
   ```
   """
-  def select(session, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
-    select(session, "select", option, attrs)
+  def select(session, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:from, exact: true, exact_option: true])
+    Driver.select(session, option, opts)
   end
 
   @doc """
@@ -677,8 +678,8 @@ defmodule PhoenixTest do
 
   For more on selecting options, see `select/3`.
   """
-  def select(session, select_selector, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:from, exact: true, exact_option: true])
+  def select(session, select_selector, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:from, exact: true, exact_option: true])
     Driver.select(session, select_selector, option, opts)
   end
 

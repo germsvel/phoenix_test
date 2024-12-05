@@ -389,7 +389,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate click_button(session, selector, text), to: Live
   defdelegate within(session, selector, fun), to: Live
   defdelegate fill_in(session, input_selector \\ ["input:not([type='hidden'])", "textarea"], label, opts), to: Live
-  defdelegate select(session, input_selector, option, opts), to: Live
+  defdelegate select(session, input_selector \\ "select", option, opts), to: Live
   defdelegate check(session, input_selector, label, opts), to: Live
   defdelegate uncheck(session, input_selector, label, opts), to: Live
   defdelegate choose(session, input_selector, label, opts), to: Live
