@@ -235,7 +235,7 @@ defmodule PhoenixTest do
   end
 
   @doc """
-  Clicks a link with given text and performs the action.
+  Clicks a link with given text (substring match) and performs the action.
 
   Here's how it handles different types of `a` tags:
 
@@ -307,7 +307,8 @@ defmodule PhoenixTest do
   defdelegate click_link(session, selector, text), to: Driver
 
   @doc """
-  Perfoms action defined by button (and based on attributes present).
+  Perfoms action defined by button with given text
+  (sub-string match, action based on attributes present).
 
   This can be used in a number of ways.
 
