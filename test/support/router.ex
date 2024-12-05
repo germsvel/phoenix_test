@@ -33,6 +33,7 @@ defmodule PhoenixTest.Router do
 
     live_session :live_pages, root_layout: {PhoenixTest.PageView, :layout} do
       live "/live/index", IndexLive
+      live "/live/index/alias", IndexLive
       live "/live/page_2", Page2Live
     end
 
