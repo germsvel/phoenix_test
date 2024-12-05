@@ -555,7 +555,7 @@ defmodule PhoenixTest.IndexLive do
     {:noreply,
      socket
      |> assign(:redirect_and_trigger_submit, true)
-     |> push_patch(to: "/live/index_no_layout")}
+     |> push_patch(to: "/live/index/alias")}
   end
 
   def handle_event("redirect-and-trigger-form", _form_data, socket) do
