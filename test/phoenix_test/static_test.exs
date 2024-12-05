@@ -73,7 +73,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Main page")
     end
 
-    test "fins by substring", %{conn: conn} do
+    test "finds by substring", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("and redirect back")
