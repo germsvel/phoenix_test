@@ -308,7 +308,7 @@ defmodule PhoenixTest do
 
   @doc """
   Perfoms action defined by button with given text
-  (sub-string match, action based on attributes present).
+  (substring match, action based on attributes present).
 
   This can be used in a number of ways.
 
