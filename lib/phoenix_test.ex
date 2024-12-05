@@ -763,7 +763,8 @@ defmodule PhoenixTest do
   def check(session, label, opts \\ [exact: true])
 
   def check(session, label, opts) when is_binary(label) and is_list(opts) do
-    check(session, "input[type='checkbox']", label, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.check(session, label, opts)
   end
 
   def check(session, checkbox_selector, label) when is_binary(label) do
@@ -869,7 +870,8 @@ defmodule PhoenixTest do
   def uncheck(session, label, opts \\ [exact: true])
 
   def uncheck(session, label, opts) when is_binary(label) and is_list(opts) do
-    uncheck(session, "input[type='checkbox']", label, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.uncheck(session, label, opts)
   end
 
   def uncheck(session, checkbox_selector, label) when is_binary(label) do
@@ -974,7 +976,8 @@ defmodule PhoenixTest do
   def choose(session, label, opts \\ [exact: true])
 
   def choose(session, label, opts) when is_binary(label) and is_list(opts) do
-    choose(session, "input[type='radio']", label, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.choose(session, label, opts)
   end
 
   def choose(session, radio_selector, label) when is_binary(label) do
@@ -1083,7 +1086,8 @@ defmodule PhoenixTest do
   def upload(session, label, path, opts \\ [exact: true])
 
   def upload(session, label, path, opts) when is_binary(label) and is_binary(path) and is_list(opts) do
-    upload(session, "input[type='file']", label, path, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.upload(session, label, path, opts)
   end
 
   def upload(session, input_selector, label, path) when is_binary(label) and is_binary(path) do
