@@ -1308,6 +1308,32 @@ defmodule PhoenixTest do
   defdelegate refute_has(session, selector, opts), to: Driver
 
   @doc """
+  Assert helper to verify a file download.
+
+  > ### Note on supported download types
+  >
+  > Only downloads with HTTP response header `Content-Type: attachment; filename=...` are supported.
+
+  ## Examples
+
+  ```elixir
+  conn
+  |> visit("/users")
+  |> click_link("Download avatar")
+  |> assert_download("avatar.jpg")
+
+  conn
+  |> visit("/users")
+  |> click_link("Download avatar")
+  |> assert_download(fn %{mime_type: type, content: content} ->
+    assert file.mime_type == "image/jpeg"
+    assert content == File.read!(expected_file_path)
+  end)
+  ```
+  """
+  defdelegate assert_download(session, file_name), to: Driver
+
+  @doc """
   Assert helper to verify current request path. Takes an optional `query_params`
   map.
 
