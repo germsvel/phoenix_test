@@ -96,11 +96,7 @@ defmodule PhoenixTest.Assertions do
 
       :live_view_died ->
         dbg(:live_view_died)
-        {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 0)
-
-        session
-        |> PhoenixTest.Live.handle_redirect({path, flash})
-        |> assert_has(selector, opts)
+        attempt_assert_redirect(session, selector, opts)
 
       :async_process_completed ->
         dbg(:async_process_completed)
@@ -116,10 +112,23 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp make_assertion_with_retry(session, selector, opts) do
+    dbg("trying again")
     make_assertion(session, selector, opts)
   rescue
     AssertionError ->
       handle_watched_view_messages_and_assert(session, selector, opts)
+  catch
+    :exit, e ->
+      dbg({:exit_captured, e})
+      attempt_assert_redirect(session, selector, opts)
+  end
+
+  defp attempt_assert_redirect(session, selector, opts) do
+    {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 0)
+
+    session
+    |> PhoenixTest.Live.handle_redirect({path, flash})
+    |> assert_has(selector, opts)
   end
 
   defp make_assertion(session, selector, opts) when is_struct(session) do
