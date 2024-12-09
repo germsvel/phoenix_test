@@ -184,6 +184,13 @@ defmodule PhoenixTest.IndexLive do
       Prefilled content
       </textarea>
 
+      <label>
+        Disabled select
+        <select disabled name="disabled_select">
+          <option value="">Select...</option>
+        </select>
+      </label>
+
       <label for={@uploads.avatar.ref}>Avatar</label>
       <.live_file_input upload={@uploads.avatar} />
 
