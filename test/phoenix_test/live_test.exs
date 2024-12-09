@@ -584,6 +584,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "human: yes")
     end
 
+    test "can target a label with line breaks (ingoring extra whitespace)", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#complex-labels", fn session ->
+        check(session, "With line breaks")
+      end)
+      |> assert_has("#form-data", text: "with_linebreaks: yes")
+    end
+
     test "can specify input selector when multiple checkboxes have same label", %{conn: conn} do
       conn
       |> visit("/live/index")
