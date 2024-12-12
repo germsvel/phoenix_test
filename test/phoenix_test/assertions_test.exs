@@ -327,7 +327,7 @@ defmodule PhoenixTest.AssertionsTest do
     test "timeout waits for async assigns", %{conn: conn} do
       conn
       |> visit("/live/async_page")
-      |> assert_has("h1", text: "Title loaded async", timeout: 150)
+      |> assert_has("h1", text: "Title loaded async", timeout: 250)
     end
 
     test "timeout handles async navigates", %{conn: conn} do

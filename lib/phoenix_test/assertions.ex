@@ -69,66 +69,71 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def assert_has(session, selector, opts) when is_list(opts) do
+  def assert_has(%Static{} = session, selector, opts) do
+    make_assertion(session, selector, opts)
+  end
+
+  def assert_has(%Live{} = session, selector, opts) when is_list(opts) do
     {timeout, opts} = Keyword.pop(opts, :timeout, 0)
 
-    assert_with_timeout(session, selector, opts, timeout)
+    with_timeout(session, timeout, fn session ->
+      make_assertion(session, selector, opts)
+    end)
   end
 
-  defp assert_with_timeout(%Static{} = session, selector, opts, _timeout) do
-    make_assertion(session, selector, opts)
+  defp with_timeout(session, timeout, action) when timeout <= 0 and is_function(action) do
+    action.(session)
   end
 
-  defp assert_with_timeout(%Live{} = session, selector, opts, timeout) when timeout <= 0 do
-    make_assertion(session, selector, opts)
-  end
-
-  defp assert_with_timeout(%Live{} = session, selector, opts, timeout) do
+  defp with_timeout(session, timeout, action) when is_function(action) do
     :ok = PhoenixTest.LiveViewWatcher.watch_view(session.watcher, timeout)
-    handle_watched_view_messages_and_assert(session, selector, opts)
+    handle_watched_messages_with_timeout(session, action)
   end
 
-  defp handle_watched_view_messages_and_assert(%Live{} = session, selector, opts) do
+  defp handle_watched_messages_with_timeout(session, action) do
     receive do
       :timeout ->
-        dbg(:timeout)
-        make_assertion(session, selector, opts)
+        dbg(:action_timeout)
+        action.(session)
 
       :live_view_died ->
         dbg(:live_view_died)
-        attempt_assert_redirect(session, selector, opts)
+
+        attempt_assert_redirect(session, action)
 
       :async_process_completed ->
         dbg(:async_process_completed)
-        make_assertion_with_retry(session, selector, opts)
+
+        with_retry(session, action, &handle_watched_messages_with_timeout(&1, action))
 
       {:live_view_redirected, redirect_tuple} ->
         dbg(redirect_tuple)
 
         session
         |> PhoenixTest.Live.handle_redirect(redirect_tuple)
-        |> assert_has(selector, opts)
+        |> then(action)
     end
   end
 
-  defp make_assertion_with_retry(session, selector, opts) do
-    dbg("trying again")
-    make_assertion(session, selector, opts)
+  defp with_retry(session, action, retry_fun) when is_function(action) and is_function(retry_fun) do
+    dbg("trying from with_retry")
+    action.(session)
   rescue
     AssertionError ->
-      handle_watched_view_messages_and_assert(session, selector, opts)
+      dbg("attempt failed. Will retry again")
+      retry_fun.(session)
   catch
     :exit, e ->
       dbg({:exit_captured, e})
-      attempt_assert_redirect(session, selector, opts)
+      retry_fun.(session)
   end
 
-  defp attempt_assert_redirect(session, selector, opts) do
+  defp attempt_assert_redirect(session, action) when is_function(action) do
     {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 0)
 
     session
     |> PhoenixTest.Live.handle_redirect({path, flash})
-    |> assert_has(selector, opts)
+    |> then(action)
   end
 
   defp make_assertion(session, selector, opts) when is_struct(session) do
