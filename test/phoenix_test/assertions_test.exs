@@ -623,6 +623,56 @@ defmodule PhoenixTest.AssertionsTest do
     end
   end
 
+  describe "refute_has/3 with timeout" do
+    test "ignores timeout for static pages", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("h1", text: "Not this", timeout: :timer.minutes(2))
+    end
+
+    test "defaults to timeout 0", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> refute_has("h1")
+    end
+
+    test "timeout waits for changes to LiveView as a result of info messages", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Change h2")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 100)
+    end
+
+    test "timeout waits for async assigns", %{conn: conn} do
+      assert_raise AssertionError, ~r/Expected not to find/, fn ->
+        conn
+        |> visit("/live/async_page")
+        |> refute_has("h1", text: "Title loaded async", timeout: 250)
+      end
+    end
+
+    test "timeout handles async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async navigate!")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
+    end
+
+    test "timeout handles fast async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Navigate quickly")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 150)
+    end
+
+    test "timeout handles redirects", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async redirect!")
+      |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
+    end
+  end
+
   describe "assert_path" do
     test "asserts the session's current path" do
       session = %Live{current_path: "/page/index"}

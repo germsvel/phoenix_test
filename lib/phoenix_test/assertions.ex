@@ -223,7 +223,19 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def refute_has(session, selector, opts) when is_list(opts) do
+  def refute_has(%Static{} = session, selector, opts) when is_list(opts) do
+    make_refutation(session, selector, opts)
+  end
+
+  def refute_has(%Live{} = session, selector, opts) when is_list(opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 0)
+
+    with_timeout(session, timeout, fn session ->
+      make_refutation(session, selector, opts)
+    end)
+  end
+
+  defp make_refutation(session, selector, opts) do
     count = Keyword.get(opts, :count, :any)
     finder = finder_fun(selector, opts)
 
