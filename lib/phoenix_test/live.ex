@@ -381,8 +381,10 @@ end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Assertions
+  alias PhoenixTest.ConnHandler
   alias PhoenixTest.Live
 
+  defdelegate visit(conn, path), to: ConnHandler
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
   defdelegate click_link(session, selector, text), to: Live
