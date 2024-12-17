@@ -17,11 +17,11 @@ defmodule PhoenixTest.AsyncPageLive do
     <.async_result :let={title} assign={@title}>
       <:loading>Loading title...</:loading>
       <:failed :let={_failure}>there was an error loading the title</:failed>
-      <h1><%= title %></h1>
+      <h1>{title}</h1>
     </.async_result>
 
     <h2>
-      <%= @h2 %>
+      {@h2}
     </h2>
 
     <button phx-click="change-h2">
