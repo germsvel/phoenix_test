@@ -103,7 +103,7 @@ defmodule PhoenixTest.Element.Form do
 
   defp form_data_select(form) do
     form
-    |> Html.all("select")
+    |> Html.all("select:not([disabled])")
     |> Enum.flat_map(fn select ->
       multiple = !is_nil(Html.attribute(select, "multiple"))
 
