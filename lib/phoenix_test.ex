@@ -526,9 +526,9 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn", exact: false)
   ```
   """
-  def fill_in(session, label, attrs) when is_binary(label) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:with, exact: true])
-    fill_in(session, ["input:not([type='hidden'])", "textarea"], label, opts)
+  def fill_in(session, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:with, exact: true])
+    Driver.fill_in(session, label, opts)
   end
 
   @doc """
@@ -565,8 +565,8 @@ defmodule PhoenixTest do
   |> fill_in("#contact_1_first_name", with: "First Name")
   ```
   """
-  def fill_in(session, input_selector, label, attrs) when is_binary(label) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:with, exact: true])
+  def fill_in(session, input_selector, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:with, exact: true])
     Driver.fill_in(session, input_selector, label, opts)
   end
 
@@ -667,8 +667,9 @@ defmodule PhoenixTest do
   |> select("Human", from: "Race", exact: false)
   ```
   """
-  def select(session, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
-    select(session, "select", option, attrs)
+  def select(session, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:from, exact: true, exact_option: true])
+    Driver.select(session, option, opts)
   end
 
   @doc """
@@ -679,8 +680,8 @@ defmodule PhoenixTest do
 
   For more on selecting options, see `select/3`.
   """
-  def select(session, select_selector, option, attrs) when (is_binary(option) or is_list(option)) and is_list(attrs) do
-    opts = Keyword.validate!(attrs, [:from, exact: true, exact_option: true])
+  def select(session, select_selector, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:from, exact: true, exact_option: true])
     Driver.select(session, select_selector, option, opts)
   end
 
@@ -764,7 +765,8 @@ defmodule PhoenixTest do
   def check(session, label, opts \\ [exact: true])
 
   def check(session, label, opts) when is_binary(label) and is_list(opts) do
-    check(session, "input[type='checkbox']", label, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.check(session, label, opts)
   end
 
   def check(session, checkbox_selector, label) when is_binary(label) do
@@ -870,7 +872,8 @@ defmodule PhoenixTest do
   def uncheck(session, label, opts \\ [exact: true])
 
   def uncheck(session, label, opts) when is_binary(label) and is_list(opts) do
-    uncheck(session, "input[type='checkbox']", label, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.uncheck(session, label, opts)
   end
 
   def uncheck(session, checkbox_selector, label) when is_binary(label) do
@@ -975,7 +978,8 @@ defmodule PhoenixTest do
   def choose(session, label, opts \\ [exact: true])
 
   def choose(session, label, opts) when is_binary(label) and is_list(opts) do
-    choose(session, "input[type='radio']", label, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.choose(session, label, opts)
   end
 
   def choose(session, radio_selector, label) when is_binary(label) do
@@ -1084,7 +1088,8 @@ defmodule PhoenixTest do
   def upload(session, label, path, opts \\ [exact: true])
 
   def upload(session, label, path, opts) when is_binary(label) and is_binary(path) and is_list(opts) do
-    upload(session, "input[type='file']", label, path, opts)
+    opts = Keyword.validate!(opts, exact: true)
+    Driver.upload(session, label, path, opts)
   end
 
   def upload(session, input_selector, label, path) when is_binary(label) and is_binary(path) do
