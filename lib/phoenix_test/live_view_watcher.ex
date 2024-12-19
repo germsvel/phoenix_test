@@ -26,22 +26,20 @@ defmodule PhoenixTest.LiveViewWatcher do
     Process.send_after(self(), {timeout_ref, :timeout}, timeout)
 
     # Monitor all async processes
-    case fetch_async_pids(state.view) do
-      # {:redirected, redirect_tuple} ->
-      #   send(state.caller, {:live_view_redirected, redirect_tuple})
-      #   Process.cancel_timer(state.timeout_ref)
-      #   {:stop, :live_view_redirected, state}
+    {:ok, pids} = fetch_async_pids(state.view)
+    # {:redirected, redirect_tuple} ->
+    #   send(state.caller, {:live_view_redirected, redirect_tuple})
+    #   Process.cancel_timer(state.timeout_ref)
+    #   {:stop, :live_view_redirected, state}
 
-      {:ok, pids} when is_list(pids) ->
-        async_refs = Enum.map(pids, &Process.monitor(&1))
+    async_refs = Enum.map(pids, &Process.monitor(&1))
 
-        state =
-          state
-          |> Map.put(:timeout_ref, timeout_ref)
-          |> Map.put(:async_refs, async_refs)
+    state =
+      state
+      |> Map.put(:timeout_ref, timeout_ref)
+      |> Map.put(:async_refs, async_refs)
 
-        {:noreply, state}
-    end
+    {:noreply, state}
   end
 
   def handle_info({timeout_ref, :timeout}, %{timeout_ref: timeout_ref} = state) do
