@@ -21,12 +21,16 @@ defmodule PhoenixTest.LiveViewTimeout do
 
       :live_view_died ->
         # dbg(:live_view_died)
-
         check_for_redirect(session, action)
 
       :async_process_completed ->
-        # dbg(:async_process_completed)
+        # TODO: For some reason, many tests just wait full timeout. Like async
+        # operation doesn't get captured. It's possible we don't query async
+        # pids quickly enough to be able to know there was an async operation to
+        # begin with. Maybe we should just retry on interval to handle that
+        # instead of trying to watch async pids.
 
+        # dbg(:async_process_completed)
         with_retry(session, action, &handle_watched_messages_with_timeout(&1, action))
 
       {:live_view_redirected, redirect_tuple} ->
