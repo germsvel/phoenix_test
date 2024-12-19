@@ -26,15 +26,22 @@ defmodule PhoenixTest.LiveViewWatcher do
     Process.send_after(self(), {timeout_ref, :timeout}, timeout)
 
     # Monitor all async processes
-    pids = fetch_async_pids(state.view)
-    async_refs = Enum.map(pids, &Process.monitor(&1))
+    case fetch_async_pids(state.view) do
+      # {:redirected, redirect_tuple} ->
+      #   send(state.caller, {:live_view_redirected, redirect_tuple})
+      #   Process.cancel_timer(state.timeout_ref)
+      #   {:stop, :live_view_redirected, state}
 
-    state =
-      state
-      |> Map.put(:timeout_ref, timeout_ref)
-      |> Map.put(:async_refs, async_refs)
+      {:ok, pids} when is_list(pids) ->
+        async_refs = Enum.map(pids, &Process.monitor(&1))
 
-    {:noreply, state}
+        state =
+          state
+          |> Map.put(:timeout_ref, timeout_ref)
+          |> Map.put(:async_refs, async_refs)
+
+        {:noreply, state}
+    end
   end
 
   def handle_info({timeout_ref, :timeout}, %{timeout_ref: timeout_ref} = state) do
@@ -61,7 +68,8 @@ defmodule PhoenixTest.LiveViewWatcher do
   def handle_info({:DOWN, ref, :process, _pid, _reason}, %{async_refs: async_refs} = state) do
     if ref in async_refs do
       # NOTE: delay sending in case of redirect as a result of async operation
-      Process.send_after(state.caller, :async_process_completed, 100)
+      live_view_buffer = 200
+      Process.send_after(state.caller, :async_process_completed, live_view_buffer)
     end
 
     {:noreply, state}
@@ -78,24 +86,18 @@ defmodule PhoenixTest.LiveViewWatcher do
     # https://github.com/phoenixframework/phoenix_live_view/blob/09f7a8468ffd063a96b19767265c405898c9932e/lib/phoenix_live_view/test/live_view_test.ex#L940
     tuple = {:async_pids, {proxy_topic(view), nil, nil}}
     GenServer.call(proxy_pid(view), tuple, :infinity)
-  catch
-    :exit, {:noproc, {GenServer, :call, [_proxy_pid, {:async_pids, {_proxy_topic, nil, nil}}, _timeout]}} ->
-      # Proxy is down
-      []
-
-    :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
-      # TODO: should we send a message to test process since it's a redirect?
-      dbg({kind, opts})
-      {:error, {kind, opts}}
-
-    :exit, {{exception, stack}, _} ->
-      dbg({exception, stack})
-      # TODO: can we handle this better?
-      exit({{exception, stack}, {__MODULE__, :call, [view]}})
-  else
-    :ok -> :ok
-    {:ok, result} -> result
-    {:raise, exception} -> raise exception
+    # catch
+    #   :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
+    #     dbg({kind, opts})
+    #     {:redirected, {kind, opts}}
+    #
+    #   :exit, e ->
+    #     dbg({:exit_on_fetch_pids, e})
+    #     []
+    # else
+    #   :ok -> :ok
+    #   {:ok, result} -> result
+    #   {:raise, exception} -> raise exception
   end
 
   defp proxy_pid(%{proxy: {_ref, _topic, pid}}), do: pid
