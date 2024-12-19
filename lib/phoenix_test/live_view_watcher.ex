@@ -45,7 +45,8 @@ defmodule PhoenixTest.LiveViewWatcher do
   def handle_info({timeout_ref, :timeout}, %{timeout_ref: timeout_ref} = state) do
     send(state.caller, :timeout)
 
-    {:stop, :normal, state}
+    # {:stop, :normal, state}
+    {:noreply, state}
   end
 
   def handle_info({:DOWN, ref, :process, _pid, {:shutdown, redirect_tuple}}, %{live_view_ref: ref} = state) do
@@ -66,7 +67,7 @@ defmodule PhoenixTest.LiveViewWatcher do
   def handle_info({:DOWN, ref, :process, _pid, _reason}, %{async_refs: async_refs} = state) do
     if ref in async_refs do
       # NOTE: delay sending in case of redirect as a result of async operation
-      live_view_buffer = 200
+      live_view_buffer = 150
       Process.send_after(state.caller, :async_process_completed, live_view_buffer)
     end
 
