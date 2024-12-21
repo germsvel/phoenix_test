@@ -22,6 +22,7 @@ defprotocol PhoenixTest.Driver do
   def assert_has(session, selector, opts)
   def refute_has(session, selector)
   def refute_has(session, selector, opts)
+  def assert_download(session, file_name)
   def assert_path(session, path)
   def assert_path(session, path, opts)
   def refute_path(session, path)

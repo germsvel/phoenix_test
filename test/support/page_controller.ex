@@ -46,4 +46,8 @@ defmodule PhoenixTest.PageController do
     |> put_status(:unauthorized)
     |> render("unauthorized.html")
   end
+
+  def download(conn, _) do
+    send_download(conn, {:file, "test/files/elixir.jpg"})
+  end
 end

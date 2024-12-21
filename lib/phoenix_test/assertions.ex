@@ -188,6 +188,23 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
+  def assert_download(session, _) when not is_struct(session, PhoenixTest.Static) do
+    raise ArgumentError, "Only downloads via Phoenix.Controller are supported."
+  end
+
+  def assert_download(session, fun) when is_function(fun, 1) do
+    session |> PhoenixTest.Static.download_file() |> fun.()
+
+    session
+  end
+
+  def assert_download(session, file_name) when is_binary(file_name) do
+    file = PhoenixTest.Static.download_file(session)
+    assert file.name == file_name
+
+    session
+  end
+
   def assert_path(session, path) do
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
