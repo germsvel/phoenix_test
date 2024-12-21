@@ -194,11 +194,9 @@ defmodule PhoenixTest do
   For more info, see `within/3`.
   """
 
-  import Phoenix.ConnTest
-
+  alias PhoenixTest.ConnHandler
   alias PhoenixTest.Driver
 
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
   @doc """
   Entrypoint to create a session.
 
@@ -210,29 +208,17 @@ defmodule PhoenixTest do
   LiveView or a static view. You don't need to worry about which type of page
   you're visiting.
   """
-  def visit(conn, path) do
-    case get(conn, path) do
-      %{assigns: %{live_module: _}} = conn ->
-        PhoenixTest.Live.build(conn)
-
-      %{status: 302} = conn ->
-        path = redirected_to(conn)
-
-        conn
-        |> recycle(all_headers(conn))
-        |> visit(path)
-
-      conn ->
-        PhoenixTest.Static.build(conn)
-    end
+  def visit(%Plug.Conn{} = conn, path) do
+    ConnHandler.visit(conn, path)
   end
 
-  defp all_headers(conn) do
-    Enum.map(conn.req_headers, &elem(&1, 0))
+  def visit(initial_struct, path) do
+    Driver.visit(initial_struct, path)
   end
 
   @doc """
-  Clicks a link with given text and performs the action.
+  Clicks a link with given text (using a substring match) and performs the
+  action.
 
   Here's how it handles different types of `a` tags:
 
@@ -302,7 +288,8 @@ defmodule PhoenixTest do
   defdelegate click_link(session, selector, text), to: Driver
 
   @doc """
-  Perfoms action defined by button (and based on attributes present).
+  Perfoms action defined by button with given text (using a substring match).
+  The action is based on attributes present.
 
   This can be used in a number of ways.
 

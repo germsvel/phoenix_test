@@ -438,6 +438,34 @@ defmodule PhoenixTest.QueryTest do
       end
     end
 
+    test "raises error if multiple labels and inputs match (one explicit, one implicit)" do
+      html = """
+      <label for="greeting">Hello</label>
+      <input id="greeting" />
+
+      <label>Hello <input id="second_greeting" /></label>
+      """
+
+      msg = ~r/Found many elements with label "Hello" and matching the provided selectors/
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Hello")
+      end
+    end
+
+    test "raises error if label has for attribute and nested input" do
+      html = """
+      <label for="other_greeting">Hello <input /></label>
+      <input id="other_greeting" />
+      """
+
+      msg = ~r/Found a label which references two different inputs/
+
+      assert_raise ArgumentError, msg, fn ->
+        Query.find_by_label!(html, "input", "Hello")
+      end
+    end
+
     test "returns found element" do
       html = """
       <label for="greeting">Hello</label>

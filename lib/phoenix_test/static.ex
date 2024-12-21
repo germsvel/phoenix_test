@@ -303,8 +303,10 @@ end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Assertions
+  alias PhoenixTest.ConnHandler
   alias PhoenixTest.Static
 
+  defdelegate visit(conn, path), to: ConnHandler
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
   defdelegate click_link(session, text), to: Static

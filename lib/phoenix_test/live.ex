@@ -341,9 +341,10 @@ defmodule PhoenixTest.Live do
 
   defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do
     session = %{session | current_path: path}
+    conn = session.conn
 
     result
-    |> follow_redirect(session.conn)
+    |> follow_redirect(recycle(conn, all_headers(conn)))
     |> maybe_redirect(session)
   end
 
@@ -352,7 +353,22 @@ defmodule PhoenixTest.Live do
   end
 
   defp maybe_redirect(html, session) when is_binary(html) do
-    maybe_put_patch_path(session)
+    case Form.find(html, "form[phx-trigger-action]") do
+      :not_found ->
+        maybe_put_patch_path(session)
+
+      {:found, form} ->
+        active_form = session.active_form
+        active_form? = form.selector == active_form.selector
+        form_data = form.form_data ++ if(active_form?, do: active_form.form_data, else: [])
+
+        session.conn
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.Static.submit_form(form.selector, form_data)
+
+      {:found_many, _} ->
+        raise ArgumentError, "Found multiple forms with phx-trigger-action."
+    end
   end
 
   defp maybe_put_patch_path(session) do
@@ -378,8 +394,10 @@ end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Assertions
+  alias PhoenixTest.ConnHandler
   alias PhoenixTest.Live
 
+  defdelegate visit(conn, path), to: ConnHandler
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
   defdelegate click_link(session, text), to: Live

@@ -33,10 +33,25 @@ defmodule PhoenixTest.Router do
 
     live_session :live_pages, root_layout: {PhoenixTest.PageView, :layout} do
       live "/live/index", IndexLive
+      live "/live/index/alias", IndexLive
+      live "/live/page_2", Page2Live
+    end
+
+    scope "/auth" do
+      pipe_through([:proxy_header_auth])
+
+      live "/live/index", IndexLive
       live "/live/page_2", Page2Live
     end
 
     live "/live/index_no_layout", IndexLive
     live "/live/redirect_on_mount/:redirect_type", RedirectLive
+  end
+
+  def proxy_header_auth(conn, _opts) do
+    case get_req_header(conn, "x-auth-header") do
+      [value] -> put_session(conn, :auth_header, value)
+      _ -> conn |> send_resp(401, "Unauthorized") |> halt()
+    end
   end
 end

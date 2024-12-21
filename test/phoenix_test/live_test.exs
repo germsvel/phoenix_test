@@ -91,6 +91,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    test "finds by substring", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("and redirect back")
+      |> assert_has("h1", text: "LiveView main page")
+    end
+
     test "accepts click_link with selector", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -149,6 +156,13 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "click_button/2" do
+    test "finds by substring", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Show")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
     test "handles a `phx-click` button", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -221,6 +235,17 @@ defmodule PhoenixTest.LiveTest do
       |> within("#redirect-form", &fill_in(&1, "Name", with: "Aragorn"))
       |> click_button("#redirect-form-submit", "Save Redirect Form")
       |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "follows form's redirect and preserves headers", %{conn: conn} do
+      conn
+      |> Plug.Conn.put_req_header("x-auth-header", "Some-Value")
+      |> visit("/auth/live/index")
+      |> within("#live-redirect-form", &select(&1, "Two", from: "Name"))
+      |> assert_path("/auth/live/page_2")
+      |> then(fn %{conn: conn} ->
+        assert {"x-auth-header", "Some-Value"} in conn.req_headers
+      end)
     end
 
     test "follows form's redirect to static page", %{conn: conn} do
@@ -1041,12 +1066,59 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> within("#changes-hidden-input-form", fn session ->
         session
-        |> fill_in("Name", with: "Frodo")
-        |> fill_in("Email", with: "frodo@example.com")
+        |> fill_in("Name for hidden", with: "Frodo")
+        |> fill_in("Email for hidden", with: "frodo@example.com")
       end)
       |> assert_has("#form-data", text: "name: Frodo")
       |> assert_has("#form-data", text: "email: frodo@example.com")
       |> assert_has("#form-data", text: "hidden_race: hobbit")
+    end
+
+    test "phx-trigger-action causes POST to static view", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Trigger action", with: "engage")
+      |> submit()
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> assert_has("#form-data", text: "trigger_action_input: engage")
+    end
+
+    test "phx-trigger-action from outside the form", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Trigger from elsewhere")
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> refute_has("#form-data", text: "trigger_action_input:")
+    end
+
+    test "phx-trigger-action performed after patch", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Patch and trigger action", with: "let's go")
+      |> assert_path("/page/create_record")
+    end
+
+    test "phx-trigger-action ignored if view redirects", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Redirect and trigger action")
+      |> assert_path("/live/page_2")
+    end
+
+    test "phx-trigger-action ignored if view navigates", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Navigate and trigger action")
+      |> assert_path("/live/page_2")
+    end
+
+    test "raises an error if multiple forms have phx-trigger-action", %{conn: conn} do
+      assert_raise ArgumentError, ~r/Found multiple forms/, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_button("Trigger multiple")
+        |> assert_has("#form-data", text: "hidden: trigger_action_hidden_value")
+      end
     end
 
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do

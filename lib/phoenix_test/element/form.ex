@@ -16,6 +16,16 @@ defmodule PhoenixTest.Element.Form do
     |> build()
   end
 
+  def find(html, selector) do
+    html
+    |> Query.find(selector)
+    |> case do
+      {:found, element} -> {:found, build(element)}
+      {:found_many, elements} -> {:found_many, Enum.map(elements, &build/1)}
+      :not_found -> :not_found
+    end
+  end
+
   def find_by_descendant!(html, descendant) do
     html
     |> Query.find_ancestor!("form", descendant_selector(descendant))
@@ -93,7 +103,7 @@ defmodule PhoenixTest.Element.Form do
 
   defp form_data_select(form) do
     form
-    |> Html.all("select")
+    |> Html.all("select:not([disabled])")
     |> Enum.flat_map(fn select ->
       multiple = !is_nil(Html.attribute(select, "multiple"))
 

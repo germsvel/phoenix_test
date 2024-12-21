@@ -3,7 +3,7 @@ defmodule PhoenixTest.PageView do
 
   def render("empty_layout.html", assigns) do
     ~H"""
-    <%= @inner_content %>
+    {@inner_content}
     """
   end
 
@@ -12,7 +12,7 @@ defmodule PhoenixTest.PageView do
     <html lang="en">
       <head>
         <meta name="csrf-token" content={Phoenix.Controller.get_csrf_token()} />
-        <title><%= assigns[:page_title] || "PhoenixTest is the best!" %></title>
+        <title>{assigns[:page_title] || "PhoenixTest is the best!"}</title>
         <link rel="stylesheet" href="/assets/app.css" />
         <link rel="stylesheet" href="//example.com/cool-styles.css" />
         <script>
@@ -25,7 +25,7 @@ defmodule PhoenixTest.PageView do
         </style>
       </head>
       <body>
-        <%= @inner_content %>
+        {@inner_content}
       </body>
     </html>
     """
@@ -417,7 +417,7 @@ defmodule PhoenixTest.PageView do
 
     <div id="form-data">
       <%= for {key, value} <- @params do %>
-        <%= render_input_data(key, value) %>
+        {render_input_data(key, value)}
       <% end %>
     </div>
     """
@@ -429,7 +429,7 @@ defmodule PhoenixTest.PageView do
 
     <div id="form-data">
       <%= for {key, value} <- @params do %>
-        <%= render_input_data(key, value) %>
+        {render_input_data(key, value)}
       <% end %>
     </div>
     """

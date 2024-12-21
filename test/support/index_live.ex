@@ -78,14 +78,14 @@ defmodule PhoenixTest.IndexLive do
       <label for="city">City</label>
       <select id="city" name="city">
         <%= for city <- @cities do %>
-          <option value={city}><%= city %></option>
+          <option value={city}>{city}</option>
         <% end %>
       </select>
     </form>
 
     <div :if={@form_saved} id="form-data">
       <%= for {key, value} <- @form_data do %>
-        <%= render_input_data(key, value) %>
+        {render_input_data(key, value)}
       <% end %>
     </div>
 
@@ -184,6 +184,13 @@ defmodule PhoenixTest.IndexLive do
       Prefilled content
       </textarea>
 
+      <label>
+        Disabled select
+        <select disabled name="disabled_select">
+          <option value="">Select...</option>
+        </select>
+      </label>
+
       <label for={@uploads.avatar.ref}>Avatar</label>
       <.live_file_input upload={@uploads.avatar} />
 
@@ -196,6 +203,14 @@ defmodule PhoenixTest.IndexLive do
       <button type="submit" id="redirect-form-submit">
         Save Redirect Form
       </button>
+    </form>
+
+    <form id="live-redirect-form" phx-change="change-redirect-form">
+      <label for="live-redirect-form-name">Name</label>
+      <select id="live-redirect-form-name" name="name">
+        <option value="1">One</option>
+        <option value="2">Two</option>
+      </select>
     </form>
 
     <form id="redirect-form-to-static" phx-submit="save-redirect-form-to-static">
@@ -382,8 +397,8 @@ defmodule PhoenixTest.IndexLive do
     <form id="changes-hidden-input-form" phx-change="set-hidden-race">
       <input type="hidden" name="hidden_race" value={@hidden_input_race} />
 
-      <label>Email <input type="email" name="email" /></label>
-      <label>Name <input type="name" name="name" /></label>
+      <label>Email for hidden <input type="email" name="email" /></label>
+      <label>Name for hidden <input type="name" name="name" /></label>
     </form>
 
     <div id="not-a-form">
@@ -441,6 +456,47 @@ defmodule PhoenixTest.IndexLive do
 
     <div id="hook" phx-hook="SomeHook"></div>
     <div id="hook-with-redirect" phx-hook="SomeOtherHook"></div>
+
+    <form
+      id="trigger-form"
+      phx-submit="trigger-form"
+      phx-trigger-action={@trigger_submit}
+      action="/page/create_record"
+      method="post"
+    >
+      <input type="hidden" name="trigger_action_hidden_input" value="trigger_action_hidden_value" />
+      <label>Trigger action <input type="text" name="trigger_action_input" /></label>
+    </form>
+
+    <button phx-click="trigger-form">Trigger from elsewhere</button>
+
+    <form
+      id="trigger-multiple-form-1"
+      phx-submit="trigger-form"
+      phx-trigger-action={@trigger_multiple_submit}
+    />
+
+    <form
+      id="trigger-multiple-form-2"
+      phx-submit="trigger-form"
+      phx-trigger-action={@trigger_multiple_submit}
+    />
+
+    <button phx-click="trigger-multiple-forms">Trigger multiple</button>
+
+    <form
+      id="redirect-and-trigger-form"
+      phx-change="patch-and-trigger-form"
+      phx-trigger-action={@redirect_and_trigger_submit}
+      action="/page/create_record"
+      method="post"
+    >
+      <label>
+        Patch and trigger action <input type="text" name="patch_and_trigger_action" />
+      </label>
+      <button phx-click="redirect-and-trigger-form">Redirect and trigger action</button>
+      <button phx-click="navigate-and-trigger-form">Navigate and trigger action</button>
+    </form>
     """
   end
 
@@ -463,6 +519,9 @@ defmodule PhoenixTest.IndexLive do
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
       |> assign(:hidden_input_race, "human")
+      |> assign(:trigger_submit, false)
+      |> assign(:trigger_multiple_submit, false)
+      |> assign(:redirect_and_trigger_submit, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
@@ -499,6 +558,35 @@ defmodule PhoenixTest.IndexLive do
     }
   end
 
+  def handle_event("trigger-form", _form_data, socket) do
+    {:noreply, assign(socket, :trigger_submit, true)}
+  end
+
+  def handle_event("trigger-multiple-forms", _form_data, socket) do
+    {:noreply, assign(socket, :trigger_multiple_submit, true)}
+  end
+
+  def handle_event("patch-and-trigger-form", _form_data, socket) do
+    {:noreply,
+     socket
+     |> assign(:redirect_and_trigger_submit, true)
+     |> push_patch(to: "/live/index/alias")}
+  end
+
+  def handle_event("redirect-and-trigger-form", _form_data, socket) do
+    {:noreply,
+     socket
+     |> redirect(to: "/live/page_2")
+     |> assign(:redirect_and_trigger_submit, true)}
+  end
+
+  def handle_event("navigate-and-trigger-form", _form_data, socket) do
+    {:noreply,
+     socket
+     |> push_navigate(to: "/live/page_2")
+     |> assign(:redirect_and_trigger_submit, true)}
+  end
+
   def handle_event("set-hidden-race", form_data, socket) do
     race =
       case form_data["name"] do
@@ -517,6 +605,10 @@ defmodule PhoenixTest.IndexLive do
 
   def handle_event("save-redirect-form", _, socket) do
     {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_event("change-redirect-form", _, socket) do
+    {:noreply, push_navigate(socket, to: "/auth/live/page_2")}
   end
 
   def handle_event("save-redirect-form-to-static", _, socket) do
