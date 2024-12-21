@@ -2,6 +2,7 @@ defmodule PhoenixTest.Static do
   @moduledoc false
 
   import Phoenix.ConnTest
+  import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.DataAttributeForm
@@ -55,7 +56,7 @@ defmodule PhoenixTest.Static do
     end
   end
 
-  def click_link(session, selector, text) do
+  def click_link(session, selector \\ "a", text) do
     link =
       session
       |> render_html()
@@ -75,6 +76,18 @@ defmodule PhoenixTest.Static do
       |> recycle(all_headers(conn))
       |> PhoenixTest.visit(link.href)
     end
+  end
+
+  def click_button(session, text) do
+    locator = button(text: text)
+    html = render_html(session)
+
+    button =
+      html
+      |> Query.find_by_role!(locator)
+      |> Button.build(html)
+
+    click_button(session, button.selector, button.text)
   end
 
   def click_button(session, selector, text) do
@@ -296,7 +309,9 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate visit(conn, path), to: ConnHandler
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
+  defdelegate click_link(session, text), to: Static
   defdelegate click_link(session, selector, text), to: Static
+  defdelegate click_button(session, text), to: Static
   defdelegate click_button(session, selector, text), to: Static
   defdelegate within(session, selector, fun), to: Static
   defdelegate fill_in(session, input_selector, label, opts), to: Static
