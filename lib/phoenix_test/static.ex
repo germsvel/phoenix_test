@@ -124,6 +124,11 @@ defmodule PhoenixTest.Static do
     |> Map.put(:within, :none)
   end
 
+  def fill_in(session, label, opts) do
+    selectors = ["input:not([type='hidden'])", "textarea"]
+    fill_in(session, selectors, label, opts)
+  end
+
   def fill_in(session, input_selector, label, opts) do
     {value, opts} = Keyword.pop!(opts, :with)
 
@@ -132,6 +137,10 @@ defmodule PhoenixTest.Static do
     |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
+  end
+
+  def select(session, option, opts) do
+    select(session, "select", option, opts)
   end
 
   def select(session, input_selector, option, opts) do
@@ -143,11 +152,19 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
+  def check(session, label, opts) do
+    check(session, "input[type='checkbox']", label, opts)
+  end
+
   def check(session, input_selector, label, opts) do
     session
     |> render_html()
     |> Field.find_checkbox!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
+  end
+
+  def uncheck(session, label, opts) do
+    uncheck(session, "input[type='checkbox']", label, opts)
   end
 
   def uncheck(session, input_selector, label, opts) do
@@ -157,11 +174,19 @@ defmodule PhoenixTest.Static do
     |> then(&fill_in_field_data(session, &1))
   end
 
+  def choose(session, label, opts) do
+    choose(session, "input[type='radio']", label, opts)
+  end
+
   def choose(session, input_selector, label, opts) do
     session
     |> render_html()
     |> Field.find_input!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
+  end
+
+  def upload(session, label, path, opts) do
+    upload(session, "input[type='file']", label, path, opts)
   end
 
   def upload(session, input_selector, label, path, opts) do
@@ -314,12 +339,18 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate click_button(session, text), to: Static
   defdelegate click_button(session, selector, text), to: Static
   defdelegate within(session, selector, fun), to: Static
-  defdelegate fill_in(session, input_selector \\ ["input:not([type='hidden'])", "textarea"], label, opts), to: Static
-  defdelegate select(session, input_selector \\ "select", option, opts), to: Static
-  defdelegate check(session, input_selector \\ "input[type='checkbox']", label, opts), to: Static
-  defdelegate uncheck(session, input_selector \\ "input[type='checkbox']", label, opts), to: Static
-  defdelegate choose(session, input_selector \\ "input[type='radio']", label, opts), to: Static
-  defdelegate upload(session, input_selector \\ "input[type='file']", label, path, opts), to: Static
+  defdelegate fill_in(session, label, opts), to: Static
+  defdelegate fill_in(session, input_selector, label, opts), to: Static
+  defdelegate select(session, option, opts), to: Static
+  defdelegate select(session, input_selector, option, opts), to: Static
+  defdelegate check(session, label, opts), to: Static
+  defdelegate check(session, input_selector, label, opts), to: Static
+  defdelegate uncheck(session, label, opts), to: Static
+  defdelegate uncheck(session, input_selector, label, opts), to: Static
+  defdelegate choose(session, label, opts), to: Static
+  defdelegate choose(session, input_selector, label, opts), to: Static
+  defdelegate upload(session, label, path, opts), to: Static
+  defdelegate upload(session, input_selector, label, path, opts), to: Static
   defdelegate submit(session), to: Static
   defdelegate open_browser(session), to: Static
   defdelegate open_browser(session, open_fun), to: Static

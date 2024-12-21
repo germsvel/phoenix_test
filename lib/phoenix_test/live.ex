@@ -107,6 +107,11 @@ defmodule PhoenixTest.Live do
     |> Map.put(:within, :none)
   end
 
+  def fill_in(session, label, opts) do
+    selectors = ["input:not([type='hidden'])", "textarea"]
+    fill_in(session, selectors, label, opts)
+  end
+
   def fill_in(session, input_selector, label, opts) do
     {value, opts} = Keyword.pop!(opts, :with)
 
@@ -115,6 +120,10 @@ defmodule PhoenixTest.Live do
     |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
+  end
+
+  def select(session, option, opts) do
+    select(session, "select", option, opts)
   end
 
   def select(session, input_selector, option, opts) do
@@ -144,6 +153,10 @@ defmodule PhoenixTest.Live do
     end
   end
 
+  def check(session, label, opts) do
+    check(session, "input[type='checkbox']", label, opts)
+  end
+
   def check(session, input_selector, label, opts) do
     field =
       session
@@ -165,6 +178,10 @@ defmodule PhoenixTest.Live do
         Expected checkbox with selector #{inspect(field.selector)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
+  end
+
+  def uncheck(session, label, opts) do
+    uncheck(session, "input[type='checkbox']", label, opts)
   end
 
   def uncheck(session, input_selector, label, opts) do
@@ -191,6 +208,10 @@ defmodule PhoenixTest.Live do
     end
   end
 
+  def choose(session, label, opts) do
+    choose(session, "input[type='radio']", label, opts)
+  end
+
   def choose(session, input_selector, label, opts) do
     field =
       session
@@ -212,6 +233,10 @@ defmodule PhoenixTest.Live do
         Expected radio input with selector #{inspect(field.selector)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
+  end
+
+  def upload(session, label, path, opts) do
+    upload(session, "input[type='file']", label, path, opts)
   end
 
   def upload(session, input_selector, label, path, opts) do
@@ -405,12 +430,18 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate click_button(session, text), to: Live
   defdelegate click_button(session, selector, text), to: Live
   defdelegate within(session, selector, fun), to: Live
-  defdelegate fill_in(session, input_selector \\ ["input:not([type='hidden'])", "textarea"], label, opts), to: Live
-  defdelegate select(session, input_selector \\ "select", option, opts), to: Live
-  defdelegate check(session, input_selector \\ "input[type='checkbox']", label, opts), to: Live
-  defdelegate uncheck(session, input_selector \\ "input[type='checkbox']", label, opts), to: Live
-  defdelegate choose(session, input_selector \\ "input[type='radio']", label, opts), to: Live
-  defdelegate upload(session, input_selector \\ "input[type='file']", label, path, opts), to: Live
+  defdelegate fill_in(session, label, opts), to: Live
+  defdelegate fill_in(session, input_selector, label, opts), to: Live
+  defdelegate select(session, option, opts), to: Live
+  defdelegate select(session, input_selector, option, opts), to: Live
+  defdelegate check(session, label, opts), to: Live
+  defdelegate check(session, input_selector, label, opts), to: Live
+  defdelegate uncheck(session, label, opts), to: Live
+  defdelegate uncheck(session, input_selector, label, opts), to: Live
+  defdelegate choose(session, label, opts), to: Live
+  defdelegate choose(session, input_selector, label, opts), to: Live
+  defdelegate upload(session, label, path, opts), to: Live
+  defdelegate upload(session, input_selector, label, path, opts), to: Live
   defdelegate submit(session), to: Live
   defdelegate open_browser(session), to: Live
   defdelegate open_browser(session, open_fun), to: Live
