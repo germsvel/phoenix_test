@@ -5,6 +5,7 @@ defmodule PhoenixTest.Live do
   import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.ConnHandler
   alias PhoenixTest.Element.Button
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Form
@@ -357,11 +358,7 @@ defmodule PhoenixTest.Live do
   end
 
   defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
-    conn = session.conn
-
-    conn
-    |> recycle(all_headers(conn))
-    |> PhoenixTest.visit(path)
+    ConnHandler.handle_redirect(session.conn, path)
   end
 
   defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do

@@ -5,6 +5,7 @@ defmodule PhoenixTest.Static do
   import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.ConnHandler
   alias PhoenixTest.DataAttributeForm
   alias PhoenixTest.Element.Button
   alias PhoenixTest.Element.Field
@@ -311,10 +312,7 @@ defmodule PhoenixTest.Static do
     case conn do
       %{status: 302} ->
         path = redirected_to(conn)
-
-        conn
-        |> recycle(all_headers(conn))
-        |> PhoenixTest.visit(path)
+        ConnHandler.handle_redirect(conn, path)
 
       %{status: _} ->
         %{session | conn: conn, current_path: build_current_path(conn)}

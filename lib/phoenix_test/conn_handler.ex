@@ -21,6 +21,12 @@ defmodule PhoenixTest.ConnHandler do
     end
   end
 
+  def handle_redirect(conn, path) do
+    conn
+    |> recycle(all_headers(conn))
+    |> PhoenixTest.visit(path)
+  end
+
   defp all_headers(conn) do
     Enum.map(conn.req_headers, &elem(&1, 0))
   end
