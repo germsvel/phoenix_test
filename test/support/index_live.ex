@@ -279,12 +279,6 @@ defmodule PhoenixTest.IndexLive do
       </label>
       <input id="complex-name" name="name" />
 
-      <label phx-no-format>
-        With
-        <em>line breaks</em>
-        <input type="checkbox" name="with_linebreaks" value="yes" />
-      </label>
-
       <label for="complex-human">
         Human <span>*</span>
       </label>
