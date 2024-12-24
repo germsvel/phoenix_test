@@ -13,7 +13,7 @@ defmodule PhoenixTest.ConnHandler do
         path = redirected_to(conn)
 
         conn
-        |> recycle(all_headers(conn))
+        |> recycle_all_headers()
         |> visit(path)
 
       conn ->
@@ -21,10 +21,8 @@ defmodule PhoenixTest.ConnHandler do
     end
   end
 
-  def handle_redirect(conn, path) do
-    conn
-    |> recycle(all_headers(conn))
-    |> PhoenixTest.visit(path)
+  def recycle_all_headers(conn) do
+    recycle(conn, all_headers(conn))
   end
 
   defp all_headers(conn) do

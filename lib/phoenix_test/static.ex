@@ -74,7 +74,7 @@ defmodule PhoenixTest.Static do
       conn = session.conn
 
       conn
-      |> recycle(all_headers(conn))
+      |> ConnHandler.recycle_all_headers()
       |> PhoenixTest.visit(link.href)
     end
   end
@@ -290,7 +290,7 @@ defmodule PhoenixTest.Static do
     conn = session.conn
 
     conn
-    |> recycle(all_headers(conn))
+    |> ConnHandler.recycle_all_headers()
     |> dispatch(@endpoint, form.method, form.action, payload)
     |> maybe_redirect(session)
   end
@@ -312,15 +312,14 @@ defmodule PhoenixTest.Static do
     case conn do
       %{status: 302} ->
         path = redirected_to(conn)
-        ConnHandler.handle_redirect(conn, path)
+
+        conn
+        |> ConnHandler.recycle_all_headers()
+        |> PhoenixTest.visit(path)
 
       %{status: _} ->
         %{session | conn: conn, current_path: build_current_path(conn)}
     end
-  end
-
-  defp all_headers(conn) do
-    Enum.map(conn.req_headers, &elem(&1, 0))
   end
 end
 

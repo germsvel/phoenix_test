@@ -362,7 +362,7 @@ defmodule PhoenixTest.Live do
     conn = session.conn
 
     result
-    |> follow_redirect(recycle(conn, all_headers(conn)))
+    |> follow_redirect(ConnHandler.recycle_all_headers(conn))
     |> maybe_redirect(session)
   end
 
@@ -407,10 +407,6 @@ defmodule PhoenixTest.Live do
     assert_patch(view, 0)
   rescue
     ArgumentError -> :no_path
-  end
-
-  defp all_headers(conn) do
-    Enum.map(conn.req_headers, &elem(&1, 0))
   end
 end
 
