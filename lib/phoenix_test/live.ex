@@ -357,11 +357,7 @@ defmodule PhoenixTest.Live do
     |> maybe_redirect(session)
   end
 
-  defp maybe_redirect({:error, {:redirect, %{to: path}}}, session) do
-    ConnHandler.handle_redirect(session.conn, path)
-  end
-
-  defp maybe_redirect({:error, {:live_redirect, %{to: path}}} = result, session) do
+  defp maybe_redirect({:error, {kind, %{to: path}}} = result, session) when kind in [:redirect, :live_redirect] do
     session = %{session | current_path: path}
     conn = session.conn
 
@@ -372,6 +368,10 @@ defmodule PhoenixTest.Live do
 
   defp maybe_redirect({:ok, view, _}, session) do
     %{session | view: view}
+  end
+
+  defp maybe_redirect({:ok, conn}, _session) do
+    PhoenixTest.Static.build(conn)
   end
 
   defp maybe_redirect(html, session) when is_binary(html) do

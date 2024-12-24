@@ -250,6 +250,7 @@ defmodule PhoenixTest.LiveTest do
       |> within("#redirect-form-to-static", &fill_in(&1, "Name", with: "Aragorn"))
       |> click_button("#redirect-form-to-static-submit", "Save Redirect to Static")
       |> assert_has("h1", text: "Main page")
+      |> assert_has("#flash-group", text: "Redirected to static page")
     end
 
     test "submits regular (non phx-submit) form", %{conn: conn} do
@@ -868,6 +869,7 @@ defmodule PhoenixTest.LiveTest do
         |> submit()
       end)
       |> assert_has("h1", text: "Main page")
+      |> assert_has("#flash-group", text: "Redirected to static page")
     end
 
     test "preserves headers after form submission and redirect", %{conn: conn} do
