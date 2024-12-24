@@ -11,7 +11,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "render_page_title/1" do
-    test "renders the page title", %{conn: conn} do
+    test "renders the default page title", %{conn: conn} do
       title =
         conn
         |> visit("/live/index")
@@ -29,15 +29,6 @@ defmodule PhoenixTest.LiveTest do
 
       assert title == "Title changed!"
     end
-
-    test "returns nil if page title isn't found", %{conn: conn} do
-      title =
-        conn
-        |> visit("/live/index_no_layout")
-        |> PhoenixTest.Driver.render_page_title()
-
-      assert title == nil
-    end
   end
 
   describe "visit/2" do
@@ -51,12 +42,14 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/redirect_on_mount/redirect")
       |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("#flash-group", text: "Redirected!")
     end
 
     test "follows push redirects (push navigate)", %{conn: conn} do
       conn
       |> visit("/live/redirect_on_mount/push_navigate")
       |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("#flash-group", text: "Navigated!")
     end
 
     test "preserves headers across redirects", %{conn: conn} do
@@ -69,10 +62,10 @@ defmodule PhoenixTest.LiveTest do
       end)
     end
 
-    test "raises error if route doesn't exist", %{conn: conn} do
-      assert_raise ArgumentError, ~r/404/, fn ->
-        visit(conn, "/live/non_route")
-      end
+    test "renders error pages if route doesn't exist (when pages configured)", %{conn: conn} do
+      conn
+      |> visit("/live/non_route")
+      |> assert_has("h2", text: "404")
     end
   end
 

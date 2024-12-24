@@ -1,5 +1,6 @@
-defmodule PhoenixTest.IndexLive do
+defmodule PhoenixTest.WebApp.IndexLive do
   @moduledoc false
+
   use Phoenix.LiveView
 
   def render(assigns) do

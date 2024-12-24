@@ -1,15 +1,19 @@
 import Config
 
-config :phoenix_test, :endpoint, PhoenixTest.Endpoint
+config :phoenix_test, :endpoint, PhoenixTest.WebApp.Endpoint
 
 config :logger, level: :warning
 
-config :phoenix_test, PhoenixTest.Endpoint,
+config :phoenix_test, PhoenixTest.WebApp.Endpoint,
   server: true,
   http: [port: 4000],
   live_view: [signing_salt: "112345678212345678312345678412"],
   secret_key_base: String.duplicate("57689", 50),
-  pubsub_server: PhoenixTest.PubSub
+  pubsub_server: PhoenixTest.PubSub,
+  render_errors: [
+    formats: [html: PhoenixTest.WebApp.ErrorView],
+    layout: false
+  ]
 
 config :logger, level: :error
 

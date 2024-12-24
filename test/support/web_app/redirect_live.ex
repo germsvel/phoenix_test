@@ -1,4 +1,4 @@
-defmodule PhoenixTest.RedirectLive do
+defmodule PhoenixTest.WebApp.RedirectLive do
   @moduledoc false
   use Phoenix.LiveView
 
@@ -11,10 +11,16 @@ defmodule PhoenixTest.RedirectLive do
   def mount(%{"redirect_type" => redirect_type}, _, socket) do
     case redirect_type do
       "push_navigate" ->
-        {:ok, push_navigate(socket, to: "/live/index")}
+        {:ok,
+         socket
+         |> put_flash(:info, "Navigated!")
+         |> push_navigate(to: "/live/index")}
 
       "redirect" ->
-        {:ok, redirect(socket, to: "/live/index")}
+        {:ok,
+         socket
+         |> put_flash(:info, "Redirected!")
+         |> redirect(to: "/live/index")}
     end
   end
 end

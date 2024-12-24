@@ -1,4 +1,4 @@
-defmodule PhoenixTest.Router do
+defmodule PhoenixTest.WebApp.Router do
   use Phoenix.Router
 
   import Phoenix.LiveView.Router
@@ -14,12 +14,15 @@ defmodule PhoenixTest.Router do
   end
 
   pipeline :browser do
-    plug(:setup_session)
-    plug(:accepts, ["html"])
-    plug(:fetch_live_flash)
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {PhoenixTest.WebApp.LayoutView, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
   end
 
-  scope "/", PhoenixTest do
+  scope "/", PhoenixTest.WebApp do
     pipe_through([:browser])
 
     post "/page/create_record", PageController, :create
@@ -31,7 +34,7 @@ defmodule PhoenixTest.Router do
     post "/page/redirect_to_static", PageController, :redirect_to_static
     get "/page/:page", PageController, :show
 
-    live_session :live_pages, root_layout: {PhoenixTest.PageView, :layout} do
+    live_session :live_pages, layout: {PhoenixTest.WebApp.LayoutView, :app} do
       live "/live/index", IndexLive
       live "/live/index/alias", IndexLive
       live "/live/page_2", Page2Live
@@ -44,7 +47,6 @@ defmodule PhoenixTest.Router do
       live "/live/page_2", Page2Live
     end
 
-    live "/live/index_no_layout", IndexLive
     live "/live/redirect_on_mount/:redirect_type", RedirectLive
   end
 

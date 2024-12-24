@@ -1,13 +1,7 @@
-defmodule PhoenixTest.PageController do
+defmodule PhoenixTest.WebApp.PageController do
   use Phoenix.Controller
 
-  plug(:put_layout, {PhoenixTest.PageView, :layout})
-
-  def show(conn, %{"page" => "index_no_layout"}) do
-    conn
-    |> put_layout({PhoenixTest.PageView, :empty_layout})
-    |> render("index.html")
-  end
+  plug(:put_layout, {PhoenixTest.WebApp.LayoutView, :app})
 
   def show(conn, %{"redirect_to" => path}) do
     redirect(conn, to: path)
@@ -38,7 +32,9 @@ defmodule PhoenixTest.PageController do
   end
 
   def redirect_to_static(conn, _) do
-    redirect(conn, to: "/page/index")
+    conn
+    |> put_flash(:info, "Redirected!")
+    |> redirect(to: "/page/index")
   end
 
   def unauthorized(conn, _) do

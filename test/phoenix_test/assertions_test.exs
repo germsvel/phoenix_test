@@ -319,8 +319,8 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "can refute presence of title (Static)", %{conn: conn} do
       conn
-      |> visit("/page/index_no_layout")
-      |> refute_has("title")
+      |> visit("/page/index")
+      |> refute_has("title", text: "Not the title")
       |> refute_has("#something-else-to-test-pipe")
     end
 

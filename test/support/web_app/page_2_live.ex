@@ -1,4 +1,4 @@
-defmodule PhoenixTest.Page2Live do
+defmodule PhoenixTest.WebApp.Page2Live do
   @moduledoc false
   use Phoenix.LiveView
 

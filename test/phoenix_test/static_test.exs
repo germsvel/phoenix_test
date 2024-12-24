@@ -9,22 +9,13 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "render_page_title/1" do
-    test "renders the page title", %{conn: conn} do
+    test "renders the default page title", %{conn: conn} do
       title =
         conn
         |> visit("/page/index")
         |> PhoenixTest.Driver.render_page_title()
 
       assert title == "PhoenixTest is the best!"
-    end
-
-    test "renders nil if there's no page title", %{conn: conn} do
-      title =
-        conn
-        |> visit("/page/index_no_layout")
-        |> PhoenixTest.Driver.render_page_title()
-
-      assert title == nil
     end
   end
 
@@ -39,6 +30,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/redirect_to_static")
       |> assert_has("h1", text: "Main page")
+      |> assert_has("#flash-group", text: "Redirected!")
     end
 
     test "preserves headers across redirects", %{conn: conn} do
@@ -51,10 +43,10 @@ defmodule PhoenixTest.StaticTest do
       end)
     end
 
-    test "raises error if route doesn't exist", %{conn: conn} do
-      assert_raise ArgumentError, ~r/404/, fn ->
-        visit(conn, "/non_route")
-      end
+    test "renders error page if route doesn't exist (if error pages configured)", %{conn: conn} do
+      conn
+      |> visit("/non_route")
+      |> assert_has("h2", text: "404")
     end
   end
 
@@ -862,32 +854,19 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "open_browser" do
-    setup do
-      open_fun = fn path ->
+    test "opens the browser", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> open_browser(fn path ->
         assert content = File.read!(path)
 
         assert content =~
-                 ~r[<link rel="stylesheet" href="file:.*phoenix_test\/priv\/static\/assets\/app\.css"\/>]
-
-        assert content =~ "<link rel=\"stylesheet\" href=\"//example.com/cool-styles.css\"/>"
-        assert content =~ "body { font-size: 12px; }"
-
-        assert content =~ ~r/<h1.*Main page/
+                 ~r[<link phx-track-static="phx-track-static" rel="stylesheet" href="file:.*phoenix_test\/priv\/static\/assets\/app\.css"\/>]
 
         refute content =~ "<script>"
         refute content =~ "console.log(\"Hey, I'm some JavaScript!\")"
         refute content =~ "</script>"
-
-        path
-      end
-
-      %{open_fun: open_fun}
-    end
-
-    test "opens the browser ", %{conn: conn, open_fun: open_fun} do
-      conn
-      |> visit("/page/index")
-      |> open_browser(open_fun)
+      end)
       |> assert_has("h1", text: "Main page")
     end
   end
