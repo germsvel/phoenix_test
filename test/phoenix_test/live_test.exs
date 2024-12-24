@@ -82,9 +82,10 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> click_link("Navigate (and redirect back) link")
       |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("#flash-group", text: "Navigated back!")
     end
 
-    test "finds by substring", %{conn: conn} do
+    test "finds link by substring", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_link("and redirect back")
@@ -149,7 +150,7 @@ defmodule PhoenixTest.LiveTest do
   end
 
   describe "click_button/2" do
-    test "finds by substring", %{conn: conn} do
+    test "finds button by substring", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_button("Show")
@@ -228,6 +229,7 @@ defmodule PhoenixTest.LiveTest do
       |> within("#redirect-form", &fill_in(&1, "Name", with: "Aragorn"))
       |> click_button("#redirect-form-submit", "Save Redirect Form")
       |> assert_has("h1", text: "LiveView page 2")
+      |> assert_has("#flash-group", text: "Form saved and redirected")
     end
 
     test "follows form's redirect and preserves headers", %{conn: conn} do
@@ -236,6 +238,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/auth/live/index")
       |> within("#live-redirect-form", &select(&1, "Two", from: "Name"))
       |> assert_path("/auth/live/page_2")
+      |> assert_has("#flash-group", text: "Redirected on phx-change")
       |> then(fn %{conn: conn} ->
         assert {"x-auth-header", "Some-Value"} in conn.req_headers
       end)
@@ -853,6 +856,7 @@ defmodule PhoenixTest.LiveTest do
         |> submit()
       end)
       |> assert_has("h1", text: "LiveView page 2")
+      |> assert_has("#flash-group", text: "Form saved and redirected")
     end
 
     test "follows form's redirect to static page", %{conn: conn} do
@@ -1052,6 +1056,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("Email with redirect", with: "someone@example.com")
       |> assert_has("h1", text: "LiveView page 2")
+      |> assert_has("#flash-group", text: "Redirected on phx-change")
     end
 
     test "preserves correct order of active form vs form data", %{conn: conn} do

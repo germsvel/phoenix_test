@@ -43,8 +43,10 @@ defmodule PhoenixTest.WebApp.Router do
     scope "/auth" do
       pipe_through([:proxy_header_auth])
 
-      live "/live/index", IndexLive
-      live "/live/page_2", Page2Live
+      live_session :auth, layout: {PhoenixTest.WebApp.LayoutView, :app} do
+        live "/live/index", IndexLive
+        live "/live/page_2", Page2Live
+      end
     end
 
     live "/live/redirect_on_mount/:redirect_type", RedirectLive

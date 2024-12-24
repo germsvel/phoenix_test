@@ -63,9 +63,10 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_link("Navigate away and redirect back")
       |> assert_has("h1", text: "Main page")
+      |> assert_has("#flash-group", text: "Redirected back!")
     end
 
-    test "finds by substring", %{conn: conn} do
+    test "finds link by substring", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_link("and redirect back")
@@ -160,7 +161,7 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "click_button/2" do
-    test "finds by substring", %{conn: conn} do
+    test "finds button by substring", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> click_button("Get")
@@ -226,6 +227,7 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> click_button("Post and Redirect")
       |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("#flash-group", text: "Redirected to LiveView")
     end
 
     test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
@@ -807,6 +809,7 @@ defmodule PhoenixTest.StaticTest do
         |> submit()
       end)
       |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("#flash-group", text: "Redirected to LiveView")
     end
 
     test "preserves headers after form submission and redirect", %{conn: conn} do

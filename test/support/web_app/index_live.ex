@@ -605,15 +605,24 @@ defmodule PhoenixTest.WebApp.IndexLive do
   end
 
   def handle_event("save-redirect-form", _, socket) do
-    {:noreply, push_navigate(socket, to: "/live/page_2")}
+    {:noreply,
+     socket
+     |> put_flash(:info, "Form saved and redirected")
+     |> push_navigate(to: "/live/page_2")}
   end
 
   def handle_event("change-redirect-form", _, socket) do
-    {:noreply, push_navigate(socket, to: "/auth/live/page_2")}
+    {:noreply,
+     socket
+     |> put_flash(:info, "Redirected on phx-change")
+     |> push_navigate(to: "/auth/live/page_2")}
   end
 
   def handle_event("save-redirect-form-to-static", _, socket) do
-    {:noreply, redirect(socket, to: "/page/index")}
+    {:noreply,
+     socket
+     |> put_flash(:info, "Redirected to static page")
+     |> redirect(to: "/page/index")}
   end
 
   def handle_event("reset-email-form", _, socket) do
@@ -676,7 +685,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
   end
 
   def handle_event("redirect-on-change", _, socket) do
-    {:noreply, push_navigate(socket, to: "/live/page_2")}
+    {:noreply,
+     socket
+     |> put_flash(:info, "Redirected on phx-change")
+     |> push_navigate(to: "/live/page_2")}
   end
 
   def handle_event("push-navigate", _, socket) do

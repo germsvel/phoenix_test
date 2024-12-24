@@ -9,7 +9,10 @@ defmodule PhoenixTest.WebApp.Page2Live do
   end
 
   def mount(%{"redirect_to" => path}, _, socket) do
-    {:ok, push_navigate(socket, to: path)}
+    {:ok,
+     socket
+     |> put_flash(:info, "Navigated back!")
+     |> push_navigate(to: path)}
   end
 
   def mount(_, _, socket) do

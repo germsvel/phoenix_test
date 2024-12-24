@@ -4,7 +4,9 @@ defmodule PhoenixTest.WebApp.PageController do
   plug(:put_layout, {PhoenixTest.WebApp.LayoutView, :app})
 
   def show(conn, %{"redirect_to" => path}) do
-    redirect(conn, to: path)
+    conn
+    |> put_flash(:info, "Redirected back!")
+    |> redirect(to: path)
   end
 
   def show(conn, %{"page" => page}) do
@@ -28,7 +30,9 @@ defmodule PhoenixTest.WebApp.PageController do
   end
 
   def redirect_to_liveview(conn, _) do
-    redirect(conn, to: "/live/index")
+    conn
+    |> put_flash(:info, "Redirected to LiveView")
+    |> redirect(to: "/live/index")
   end
 
   def redirect_to_static(conn, _) do
