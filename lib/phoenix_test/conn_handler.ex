@@ -4,8 +4,8 @@ defmodule PhoenixTest.ConnHandler do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  def visit(conn, path) do
-    case get(conn, path) do
+  def visit(conn) do
+    case conn do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
 
@@ -19,6 +19,12 @@ defmodule PhoenixTest.ConnHandler do
       conn ->
         PhoenixTest.Static.build(conn)
     end
+  end
+
+  def visit(conn, path) do
+    conn
+    |> get(path)
+    |> visit()
   end
 
   def recycle_all_headers(conn) do

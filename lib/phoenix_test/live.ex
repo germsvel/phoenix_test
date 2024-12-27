@@ -371,7 +371,7 @@ defmodule PhoenixTest.Live do
   end
 
   defp maybe_redirect({:ok, conn}, _session) do
-    PhoenixTest.Static.build(conn)
+    ConnHandler.visit(conn)
   end
 
   defp maybe_redirect(html, session) when is_binary(html) do
