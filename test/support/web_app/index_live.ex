@@ -18,7 +18,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <h2 :if={@details}>LiveView main page details</h2>
 
-    <h3><%= @h3 %></h3>
+    <h3>{@h3}</h3>
 
     <button phx-click="change-h3">Change h3</button>
 
