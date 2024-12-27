@@ -7,6 +7,53 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.5.0
+
+### Added
+
+- Adds `assert_has/3` | `refute_has/3` `:timeout` option Commit [7cb6a41].
+- Support phx-trigger-action. Commit [f46ebc1].
+
+### Improvements
+
+- Allow LiveView 1.0. Commit [6e121c8].
+- Allow labels to have line breaks. Commit [5949951].
+- Make all functions part of the `Driver` protocol to allow for external
+  drivers. Commits [8c9e3be], [af5d011], [ef3fca0].
+- Raise error if implicit + explicit label found. Commit [9502fc7].
+
+### Fixes
+
+- Keep flash across Live -> Static redirects. Commit [ca7edf5].
+- Make sure live redirect copy headers. Commit [ce490d3].
+- Don't fail form when present disabled select. Commit [14b7bf0].
+- Update current path on static submit. Commit [46d30bb].
+
+[7cb6a41]: https://github.com/germsvel/phoenix_test/commit/7cb6a41
+[9775097]: https://github.com/germsvel/phoenix_test/commit/9775097
+[bfd1291]: https://github.com/germsvel/phoenix_test/commit/bfd1291
+[5cc4ea3]: https://github.com/germsvel/phoenix_test/commit/5cc4ea3
+[ca7edf5]: https://github.com/germsvel/phoenix_test/commit/ca7edf5
+[a2eaa24]: https://github.com/germsvel/phoenix_test/commit/a2eaa24
+[0af3b14]: https://github.com/germsvel/phoenix_test/commit/0af3b14
+[4000203]: https://github.com/germsvel/phoenix_test/commit/4000203
+[a346d09]: https://github.com/germsvel/phoenix_test/commit/a346d09
+[5949951]: https://github.com/germsvel/phoenix_test/commit/5949951
+[3506f7b]: https://github.com/germsvel/phoenix_test/commit/3506f7b
+[8c9e3be]: https://github.com/germsvel/phoenix_test/commit/8c9e3be
+[af5d011]: https://github.com/germsvel/phoenix_test/commit/af5d011
+[ef3fca0]: https://github.com/germsvel/phoenix_test/commit/ef3fca0
+[457144a]: https://github.com/germsvel/phoenix_test/commit/457144a
+[14b7bf0]: https://github.com/germsvel/phoenix_test/commit/14b7bf0
+[ce490d3]: https://github.com/germsvel/phoenix_test/commit/ce490d3
+[ddacde8]: https://github.com/germsvel/phoenix_test/commit/ddacde8
+[6e121c8]: https://github.com/germsvel/phoenix_test/commit/6e121c8
+[9502fc7]: https://github.com/germsvel/phoenix_test/commit/9502fc7
+[f46ebc1]: https://github.com/germsvel/phoenix_test/commit/f46ebc1
+[46d30bb]: https://github.com/germsvel/phoenix_test/commit/46d30bb
+[9eadbd9]: https://github.com/germsvel/phoenix_test/commit/9eadbd9
+[6d6d40b]: https://github.com/germsvel/phoenix_test/commit/6d6d40b
+
 ## 0.4.2
 
 ### Fixes
