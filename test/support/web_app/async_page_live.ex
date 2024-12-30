@@ -65,7 +65,7 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
   def handle_event("async-redirect", _, socket) do
     {:noreply,
      start_async(socket, :async_redirect, fn ->
-       Process.sleep(200)
+       Process.sleep(100)
        :ok
      end)}
   end
@@ -79,6 +79,7 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
   end
 
   def handle_async(:async_redirect, {:ok, _result}, socket) do
+    Process.sleep(100)
     {:noreply, redirect(socket, to: "/page/index")}
   end
 

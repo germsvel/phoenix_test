@@ -15,8 +15,10 @@ defmodule PhoenixTest.LiveViewTimeout do
 
   defp handle_watched_messages_with_timeout(session, action) do
     receive do
-      {:watcher, :timeout} ->
-        action.(session)
+      {:watcher, :live_view_redirected, redirect_tuple} ->
+        session
+        |> PhoenixTest.Live.handle_redirect(redirect_tuple)
+        |> then(action)
 
       {:watcher, :live_view_died} ->
         check_for_redirect(session, action)
@@ -24,14 +26,13 @@ defmodule PhoenixTest.LiveViewTimeout do
       {:watcher, :async_process_completed} ->
         with_retry(session, action, &handle_watched_messages_with_timeout(&1, action))
 
-      {:watcher, :live_view_redirected, redirect_tuple} ->
-        session
-        |> PhoenixTest.Live.handle_redirect(redirect_tuple)
-        |> then(action)
+      {:watcher, :timeout} ->
+        action.(session)
     end
   end
 
   defp with_retry(session, action, retry_fun) when is_function(action) and is_function(retry_fun) do
+    :ok = Phoenix.LiveView.Channel.ping(session.view.pid)
     action.(session)
   rescue
     AssertionError ->
