@@ -7,6 +7,14 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.5.1
+
+### Fixes
+
+- Fix race condition. Ping LiveView instead of using "buffer". Commit [3d78969]
+
+[3d78969]: https://github.com/germsvel/phoenix_test/commit/3d78969
+
 ## 0.5.0
 
 ### Added
