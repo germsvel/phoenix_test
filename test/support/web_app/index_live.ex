@@ -138,7 +138,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       </button>
     </form>
 
-    <form id="full-form" phx-submit="save-form">
+    <form id="full-form" phx-submit="save-form" phx-change="upload-change">
       <label for="first_name">First Name</label>
       <input id="first_name" name="first_name" />
 
@@ -286,7 +286,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <input id="email-on-change" name="email" />
     </form>
 
-    <form id="complex-labels" phx-change="save-form" phx-submit="save-form">
+    <form id="complex-labels" phx-change="change-form" phx-submit="save-form">
       <label for="complex-name">
         Name <span>*</span>
       </label>
@@ -320,7 +320,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <button type="submit">Save</button>
     </form>
 
-    <form id="same-labels" phx-submit="save-form" phx-change="save-form">
+    <form id="same-labels" phx-submit="save-form" phx-change="change-form">
       <fieldset name="like-elixir">
         <legend>Do you like Elixir:</legend>
 
@@ -511,11 +511,6 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <button phx-click="navigate-and-trigger-form">Navigate and trigger action</button>
     </form>
 
-    <form id="tiny-upload-form">
-      <label for={@uploads.tiny.ref}>Tiny</label>
-      <.live_file_input upload={@uploads.tiny} />
-    </form>
-
     <form id="conditional-inputs" phx-change="save-form" phx-submit="save-form">
       <label>
         <input name="hide_to_remove" type="checkbox" value="on" /> Hide to remove
@@ -526,6 +521,25 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label>
         To keep <input name="to_keep" type="text" />
       </label>
+    </form>
+
+    <form id="tiny-upload-form">
+      <label for={@uploads.tiny.ref}>Tiny</label>
+      <.live_file_input upload={@uploads.tiny} />
+    </form>
+
+    <form id="upload-change-form" phx-change="upload-change">
+      <label for={@uploads.avatar.ref}>Avatar</label>
+      <.live_file_input upload={@uploads.avatar} />
+    </form>
+
+    <div :if={@upload_change_triggered} id="upload-change-result">
+      phx-change triggered on file selection
+    </div>
+
+    <form id="upload-redirect-form" phx-change="upload-change">
+      <label for={@uploads.redirect_avatar.ref}>Redirect Avatar</label>
+      <.live_file_input upload={@uploads.redirect_avatar} />
     </form>
     """
   end
@@ -553,11 +567,21 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> assign(:trigger_submit, false)
       |> assign(:trigger_multiple_submit, false)
       |> assign(:redirect_and_trigger_submit, false)
+      |> assign(:upload_change_triggered, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:tiny, accept: ~w(.jpg .jpeg), max_file_size: 1000)
+      |> allow_upload(:redirect_avatar, accept: ~w(.jpg .jpeg), progress: &handle_progress/3)
     }
+  end
+
+  defp handle_progress(:redirect_avatar, entry, socket) do
+    if entry.done? do
+      {:noreply, push_navigate(socket, to: "/live/page_2", replace: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("change-h3", _, socket) do
@@ -570,6 +594,15 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
   def handle_event("show-tab", _, socket) do
     {:noreply, assign(socket, :show_tab, true)}
+  end
+
+  def handle_event("change-form", form_data, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(:form_saved, true)
+      |> assign(:form_data, form_data)
+    }
   end
 
   def handle_event("save-form", form_data, socket) do
@@ -753,6 +786,13 @@ defmodule PhoenixTest.WebApp.IndexLive do
       socket
       |> assign(:form_saved, true)
       |> assign(:form_data, params)
+    }
+  end
+
+  def handle_event("upload-change", _params, socket) do
+    {
+      :noreply,
+      assign(socket, :upload_change_triggered, true)
     }
   end
 
