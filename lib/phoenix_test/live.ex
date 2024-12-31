@@ -25,14 +25,21 @@ defmodule PhoenixTest.Live do
   def build(conn) do
     {:ok, view, _html} = live(conn)
     current_path = append_query_string(conn.request_path, conn.query_string)
-    {:ok, watcher} = PhoenixTest.LiveViewWatcher.start_link(%{view: view, caller: self()})
+    watcher = start_watcher(view)
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
   end
 
-  def current_path(session), do: session.current_path
+  defp start_watcher(view) do
+    case ExUnit.Callbacks.start_supervised({PhoenixTest.LiveViewWatcher, %{view: view, caller: self()}}) do
+      {:ok, watcher} -> watcher
+      {:error, {:already_started, watcher}} -> watcher
+    end
+  end
 
   defp append_query_string(path, ""), do: path
   defp append_query_string(path, query), do: path <> "?" <> query
+
+  def current_path(session), do: session.current_path
 
   def render_page_title(%{view: view}) do
     page_title(view)
