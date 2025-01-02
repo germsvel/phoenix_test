@@ -12,11 +12,11 @@ defmodule PhoenixTest.LiveViewWatcher do
     GenServer.cast(pid, {:watch_view, timeout})
   end
 
-  def init(%{view: view, caller: from}) do
+  def init(%{view: view, caller: caller}) do
     # Monitor the LiveView for exits and redirects
     live_view_ref = Process.monitor(view.pid)
 
-    {:ok, %{caller: from, view: view, live_view_ref: live_view_ref}}
+    {:ok, %{caller: caller, view: view, live_view_ref: live_view_ref}}
   end
 
   def handle_cast({:watch_view, timeout}, state) do
