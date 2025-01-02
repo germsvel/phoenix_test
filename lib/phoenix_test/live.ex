@@ -30,7 +30,10 @@ defmodule PhoenixTest.Live do
   end
 
   defp start_watcher(view) do
-    ExUnit.Callbacks.start_supervised({PhoenixTest.LiveViewWatcher, %{view: view, caller: self()}}, id: view.pid)
+    ExUnit.Callbacks.start_supervised({PhoenixTest.LiveViewWatcher, %{view: view, caller: self()}},
+      restart: :transient,
+      id: view.pid
+    )
   end
 
   defp append_query_string(path, ""), do: path
