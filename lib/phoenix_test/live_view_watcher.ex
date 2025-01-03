@@ -15,6 +15,7 @@ defmodule PhoenixTest.LiveViewWatcher do
   def init(%{view: view, caller: from}) do
     # Monitor the LiveView for exits and redirects
     live_view_ref = Process.monitor(view.pid)
+    dbg({:watching, view.pid})
 
     {:ok, %{caller: from, view: view, live_view_ref: live_view_ref}}
   end
@@ -25,18 +26,26 @@ defmodule PhoenixTest.LiveViewWatcher do
     Process.send_after(self(), {timeout_ref, :timeout}, timeout)
 
     # Monitor all async processes
-    {:ok, pids} = fetch_async_pids(state.view)
-    async_refs = Enum.map(pids, &Process.monitor(&1))
+    case fetch_async_pids(state.view) do
+      {:ok, pids} ->
+        async_refs = Enum.map(pids, &Process.monitor(&1))
 
-    state =
-      state
-      |> Map.put(:timeout_ref, timeout_ref)
-      |> Map.put(:async_refs, async_refs)
+        state =
+          state
+          |> Map.put(:timeout_ref, timeout_ref)
+          |> Map.put(:async_refs, async_refs)
 
-    {:noreply, state}
+        {:noreply, state}
+
+      {:error, redirect_tuple} ->
+        send(state.caller, {:watcher, :live_view_redirected, redirect_tuple})
+
+        {:stop, :normal, state}
+    end
   end
 
   def handle_info({timeout_ref, :timeout}, %{timeout_ref: timeout_ref} = state) do
+    dbg(:timeout)
     send(state.caller, {:watcher, :timeout})
 
     {:noreply, state}
@@ -44,6 +53,7 @@ defmodule PhoenixTest.LiveViewWatcher do
 
   def handle_info({:DOWN, ref, :process, _pid, {:shutdown, redirect_tuple}}, %{live_view_ref: ref} = state) do
     send(state.caller, {:watcher, :live_view_redirected, redirect_tuple})
+    dbg({:live_view_redirected, redirect_tuple})
 
     if Map.has_key?(state, :timeout_ref) do
       Process.cancel_timer(state.timeout_ref)
@@ -54,11 +64,13 @@ defmodule PhoenixTest.LiveViewWatcher do
 
   def handle_info({:DOWN, ref, :process, _pid, _reason}, %{live_view_ref: ref} = state) do
     send(state.caller, {:watcher, :live_view_died})
+    dbg(:live_view_died)
     {:stop, :normal, state}
   end
 
   def handle_info({:DOWN, ref, :process, _pid, _reason}, %{async_refs: async_refs} = state) do
     if ref in async_refs do
+      dbg(:async_process_completed)
       send(state.caller, {:watcher, :async_process_completed})
     end
 
@@ -66,6 +78,7 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   def handle_info(message, state) do
+    dbg({:unhandled, message})
     Logger.debug(fn -> "Unhandled LiveViewWatcher message received. Message: #{inspect(message)}" end)
 
     {:noreply, state}
@@ -75,7 +88,16 @@ defmodule PhoenixTest.LiveViewWatcher do
     # Code copied (and simplified) from LiveViewTest's `render_async`
     # https://github.com/phoenixframework/phoenix_live_view/blob/09f7a8468ffd063a96b19767265c405898c9932e/lib/phoenix_live_view/test/live_view_test.ex#L940
     tuple = {:async_pids, {proxy_topic(view), nil, nil}}
-    GenServer.call(proxy_pid(view), tuple, :infinity)
+
+    try do
+      GenServer.call(proxy_pid(view), tuple, :infinity)
+    catch
+      :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
+        {:error, {kind, opts}}
+
+      :exit, _ ->
+        {:ok, []}
+    end
   end
 
   defp proxy_pid(%{proxy: {_ref, _topic, pid}}), do: pid
