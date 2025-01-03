@@ -26,6 +26,7 @@ defmodule PhoenixTest.LiveViewWatcher do
 
     # Monitor all async processes
     {:ok, pids} = fetch_async_pids(state.view)
+
     async_refs = Enum.map(pids, &Process.monitor(&1))
 
     state =
