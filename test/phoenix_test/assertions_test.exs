@@ -586,6 +586,12 @@ defmodule PhoenixTest.AssertionsTest do
       assert_path(session, "/page/index", query_params: %{"hello" => "world"})
     end
 
+    test "asserts wildcard in expected path" do
+      session = %Live{current_path: "/user/12345/profile"}
+
+      assert_path(session, "/user/*/profile")
+    end
+
     test "order of query params does not matter" do
       session = %Live{current_path: "/page/index?hello=world&foo=bar"}
 

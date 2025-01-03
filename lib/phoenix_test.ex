@@ -1321,6 +1321,12 @@ defmodule PhoenixTest do
   conn
   |> visit("/users")
   |> assert_path("/users", query_params: %{name: "frodo"})
+
+  # assert we're at a path with a wildcard
+  conn
+  |> visit("/")
+  |> click("new chat room")
+  |> assert_path("/chat/*")
   ```
   """
   defdelegate assert_path(session, path), to: Driver
