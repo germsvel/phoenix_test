@@ -270,10 +270,22 @@ defmodule PhoenixTest.Live do
       type: mime_type
     }
 
-    session.view
+    upload_progress_result = session.view
     |> file_input(form.selector, live_upload_name, [entry])
     |> render_upload(file_name)
-    |> maybe_redirect(session)
+
+    session.view
+    |> form(form.selector)
+    |> render_change(%{"_target" => field.name})
+    |> progress_redirect_or_change_result(upload_progress_result, session)
+  end
+
+  defp progress_redirect_or_change_result(_change_result, {:error, _} = upload_progress_result, session) do
+    maybe_redirect(upload_progress_result, session)
+  end
+
+  defp progress_redirect_or_change_result(change_result, _upload_progress_result, session) do
+    maybe_redirect(change_result, session)
   end
 
   defp fill_in_field_data(session, field) do

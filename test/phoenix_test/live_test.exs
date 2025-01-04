@@ -782,6 +782,25 @@ defmodule PhoenixTest.LiveTest do
         submit(session)
       end
     end
+
+    test "triggers phx-change validations upon file selection", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#upload-change-form", fn session ->
+        upload(session, "Avatar", "test/files/elixir.jpg")
+      end)
+      |> assert_has("#upload-change-result", text: "phx-change triggered on file selection")
+    end
+
+    test "follows redirects from `:progress` events", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#upload-redirect-form", fn session ->
+        upload(session, "Redirect Avatar", "test/files/elixir.jpg")
+      end)
+      |> assert_path("/live/page_2")
+    end
+
   end
 
   describe "filling out full form with field functions" do
