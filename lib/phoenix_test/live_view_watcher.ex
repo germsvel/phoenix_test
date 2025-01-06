@@ -25,16 +25,22 @@ defmodule PhoenixTest.LiveViewWatcher do
     Process.send_after(self(), {timeout_ref, :timeout}, timeout)
 
     # Monitor all async processes
-    {:ok, pids} = fetch_async_pids(state.view)
+    case fetch_async_pids(state.view) do
+      {:ok, pids} ->
+        async_refs = Enum.map(pids, &Process.monitor(&1))
 
-    async_refs = Enum.map(pids, &Process.monitor(&1))
+        state =
+          state
+          |> Map.put(:timeout_ref, timeout_ref)
+          |> Map.put(:async_refs, async_refs)
 
-    state =
-      state
-      |> Map.put(:timeout_ref, timeout_ref)
-      |> Map.put(:async_refs, async_refs)
+        {:noreply, state}
 
-    {:noreply, state}
+      {:error, redirect_tuple} ->
+        send(state.caller, {:watcher, :live_view_redirected, redirect_tuple})
+
+        {:stop, :normal, state}
+    end
   end
 
   def handle_info({timeout_ref, :timeout}, %{timeout_ref: timeout_ref} = state) do
@@ -77,6 +83,12 @@ defmodule PhoenixTest.LiveViewWatcher do
     # https://github.com/phoenixframework/phoenix_live_view/blob/09f7a8468ffd063a96b19767265c405898c9932e/lib/phoenix_live_view/test/live_view_test.ex#L940
     tuple = {:async_pids, {proxy_topic(view), nil, nil}}
     GenServer.call(proxy_pid(view), tuple, :infinity)
+  catch
+    :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
+      {:error, {kind, opts}}
+
+    :exit, _ ->
+      {:ok, []}
   end
 
   defp proxy_pid(%{proxy: {_ref, _topic, pid}}), do: pid
