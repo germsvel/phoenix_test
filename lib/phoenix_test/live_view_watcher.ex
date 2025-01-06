@@ -8,74 +8,131 @@ defmodule PhoenixTest.LiveViewWatcher do
     GenServer.start_link(__MODULE__, opts)
   end
 
-  def watch_view(pid, timeout) do
-    GenServer.cast(pid, {:watch_view, timeout})
+  def watch_view(pid, live_view, timeout) do
+    GenServer.cast(pid, {:watch_view, live_view, timeout})
   end
 
-  def init(%{view: view, caller: caller}) do
+  def init(%{caller: caller, view: live_view}) do
     # Monitor the LiveView for exits and redirects
-    live_view_ref = Process.monitor(view.pid)
+    live_view_ref = Process.monitor(live_view.pid)
 
-    {:ok, %{caller: caller, view: view, live_view_ref: live_view_ref}}
+    view = %{pid: live_view.pid, live_view_ref: live_view_ref}
+    views = %{view.pid => view}
+
+    {:ok, %{caller: caller, views: views}}
   end
 
-  def handle_cast({:watch_view, timeout}, state) do
-    # Set timeout
-    timeout_ref = make_ref()
-    Process.send_after(self(), {timeout_ref, :timeout}, timeout)
+  def handle_cast({:watch_view, live_view, timeout}, state) do
+    case monitor_view(live_view, timeout) do
+      {:ok, view} ->
+        views = Map.put(state.views, view.pid, view)
 
-    # Monitor all async processes
-    case fetch_async_pids(state.view) do
-      {:ok, pids} ->
-        async_refs = Enum.map(pids, &Process.monitor(&1))
+        {:noreply, %{state | views: views}}
 
-        state =
-          state
-          |> Map.put(:timeout_ref, timeout_ref)
-          |> Map.put(:async_refs, async_refs)
+      {:error, redirect_tuple} ->
+        notify_caller(state, live_view.pid, {:live_view_redirected, redirect_tuple})
+
+        {:noreply, state}
+    end
+  end
+
+  def handle_info({timeout_ref, :timeout, view_pid}, state) do
+    case Map.get(state.views, view_pid) do
+      %{timeout_ref: ^timeout_ref} ->
+        notify_caller(state, view_pid, :timeout)
 
         {:noreply, state}
 
-      {:error, redirect_tuple} ->
-        send(state.caller, {:watcher, :live_view_redirected, redirect_tuple})
-
-        {:stop, :normal, state}
+      _ ->
+        {:noreply, state}
     end
   end
 
-  def handle_info({timeout_ref, :timeout}, %{timeout_ref: timeout_ref} = state) do
-    send(state.caller, {:watcher, :timeout})
+  def handle_info({:DOWN, ref, :process, _pid, {:shutdown, {kind, _data} = redirect_tuple}}, state)
+      when kind in [:redirect, :live_redirect] do
+    case find_view_by_ref(state, ref) do
+      {:ok, view} ->
+        notify_caller(state, view.pid, {:live_view_redirected, redirect_tuple})
 
-    {:noreply, state}
-  end
+        state = remove_view(state, view.pid)
+        {:noreply, state}
 
-  def handle_info({:DOWN, ref, :process, _pid, {:shutdown, redirect_tuple}}, %{live_view_ref: ref} = state) do
-    send(state.caller, {:watcher, :live_view_redirected, redirect_tuple})
-
-    if Map.has_key?(state, :timeout_ref) do
-      Process.cancel_timer(state.timeout_ref)
+      :not_found ->
+        {:noreply, state}
     end
-
-    {:stop, :normal, state}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, %{live_view_ref: ref} = state) do
-    send(state.caller, {:watcher, :live_view_died})
-    {:stop, :normal, state}
-  end
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
+    cond do
+      match?({:ok, _view}, find_view_by_ref(state, ref)) ->
+        {:ok, view} = find_view_by_ref(state, ref)
+        notify_caller(state, view.pid, :live_view_died)
+        state = remove_view(state, view.pid)
 
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, %{async_refs: async_refs} = state) do
-    if ref in async_refs do
-      send(state.caller, {:watcher, :async_process_completed})
+        {:noreply, state}
+
+      match?({:ok, _view}, find_view_by_async_ref(state, ref)) ->
+        {:ok, view} = find_view_by_async_ref(state, ref)
+        notify_caller(state, view.pid, :async_process_completed)
+
+        view = remove_async_ref(view, ref)
+        views = Map.put(state.views, view.pid, view)
+
+        {:noreply, %{state | views: views}}
+
+      true ->
+        {:noreply, state}
     end
-
-    {:noreply, state}
   end
 
   def handle_info(message, state) do
     Logger.debug(fn -> "Unhandled LiveViewWatcher message received. Message: #{inspect(message)}" end)
 
     {:noreply, state}
+  end
+
+  defp monitor_view(view, timeout) do
+    # Monitor the LiveView for exits and redirects
+    live_view_ref = Process.monitor(view.pid)
+
+    # Set timeout
+    timeout_ref = make_ref()
+    Process.send_after(self(), {timeout_ref, :timeout, view.pid}, timeout)
+
+    # Monitor all async processes
+    case fetch_async_pids(view) do
+      {:ok, pids} ->
+        async_refs = Enum.map(pids, &Process.monitor(&1))
+
+        view_data =
+          %{
+            pid: view.pid,
+            live_view_ref: live_view_ref,
+            timeout_ref: timeout_ref,
+            async_refs: async_refs
+          }
+
+        {:ok, view_data}
+
+      {:error, _redirect_tuple} = error ->
+        error
+    end
+  end
+
+  defp notify_caller(state, view_pid, message) do
+    send(state.caller, {:watcher, view_pid, message})
+  end
+
+  defp find_view_by_ref(state, ref) do
+    Enum.find_value(state.views, :not_found, fn {_pid, view} ->
+      if view.live_view_ref == ref, do: {:ok, view}
+    end)
+  end
+
+  defp find_view_by_async_ref(state, ref) do
+    Enum.find_value(state.views, :not_found, fn {_pid, view} ->
+      if ref in view.async_refs, do: {:ok, view}
+    end)
   end
 
   defp fetch_async_pids(view) do
@@ -94,4 +151,22 @@ defmodule PhoenixTest.LiveViewWatcher do
   defp proxy_pid(%{proxy: {_ref, _topic, pid}}), do: pid
 
   defp proxy_topic(%{proxy: {_ref, topic, _pid}}), do: topic
+
+  defp remove_view(state, view_pid) do
+    case state.views[view_pid] do
+      nil ->
+        state
+
+      view ->
+        if Map.has_key?(view, :timeout_ref) do
+          Process.cancel_timer(view.timeout_ref)
+        end
+
+        %{state | views: Map.delete(state.views, view_pid)}
+    end
+  end
+
+  def remove_async_ref(view, ref) do
+    Map.update!(view, :async_refs, &List.delete(&1, ref))
+  end
 end

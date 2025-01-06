@@ -9,24 +9,26 @@ defmodule PhoenixTest.LiveViewTimeout do
   end
 
   def with_timeout(%Live{} = session, timeout, action) when is_function(action) do
-    :ok = PhoenixTest.LiveViewWatcher.watch_view(session.watcher, timeout)
+    :ok = PhoenixTest.LiveViewWatcher.watch_view(session.watcher, session.view, timeout)
     handle_watched_messages_with_timeout(session, action)
   end
 
   defp handle_watched_messages_with_timeout(session, action) do
+    view_pid = session.view.pid
+
     receive do
-      {:watcher, :live_view_redirected, redirect_tuple} ->
+      {:watcher, ^view_pid, {:live_view_redirected, redirect_tuple}} ->
         session
         |> PhoenixTest.Live.handle_redirect(redirect_tuple)
         |> then(action)
 
-      {:watcher, :live_view_died} ->
+      {:watcher, ^view_pid, :live_view_died} ->
         check_for_redirect(session, action)
 
-      {:watcher, :async_process_completed} ->
+      {:watcher, ^view_pid, :async_process_completed} ->
         with_retry(session, action, &handle_watched_messages_with_timeout(&1, action))
 
-      {:watcher, :timeout} ->
+      {:watcher, ^view_pid, :timeout} ->
         action.(session)
     end
   end
