@@ -51,6 +51,7 @@ defmodule PhoenixTest.MixProject do
       {:phoenix, "~> 1.7.10"},
       {:phoenix_live_view, "~> 0.20 or ~> 1.0"},
       {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
+      {:benchee, "~> 1.3", only: [:dev, :test]},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false}
     ]
   end
