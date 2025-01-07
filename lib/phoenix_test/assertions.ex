@@ -212,15 +212,11 @@ defmodule PhoenixTest.Assertions do
     |> assert_query_params(params)
   end
 
-  defp path_to_list(path) do
-    String.split(path, "/")
-  end
-
   defp path_matches?(path, path), do: true
 
   defp path_matches?(expected, is) do
-    parts_expected = path_to_list(expected)
-    parts_is = path_to_list(is)
+    parts_expected = String.split(expected, "/")
+    parts_is = String.split(is, "/")
 
     if Enum.count(parts_expected) != Enum.count(parts_is) do
       false
