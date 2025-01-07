@@ -222,7 +222,8 @@ defmodule PhoenixTest.Assertions do
       false
     else
       parts_not_matching =
-        Enum.zip(parts_expected, parts_is)
+        parts_expected
+        |> Enum.zip(parts_is)
         |> Enum.filter(fn {expect, is} -> uri_parts_match?(expect, is) == false end)
 
       parts_not_matching == []
