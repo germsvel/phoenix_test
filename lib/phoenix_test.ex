@@ -1322,11 +1322,11 @@ defmodule PhoenixTest do
   |> visit("/users")
   |> assert_path("/users", query_params: %{name: "frodo"})
 
-  # assert we're at a path with a wildcard
+  # assert we're at a path with a wildcard. The wildcard represents a single part of the path.
   conn
-  |> visit("/")
-  |> click("new chat room")
-  |> assert_path("/chat/*")
+  |> visit("/users")
+  |> click("Any User")
+  |> assert_path("/users/*/profile")
   ```
   """
   defdelegate assert_path(session, path), to: Driver

@@ -191,7 +191,7 @@ defmodule PhoenixTest.Assertions do
   def assert_path(session, path) do
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
-    if path_compare(path, uri.path) == :eq do
+    if path_matches?(path, uri.path) do
       assert true
     else
       msg = """
@@ -216,20 +216,20 @@ defmodule PhoenixTest.Assertions do
     String.split(path, "/")
   end
 
-  defp path_compare(path, path), do: :eq
+  defp path_matches?(path, path), do: true
 
-  defp path_compare(expected, is) do
+  defp path_matches?(expected, is) do
     parts_expected = path_to_list(expected)
     parts_is = path_to_list(is)
 
     if Enum.count(parts_expected) != Enum.count(parts_is) do
-      :neq
+      false
     else
       parts_not_matching =
         Enum.zip(parts_expected, parts_is)
         |> Enum.filter(fn {expect, is} -> uri_parts_match?(expect, is) == false end)
 
-      if parts_not_matching == [], do: :eq, else: :neq
+      parts_not_matching == []
     end
   end
 
