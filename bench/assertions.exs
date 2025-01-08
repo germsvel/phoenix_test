@@ -17,7 +17,7 @@ defmodule PhoenixTestBenchmark do
     {:ok, _} = PhoenixTest.WebApp.Endpoint.start_link()
 
     conn = Phoenix.ConnTest.build_conn()
-    {:ok, _view, html} = live(conn, "/live/index")
+    {:ok, view, html} = live(conn, "/live/index")
     session = PhoenixTest.visit(conn, "/live/index")
 
     Benchee.run(%{
@@ -37,6 +37,12 @@ defmodule PhoenixTestBenchmark do
       end,
       "LiveView string matching" => fn ->
         assert html =~ "main page"
+      end,
+      "LiveView tag selector" => fn ->
+        assert has_element?(view, "li", "Aragorn")
+      end,
+      "LiveView id+tag selector" => fn ->
+        assert has_element?(view, "#multiple-items li", "Aragorn")
       end
     })
   end
