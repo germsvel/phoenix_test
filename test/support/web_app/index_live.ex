@@ -37,6 +37,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
       Errors present
     </div>
 
+    <ul id="multiple-items">
+      <li>Aragorn</li>
+      <li>Legolas</li>
+      <li>Gimli</li>
+    </ul>
+
     <form id="email-form" phx-change="validate-email" phx-submit="save-form">
       <label for="email">Email</label>
       <input id="email" name="email" value={assigns[:email]} />
