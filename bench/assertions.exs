@@ -24,5 +24,13 @@ Benchee.run(%{
       PhoenixTest.assert_has(session, "#multiple-items li", text: "Aragorn")
     end,
     before_scenario: session_setup_fn
+  },
+  "PhoenixTest.assert_has/3, using within id, tag selector" => {
+    fn {_input, session} ->
+      PhoenixTest.within(session, "#multiple-items", fn s ->
+        PhoenixTest.assert_has(s, "li", text: "Aragorn")
+      end)
+    end,
+    before_scenario: session_setup_fn
   }
 })
