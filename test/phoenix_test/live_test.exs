@@ -1175,6 +1175,13 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Async redirect!")
       |> assert_has("h1", text: "Main page", timeout: 250)
     end
+
+    test "can handle multiple LiveViews (redirect one to another) with async behavior", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async navigate to async 2 page!")
+      |> assert_has("h1", text: "Another title loaded async", timeout: 250)
+    end
   end
 
   describe "refute_has/3 with timeout" do

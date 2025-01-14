@@ -32,6 +32,10 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
       Async navigate!
     </button>
 
+    <button phx-click="async-navigate-to-async">
+      Async navigate to async 2 page!
+    </button>
+
     <button phx-click="async-navigate-quickly">
       Navigate quickly
     </button>
@@ -62,6 +66,14 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
      end)}
   end
 
+  def handle_event("async-navigate-to-async", _, socket) do
+    {:noreply,
+     start_async(socket, :async_navigate_to_async, fn ->
+       Process.sleep(100)
+       :ok
+     end)}
+  end
+
   def handle_event("async-redirect", _, socket) do
     {:noreply,
      start_async(socket, :async_redirect, fn ->
@@ -76,6 +88,10 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
 
   def handle_async(:async_navigate, {:ok, _result}, socket) do
     {:noreply, push_navigate(socket, to: "/live/page_2")}
+  end
+
+  def handle_async(:async_navigate_to_async, {:ok, _result}, socket) do
+    {:noreply, push_navigate(socket, to: "/live/async_page_2")}
   end
 
   def handle_async(:async_redirect, {:ok, _result}, socket) do

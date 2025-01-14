@@ -39,6 +39,7 @@ defmodule PhoenixTest.WebApp.Router do
       live "/live/index/alias", IndexLive
       live "/live/page_2", Page2Live
       live "/live/async_page", AsyncPageLive
+      live "/live/async_page_2", AsyncPage2Live
     end
 
     scope "/auth" do

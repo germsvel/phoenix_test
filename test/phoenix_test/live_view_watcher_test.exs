@@ -84,7 +84,8 @@ defmodule PhoenixTest.LiveViewWatcherTest do
 
       :ok = LiveViewWatcher.watch_view(watcher, view, 100)
 
-      assert_receive {:watcher, ^view_pid, {:live_view_redirected, _redirect_data}}
+      assert_receive {:watcher, ^view_pid, {:live_view_redirected, _redirect_data, timeout_left}}
+      assert timeout_left > 0 and timeout_left < 100
     end
 
     test "sends :timeout message when LiveView timeout expires" do
@@ -132,7 +133,7 @@ defmodule PhoenixTest.LiveViewWatcherTest do
       :ok = LiveViewWatcher.watch_view(watcher, view2, 100)
 
       assert_receive {:watcher, ^view_pid1, :timeout}
-      assert_receive {:watcher, ^view_pid2, {:live_view_redirected, _}}
+      assert_receive {:watcher, ^view_pid2, {:live_view_redirected, _redirect_data, _timeout_left}}
     end
   end
 

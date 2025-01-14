@@ -30,20 +30,20 @@ defmodule PhoenixTest.LiveViewWatcher do
         {:noreply, %{state | views: views}}
 
       {:error, redirect_tuple} ->
-        notify_caller(state, live_view.pid, {:live_view_redirected, redirect_tuple})
+        notify_caller(state, live_view.pid, {:live_view_redirected, redirect_tuple, timeout})
 
         {:noreply, state}
     end
   end
 
-  def handle_info({timeout_ref, :timeout, view_pid}, state) do
-    case Map.get(state.views, view_pid) do
-      %{timeout_ref: ^timeout_ref} ->
+  def handle_info({:timeout, view_pid}, state) do
+    case state.views[view_pid] do
+      %{timeout_ref: _timeout_ref} ->
         notify_caller(state, view_pid, :timeout)
 
         {:noreply, state}
 
-      _ ->
+      nil ->
         {:noreply, state}
     end
   end
@@ -52,9 +52,10 @@ defmodule PhoenixTest.LiveViewWatcher do
       when kind in [:redirect, :live_redirect] do
     case find_view_by_ref(state, ref) do
       {:ok, view} ->
-        notify_caller(state, view.pid, {:live_view_redirected, redirect_tuple})
-
+        timeout_left = (Map.has_key?(view, :timeout_ref) && Process.cancel_timer(view.timeout_ref)) || 0
+        notify_caller(state, view.pid, {:live_view_redirected, redirect_tuple, timeout_left})
         state = remove_view(state, view.pid)
+
         {:noreply, state}
 
       :not_found ->
@@ -68,6 +69,10 @@ defmodule PhoenixTest.LiveViewWatcher do
         {:ok, view} = find_view_by_ref(state, ref)
         notify_caller(state, view.pid, :live_view_died)
         state = remove_view(state, view.pid)
+
+        if Map.has_key?(view, :timeout_ref) do
+          Process.cancel_timer(view.timeout_ref)
+        end
 
         {:noreply, state}
 
@@ -96,8 +101,7 @@ defmodule PhoenixTest.LiveViewWatcher do
     live_view_ref = Process.monitor(view.pid)
 
     # Set timeout
-    timeout_ref = make_ref()
-    Process.send_after(self(), {timeout_ref, :timeout, view.pid}, timeout)
+    timeout_ref = Process.send_after(self(), {:timeout, view.pid}, timeout)
 
     # Monitor all async processes
     case fetch_async_pids(view) do
@@ -157,11 +161,7 @@ defmodule PhoenixTest.LiveViewWatcher do
       nil ->
         state
 
-      view ->
-        if Map.has_key?(view, :timeout_ref) do
-          Process.cancel_timer(view.timeout_ref)
-        end
-
+      _view ->
         %{state | views: Map.delete(state.views, view_pid)}
     end
   end

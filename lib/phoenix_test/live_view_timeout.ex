@@ -3,6 +3,11 @@ defmodule PhoenixTest.LiveViewTimeout do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Live
+  alias PhoenixTest.Static
+
+  def with_timeout(%Static{} = session, _timeout, action) when is_function(action) do
+    action.(session)
+  end
 
   def with_timeout(%Live{} = session, timeout, action) when timeout <= 0 and is_function(action) do
     action.(session)
@@ -17,10 +22,10 @@ defmodule PhoenixTest.LiveViewTimeout do
     view_pid = session.view.pid
 
     receive do
-      {:watcher, ^view_pid, {:live_view_redirected, redirect_tuple}} ->
+      {:watcher, ^view_pid, {:live_view_redirected, redirect_tuple, timeout_left}} ->
         session
         |> PhoenixTest.Live.handle_redirect(redirect_tuple)
-        |> then(action)
+        |> with_timeout(timeout_left, action)
 
       {:watcher, ^view_pid, :live_view_died} ->
         check_for_redirect(session, action)
