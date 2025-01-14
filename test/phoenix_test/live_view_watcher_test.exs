@@ -89,6 +89,8 @@ defmodule PhoenixTest.LiveViewWatcherTest do
     end
 
     test "can override watch settings (e.g. timeout) for original LiveView" do
+      # TODO: seems like we might be accidentally overriding the `live_view_ref`
+      # and missing messages on patern matching in the watcher
       {:ok, view_pid} = start_supervised(DummyLiveView, id: 1)
       view = %{pid: view_pid}
       {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
