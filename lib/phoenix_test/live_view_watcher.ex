@@ -140,21 +140,22 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   defp fetch_async_pids(view) do
-    # Code copied (and simplified) from LiveViewTest's `render_async`
+    # Code copied (and simplified) from LiveViewTest's `render_async`:
     # https://github.com/phoenixframework/phoenix_live_view/blob/09f7a8468ffd063a96b19767265c405898c9932e/lib/phoenix_live_view/test/live_view_test.ex#L940
-    tuple = {:async_pids, {proxy_topic(view), nil, nil}}
-    GenServer.call(proxy_pid(view), tuple, :infinity)
+    #
+    # which ends up calling `LiveView.Channel.async_pids`:
+    # https://github.com/phoenixframework/phoenix_live_view/blob/09f7a8468ffd063a96b19767265c405898c9932e/lib/phoenix_live_view/channel.ex#L49
+    #
+    # We target the `Channel` call here so we can properly catch exits when the
+    # LiveView dies.
+    Phoenix.LiveView.Channel.async_pids(view.pid)
   catch
     :exit, {{:shutdown, {kind, opts}}, _} when kind in [:redirect, :live_redirect] ->
       {:error, {kind, opts}}
 
-    :exit, _ ->
+    :exit, _e ->
       {:ok, []}
   end
-
-  defp proxy_pid(%{proxy: {_ref, _topic, pid}}), do: pid
-
-  defp proxy_topic(%{proxy: {_ref, topic, _pid}}), do: topic
 
   defp remove_view(state, view_pid) do
     case state.views[view_pid] do
