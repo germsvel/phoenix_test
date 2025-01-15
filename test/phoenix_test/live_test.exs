@@ -782,6 +782,17 @@ defmodule PhoenixTest.LiveTest do
         submit(session)
       end
     end
+
+    test "returns errors (that are not redirects) to the user", %{conn: conn} do
+      file_type_error =
+        conn
+        |> visit("/live/index")
+        |> within("#full-form", fn session ->
+          upload(session, "Avatar", "test/files/phoenix.png")
+        end)
+
+      assert {:error, [[_, :not_accepted]]} = file_type_error
+    end
   end
 
   describe "filling out full form with field functions" do

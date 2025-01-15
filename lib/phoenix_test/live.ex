@@ -112,10 +112,15 @@ defmodule PhoenixTest.Live do
   end
 
   def within(session, selector, fun) when is_function(fun, 1) do
-    session
-    |> Map.put(:within, selector)
-    |> fun.()
-    |> Map.put(:within, :none)
+    result =
+      session
+      |> Map.put(:within, selector)
+      |> fun.()
+
+    case result do
+      %{} -> Map.put(result, :within, :none)
+      {:error, _} -> result
+    end
   end
 
   def fill_in(session, label, opts) do
@@ -394,6 +399,10 @@ defmodule PhoenixTest.Live do
     result
     |> follow_redirect(ConnHandler.recycle_all_headers(conn))
     |> maybe_redirect(session)
+  end
+
+  defp maybe_redirect({:error, _} = error, _session) do
+    error
   end
 
   defp maybe_redirect({:ok, view, _}, session) do
