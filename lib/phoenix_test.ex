@@ -1187,15 +1187,15 @@ defmodule PhoenixTest do
 
   - `text`: the text filter to look for.
 
-  - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
-  =~ b`). That makes it easier to assert text within HTML elements that also
-  contain other HTML elements. But sometimes we want to assert the exact text is
-  present. For that, use `exact: true`. (defaults to `false`)
+  - `at`: (integer) position of the element to be asserted against
 
   - `count`: the number of items you expect to match CSS selector (and `text` if
   provided)
 
-  - `at`: (integer) position of the element to be asserted against
+  - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
+  =~ b`). That makes it easier to assert text within HTML elements that also
+  contain other HTML elements. But sometimes we want to assert the exact text is
+  present. For that, use `exact: true`. (defaults to `false`)
 
   - `timeout`: experimental option that only works with LiveViews. If you pass a
   positive `timeout`, PhoenixTest will wait for any async operations (i.e.
