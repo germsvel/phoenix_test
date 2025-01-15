@@ -528,7 +528,7 @@ defmodule PhoenixTest do
 
   ```elixir
   session
-  |> fill_in("#contact_1_first_name", with: "First Name")
+  |> fill_in("#contact_1_first_name", "First Name", with: "Aragorn")
   ```
   """
   def fill_in(session, input_selector, label, opts) when is_binary(label) and is_list(opts) do
