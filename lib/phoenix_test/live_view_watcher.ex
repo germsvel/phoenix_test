@@ -23,7 +23,7 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   def handle_cast({:watch_view, live_view, timeout}, state) do
-    case monitor_view(live_view, timeout) do
+    case monitor_view(live_view, timeout, state.views) do
       {:ok, view} ->
         views = Map.put(state.views, view.pid, view)
 
@@ -96,21 +96,25 @@ defmodule PhoenixTest.LiveViewWatcher do
     {:noreply, state}
   end
 
-  defp monitor_view(view, timeout) do
+  defp monitor_view(live_view, timeout, watched_views) do
     # Monitor the LiveView for exits and redirects
-    live_view_ref = Process.monitor(view.pid)
+    live_view_ref =
+      case watched_views[live_view.pid] do
+        nil -> Process.monitor(live_view.pid)
+        %{live_view_ref: live_view_ref} -> live_view_ref
+      end
 
     # Set timeout
-    timeout_ref = Process.send_after(self(), {:timeout, view.pid}, timeout)
+    timeout_ref = Process.send_after(self(), {:timeout, live_view.pid}, timeout)
 
     # Monitor all async processes
-    case fetch_async_pids(view) do
+    case fetch_async_pids(live_view) do
       {:ok, pids} ->
         async_refs = Enum.map(pids, &Process.monitor(&1))
 
         view_data =
           %{
-            pid: view.pid,
+            pid: live_view.pid,
             live_view_ref: live_view_ref,
             timeout_ref: timeout_ref,
             async_refs: async_refs

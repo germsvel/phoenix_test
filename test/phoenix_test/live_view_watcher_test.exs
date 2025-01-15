@@ -88,14 +88,39 @@ defmodule PhoenixTest.LiveViewWatcherTest do
       assert_receive {:watcher, ^view_pid, :async_process_completed}
     end
 
-    test "can override watch settings (e.g. timeout) for original LiveView" do
-      {:ok, view_pid} = start_supervised(DummyLiveView, id: 1)
+    test "can watch original view (e.g. to set a timeout)" do
+      {:ok, view_pid} = start_supervised(DummyLiveView)
       view = %{pid: view_pid}
       {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
 
       :ok = LiveViewWatcher.watch_view(watcher, view, 0)
 
       assert_receive {:watcher, ^view_pid, :timeout}
+    end
+
+    test "can override an existing view's timeout" do
+      {:ok, view_pid} = start_supervised(DummyLiveView)
+      view = %{pid: view_pid}
+      {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
+
+      :ok = LiveViewWatcher.watch_view(watcher, view, 10_000)
+      :ok = LiveViewWatcher.watch_view(watcher, view, 0)
+
+      assert_receive {:watcher, ^view_pid, :timeout}
+    end
+
+    test "does not overrides an (internal) live_view_ref info" do
+      {:ok, view_pid} = start_supervised(DummyLiveView)
+      view = %{pid: view_pid}
+      {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
+
+      %{views: views} = :sys.get_state(watcher)
+      %{live_view_ref: live_view_ref} = views[view_pid]
+
+      :ok = LiveViewWatcher.watch_view(watcher, view, 0)
+
+      %{views: views} = :sys.get_state(watcher)
+      assert %{live_view_ref: ^live_view_ref} = views[view_pid]
     end
 
     test "can watch multiple LiveViews" do
