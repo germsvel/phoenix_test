@@ -1006,9 +1006,12 @@ defmodule PhoenixTest do
   @doc """
   Upload a file.
 
-  If the form is a LiveView form, this will perform a live file upload.
+  If the form is a LiveView form, this will perform a live file upload and trigger the associated `phx-change` event.
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
+
+  > LiveView Note: If `allow_upload/3` has a `:progress` callback that issues a navigate or redirect,
+  > it will be used instead of any navigate, redirect or patch from the upload's `phx-change` event.
 
   ## Options
 
