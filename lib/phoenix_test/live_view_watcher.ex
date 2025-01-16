@@ -19,6 +19,8 @@ defmodule PhoenixTest.LiveViewWatcher do
     view = %{pid: live_view.pid, live_view_ref: live_view_ref}
     views = %{view.pid => view}
 
+    Logger.debug("Init PhoenixTest.LiveViewWatcher with view: #{inspect(view.pid)}", ansi_color: :yellow)
+
     {:ok, %{caller: caller, views: views}}
   end
 
@@ -26,6 +28,10 @@ defmodule PhoenixTest.LiveViewWatcher do
     case monitor_view(live_view, timeout, state.views) do
       {:ok, view} ->
         views = Map.put(state.views, view.pid, view)
+
+        Logger.debug("PhoenixTest.LiveViewWatcher monitoring view: #{inspect(view.pid)} and timeout: #{timeout}",
+          ansi_color: :yellow
+        )
 
         {:noreply, %{state | views: views}}
 
@@ -91,7 +97,7 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   def handle_info(message, state) do
-    Logger.debug(fn -> "Unhandled LiveViewWatcher message received. Message: #{inspect(message)}" end)
+    Logger.debug("Unhandled LiveViewWatcher message received. Message: #{inspect(message)}", ansi_color: :yellow)
 
     {:noreply, state}
   end
@@ -128,6 +134,10 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   defp notify_caller(state, view_pid, message) do
+    Logger.debug("PhoenixTest.LiveViewWatcher notifying test of message: #{inspect({:watcher, view_pid, message})}",
+      ansi_color: :yellow
+    )
+
     send(state.caller, {:watcher, view_pid, message})
   end
 
