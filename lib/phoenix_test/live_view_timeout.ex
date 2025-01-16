@@ -50,7 +50,7 @@ defmodule PhoenixTest.LiveViewTimeout do
   end
 
   defp check_for_redirect(session, action) when is_function(action) do
-    {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 0)
+    {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view)
 
     session
     |> PhoenixTest.Live.handle_redirect({:redirect, %{to: path, flash: flash}})
