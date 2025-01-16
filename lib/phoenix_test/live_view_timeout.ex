@@ -50,7 +50,11 @@ defmodule PhoenixTest.LiveViewTimeout do
   end
 
   defp check_for_redirect(session, action) when is_function(action) do
-    {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view, 0)
+    # 1. [unlikely] something consumes it (probably not)
+    # 2. [unlikely] LiveViewTest itself has race condition where they miss the message (and don't forward it)
+    # 3. The message isn't getting sent at all b/c LiveView dies for diff reason
+    # 4. Message hasn't arrived yet, and 0 ms timeout is too fast
+    {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view)
 
     session
     |> PhoenixTest.Live.handle_redirect({:redirect, %{to: path, flash: flash}})
