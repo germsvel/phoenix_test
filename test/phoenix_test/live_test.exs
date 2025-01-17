@@ -924,6 +924,15 @@ defmodule PhoenixTest.LiveTest do
         end)
       end
     end
+
+    test "handles conditional input gracefully (filled, then removed)", %{conn: conn} do
+        conn
+        |> visit("/live/index")
+        |> fill_in("Other", with: "this input will now be removed")
+        |> submit()
+        |> check("Hide other")
+        |> submit()
+      end
   end
 
   describe "open_browser" do
