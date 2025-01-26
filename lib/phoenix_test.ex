@@ -1174,6 +1174,7 @@ defmodule PhoenixTest do
   assert_has(session, "#user")
   ```
   """
+  @doc group: "Assertions"
   defdelegate assert_has(session, selector), to: Driver
 
   @doc """
@@ -1226,6 +1227,7 @@ defmodule PhoenixTest do
   assert_has(session, "h1", text: "Hello", timeout: 100)
   ```
   """
+  @doc group: "Assertions"
   defdelegate assert_has(session, selector, opts), to: Driver
 
   @doc """
@@ -1246,6 +1248,7 @@ defmodule PhoenixTest do
   refute_has(session, "#user")
   ```
   """
+  @doc group: "Assertions"
   defdelegate refute_has(session, selector), to: Driver
 
   @doc """
@@ -1296,6 +1299,7 @@ defmodule PhoenixTest do
   refute_has(session, "h1", text: "Hello", timeout: 100)
   ```
   """
+  @doc group: "Assertions"
   defdelegate refute_has(session, selector, opts), to: Driver
 
   @doc """
@@ -1329,11 +1333,13 @@ defmodule PhoenixTest do
   |> assert_path("/users/*/profile")
   ```
   """
+  @doc group: "Assertions"
   defdelegate assert_path(session, path), to: Driver
 
   @doc """
   Same as `assert_path/2` but takes an optional `query_params` map.
   """
+  @doc group: "Assertions"
   defdelegate assert_path(session, path, opts), to: Driver
 
   @doc """
@@ -1361,11 +1367,13 @@ defmodule PhoenixTest do
   |> refute_path("/users", query_params: %{name: "frodo"})
   ```
   """
+  @doc group: "Assertions"
   defdelegate refute_path(session, path), to: Driver
 
   @doc """
   Same as `refute_path/2` but takes an optional `query_params` for more specific
   refutation.
   """
+  @doc group: "Assertions"
   defdelegate refute_path(session, path, opts), to: Driver
 end
