@@ -131,7 +131,7 @@ defmodule PhoenixTest.LiveViewWatcherTest do
       {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view1}})
 
       :ok = LiveViewWatcher.watch_view(watcher, view1, 0)
-      :ok = LiveViewWatcher.watch_view(watcher, view2, 100)
+      :ok = LiveViewWatcher.watch_view(watcher, view2, 200)
 
       assert_receive {:watcher, ^view_pid1, :timeout}
       assert_receive {:watcher, ^view_pid2, {:live_view_redirected, _redirect_data, _timeout_left}}
