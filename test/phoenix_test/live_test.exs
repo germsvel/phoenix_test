@@ -198,6 +198,7 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: off")
+      |> assert_has("#form-data", text: "email: prefilled@example.com")
       |> assert_has("#form-data", text: "contact: mail")
       |> assert_has("#form-data", text: "level: 7")
       |> assert_has("#form-data", text: "full_form_button: save")
