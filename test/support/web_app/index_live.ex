@@ -508,6 +508,11 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <button phx-click="redirect-and-trigger-form">Redirect and trigger action</button>
       <button phx-click="navigate-and-trigger-form">Navigate and trigger action</button>
     </form>
+
+    <form id="tiny-upload-form">
+      <label for={@uploads.tiny.ref}>Tiny</label>
+      <.live_file_input upload={@uploads.tiny} />
+    </form>
     """
   end
 
@@ -537,6 +542,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:tiny, accept: ~w(.jpg .jpeg), max_file_size: 1000)
     }
   end
 

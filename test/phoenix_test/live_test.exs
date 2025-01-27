@@ -782,6 +782,37 @@ defmodule PhoenixTest.LiveTest do
         submit(session)
       end
     end
+
+    test "throws a nice error message for the `:not_accepted` error", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#full-form", fn session ->
+        assert_raise ArgumentError, ~r/Unsupported file type/, fn ->
+          upload(session, "Avatar", "test/files/phoenix.png")
+        end
+      end)
+    end
+
+    test "throws a nice error message for the `:too_many_files` error", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#full-form", fn session ->
+        assert_raise ArgumentError, ~r/Too many files uploaded./, fn ->
+          upload(session, "Avatar", "test/files/elixir.jpg")
+          upload(session, "Avatar", "test/files/elixir.jpg")
+        end
+      end)
+    end
+
+    test "throws a nice error message for the `:too_large` error", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#tiny-upload-form", fn session ->
+        assert_raise ArgumentError, ~r/File too large./, fn ->
+          upload(session, "Tiny", "test/files/elixir.jpg")
+        end
+      end)
+    end
   end
 
   describe "filling out full form with field functions" do
