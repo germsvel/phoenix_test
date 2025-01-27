@@ -142,9 +142,6 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label for="first_name">First Name</label>
       <input id="first_name" name="first_name" />
 
-      <label for="email">Prefilled email</label>
-      <input id="prefilled_email" type="email" name="email" value="prefilled@example.com" />
-
       <label for="date">Date</label>
       <input type="date" id="date" name="date" />
 
