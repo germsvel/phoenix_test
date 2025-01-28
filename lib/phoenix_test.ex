@@ -39,7 +39,7 @@ defmodule PhoenixTest do
   ```elixir
   def deps do
     [
-      {:phoenix_test, "~> 0.5.1", only: :test, runtime: false}
+      {:phoenix_test, "~> 0.5.2", only: :test, runtime: false}
     ]
   end
   ```
@@ -1197,10 +1197,10 @@ defmodule PhoenixTest do
 
   - `at`: (integer) position of the element to be asserted against
 
-  - `timeout`: experimental option that only works with LiveViews. If you pass a
-  positive `timeout`, PhoenixTest will wait for any async operations (i.e.
-  LiveView's `assign_async` and `start_async`) and handle redirects that happen
-  as result of a `handle_async` or `handle_info`. (defaults to `0`)
+  - `timeout`: currently only works with LiveViews. If you pass a positive
+  `timeout`, PhoenixTest will wait for any async operations (i.e. LiveView's
+  `assign_async` and `start_async`) and handle redirects that happen as result
+  of a `handle_async` or `handle_info`. (defaults to `0`)
 
   ## Examples
 

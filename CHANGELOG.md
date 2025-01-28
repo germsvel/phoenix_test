@@ -7,6 +7,50 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.5.2
+
+### Improvements
+
+- Allow wildcards in `assert_path` (#163). Commit [aec2a0d]
+- Add assertion benchmarks (#165). Commit [549cd49]
+
+- Improve `:timeout` implementation for assertion helpers.
+  - Improve LiveViewWatcher child spec. Commits [a3efdce], [31a5b79], [5da3bc6]
+  - Start LiveViewWatcher under the test supervisor. Commit [bbcaf35]
+  - Allow watcher to watch multiple views. Commit [0202671]
+  - Watch sequential LiveViews (via redirects) and async behavior. Commit
+    [f07c187]
+
+### Fixes
+
+- Catch exits when checking async pids. Commit [7f34790]
+- Use LiveView.Channel to fetch async pids. Commit [8721948]
+
+[5da3bc6]: https://github.com/germsvel/phoenix_test/commit/5da3bc6
+[e42543b]: https://github.com/germsvel/phoenix_test/commit/e42543b
+[9eeecad]: https://github.com/germsvel/phoenix_test/commit/9eeecad
+[549cd49]: https://github.com/germsvel/phoenix_test/commit/549cd49
+[8984387]: https://github.com/germsvel/phoenix_test/commit/8984387
+[c9f96c1]: https://github.com/germsvel/phoenix_test/commit/c9f96c1
+[ba5d999]: https://github.com/germsvel/phoenix_test/commit/ba5d999
+[8721948]: https://github.com/germsvel/phoenix_test/commit/8721948
+[f07c187]: https://github.com/germsvel/phoenix_test/commit/f07c187
+[0202671]: https://github.com/germsvel/phoenix_test/commit/0202671
+[aec2a0d]: https://github.com/germsvel/phoenix_test/commit/aec2a0d
+[7f34790]: https://github.com/germsvel/phoenix_test/commit/7f34790
+[89f31ff]: https://github.com/germsvel/phoenix_test/commit/89f31ff
+[a3efdce]: https://github.com/germsvel/phoenix_test/commit/a3efdce
+[31a5b79]: https://github.com/germsvel/phoenix_test/commit/31a5b79
+[bbcaf35]: https://github.com/germsvel/phoenix_test/commit/bbcaf35
+[6abace0]: https://github.com/germsvel/phoenix_test/commit/6abace0
+[3d78969]: https://github.com/germsvel/phoenix_test/commit/3d78969
+[1d420e6]: https://github.com/germsvel/phoenix_test/commit/1d420e6
+
+### Docs
+
+- Tag assertion docs. Commit [9eeecad]
+- Fix fill_in/4 doc example. Commit [c9f96c1]
+
 ## 0.5.1
 
 ### Fixes
