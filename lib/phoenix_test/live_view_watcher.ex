@@ -1,6 +1,6 @@
 defmodule PhoenixTest.LiveViewWatcher do
   @moduledoc false
-  use GenServer
+  use GenServer, restart: :transient
 
   require Logger
 

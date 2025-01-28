@@ -31,7 +31,6 @@ defmodule PhoenixTest.Live do
 
   defp start_watcher(view) do
     ExUnit.Callbacks.start_supervised({PhoenixTest.LiveViewWatcher, %{caller: self(), view: view}},
-      restart: :transient,
       id: make_ref()
     )
   end
