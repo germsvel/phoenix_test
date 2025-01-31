@@ -23,6 +23,9 @@ defmodule PhoenixTest.WebApp.LayoutView do
         </script>
       </head>
       <body class="bg-white antialiased">
+        <nav>
+          <div>I am a layout nav</div>
+        </nav>
         {@inner_content}
       </body>
     </html>

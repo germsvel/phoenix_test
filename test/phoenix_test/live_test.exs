@@ -39,6 +39,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    # TODO: maybe in assertions test
+    test "includes layout", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_has("nav", text: "I am a layout nav")
+    end
+
     test "follows redirects", %{conn: conn} do
       conn
       |> visit("/live/redirect_on_mount/redirect")

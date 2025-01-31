@@ -20,13 +20,26 @@ defmodule PhoenixTest.Live do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct active_form: ActiveForm.new(),
+            conn: nil,
+            current_path: "",
+            initial_html: nil,
+            watcher: nil,
+            within: :none,
+            view: nil
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
     current_path = append_query_string(conn.request_path, conn.query_string)
     {:ok, watcher} = start_watcher(view)
-    %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
+
+    %__MODULE__{
+      conn: conn,
+      current_path: current_path,
+      initial_html: conn.resp_body,
+      view: view,
+      watcher: watcher
+    }
   end
 
   defp start_watcher(view) do
@@ -44,9 +57,20 @@ defmodule PhoenixTest.Live do
     page_title(view)
   end
 
-  def render_html(%{view: view, within: within}) do
+  def render_html(%{view: view, within: within} = session) do
+    {layout_view, :root} = session.conn.private[:phoenix_root_layout]["html"]
+
+    # docs say LiveView changes app layout. Never the root layout.
+    # https://hexdocs.pm/phoenix/1.7.18/components.html#layouts
+    # If that's so, is the answer to just put the markup in the app layout?
     case within do
       :none ->
+        assigns = %{inner_content: inner_content}
+
+        dbg(result)
+        # dbg(session.initial_html)
+        # TODO: could save layout instead. Main phx body starts with
+        # `data-phx-main`
         render(view)
 
       selector ->
@@ -73,12 +97,18 @@ defmodule PhoenixTest.Live do
       |> Query.find_by_role!(locator)
       |> Button.build(html)
 
-    click_button(session, button.selector, button.text)
+    do_click_button(session, button)
   end
 
   def click_button(session, selector, text) do
     html = render_html(session)
     button = Button.find!(html, selector, text)
+    do_click_button(session, button)
+  end
+
+  defp do_click_button(session, %Button{} = button) do
+    selector = button.selector
+    text = button.text
 
     cond do
       Button.phx_click?(button) ->
