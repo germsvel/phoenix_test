@@ -508,6 +508,11 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <button phx-click="redirect-and-trigger-form">Redirect and trigger action</button>
       <button phx-click="navigate-and-trigger-form">Navigate and trigger action</button>
     </form>
+
+    <form id="conditional-inputs" phx-change="save-form" phx-submit="save-form">
+      <label><input name="hide_other" type="checkbox" value="on" />Hide other</label>
+      <label :if={@form_data["hide_other"] != "on"}>Other <input name="other" type="text" /></label>
+    </form>
     """
   end
 

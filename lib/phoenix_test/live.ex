@@ -340,8 +340,8 @@ defmodule PhoenixTest.Live do
     cond do
       Form.phx_submit?(form) ->
         session.view
-        |> form(selector, FormPayload.new(form_data))
-        |> render_submit(FormPayload.new(additional_data))
+        |> form(selector)
+        |> render_submit(FormPayload.new(form_data ++ additional_data))
         |> maybe_redirect(session)
 
       Form.has_action?(form) ->
