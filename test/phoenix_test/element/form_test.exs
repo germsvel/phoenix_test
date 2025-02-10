@@ -107,6 +107,7 @@ defmodule PhoenixTest.Element.FormTest do
 
         <input type="text" name="text-input" value="text value" />
         <input type="number" name="number-input" value="123" />
+        <input type="email" name="email-input" value="test@example.com" />
 
         <select name="select">
           <option value="not_selected">Not selected</option>
@@ -141,6 +142,7 @@ defmodule PhoenixTest.Element.FormTest do
       assert FormData.has_data?(form.form_data, "input", "value")
       assert FormData.has_data?(form.form_data, "text-input", "text value")
       assert FormData.has_data?(form.form_data, "number-input", "123")
+      assert FormData.has_data?(form.form_data, "email-input", "test@example.com")
       assert FormData.has_data?(form.form_data, "select", "selected")
       assert FormData.has_data?(form.form_data, "select_multiple[]", "select_1")
       assert FormData.has_data?(form.form_data, "select_multiple[]", "select_2")

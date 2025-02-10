@@ -73,6 +73,7 @@ defmodule PhoenixTest.Element.Form do
   @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
   @pre_filled_text_inputs "input:not([disabled])[type=text][value]"
   @pre_filled_number_inputs "input:not([disabled])[type=number][value]"
+  @pre_filled_email_inputs "input:not([disabled])[type=email][value]"
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
 
   defp form_data(form) do
@@ -82,6 +83,7 @@ defmodule PhoenixTest.Element.Form do
     |> FormData.add_data(form_data(@checked_checkboxes, form))
     |> FormData.add_data(form_data(@pre_filled_text_inputs, form))
     |> FormData.add_data(form_data(@pre_filled_number_inputs, form))
+    |> FormData.add_data(form_data(@pre_filled_email_inputs, form))
     |> FormData.add_data(form_data(@pre_filled_default_text_inputs, form))
     |> FormData.add_data(form_data_textarea(form))
     |> FormData.add_data(form_data_select(form))
