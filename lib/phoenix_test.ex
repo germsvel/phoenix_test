@@ -25,7 +25,8 @@ defmodule PhoenixTest do
 
   Note that PhoenixTest does _not_ handle JavaScript. If you're looking for
   something that supports JavaScript, take a look at
-  [Wallaby](https://hexdocs.pm/wallaby/readme.html).
+  [Wallaby](https://hexdocs.pm/wallaby/readme.html)
+  or the external [PhoenixTest.Playwright](https://hexdocs.pm/phoenix_test_playwright) driver.
 
   ## Setup
 
