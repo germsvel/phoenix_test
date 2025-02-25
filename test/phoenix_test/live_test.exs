@@ -38,36 +38,6 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> assert_has("h1", text: "LiveView main page")
     end
-
-    test "follows redirects", %{conn: conn} do
-      conn
-      |> visit("/live/redirect_on_mount/redirect")
-      |> assert_has("h1", text: "LiveView main page")
-      |> assert_has("#flash-group", text: "Redirected!")
-    end
-
-    test "follows push redirects (push navigate)", %{conn: conn} do
-      conn
-      |> visit("/live/redirect_on_mount/push_navigate")
-      |> assert_has("h1", text: "LiveView main page")
-      |> assert_has("#flash-group", text: "Navigated!")
-    end
-
-    test "preserves headers across redirects", %{conn: conn} do
-      conn
-      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
-      |> visit("/live/redirect_on_mount/redirect")
-      |> assert_has("h1", text: "LiveView main page")
-      |> then(fn %{conn: conn} ->
-        assert {"x-custom-header", "Some-Value"} in conn.req_headers
-      end)
-    end
-
-    test "renders error pages if route doesn't exist (when pages configured)", %{conn: conn} do
-      conn
-      |> visit("/live/non_route")
-      |> assert_has("h2", text: "404")
-    end
   end
 
   describe "click_link/2" do

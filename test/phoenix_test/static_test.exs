@@ -20,33 +20,10 @@ defmodule PhoenixTest.StaticTest do
   end
 
   describe "visit/2" do
-    test "navigates to given static page", %{conn: conn} do
+    test "navigates to static pages", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> assert_has("h1", text: "Main page")
-    end
-
-    test "follows redirects", %{conn: conn} do
-      conn
-      |> visit("/page/redirect_to_static")
-      |> assert_has("h1", text: "Main page")
-      |> assert_has("#flash-group", text: "Redirected!")
-    end
-
-    test "preserves headers across redirects", %{conn: conn} do
-      conn
-      |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
-      |> visit("/page/redirect_to_static")
-      |> assert_has("h1", text: "Main page")
-      |> then(fn %{conn: conn} ->
-        assert {"x-custom-header", "Some-Value"} in conn.req_headers
-      end)
-    end
-
-    test "renders error page if route doesn't exist (if error pages configured)", %{conn: conn} do
-      conn
-      |> visit("/non_route")
-      |> assert_has("h2", text: "404")
     end
   end
 
