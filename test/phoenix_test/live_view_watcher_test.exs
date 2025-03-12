@@ -15,19 +15,12 @@ defmodule PhoenixTest.LiveViewWatcherTest do
         Process.send_after(self(), :redirect, opts[:redirect_in])
       end
 
-      async_pids = Map.get(opts, :async_pids, [])
-
-      {:ok, %{async_pids: async_pids}}
+      {:ok, %{}}
     end
 
     def handle_info(:redirect, state) do
       reason = {:shutdown, {:redirect, %{}}}
       {:stop, reason, state}
-    end
-
-    @prefix_from_live_view_channel :phoenix
-    def handle_call({@prefix_from_live_view_channel, :async_pids}, _from, state) do
-      {:reply, {:ok, state.async_pids}, state}
     end
   end
 
@@ -43,7 +36,7 @@ defmodule PhoenixTest.LiveViewWatcherTest do
     end
   end
 
-  describe "watch_view/3" do
+  describe "watch_view/2" do
     test "sends :live_view_died message when LiveView dies" do
       {:ok, view_pid} = start_supervised(DummyLiveView)
       view = %{pid: view_pid}
