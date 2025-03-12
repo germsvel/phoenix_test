@@ -13,18 +13,14 @@ defmodule PhoenixTest.LiveViewWatcher do
   end
 
   def init(%{caller: caller, view: live_view}) do
-    # Monitor the LiveView for exits and redirects
-    live_view_ref = Process.monitor(live_view.pid)
-
-    view = %{pid: live_view.pid, live_view_ref: live_view_ref}
-    views = %{view.pid => view}
+    monitored_views = %{}
+    {:ok, views} = add_to_monitored_views(monitored_views, live_view)
 
     {:ok, %{caller: caller, views: views}}
   end
 
   def handle_cast({:watch_view, live_view}, state) do
-    {:ok, view} = monitor_view(live_view, state.views)
-    views = Map.put(state.views, view.pid, view)
+    {:ok, views} = add_to_monitored_views(state.views, live_view)
 
     {:noreply, %{state | views: views}}
   end
@@ -62,21 +58,26 @@ defmodule PhoenixTest.LiveViewWatcher do
     {:noreply, state}
   end
 
-  defp monitor_view(live_view, watched_views) do
+  defp add_to_monitored_views(watched_views, live_view) do
+    case watched_views[live_view.pid] do
+      nil ->
+        view = monitor_view(live_view)
+        views = Map.put(watched_views, live_view.pid, view)
+        {:ok, views}
+
+      %{live_view_ref: _live_view_ref} = _already_watched ->
+        {:ok, watched_views}
+    end
+  end
+
+  defp monitor_view(live_view) do
     # Monitor the LiveView for exits and redirects
-    live_view_ref =
-      case watched_views[live_view.pid] do
-        nil -> Process.monitor(live_view.pid)
-        %{live_view_ref: live_view_ref} -> live_view_ref
-      end
+    live_view_ref = Process.monitor(live_view.pid)
 
-    view_data =
-      %{
-        pid: live_view.pid,
-        live_view_ref: live_view_ref
-      }
-
-    {:ok, view_data}
+    %{
+      pid: live_view.pid,
+      live_view_ref: live_view_ref
+    }
   end
 
   defp notify_caller(state, view_pid, message) do

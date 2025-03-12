@@ -15,7 +15,7 @@ defmodule PhoenixTest.LiveViewWatcherTest do
         Process.send_after(self(), :redirect, opts[:redirect_in])
       end
 
-      {:ok, %{}}
+      {:ok, opts}
     end
 
     def handle_info(:redirect, state) do
