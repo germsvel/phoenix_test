@@ -492,6 +492,20 @@ defmodule PhoenixTest do
   session
   |> fill_in("Name", with: "Aragorn", exact: false)
   ```
+
+  ## Labels and Accessibility
+
+  This function requires a label to target the input element. This is by design, as labels are
+  crucial for accessibility. Labels provide both visual and programmatic association with inputs,
+  allowing screen readers to announce the input's purpose when focused.
+
+  If you need to hide a label visually while maintaining accessibility, use a screen-reader-only
+  class (like Tailwind's `sr-only`) rather than removing the label. For example:
+
+  ```html
+  <label for="search" class="sr-only">Search</label>
+  <input id="search" type="text" name="q" />
+  ```
   """
   def fill_in(session, label, opts) when is_binary(label) and is_list(opts) do
     opts = Keyword.validate!(opts, [:with, exact: true])
