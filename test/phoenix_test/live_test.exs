@@ -38,6 +38,13 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> assert_has("h1", text: "LiveView main page")
     end
+
+    test "user can visit different pages sequentially", %{conn: conn} do
+      conn
+      |> visit("/live/page_2")
+      |> visit("/live/index")
+      |> assert_has("h1", text: "LiveView main page")
+    end
   end
 
   describe "click_link/2" do

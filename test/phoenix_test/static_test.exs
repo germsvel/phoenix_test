@@ -25,6 +25,13 @@ defmodule PhoenixTest.StaticTest do
       |> visit("/page/index")
       |> assert_has("h1", text: "Main page")
     end
+
+    test "user can visit different pages sequentially", %{conn: conn} do
+      conn
+      |> visit("/page/page_2")
+      |> visit("/page/index")
+      |> assert_has("h1", text: "Main page")
+    end
   end
 
   describe "click_link/2" do

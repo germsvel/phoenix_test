@@ -328,7 +328,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.ConnHandler
   alias PhoenixTest.Static
 
-  defdelegate visit(conn, path), to: ConnHandler
+  def visit(session, path) do
+    ConnHandler.visit(session.conn, path)
+  end
+
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
   defdelegate click_link(session, text), to: Static
