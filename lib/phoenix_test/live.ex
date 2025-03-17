@@ -272,7 +272,56 @@ defmodule PhoenixTest.Live do
     session.view
     |> file_input(form.selector, live_upload_name, [entry])
     |> render_upload(file_name)
+    |> maybe_throw_upload_errors(session, file_name, live_upload_name)
     |> maybe_redirect(session)
+  end
+
+  defp maybe_throw_upload_errors({:error, [[_id, error]]}, session, file_name, live_upload_name) do
+    case error do
+      :not_accepted -> raise ArgumentError, message: not_accepted_error_msg(session, file_name, live_upload_name)
+      :too_many_files -> raise ArgumentError, message: too_many_files_error_msg(session, file_name, live_upload_name)
+      :too_large -> raise ArgumentError, message: too_large_error_msg(session, file_name, live_upload_name)
+    end
+  end
+
+  defp maybe_throw_upload_errors(session_or_redirect, _session, _file_name, _live_upload_name) do
+    session_or_redirect
+  end
+
+  defp not_accepted_error_msg(session, file_name, live_upload_name) do
+    allowed_list =
+      session.conn.assigns.uploads[live_upload_name].acceptable_exts
+      |> MapSet.to_list()
+      |> Enum.join(", ")
+
+    """
+    Unsupported file type.
+
+    You were trying to upload "#{file_name}",
+    but the only file types specified in `allow_upload` are [#{allowed_list}].
+    """
+  end
+
+  defp too_many_files_error_msg(session, file_name, live_upload_name) do
+    %{name: name, max_entries: max_entries} = session.conn.assigns.uploads[live_upload_name]
+
+    """
+    Too many files uploaded.
+
+    While attempting to upload "#{file_name}", you've exceeded #{max_entries} file(s). If this is intentional,
+    consider updating `allow_upload(:#{name}, max_entries: #{max_entries})`.
+    """
+  end
+
+  defp too_large_error_msg(session, file_name, live_upload_name) do
+    %{name: name, max_file_size: max_file_size} = session.conn.assigns.uploads[live_upload_name]
+
+    """
+    File too large.
+
+    While attempting to upload "#{file_name}", you've exceeded the maximum file size of #{max_file_size} bytes. If this is intentional,
+    consider updating `allow_upload(:#{name}, max_file_size: #{max_file_size})`.
+    """
   end
 
   defp fill_in_field_data(session, field) do
