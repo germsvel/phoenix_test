@@ -110,13 +110,6 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  def within(session, selector, fun) when is_function(fun, 1) do
-    session
-    |> Map.put(:within, selector)
-    |> fun.()
-    |> Map.put(:within, :none)
-  end
-
   def fill_in(session, label, opts) do
     selectors = ["input:not([type='hidden'])", "textarea"]
     fill_in(session, selectors, label, opts)
@@ -492,6 +485,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Assertions
   alias PhoenixTest.ConnHandler
   alias PhoenixTest.Live
+  alias PhoenixTest.SessionHelpers
 
   def visit(session, path) do
     ConnHandler.visit(session.conn, path)
@@ -503,7 +497,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate click_link(session, selector, text), to: Live
   defdelegate click_button(session, text), to: Live
   defdelegate click_button(session, selector, text), to: Live
-  defdelegate within(session, selector, fun), to: Live
+  defdelegate within(session, selector, fun), to: SessionHelpers
   defdelegate fill_in(session, label, opts), to: Live
   defdelegate fill_in(session, input_selector, label, opts), to: Live
   defdelegate select(session, option, opts), to: Live
