@@ -118,13 +118,6 @@ defmodule PhoenixTest.Static do
     end
   end
 
-  def within(session, selector, fun) when is_function(fun, 1) do
-    session
-    |> Map.put(:within, selector)
-    |> fun.()
-    |> Map.put(:within, :none)
-  end
-
   def fill_in(session, label, opts) do
     selectors = ["input:not([type='hidden'])", "textarea"]
     fill_in(session, selectors, label, opts)
@@ -326,6 +319,7 @@ end
 defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   alias PhoenixTest.Assertions
   alias PhoenixTest.ConnHandler
+  alias PhoenixTest.SessionHelpers
   alias PhoenixTest.Static
 
   def visit(session, path) do
@@ -338,7 +332,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
   defdelegate click_link(session, selector, text), to: Static
   defdelegate click_button(session, text), to: Static
   defdelegate click_button(session, selector, text), to: Static
-  defdelegate within(session, selector, fun), to: Static
+  defdelegate within(session, selector, fun), to: SessionHelpers
   defdelegate fill_in(session, label, opts), to: Static
   defdelegate fill_in(session, input_selector, label, opts), to: Static
   defdelegate select(session, option, opts), to: Static
