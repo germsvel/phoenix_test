@@ -31,6 +31,11 @@ defmodule PhoenixTest.ConnHandler do
     end
   end
 
+  def build_current_path(conn), do: append_query_string(conn.request_path, conn.query_string)
+
+  defp append_query_string(path, ""), do: path
+  defp append_query_string(path, query), do: path <> "?" <> query
+
   def recycle_all_headers(conn) do
     recycle(conn, all_headers(conn))
   end

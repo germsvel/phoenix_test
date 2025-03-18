@@ -24,7 +24,7 @@ defmodule PhoenixTest.Live do
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
-    current_path = append_query_string(conn.request_path, conn.query_string)
+    current_path = ConnHandler.build_current_path(conn)
     {:ok, watcher} = start_watcher(view)
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
   end
@@ -34,9 +34,6 @@ defmodule PhoenixTest.Live do
       id: make_ref()
     )
   end
-
-  defp append_query_string(path, ""), do: path
-  defp append_query_string(path, query), do: path <> "?" <> query
 
   def current_path(session), do: session.current_path
 

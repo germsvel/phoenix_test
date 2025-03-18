@@ -24,15 +24,10 @@ defmodule PhoenixTest.Static do
   defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
-    %__MODULE__{conn: conn, current_path: build_current_path(conn)}
+    %__MODULE__{conn: conn, current_path: ConnHandler.build_current_path(conn)}
   end
 
   def current_path(session), do: session.current_path
-
-  defp build_current_path(conn), do: append_query_string(conn.request_path, conn.query_string)
-
-  defp append_query_string(path, ""), do: path
-  defp append_query_string(path, query), do: path <> "?" <> query
 
   def render_page_title(session) do
     session
@@ -311,7 +306,7 @@ defmodule PhoenixTest.Static do
         |> PhoenixTest.visit(path)
 
       %{status: _} ->
-        %{session | conn: conn, current_path: build_current_path(conn)}
+        %{session | conn: conn, current_path: ConnHandler.build_current_path(conn)}
     end
   end
 end

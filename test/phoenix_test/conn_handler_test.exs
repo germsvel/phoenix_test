@@ -67,4 +67,25 @@ defmodule PhoenixTest.ConnHandlerTest do
       end
     end
   end
+
+  describe "build_current_path" do
+    test "returns the conn's current path based on the request path", %{conn: conn} do
+      current_path =
+        conn
+        |> Map.put(:request_path, "/hello")
+        |> ConnHandler.build_current_path()
+
+      assert current_path == "/hello"
+    end
+
+    test "includes query params when they are present", %{conn: conn} do
+      current_path =
+        conn
+        |> Map.put(:request_path, "/hello")
+        |> Map.put(:query_string, "q=23&user=1")
+        |> ConnHandler.build_current_path()
+
+      assert current_path == "/hello?q=23&user=1"
+    end
+  end
 end
