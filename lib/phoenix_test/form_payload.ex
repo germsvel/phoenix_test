@@ -1,20 +1,19 @@
 defmodule PhoenixTest.FormPayload do
   @moduledoc false
 
-  def new(form_data) when is_list(form_data) do
+  alias PhoenixTest.FormData
+
+  def new(%FormData{} = form_data) do
     form_data
-    |> deduplicate_preserving_order()
+    |> FormData.to_list()
     |> Enum.map_join("&", fn {key, value} ->
       "#{URI.encode_www_form(key)}=#{if(value, do: URI.encode_www_form(value))}"
     end)
     |> Plug.Conn.Query.decode()
   end
 
-  defp deduplicate_preserving_order(form_data) do
-    form_data
-    |> Enum.reverse()
-    |> Enum.uniq()
-    |> Enum.reverse()
+  def add_form_data(payload, %FormData{} = form_data) when is_map(payload) do
+    add_form_data(payload, FormData.to_list(form_data))
   end
 
   def add_form_data(payload, form_data) when is_map(payload) and is_list(form_data) do

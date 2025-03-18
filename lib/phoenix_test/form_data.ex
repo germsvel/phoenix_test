@@ -5,43 +5,78 @@ defmodule PhoenixTest.FormData do
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Select
 
-  def new, do: []
+  defstruct data: []
 
-  def add_data(data, new_data) when is_list(new_data) do
-    data ++ new_data
+  def new, do: %__MODULE__{}
+
+  def add_data(%__MODULE__{} = form_data, {name, value}) do
+    add_data(form_data, name, value)
   end
 
-  def empty?(data) when is_list(data) do
-    Enum.empty?(data)
+  def add_data(%__MODULE__{} = form_data, %Button{} = button) do
+    add_data(form_data, button.name, button.value)
   end
 
-  def to_form_data(%Button{} = button) do
-    if button.name && button.value do
-      [{button.name, button.value}]
+  def add_data(%__MODULE__{} = form_data, %Field{} = field) do
+    add_data(form_data, field.name, field.value)
+  end
+
+  def add_data(%__MODULE__{} = form_data, %Select{value: values} = field) when is_list(values) do
+    new_data = Enum.map(values, &{field.name, &1})
+    add_data(form_data, new_data)
+  end
+
+  def add_data(form_data, []), do: form_data
+
+  def add_data(form_data, data) when is_list(data) do
+    Enum.reduce(data, form_data, fn new_data, acc ->
+      add_data(acc, new_data)
+    end)
+  end
+
+  def add_data(%__MODULE__{} = form_data, name, value) do
+    if name && value do
+      new_data = format_data(name, value)
+      %__MODULE__{form_data | data: form_data.data ++ new_data}
     else
-      []
+      form_data
     end
   end
 
-  def to_form_data(%Select{value: values} = field) when is_list(values) do
-    Enum.map(values, &{field.name, &1})
+  def merge(%__MODULE__{data: data1}, %__MODULE__{data: data2}) do
+    %__MODULE__{data: data1 ++ data2}
   end
 
-  def to_form_data(%Field{} = field) do
-    [{field.name, field.value}]
+  def empty?(%__MODULE__{data: data}) do
+    Enum.empty?(data)
   end
 
-  def to_form_data(name, values) when is_binary(name) and is_list(values) do
+  def has_data?(%__MODULE__{data: data}, name, value) do
+    {name, value} in data
+  end
+
+  def to_list(%__MODULE__{data: data}) do
+    deduplicate_preserving_order(data)
+  end
+
+  defp deduplicate_preserving_order(data) do
+    data
+    |> Enum.reverse()
+    |> Enum.uniq_by(fn {key, value} ->
+      if String.ends_with?(key, "[]") do
+        {key, value}
+      else
+        key
+      end
+    end)
+    |> Enum.reverse()
+  end
+
+  defp format_data(name, values) when is_binary(name) and is_list(values) do
     Enum.map(values, &{name, &1})
   end
 
-  def to_form_data(name, value) when is_binary(name) do
+  defp format_data(name, value) when is_binary(name) do
     [{name, value}]
-  end
-
-  def to_form_data(nil, _value), do: []
-
-  def has_data?(data, name, value) when is_list(data) do
-    {name, value} in data
   end
 end

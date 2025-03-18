@@ -183,7 +183,7 @@ defmodule PhoenixTest.Static do
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
     field = session |> render_html() |> Field.find_input!(input_selector, label, opts)
     form = Field.parent_form!(field)
-    upload_data = FormData.to_form_data(field.name, upload)
+    upload_data = {field.name, upload}
 
     Map.update!(session, :active_form, fn active_form ->
       if active_form.selector == form.selector do
@@ -223,7 +223,7 @@ defmodule PhoenixTest.Static do
         Form.put_button_data(form, form.submit_button)
       end)
 
-    to_submit = FormPayload.new(FormData.add_data(form.form_data, form_data))
+    to_submit = FormPayload.new(FormData.merge(form.form_data, form_data))
 
     session
     |> Map.put(:active_form, ActiveForm.new())
@@ -254,14 +254,15 @@ defmodule PhoenixTest.Static do
 
   defp fill_in_field_data(session, field) do
     Field.validate_name!(field)
-    new_form_data = FormData.to_form_data(field)
     form = Field.parent_form!(field)
 
     Map.update!(session, :active_form, fn active_form ->
       if active_form.selector == form.selector do
-        ActiveForm.add_form_data(active_form, new_form_data)
+        ActiveForm.add_form_data(active_form, field)
       else
-        ActiveForm.new(id: form.id, selector: form.selector, form_data: new_form_data)
+        [id: form.id, selector: form.selector]
+        |> ActiveForm.new()
+        |> ActiveForm.add_form_data(field)
       end
     end)
   end
@@ -291,7 +292,7 @@ defmodule PhoenixTest.Static do
 
   defp build_payload(form, active_form \\ ActiveForm.new()) do
     form.form_data
-    |> FormData.add_data(active_form.form_data)
+    |> FormData.merge(active_form.form_data)
     |> FormPayload.new()
     |> FormPayload.add_form_data(active_form.uploads)
   end

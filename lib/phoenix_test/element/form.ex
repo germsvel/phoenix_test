@@ -32,7 +32,7 @@ defmodule PhoenixTest.Element.Form do
     |> build()
   end
 
-  defp build(form) do
+  defp build({"form", _, _} = form) do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
     action = Html.attribute(form, "action")
@@ -92,13 +92,13 @@ defmodule PhoenixTest.Element.Form do
   defp form_data(selector, form) do
     form
     |> Html.all(selector)
-    |> Enum.flat_map(&to_form_field/1)
+    |> Enum.map(&to_form_field/1)
   end
 
   defp form_data_textarea(form) do
     form
     |> Html.all("textarea:not([disabled])")
-    |> Enum.flat_map(fn {"textarea", _attrs, value_elements} = textarea ->
+    |> Enum.map(fn {"textarea", _attrs, value_elements} = textarea ->
       to_form_field(textarea, value_elements)
     end)
   end
@@ -106,7 +106,7 @@ defmodule PhoenixTest.Element.Form do
   defp form_data_select(form) do
     form
     |> Html.all("select:not([disabled])")
-    |> Enum.flat_map(fn select ->
+    |> Enum.map(fn select ->
       multiple = !is_nil(Html.attribute(select, "multiple"))
 
       case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
@@ -122,8 +122,7 @@ defmodule PhoenixTest.Element.Form do
   def put_button_data(form, nil), do: form
 
   def put_button_data(form, %Button{} = button) do
-    button_data = FormData.to_form_data(button)
-    Map.update!(form, :form_data, &FormData.add_data(&1, button_data))
+    Map.update!(form, :form_data, &FormData.add_data(&1, button))
   end
 
   defp to_form_field(element) do
@@ -133,12 +132,12 @@ defmodule PhoenixTest.Element.Form do
   defp to_form_field(name_element, value_elements) when is_list(value_elements) do
     name = Html.attribute(name_element, "name")
     values = Enum.map(value_elements, &element_value/1)
-    FormData.to_form_data(name, values)
+    {name, values}
   end
 
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
-    FormData.to_form_data(name, element_value(value_element))
+    {name, element_value(value_element)}
   end
 
   defp element_value(element) do

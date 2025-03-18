@@ -86,12 +86,12 @@ defmodule PhoenixTest.Live do
 
       Button.belongs_to_form?(button) ->
         active_form = session.active_form
-        additional_data = FormData.to_form_data(button)
+        additional_data = FormData.add_data(FormData.new(), button)
         form = Button.parent_form!(button)
 
         form_data =
           if active_form.selector == form.selector do
-            FormData.add_data(form.form_data, active_form.form_data)
+            FormData.merge(form.form_data, active_form.form_data)
           else
             form.form_data
           end
@@ -317,21 +317,22 @@ defmodule PhoenixTest.Live do
   defp fill_in_field_data(session, field) do
     Field.validate_name!(field)
 
-    new_form_data = FormData.to_form_data(field)
     form = Field.parent_form!(field)
 
     session =
       Map.update!(session, :active_form, fn active_form ->
         if active_form.selector == form.selector do
-          ActiveForm.add_form_data(session.active_form, new_form_data)
+          ActiveForm.add_form_data(session.active_form, field)
         else
-          ActiveForm.new(id: form.id, form_data: new_form_data, selector: form.selector)
+          [id: form.id, selector: form.selector]
+          |> ActiveForm.new()
+          |> ActiveForm.add_form_data(field)
         end
       end)
 
     if Form.phx_change?(form) do
       active_form = session.active_form
-      data_to_submit = FormData.add_data(form.form_data, active_form.form_data)
+      data_to_submit = FormData.merge(form.form_data, active_form.form_data)
       additional_data = %{"_target" => field.name}
 
       session.view
@@ -359,19 +360,19 @@ defmodule PhoenixTest.Live do
     }
   end
 
-  def submit_form(session, selector, form_data, additional_data \\ []) do
+  def submit_form(session, selector, form_data, additional_data \\ FormData.new()) do
     form =
       session
       |> render_html()
       |> Form.find!(selector)
 
-    form_data = FormData.add_data(form.form_data, form_data)
+    form_data = FormData.merge(form.form_data, form_data)
 
     additional_data =
       if form.submit_button do
-        form.submit_button
-        |> FormData.to_form_data()
-        |> FormData.add_data(additional_data)
+        FormData.new()
+        |> FormData.add_data(form.submit_button)
+        |> FormData.merge(additional_data)
       else
         additional_data
       end
@@ -450,7 +451,7 @@ defmodule PhoenixTest.Live do
       {:found, form} ->
         active_form = session.active_form
         active_form? = form.selector == active_form.selector
-        form_data = form.form_data ++ if(active_form?, do: active_form.form_data, else: [])
+        form_data = FormData.merge(form.form_data, if(active_form?, do: active_form.form_data, else: FormData.new()))
 
         session.conn
         |> PhoenixTest.Static.build()

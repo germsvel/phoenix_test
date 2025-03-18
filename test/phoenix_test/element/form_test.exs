@@ -180,6 +180,24 @@ defmodule PhoenixTest.Element.FormTest do
       assert FormData.empty?(form.form_data)
     end
 
+    test "does not include select elements that have no options or no selected options" do
+      html = """
+      <form id="form">
+        <select name="pets">
+        </select>
+
+        <select multiple name="select_multiple[]">
+          <option value="select_1">selection 1</option>
+          <option value="select_2">selection 2</option>
+        </select>
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert FormData.empty?(form.form_data)
+    end
+
     test "includes hidden inputs" do
       html = """
       <form id="form">

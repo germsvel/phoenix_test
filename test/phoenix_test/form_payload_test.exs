@@ -2,7 +2,6 @@ defmodule PhoenixTest.FormPayloadTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Element.Form
-  alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
 
   describe "new" do
@@ -106,29 +105,6 @@ defmodule PhoenixTest.FormPayloadTest do
       form = Form.find!(html, "form")
 
       assert %{"hidden" => ["some_value"]} = FormPayload.new(form.form_data)
-    end
-
-    test "deduplicates data with same name with [] and same value" do
-      form_data =
-        "email[]"
-        |> FormData.to_form_data("value")
-        |> FormData.add_data(FormData.to_form_data("email[]", "value"))
-
-      payload = FormPayload.new(form_data)
-
-      assert payload == %{"email" => ["value"]}
-    end
-
-    test "preserves order of operations when deduplicating data" do
-      form_data =
-        "email"
-        |> FormData.to_form_data("value")
-        |> FormData.add_data(FormData.to_form_data("email", "other_value"))
-        |> FormData.add_data(FormData.to_form_data("email", "value"))
-
-      payload = FormPayload.new(form_data)
-
-      assert payload == %{"email" => "value"}
     end
 
     test "ignores hidden value for checkbox when checked" do
