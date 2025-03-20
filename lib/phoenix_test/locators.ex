@@ -6,7 +6,7 @@ defmodule PhoenixTest.Locators do
 
   defmodule Button do
     @moduledoc false
-    defstruct ~w[text roles]a
+    defstruct ~w[text selectors]a
   end
 
   defmodule Input do
@@ -24,16 +24,19 @@ defmodule PhoenixTest.Locators do
 
   def button(opts) do
     text = Keyword.get(opts, :text)
-    roles = ~w|button input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
 
-    %Button{text: text, roles: roles}
+    selectors =
+      ~w|button [role="button"] input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
+
+    %Button{text: text, selectors: selectors}
   end
 
   def role_selectors(%Button{} = button) do
-    %Button{text: text, roles: roles} = button
+    %Button{text: text, selectors: selectors} = button
 
-    Enum.map(roles, fn
+    Enum.map(selectors, fn
       "button" -> {"button", text}
+      ~s|[role="button"]| -> {~s|[role="button"]|, text}
       role -> role <> "[value=#{inspect(text)}]"
     end)
   end

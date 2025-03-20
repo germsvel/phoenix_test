@@ -2,7 +2,6 @@ defmodule PhoenixTest.Live do
   @moduledoc false
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
-  import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Assertions
@@ -16,6 +15,7 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
   alias PhoenixTest.LiveViewTimeout
+  alias PhoenixTest.Locators
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
@@ -62,7 +62,7 @@ defmodule PhoenixTest.Live do
   end
 
   def click_button(session, text) do
-    locator = button(text: text)
+    locator = Locators.button(text: text)
     html = render_html(session)
 
     button =

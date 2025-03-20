@@ -2,7 +2,6 @@ defmodule PhoenixTest.Static do
   @moduledoc false
 
   import Phoenix.ConnTest
-  import PhoenixTest.Locators
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.ConnHandler
@@ -16,6 +15,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
+  alias PhoenixTest.Locators
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
 
@@ -75,7 +75,7 @@ defmodule PhoenixTest.Static do
   end
 
   def click_button(session, text) do
-    locator = button(text: text)
+    locator = Locators.button(text: text)
     html = render_html(session)
 
     button =

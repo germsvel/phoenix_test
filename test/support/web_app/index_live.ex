@@ -245,6 +245,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
       </button>
     </form>
 
+    <div phx-click="click-div" role="button">Click this div</div>
+
     <form id="non-liveview-form" action="/page/create_record" method="post">
       <label for="non-liveview-form-name">Name</label>
       <input id="non-liveview-form-name" name="name" />

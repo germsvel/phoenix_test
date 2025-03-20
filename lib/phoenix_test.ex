@@ -389,6 +389,22 @@ defmodule PhoenixTest do
   session
   |> click_button("Delete") # <- Triggers full form delete.
   ```
+
+  ## Clicking elements that behave as buttons
+
+  Even though we can technically add an `onClick` or `phx-click` handler on any
+  HTML element, the HTML spec encourages that clickable elements be links or
+  buttons.
+
+  But in some cases, people want to have other elements act as buttons even if
+  they don't use a `<button>` tag.
+
+  To that end, `click_button/2` also supports clicking these elements:
+
+  - elements with the "button" role (e.g. `<span role="button">I'm clickable</span>`)
+  - `input` elements with types: "button", "image", "reset", or "submit"
+
+  For more on the "button" role, see [MDN's button role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/button_role)
   """
   defdelegate click_button(session, text), to: Driver
 

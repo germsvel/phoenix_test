@@ -11,30 +11,39 @@ defmodule PhoenixTest.LocatorsTest do
       assert text == "Hello"
     end
 
-    test "has list of valid roles" do
-      valid_roles = ~w|button input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
+    test "has list of valid selectors" do
+      valid_selectors =
+        ~w|button [role="button"] input[type="button"] input[type="image"] input[type="reset"] input[type="submit"]|
 
-      %Button{roles: roles} = Locators.button(text: "doesn't matter")
+      %Button{selectors: selectors} = Locators.button(text: "doesn't matter")
 
-      assert roles == valid_roles
+      assert selectors == valid_selectors
     end
   end
 
-  describe "role_selectors for button" do
+  describe "role_selectors/1 for button" do
     test "returns {'button', text} in list" do
       locator = Locators.button(text: "Hello")
 
-      roles = Locators.role_selectors(locator)
+      selectors = Locators.role_selectors(locator)
 
-      assert {"button", "Hello"} in roles
+      assert {"button", "Hello"} in selectors
     end
 
-    test "returns text in selector for other roles" do
+    test "returns {[role=button], text} in list" do
       locator = Locators.button(text: "Hello")
 
-      roles = Locators.role_selectors(locator)
+      selectors = Locators.role_selectors(locator)
 
-      assert ~s|input[type="button"][value="Hello"]| in roles
+      assert {~s|[role="button"]|, "Hello"} in selectors
+    end
+
+    test "returns text as value for other selectors" do
+      locator = Locators.button(text: "Hello")
+
+      selectors = Locators.role_selectors(locator)
+
+      assert ~s|input[type="button"][value="Hello"]| in selectors
     end
   end
 end
