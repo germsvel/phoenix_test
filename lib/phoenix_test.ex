@@ -1360,7 +1360,7 @@ defmodule PhoenixTest do
   # assert we're at a path with a wildcard. The wildcard represents a single part of the path.
   conn
   |> visit("/users")
-  |> click("Any User")
+  |> click_link("Any User")
   |> assert_path("/users/*/profile")
   ```
   """
