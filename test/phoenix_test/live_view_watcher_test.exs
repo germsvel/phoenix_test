@@ -4,21 +4,21 @@ defmodule PhoenixTest.LiveViewWatcherTest do
   alias PhoenixTest.LiveViewWatcher
 
   defmodule DummyLiveView do
-    use GenServer
+    use GenServer, restart: :temporary
 
-    def start_link(opts \\ %{}) do
-      GenServer.start_link(__MODULE__, Map.new(opts))
+    def start_link(opts \\ []) do
+      GenServer.start_link(__MODULE__, opts)
+    end
+
+    def redirect(pid) do
+      GenServer.call(pid, :redirect)
     end
 
     def init(opts) do
-      if opts[:redirect_in] do
-        Process.send_after(self(), :redirect, opts[:redirect_in])
-      end
-
       {:ok, opts}
     end
 
-    def handle_info(:redirect, state) do
+    def handle_call(:redirect, _from, state) do
       reason = {:shutdown, {:redirect, %{}}}
       {:stop, reason, state}
     end
@@ -28,11 +28,12 @@ defmodule PhoenixTest.LiveViewWatcherTest do
     test "watches original view as soon as Watcher is started" do
       {:ok, view_pid} = start_supervised(DummyLiveView)
       view = %{pid: view_pid}
-      {:ok, _watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
+      {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
 
-      Process.exit(view_pid, :kill)
+      %{views: views} = :sys.get_state(watcher)
+      watched_views = Map.keys(views)
 
-      assert_receive {:watcher, ^view_pid, :live_view_died}
+      assert view_pid in watched_views
     end
   end
 
@@ -50,11 +51,15 @@ defmodule PhoenixTest.LiveViewWatcherTest do
     end
 
     test "sends :live_view_redirected message when LiveView redirects" do
-      {:ok, view_pid} = start_supervised({DummyLiveView, %{redirect_in: 10}})
+      {:ok, view_pid} = start_supervised(DummyLiveView)
       view = %{pid: view_pid}
       {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
 
       :ok = LiveViewWatcher.watch_view(watcher, view)
+
+      spawn(fn ->
+        DummyLiveView.redirect(view_pid)
+      end)
 
       assert_receive {:watcher, ^view_pid, {:live_view_redirected, _redirect_data}}
     end
@@ -74,8 +79,8 @@ defmodule PhoenixTest.LiveViewWatcherTest do
     end
 
     test "can watch multiple LiveViews" do
-      {:ok, view_pid1} = start_supervised({DummyLiveView, %{redirect_in: 10}}, id: 1)
-      {:ok, view_pid2} = start_supervised({DummyLiveView, %{redirect_in: 10}}, id: 2)
+      {:ok, view_pid1} = start_supervised(DummyLiveView, id: 1)
+      {:ok, view_pid2} = start_supervised(DummyLiveView, id: 2)
       view1 = %{pid: view_pid1}
       view2 = %{pid: view_pid2}
       {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view1}})
@@ -83,8 +88,11 @@ defmodule PhoenixTest.LiveViewWatcherTest do
       :ok = LiveViewWatcher.watch_view(watcher, view1)
       :ok = LiveViewWatcher.watch_view(watcher, view2)
 
-      assert_receive {:watcher, ^view_pid1, {:live_view_redirected, _redirect_data}}
-      assert_receive {:watcher, ^view_pid2, {:live_view_redirected, _redirect_data}}
+      %{views: views} = :sys.get_state(watcher)
+      watched_views = Map.keys(views)
+
+      assert view_pid1 in watched_views
+      assert view_pid2 in watched_views
     end
   end
 end

@@ -5,24 +5,26 @@ defmodule PhoenixTest.LiveViewTimeout do
   alias PhoenixTest.Live
   alias PhoenixTest.Static
 
-  def with_timeout(%Static{} = session, _timeout, action) when is_function(action) do
+  def with_timeout(session, timeout, action, fetch_redirect_info \\ &via_assert_redirect/1)
+
+  def with_timeout(%Static{} = session, _timeout, action, _fetch_redirect_info) when is_function(action) do
     action.(session)
   end
 
-  def with_timeout(%Live{} = session, timeout, action) when timeout <= 0 and is_function(action) do
+  def with_timeout(%Live{} = session, timeout, action, _fetch_redirect_info) when timeout <= 0 and is_function(action) do
     action.(session)
   end
 
-  def with_timeout(%Live{} = session, timeout, action) when is_function(action) do
+  def with_timeout(%Live{} = session, timeout, action, fetch_redirect_info) when is_function(action) do
     :ok = PhoenixTest.LiveViewWatcher.watch_view(session.watcher, session.view)
-    handle_watched_messages_with_timeout(session, action, timeout)
+    handle_watched_messages_with_timeout(session, timeout, action, fetch_redirect_info)
   end
 
-  defp handle_watched_messages_with_timeout(session, action, timeout) when timeout <= 0 do
+  defp handle_watched_messages_with_timeout(session, timeout, action, _fetch_redirect_info) when timeout <= 0 do
     action.(session)
   end
 
-  defp handle_watched_messages_with_timeout(session, action, timeout) do
+  defp handle_watched_messages_with_timeout(session, timeout, action, fetch_redirect_info) do
     wait_time = 100
     new_timeout = max(timeout - wait_time, 0)
     view_pid = session.view.pid
@@ -31,13 +33,13 @@ defmodule PhoenixTest.LiveViewTimeout do
       {:watcher, ^view_pid, {:live_view_redirected, redirect_tuple}} ->
         session
         |> PhoenixTest.Live.handle_redirect(redirect_tuple)
-        |> with_timeout(new_timeout, action)
+        |> with_timeout(new_timeout, action, fetch_redirect_info)
 
       {:watcher, ^view_pid, :live_view_died} ->
-        check_for_redirect(session, action)
+        check_for_redirect(session, action, fetch_redirect_info)
     after
       wait_time ->
-        with_retry(session, action, &handle_watched_messages_with_timeout(&1, action, new_timeout))
+        with_retry(session, action, &handle_watched_messages_with_timeout(&1, new_timeout, action, fetch_redirect_info))
     end
   end
 
@@ -52,11 +54,15 @@ defmodule PhoenixTest.LiveViewTimeout do
       retry_fun.(session)
   end
 
-  defp check_for_redirect(session, action) when is_function(action) do
-    {path, flash} = Phoenix.LiveViewTest.assert_redirect(session.view)
+  defp check_for_redirect(session, action, fetch_redirect_info) when is_function(action) do
+    {path, flash} = fetch_redirect_info.(session)
 
     session
     |> PhoenixTest.Live.handle_redirect({:redirect, %{to: path, flash: flash}})
     |> then(action)
+  end
+
+  defp via_assert_redirect(session) do
+    Phoenix.LiveViewTest.assert_redirect(session)
   end
 end
