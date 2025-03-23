@@ -1,8 +1,10 @@
 defmodule PhoenixTest.LiveViewTimeoutTest do
   use ExUnit.Case, async: true
+  use ExUnitProperties
 
   alias PhoenixTest.Live
   alias PhoenixTest.LiveViewTimeout
+  alias PhoenixTest.LiveViewWatcher
 
   defmodule DummyLiveView do
     use GenServer, restart: :temporary
@@ -37,9 +39,53 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
     end
   end
 
-  describe "with_timeout/3" do
-    alias PhoenixTest.LiveViewWatcher
+  property "with_timeout performs action or redirects" do
+    check all(
+            time_before_redirect <- frequency([{2, constant(0)}, {8, positive_integer()}]),
+            time_before_action_finishes <- frequency([{2, constant(0)}, {8, positive_integer()}]),
+            time_mounting_new_live_view <- frequency([{2, constant(0)}, {8, positive_integer()}]),
+            timeout <- integer(100..500),
+            id <- repeatedly(&make_ref/0),
+            watcher_id <- repeatedly(&make_ref/0),
+            max_run_time: to_timeout(second: 5)
+          ) do
+      {:ok, view_pid} = start_supervised(DummyLiveView, id: id)
+      view = %{pid: view_pid}
+      conn = Phoenix.ConnTest.build_conn()
 
+      # LiveView can redirect at any point
+      spawn(fn ->
+        Process.sleep(time_before_redirect)
+        DummyLiveView.redirect(view_pid)
+      end)
+
+      # start watcher _after_ LiveView is running (like in tests)
+      {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}}, id: watcher_id)
+      session = %Live{conn: conn, view: view, watcher: watcher}
+
+      action = fn
+        %{view: %{pid: ^view_pid}} ->
+          Process.sleep(time_before_action_finishes)
+          :action_performed
+
+        _redirected_view ->
+          Process.sleep(time_mounting_new_live_view)
+          :redirected
+      end
+
+      fetch_redirect_info = fn _session ->
+        # Just needs to be real path in case we get here
+        {"/live/index", %{}}
+      end
+
+      # call with_timeout which we would do in an assertion
+      result = LiveViewTimeout.with_timeout(session, timeout, action, fetch_redirect_info)
+
+      assert result in [:redirected, :action_performed]
+    end
+  end
+
+  describe "with_timeout/3" do
     setup do
       {:ok, view_pid} = start_supervised(DummyLiveView)
       view = %{pid: view_pid}

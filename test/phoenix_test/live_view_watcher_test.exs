@@ -1,5 +1,6 @@
 defmodule PhoenixTest.LiveViewWatcherTest do
   use ExUnit.Case, async: true
+  use ExUnitProperties
 
   alias PhoenixTest.LiveViewWatcher
 
@@ -21,6 +22,38 @@ defmodule PhoenixTest.LiveViewWatcherTest do
     def handle_call(:redirect, _from, state) do
       reason = {:shutdown, {:redirect, %{}}}
       {:stop, reason, state}
+    end
+  end
+
+  property "watches for LiveViews to redirect or die" do
+    check all(
+            time_before_action <- frequency([{2, constant(0)}, {8, positive_integer()}]),
+            id <- repeatedly(&make_ref/0),
+            watcher_id <- repeatedly(&make_ref/0),
+            action <- one_of([:kill, :redirect]),
+            max_run_time: to_timeout(second: 5)
+          ) do
+      {:ok, view_pid} = start_supervised(DummyLiveView, id: id)
+      view = %{pid: view_pid}
+      {:ok, _watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}}, id: watcher_id)
+
+      case action do
+        :redirect ->
+          spawn(fn ->
+            Process.sleep(time_before_action)
+            DummyLiveView.redirect(view_pid)
+          end)
+
+          assert_receive {:watcher, ^view_pid, {:live_view_redirected, _redirect_data}}
+
+        :kill ->
+          spawn(fn ->
+            Process.sleep(time_before_action)
+            Process.exit(view_pid, :kill)
+          end)
+
+          assert_receive {:watcher, ^view_pid, :live_view_died}
+      end
     end
   end
 
