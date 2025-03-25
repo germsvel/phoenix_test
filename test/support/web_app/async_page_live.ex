@@ -2,10 +2,13 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
   @moduledoc false
   use Phoenix.LiveView
 
-  def mount(_, _, socket) do
+  def mount(params, _, socket) do
+    navigate_wait_time = Map.get(params, "wait_time", "100")
+
     {:ok,
      socket
      |> assign(:h2, "Where we test LiveView's async behavior")
+     |> assign(:navigate_wait_time, String.to_integer(navigate_wait_time))
      |> assign_async(:title, fn ->
        Process.sleep(100)
        {:ok, %{title: "Title loaded async"}}
@@ -59,9 +62,11 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
   end
 
   def handle_event("async-navigate", _, socket) do
+    navigate_wait_time = socket.assigns.navigate_wait_time
+
     {:noreply,
      start_async(socket, :async_navigate, fn ->
-       Process.sleep(100)
+       Process.sleep(navigate_wait_time)
        :ok
      end)}
   end
