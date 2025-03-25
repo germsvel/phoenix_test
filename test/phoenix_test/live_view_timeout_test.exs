@@ -17,6 +17,10 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
       GenServer.call(pid, :render_html)
     end
 
+    def render_html(pid, wait_time) do
+      GenServer.call(pid, {:render_html, wait_time})
+    end
+
     def redirect(pid) do
       GenServer.call(pid, :redirect)
     end
@@ -27,6 +31,11 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
 
     def handle_call({:phoenix, :ping}, _from, state) do
       {:reply, :ok, state}
+    end
+
+    def handle_call({:render_html, wait_time}, _from, state) do
+      Process.sleep(wait_time)
+      {:reply, "rendered HTML", state}
     end
 
     def handle_call(:render_html, _from, state) do
@@ -41,9 +50,8 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
 
   property "with_timeout performs action or redirects" do
     check all(
-            time_before_redirect <- frequency([{2, constant(0)}, {8, positive_integer()}]),
-            time_before_action_finishes <- frequency([{2, constant(0)}, {8, positive_integer()}]),
-            time_mounting_new_live_view <- frequency([{2, constant(0)}, {8, positive_integer()}]),
+            time_before_redirect <- integer(0..500),
+            action_time <- integer(0..500),
             timeout <- integer(100..500),
             id <- repeatedly(&make_ref/0),
             watcher_id <- repeatedly(&make_ref/0),
@@ -65,11 +73,10 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
 
       action = fn
         %{view: %{pid: ^view_pid}} ->
-          Process.sleep(time_before_action_finishes)
+          "rendered HTML" = DummyLiveView.render_html(view_pid, action_time)
           :action_performed
 
         _redirected_view ->
-          Process.sleep(time_mounting_new_live_view)
           :redirected
       end
 
