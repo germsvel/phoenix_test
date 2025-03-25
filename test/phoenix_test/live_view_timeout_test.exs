@@ -52,7 +52,7 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
     check all(
             time_before_redirect <- integer(0..500),
             action_time <- integer(0..500),
-            timeout <- integer(100..500),
+            timeout <- integer(0..500),
             id <- repeatedly(&make_ref/0),
             watcher_id <- repeatedly(&make_ref/0),
             max_run_time: to_timeout(second: 5)
@@ -165,6 +165,32 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
       end
 
       :ok = LiveViewTimeout.with_timeout(session, 1000, action, fetch_redirect_info)
+
+      assert_receive {:redirect_attempted, from_view: ^view_pid}
+    end
+
+    test "attempts redirects when LiveView exits due to timeout", %{session: session} do
+      %{view: %{pid: view_pid}} = session
+      test_pid = self()
+      too_short_timeout = LiveViewTimeout.interval_wait_time() - 10
+
+      action = fn
+        %{view: %{pid: ^view_pid}} ->
+          # Kill DummyLiveView and then attempt to send message
+          # to emulate LiveView behavior
+          Process.exit(view_pid, :kill)
+          DummyLiveView.render_html(view_pid)
+
+        _redirected_view ->
+          :ok
+      end
+
+      fetch_redirect_info = fn session ->
+        send(test_pid, {:redirect_attempted, from_view: session.view.pid})
+        {"/live/index", %{}}
+      end
+
+      :ok = LiveViewTimeout.with_timeout(session, too_short_timeout, action, fetch_redirect_info)
 
       assert_receive {:redirect_attempted, from_view: ^view_pid}
     end

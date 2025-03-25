@@ -5,6 +5,8 @@ defmodule PhoenixTest.LiveViewTimeout do
   alias PhoenixTest.Live
   alias PhoenixTest.Static
 
+  def interval_wait_time, do: 100
+
   def with_timeout(session, timeout, action, fetch_redirect_info \\ &via_assert_redirect/1)
 
   def with_timeout(%Static{} = session, _timeout, action, _fetch_redirect_info) when is_function(action) do
@@ -20,12 +22,15 @@ defmodule PhoenixTest.LiveViewTimeout do
     handle_watched_messages_with_timeout(session, timeout, action, fetch_redirect_info)
   end
 
-  defp handle_watched_messages_with_timeout(session, timeout, action, _fetch_redirect_info) when timeout <= 0 do
+  defp handle_watched_messages_with_timeout(session, timeout, action, fetch_redirect_info) when timeout <= 0 do
     action.(session)
+  catch
+    :exit, _e ->
+      check_for_redirect(session, action, fetch_redirect_info)
   end
 
   defp handle_watched_messages_with_timeout(session, timeout, action, fetch_redirect_info) do
-    wait_time = 100
+    wait_time = interval_wait_time()
     new_timeout = max(timeout - wait_time, 0)
     view_pid = session.view.pid
 
