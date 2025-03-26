@@ -572,7 +572,10 @@ defmodule PhoenixTest do
 
   ## Options
 
-  - `from` (required): the label of the select dropdown.
+  - `option` (required): the text of the option to select.
+
+  - `from` (deprecated): the label of the select dropdown. Label is now a
+  positional argument and use the `:option` option to pass the option text.
 
   - `exact`: whether to match label text exactly. (Defaults to `true`)
 
@@ -605,7 +608,7 @@ defmodule PhoenixTest do
 
   ```elixir
   session
-  |> select("Human", from: "Race")
+  |> select("Race", option: "Human")
   ```
 
   ## Outside a form
@@ -632,7 +635,7 @@ defmodule PhoenixTest do
 
   ```elixir
   session
-  |> select("Human", from: "Race")
+  |> select("Race", option: "Human")
   ```
 
   And we'll get an event `"select-race"` with the payload `%{"value" =>
@@ -661,10 +664,37 @@ defmodule PhoenixTest do
 
   ```elixir
   session
-  |> select("Human", from: "Race", exact: false)
+  |> select("Race", exact: false, option: "Human")
   ```
   """
-  def select(session, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+  def select(session, label, opts) when is_list(opts) do
+    case Keyword.get(opts, :option, :no_option) do
+      :no_option ->
+        deprecated_select(session, label, opts)
+
+      option when is_binary(option) or is_list(option) ->
+        new_select(session, label, opts)
+    end
+  end
+
+  defp new_select(session, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:option, exact: true, exact_option: true])
+    # to old format for now so Drivers can handle it
+    opts = Keyword.put(opts, :from, label)
+    option = opts[:option]
+    Driver.select(session, option, opts)
+  end
+
+  defp deprecated_select(session, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+    IO.warn("""
+    select/3 with :from is deprecated. Please use select/3 with :option instead.
+
+    Make this change:
+
+    - select(session, #{inspect(option)}, from: #{inspect(opts[:from])})
+    + select(session, #{inspect(opts[:from])}, option: #{inspect(option)})
+    """)
+
     opts = Keyword.validate!(opts, [:from, exact: true, exact_option: true])
     Driver.select(session, option, opts)
   end
@@ -677,7 +707,35 @@ defmodule PhoenixTest do
 
   For more on selecting options, see `select/3`.
   """
-  def select(session, select_selector, option, opts) when (is_binary(option) or is_list(option)) and is_list(opts) do
+  def select(session, select_selector, label, opts) when is_binary(label) and is_list(opts) do
+    case Keyword.get(opts, :option, :no_option) do
+      :no_option ->
+        deprecated_select(session, select_selector, label, opts)
+
+      option when is_binary(option) or is_list(option) ->
+        new_select(session, select_selector, label, opts)
+    end
+  end
+
+  defp new_select(session, select_selector, label, opts) when is_binary(label) and is_list(opts) do
+    opts = Keyword.validate!(opts, [:option, exact: true, exact_option: true])
+    # To old format for now so Drivers can handle it
+    opts = Keyword.put(opts, :from, label)
+    option = opts[:option]
+    Driver.select(session, select_selector, option, opts)
+  end
+
+  defp deprecated_select(session, select_selector, option, opts)
+       when (is_binary(option) or is_list(option)) and is_list(opts) do
+    IO.warn("""
+    select/4 with :from is deprecated. Please use select/4 with :option instead.
+
+    Make this change:
+
+    - select(session, #{inspect(select_selector)}, #{inspect(option)}, from: #{inspect(opts[:from])})
+    + select(session, #{inspect(select_selector)}, #{inspect(opts[:from])}, option: #{inspect(option)})
+    """)
+
     opts = Keyword.validate!(opts, [:from, exact: true, exact_option: true])
     Driver.select(session, select_selector, option, opts)
   end

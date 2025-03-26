@@ -1,6 +1,44 @@
 Upgrade Guides
 ==============
 
+## Upgrading to 0.5.3
+
+Version 0.5.3 deprecates `select/3` and `select/4` using `:from` to denote the
+label. Instead, it expects the label text to be passed as a positional argument
+and an `:option` keyword argument to pass the option's text.
+
+Thus, you'll need to make this change:
+
+```diff
+- |> select("Option 1", from: "Select Label")
++ |> select("Select Label", option: "Option 1")
+```
+
+And if you're using the version that provides a CSS selector:
+
+```diff
+- |> select("#super-select", "Option 1", from: "Select Label")
++ |> select("#super-select", "Select Label", option: "Option 1")
+```
+
+### Why the change?
+
+It may seem like a silly change (basically swapping positions of label and
+option arguments), and in some ways it is. There's no real change in
+functionality. So I've been very hesitant to make this change for a while.
+
+The problem is that `select` is a bit surprising and confusing to use!
+
+All other form helpers take in the label first as a positional argument, and
+then any additional arguments (when they have them) go into a keyword list.
+
+But `select` breaks that convention. It causes people to have to do mental
+gymnastics to switch the order of arguments.
+
+Rather than live with confusion for the rest of our lives, it seems better to
+incur the cost right now, and then we can move on with all of our form helpers
+being consistent.
+
 ## Upgrading to 0.2.13
 
 Version 0.2.13 deprecates `fill_form/3` and `submit_form/3`.
