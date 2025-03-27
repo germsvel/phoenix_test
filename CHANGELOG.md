@@ -7,6 +7,54 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.6.0
+
+### Breaking changes & deprecations
+
+- (potentially breaking) Raise error when visiting an defined route. Commit [668448a]
+- Deprecate select with `:from` in favor of `:option` (#191). Commit [071c3f3]
+
+For a more detailed explanation, see the [Upgrade
+guides](https://hexdocs.pm/phoenix_test/upgrade_guides.html)
+
+### Improvements
+
+- Simplify timeout logic. Attempt faster checks. Commits [24b31e5], [a053b51],
+[d17baef], [1819f52], [1182dba]
+
+- Allow nesting of `within/3` (#189). Commit [94c716f]
+- Allow calling `visit/2` sequentially. Commit [230c6a1]
+- Include default email input fields in form data (#180). Commit [5e36c09]
+- Add mix benchmark alias to run benchmarks. Commit [0642aeb]
+- Support role="button" for `click_button/2`. Commit [1dec249]
+- Document reason behind `fill_in` needing a label (#188). Commit [74732ab]
+- Docs: Mention playwright driver (#179). Commit [7619257]
+
+### Fixes
+
+- Fix documentation typo on  docs. Commit [756cc4c]
+- Throw nice error messages for `render_upload` errors (#177). Commit [a1cf133]
+
+[071c3f3]: https://github.com/germsvel/phoenix_test/commit/071c3f3
+[a053b51]: https://github.com/germsvel/phoenix_test/commit/a053b51
+[d17baef]: https://github.com/germsvel/phoenix_test/commit/d17baef
+[1dec249]: https://github.com/germsvel/phoenix_test/commit/1dec249
+[a4fb70a]: https://github.com/germsvel/phoenix_test/commit/a4fb70a
+[3c601c4]: https://github.com/germsvel/phoenix_test/commit/3c601c4
+[ce95e76]: https://github.com/germsvel/phoenix_test/commit/ce95e76
+[94c716f]: https://github.com/germsvel/phoenix_test/commit/94c716f
+[230c6a1]: https://github.com/germsvel/phoenix_test/commit/230c6a1
+[a1cf133]: https://github.com/germsvel/phoenix_test/commit/a1cf133
+[5e36c09]: https://github.com/germsvel/phoenix_test/commit/5e36c09
+[74732ab]: https://github.com/germsvel/phoenix_test/commit/74732ab
+[1819f52]: https://github.com/germsvel/phoenix_test/commit/1819f52
+[1182dba]: https://github.com/germsvel/phoenix_test/commit/1182dba
+[24b31e5]: https://github.com/germsvel/phoenix_test/commit/24b31e5
+[668448a]: https://github.com/germsvel/phoenix_test/commit/668448a
+[7619257]: https://github.com/germsvel/phoenix_test/commit/7619257
+[0642aeb]: https://github.com/germsvel/phoenix_test/commit/0642aeb
+[756cc4c]: https://github.com/germsvel/phoenix_test/commit/756cc4c
+
 ## 0.5.2
 
 ### Improvements

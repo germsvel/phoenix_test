@@ -1,11 +1,15 @@
 Upgrade Guides
 ==============
 
-## Upgrading to 0.5.3
+## Upgrading to 0.6.0
 
-Version 0.5.3 deprecates `select/3` and `select/4` using `:from` to denote the
-label. Instead, it expects the label text to be passed as a positional argument
-and an `:option` keyword argument to pass the option's text.
+Version 0.6.0 has one deprecation warning and one (potentially) breaking change.
+
+### Deprecates `select/3` and `select/4` using `:from` (use `:option` instead)
+
+Deprecates `select/3` and `select/4` using `:from` to denote the label. Instead,
+it expects the label text to be passed as a positional argument and an `:option`
+keyword argument to pass the option's text.
 
 Thus, you'll need to make this change:
 
@@ -21,7 +25,7 @@ And if you're using the version that provides a CSS selector:
 + |> select("#super-select", "Select Label", option: "Option 1")
 ```
 
-### Why the change?
+#### Why the change?
 
 It may seem like a silly change (basically swapping positions of label and
 option arguments), and in some ways it is. There's no real change in
@@ -38,6 +42,46 @@ gymnastics to switch the order of arguments.
 Rather than live with confusion for the rest of our lives, it seems better to
 incur the cost right now, and then we can move on with all of our form helpers
 being consistent.
+
+### Raising when a route isn't found
+
+If you have any tests that navigate to a route that isn't defined in your
+router. Version 0.6.0 will raise an error.
+
+If you visit a path that isn't defined, it's possible you were already getting
+an error -- in which case this isn't a breaking change for you.
+
+But in some cases, people might've been landing on a page that wasn't defined
+(perhaps getting their 404 page), but their assertions still passed for other
+reasons (e.g. they were just asserting the path name)
+
+In those cases, the change we introduced would be a breaking change.
+
+#### Why the change?
+
+We want PhoenixTest to be as helpful as possible when you're test-driving the
+your implementation. And we don't want it to provide false positives (meaning
+your test passes, but it shouldn't pass).
+
+Let me give you two examples:
+
+1. Your test fails because the `assert_has` doesn't find the text on the page.
+   You know that text is on the page, so you're confused as to why that would
+   be. Only after you add an `open_browser` do you realize you had landed on a
+   404 or 500 page because there was a typo on a route somewhere. PhoenixTest
+   could just have raised an error that the route wasn't defined instead!
+
+2. You have a test that has a `refute_has` with some text. Your test passes, so
+   you think everything is good. Much later someone stumbles upon that test, but
+   when they use `open_browser`, they realize the `refute_has` was passing only
+   because you were on a 404 or 500 -- a completely different page from what you
+   thought! It turned out that you navigated to a path that didn't exist. You
+   thought your test was asserting that, for example, a user had been deleted,
+   but instead you had gone to a non-existent path.
+
+In both of those cases, PhoenixTest could have saved you time and pain by simply
+ensuring that the path you're trying to visit is a real one. And the sooner we
+can give you feedback about that, the better.
 
 ## Upgrading to 0.2.13
 
