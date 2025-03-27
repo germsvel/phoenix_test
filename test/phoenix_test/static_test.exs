@@ -446,7 +446,7 @@ defmodule PhoenixTest.StaticTest do
     test "selects given option for a label", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> select("Elf", from: "Race")
+      |> select("Race", option: "Elf")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race: elf")
     end
@@ -461,14 +461,14 @@ defmodule PhoenixTest.StaticTest do
     test "allows selecting option if a similar option exists", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> select("Orc", from: "Race")
+      |> select("Race", option: "Orc")
       |> assert_has("#full-form option[value='orc']")
     end
 
     test "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> select("False", from: "User Admin")
+      |> select("User Admin", option: "False")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:admin: false")
     end
@@ -476,7 +476,7 @@ defmodule PhoenixTest.StaticTest do
     test "handles multi select", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> select(["Elf", "Dwarf"], from: "Race 2")
+      |> select("Race 2", option: ["Elf", "Dwarf"])
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race_2: [elf,dwarf]")
     end
@@ -492,7 +492,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> within("#complex-labels", fn session ->
-        select(session, "Dog", from: "Choose a pet:", exact: false)
+        select(session, "Choose a pet:", exact: false, option: "Dog")
       end)
       |> submit()
       |> assert_has("#form-data", text: "pet: dog")
@@ -502,7 +502,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> within("#full-form", fn session ->
-        select(session, "Hum", from: "Race", exact_option: false)
+        select(session, "Race", exact_option: false, option: "Hum")
       end)
       |> submit()
       |> assert_has("#form-data", text: "race: human")
@@ -512,7 +512,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> within("#same-labels", fn session ->
-        select(session, "#select-favorite-character", "Frodo", from: "Character")
+        select(session, "#select-favorite-character", "Character", option: "Frodo")
       end)
       |> submit()
       |> assert_has("#form-data", text: "favorite-character: Frodo")
@@ -715,7 +715,7 @@ defmodule PhoenixTest.StaticTest do
       |> fill_in("First Name", with: "Legolas")
       |> fill_in("Date", with: Date.new!(2023, 12, 30))
       |> check("Admin")
-      |> select("Elf", from: "Race")
+      |> select("Race", option: "Elf")
       |> choose("Email Choice")
       |> fill_in("Notes", with: "Woodland Elf")
       |> click_button("Save Full Form")
@@ -731,7 +731,7 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> fill_in("User Name", with: "Legolas")
-      |> select("True", from: "User Admin")
+      |> select("User Admin", option: "True")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Legolas")
       |> assert_has("#form-data", text: "user:admin: true")

@@ -214,7 +214,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> Plug.Conn.put_req_header("x-auth-header", "Some-Value")
       |> visit("/auth/live/index")
-      |> within("#live-redirect-form", &select(&1, "Two", from: "Name"))
+      |> within("#live-redirect-form", &select(&1, "Name", option: "Two"))
       |> assert_path("/auth/live/page_2")
       |> assert_has("#flash-group", text: "Redirected on phx-change")
       |> then(fn %{conn: conn} ->
@@ -430,21 +430,21 @@ defmodule PhoenixTest.LiveTest do
     test "selects given option for a label", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Elf", from: "Race")
+      |> select("Race", option: "Elf")
       |> assert_has("#full-form option[value='elf']")
     end
 
     test "allows selecting option if a similar option exists", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Orc", from: "Race")
+      |> select("Race", option: "Orc")
       |> assert_has("#full-form option[value='orc']")
     end
 
     test "works in 'nested' forms", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("False", from: "User Admin")
+      |> select("User Admin", option: "False")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:admin: false")
     end
@@ -452,7 +452,7 @@ defmodule PhoenixTest.LiveTest do
     test "can be used to submit form", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Elf", from: "Race")
+      |> select("Race", option: "Elf")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "race: elf")
     end
@@ -460,8 +460,8 @@ defmodule PhoenixTest.LiveTest do
     test "works for multiple select", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Elf", from: "Race")
-      |> select(["Elf", "Dwarf"], from: "Race 2")
+      |> select("Race", option: "Elf")
+      |> select("Race 2", option: ["Elf", "Dwarf"])
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "[elf, dwarf]")
     end
@@ -470,7 +470,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#not-a-form", fn session ->
-        select(session, "Dog", from: "Choose a pet:")
+        select(session, "Choose a pet:", option: "Dog")
       end)
       |> assert_has("#form-data", text: "selected: [dog]")
     end
@@ -479,7 +479,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#not-a-form", fn session ->
-        select(session, ["Dog", "Cat"], from: "Choose a pet:")
+        select(session, "Choose a pet:", option: ["Dog", "Cat"])
       end)
       |> assert_has("#form-data", text: "selected: [dog, cat]")
     end
@@ -488,7 +488,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#complex-labels", fn session ->
-        select(session, "Dog", from: "Choose a pet:", exact: false)
+        select(session, "Choose a pet:", exact: false, option: "Dog")
       end)
       |> assert_has("#form-data", text: "pet: dog")
     end
@@ -497,7 +497,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#full-form", fn session ->
-        select(session, "Hum", from: "Race", exact_option: false)
+        select(session, "Race", exact_option: false, option: "Hum")
       end)
       |> submit()
       |> assert_has("#form-data", text: "race: human")
@@ -507,7 +507,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> within("#same-labels", fn session ->
-        select(session, "#select-favorite-character", "Frodo", from: "Character")
+        select(session, "#select-favorite-character", "Character", option: "Frodo")
       end)
       |> assert_has("#form-data", text: "favorite-character: Frodo")
     end
@@ -516,7 +516,7 @@ defmodule PhoenixTest.LiveTest do
       session = visit(conn, "/live/index")
 
       assert_raise ArgumentError, ~r/to have a valid `phx-click` attribute on options or to belong to a `form`/, fn ->
-        select(session, "Dog", from: "Invalid Select Option")
+        select(session, "Invalid Select Option", option: "Dog")
       end
     end
   end
@@ -799,7 +799,7 @@ defmodule PhoenixTest.LiveTest do
       |> fill_in("First Name", with: "Legolas")
       |> fill_in("Date", with: Date.new!(2023, 12, 30))
       |> check("Admin")
-      |> select("Elf", from: "Race")
+      |> select("Race", option: "Elf")
       |> choose("Email Choice")
       |> fill_in("Notes", with: "Woodland Elf")
       |> click_button("Save Full Form")
@@ -815,7 +815,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("User Name", with: "Legolas")
-      |> select("True", from: "User Admin")
+      |> select("User Admin", option: "True")
       |> click_button("Save Nested Form")
       |> assert_has("#form-data", text: "user:name: Legolas")
       |> assert_has("#form-data", text: "user:admin: true")
