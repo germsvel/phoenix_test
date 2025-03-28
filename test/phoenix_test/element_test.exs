@@ -33,11 +33,28 @@ defmodule PhoenixTest.ElementTest do
       assert ~s(input[type="text"][name="name"]) = selector
     end
 
-    test "ignores `phx-*` attributes when id isn't present" do
+    test "includes simple phx-* attributes when id isn't present" do
       data =
         Query.find!(
           """
-          <input phx-click="ignore-complex-liveview-js" type="text" name="name" />
+          <input phx-click="save-user" type="text" name="name" />
+          """,
+          "input"
+        )
+
+      selector = Element.build_selector(data)
+
+      assert ~s(input[phx-click="save-user"][type="text"][name="name"]) = selector
+    end
+
+    test "ignores complex `phx-*` LiveView.JS attributes when id isn't present" do
+      %{ops: data} = Phoenix.LiveView.JS.navigate("/live/page_2")
+      {:ok, encoded_action} = Jason.encode(data)
+
+      data =
+        Query.find!(
+          """
+          <input phx-click=#{encoded_action} type="text" name="name" />
           """,
           "input"
         )
