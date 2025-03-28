@@ -259,14 +259,14 @@ defmodule PhoenixTest.Assertions do
     query
     |> URI.query_decoder()
     |> Enum.reduce(%{}, fn {k, v}, acc ->
-      if String.ends_with?(k, "[]") do
-        [name, _] = String.split(k, "[")
+      case String.split(k, "[") do
+        [key_for_single_value] ->
+          Map.put(acc, key_for_single_value, v)
 
-        Map.update(acc, name, [v], fn values ->
-          values ++ [v]
-        end)
-      else
-        Map.put(acc, k, v)
+        [key_for_multiple_values, _] ->
+          Map.update(acc, key_for_multiple_values, [v], fn values ->
+            values ++ [v]
+          end)
       end
     end)
   end
