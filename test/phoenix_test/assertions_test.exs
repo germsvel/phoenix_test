@@ -598,6 +598,12 @@ defmodule PhoenixTest.AssertionsTest do
       assert_path(session, "/page/index", query_params: %{"foo" => "bar", "hello" => "world"})
     end
 
+    test "handles query params that have a list as a value" do
+      session = %Live{current_path: "/page/index?users[]=frodo&users[]=sam"}
+
+      assert_path(session, "/page/index", query_params: %{"users" => ["frodo", "sam"]})
+    end
+
     test "raises helpful error if path doesn't match" do
       msg =
         ignore_whitespace("""
@@ -634,6 +640,16 @@ defmodule PhoenixTest.AssertionsTest do
         session = %Live{current_path: "/page/index?hello=world&hi=bye"}
 
         assert_path(session, "/page/index", query_params: %{"goodbye" => "world", "hi" => "bye"})
+      end
+    end
+
+    test "raises helpful error if path doesn't have query params with lists" do
+      session = %Live{current_path: "/page/index?users[]=frodo&users[]=sam"}
+
+      msg = ~r/Expected query params to be "users\[\]=sam" but/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_path(session, "/page/index", query_params: %{"users" => ["sam"]})
       end
     end
   end

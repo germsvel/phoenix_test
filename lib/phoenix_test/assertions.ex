@@ -238,12 +238,12 @@ defmodule PhoenixTest.Assertions do
     params = Utils.stringify_keys_and_values(params)
 
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
-    query_params = uri.query && URI.decode_query(uri.query)
+    query_params = uri.query && Plug.Conn.Query.decode(uri.query)
 
     if query_params == params do
       assert true
     else
-      params_string = URI.encode_query(params)
+      params_string = Plug.Conn.Query.encode(params)
 
       msg = """
       Expected query params to be #{inspect(params_string)} but got #{inspect(uri.query)}
