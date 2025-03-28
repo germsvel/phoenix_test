@@ -238,7 +238,7 @@ defmodule PhoenixTest.Assertions do
     params = Utils.stringify_keys_and_values(params)
 
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
-    query_params = uri.query && URI.decode_query(uri.query)
+    query_params = uri.query && decode_query(uri.query)
 
     if query_params == params do
       assert true
@@ -253,6 +253,22 @@ defmodule PhoenixTest.Assertions do
     end
 
     session
+  end
+
+  defp decode_query(query) do
+    query
+    |> URI.query_decoder()
+    |> Enum.reduce(%{}, fn {k, v}, acc ->
+      if String.ends_with?(k, "[]") do
+        [name, _] = String.split(k, "[")
+
+        Map.update(acc, name, [v], fn values ->
+          values ++ [v]
+        end)
+      else
+        Map.put(acc, k, v)
+      end
+    end)
   end
 
   def refute_path(session, path) do
