@@ -240,16 +240,21 @@ defmodule PhoenixTest.Assertions do
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
     query_params = uri.query && Plug.Conn.Query.decode(uri.query)
 
-    if query_params == params do
-      assert true
-    else
-      params_string = Plug.Conn.Query.encode(params)
+    cond do
+      query_params == params ->
+        assert true
 
-      msg = """
-      Expected query params to be #{inspect(params_string)} but got #{inspect(uri.query)}
-      """
+      is_nil(query_params) && params == %{} ->
+        assert true
 
-      raise AssertionError, msg
+      true ->
+        params_string = Plug.Conn.Query.encode(params)
+
+        msg = """
+        Expected query params to be #{inspect(params_string)} but got #{inspect(uri.query)}
+        """
+
+        raise AssertionError, msg
     end
 
     session

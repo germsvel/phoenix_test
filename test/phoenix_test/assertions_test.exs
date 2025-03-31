@@ -604,6 +604,12 @@ defmodule PhoenixTest.AssertionsTest do
       assert_path(session, "/page/index", query_params: %{"users" => ["frodo", "sam"]})
     end
 
+    test "handles asserting empty query params" do
+      session = %Live{current_path: "/page/index"}
+
+      assert_path(session, "/page/index", query_params: %{})
+    end
+
     test "raises helpful error if path doesn't match" do
       msg =
         ignore_whitespace("""
