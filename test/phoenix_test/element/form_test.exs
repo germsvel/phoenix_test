@@ -105,9 +105,19 @@ defmodule PhoenixTest.Element.FormTest do
         <input type="hidden" name="method" value="delete"/>
         <input name="input" value="value" />
 
-        <input type="text" name="text-input" value="text value" />
-        <input type="number" name="number-input" value="123" />
+        <input type="date" name="date-input" value="date value" />
+        <input type="datetime-local" name="datetime-local-input" value="datetime-local value" />
         <input type="email" name="email-input" value="test@example.com" />
+        <input type="month" name="month-input" value="month value" />
+        <input type="number" name="number-input" value="123" />
+        <input type="password" name="password-input" value="password value" />
+        <input type="range" name="range-input" value="range value" />
+        <input type="search" name="search-input" value="search value" />
+        <input type="tel" name="tel-input" value="tel value" />
+        <input type="text" name="text-input" value="text value" />
+        <input type="time" name="time-input" value="time value" />
+        <input type="url" name="url-input" value="url value" />
+        <input type="week" name="week-input" value="week value" />
 
         <select name="select">
           <option value="not_selected">Not selected</option>
@@ -137,18 +147,29 @@ defmodule PhoenixTest.Element.FormTest do
       """
 
       form = Form.find!(html, "form")
+      form_data = form.form_data
 
-      assert FormData.has_data?(form.form_data, "method", "delete")
-      assert FormData.has_data?(form.form_data, "input", "value")
-      assert FormData.has_data?(form.form_data, "text-input", "text value")
-      assert FormData.has_data?(form.form_data, "number-input", "123")
-      assert FormData.has_data?(form.form_data, "email-input", "test@example.com")
-      assert FormData.has_data?(form.form_data, "select", "selected")
-      assert FormData.has_data?(form.form_data, "select_multiple[]", "select_1")
-      assert FormData.has_data?(form.form_data, "select_multiple[]", "select_2")
-      assert FormData.has_data?(form.form_data, "checkbox", "checked")
-      assert FormData.has_data?(form.form_data, "radio", "checked")
-      assert FormData.has_data?(form.form_data, "textarea", "Default text")
+      assert FormData.has_data?(form_data, "method", "delete")
+      assert FormData.has_data?(form_data, "input", "value")
+      assert FormData.has_data?(form_data, "date-input", "date value")
+      assert FormData.has_data?(form_data, "datetime-local-input", "datetime-local value")
+      assert FormData.has_data?(form_data, "email-input", "test@example.com")
+      assert FormData.has_data?(form_data, "month-input", "month value")
+      assert FormData.has_data?(form_data, "number-input", "123")
+      assert FormData.has_data?(form_data, "password-input", "password value")
+      assert FormData.has_data?(form_data, "range-input", "range value")
+      assert FormData.has_data?(form_data, "search-input", "search value")
+      assert FormData.has_data?(form_data, "tel-input", "tel value")
+      assert FormData.has_data?(form_data, "text-input", "text value")
+      assert FormData.has_data?(form_data, "time-input", "time value")
+      assert FormData.has_data?(form_data, "url-input", "url value")
+      assert FormData.has_data?(form_data, "week-input", "week value")
+      assert FormData.has_data?(form_data, "select", "selected")
+      assert FormData.has_data?(form_data, "select_multiple[]", "select_1")
+      assert FormData.has_data?(form_data, "select_multiple[]", "select_2")
+      assert FormData.has_data?(form_data, "checkbox", "checked")
+      assert FormData.has_data?(form_data, "radio", "checked")
+      assert FormData.has_data?(form_data, "textarea", "Default text")
     end
 
     test "does not include disabled inputs in form_data" do

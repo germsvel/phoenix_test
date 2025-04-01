@@ -68,20 +68,34 @@ defmodule PhoenixTest.Element.Form do
   defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
   defp descendant_selector(%{selector: selector}), do: selector
 
-  @text_like_types ~w(date datetime-local email month number password range search tel text time url week)
+  @simple_value_types ~w(
+    date
+    datetime-local
+    email
+    month
+    number
+    password
+    range
+    search
+    tel
+    text
+    time
+    url
+    week
+  )
 
   @hidden_inputs "input[type=hidden]"
   @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
   @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
-  @pre_filled_text_like_inputs Enum.map_join(@text_like_types, ",", &"input:not([disabled])[type=#{&1}][value]")
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
+  @pre_filled_simple_value_inputs Enum.map_join(@simple_value_types, ",", &"input:not([disabled])[type=#{&1}][value]")
 
   defp form_data(form) do
     FormData.new()
     |> FormData.add_data(form_data(@hidden_inputs, form))
     |> FormData.add_data(form_data(@checked_radio_buttons, form))
     |> FormData.add_data(form_data(@checked_checkboxes, form))
-    |> FormData.add_data(form_data(@pre_filled_text_like_inputs, form))
+    |> FormData.add_data(form_data(@pre_filled_simple_value_inputs, form))
     |> FormData.add_data(form_data(@pre_filled_default_text_inputs, form))
     |> FormData.add_data(form_data_textarea(form))
     |> FormData.add_data(form_data_select(form))
