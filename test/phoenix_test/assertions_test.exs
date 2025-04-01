@@ -99,6 +99,30 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("h1", text: "Unauthorized")
     end
 
+    test "succeeds when asserting by value", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", value: "Frodo")
+    end
+
+    test "raises an error if value can not be found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/Could not find any elements with selector "input" and value "does-not-exist"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "input", value: "does-not-exist")
+      end
+    end
+
+    test "raises if user provides :text and :value options", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      assert_raise ArgumentError, ~r/Cannot provide both :text and :value/, fn ->
+        assert_has(session, "div", text: "some text", value: "some value")
+      end
+    end
+
     test "raises an error if the element cannot be found at all", %{conn: conn} do
       conn = visit(conn, "/page/index")
 
@@ -569,6 +593,30 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
         |> refute_has("#multiple-items li", at: 2, text: "Legolas")
+      end
+    end
+
+    test "can refute by value", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("input", value: "not-frodo")
+    end
+
+    test "raises an error if value is found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/not to find any elements with selector "input" and value "Frodo"/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, "input", value: "Frodo")
+      end
+    end
+
+    test "raises if user provides :text and :value options", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert_raise ArgumentError, ~r/Cannot provide both :text and :value/, fn ->
+        refute_has(session, "div", text: "some text", value: "some value")
       end
     end
   end

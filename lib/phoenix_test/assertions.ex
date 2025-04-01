@@ -305,10 +305,12 @@ defmodule PhoenixTest.Assertions do
 
   defp assert_incorrect_count_error_msg(selector, opts, found) do
     text = Keyword.get(opts, :text, :no_text)
+    value = Keyword.get(opts, :value, :no_value)
     expected_count = Keyword.get(opts, :count, :any)
 
     "Expected #{expected_count} elements with #{inspect(selector)}"
     |> maybe_append_text(text)
+    |> maybe_append_value(value)
     |> append_found(found)
   end
 
@@ -316,9 +318,11 @@ defmodule PhoenixTest.Assertions do
     count = Keyword.get(opts, :count, :any)
     position = Keyword.get(opts, :at, :any)
     text = Keyword.get(opts, :text, :no_text)
+    value = Keyword.get(opts, :value, :no_value)
 
     "Could not find #{count} elements with selector #{inspect(selector)}"
     |> maybe_append_text(text)
+    |> maybe_append_value(value)
     |> maybe_append_position(position)
     |> append_found_other_matches(selector, other_matches)
   end
@@ -327,9 +331,11 @@ defmodule PhoenixTest.Assertions do
     refute_count = Keyword.get(opts, :count, :any)
     at = Keyword.get(opts, :at, :any)
     text = Keyword.get(opts, :text, :no_text)
+    value = Keyword.get(opts, :value, :no_value)
 
     "Expected not to find #{refute_count} elements with selector #{inspect(selector)}"
     |> maybe_append_text(text)
+    |> maybe_append_value(value)
     |> maybe_append_position(at)
     |> append_found(found)
   end
@@ -350,16 +356,29 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_text(msg, :no_text), do: msg
   defp maybe_append_text(msg, text), do: msg <> " and text #{inspect(text)}"
 
+  defp maybe_append_value(msg, :no_value), do: msg
+  defp maybe_append_value(msg, value), do: msg <> " and value #{inspect(value)}"
+
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
   defp finder_fun(selector, opts) do
-    case Keyword.get(opts, :text, :no_text) do
-      :no_text ->
+    text = Keyword.get(opts, :text, :no_text)
+    value = Keyword.get(opts, :value, :no_value)
+
+    case {text, value} do
+      {:no_text, :no_value} ->
         &Query.find(&1, selector, opts)
 
-      text ->
+      {:no_text, value} ->
+        selector = selector <> "[value=#{inspect(value)}]"
+        &Query.find(&1, selector, opts)
+
+      {text, :no_value} ->
         &Query.find(&1, selector, text, opts)
+
+      {_text, _value} ->
+        raise ArgumentError, "Cannot provide both :text and :value to assertions"
     end
   end
 

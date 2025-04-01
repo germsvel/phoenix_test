@@ -375,6 +375,15 @@ defmodule PhoenixTest.WebApp.PageView do
     """
   end
 
+  def render("by_value.html", assigns) do
+    ~H"""
+    <h1>Find by value</h1>
+    <form action="/">
+      <input type="text" name="user" value="Frodo" />
+    </form>
+    """
+  end
+
   def render("get_record.html", assigns) do
     ~H"""
     <h1>Record received</h1>
