@@ -3,6 +3,7 @@ defprotocol PhoenixTest.Driver do
   def visit(initial_struct, path)
   def render_page_title(session)
   def render_html(session)
+  def click(session, selector)
   def click_link(session, text)
   def click_link(session, selector, text)
   def click_button(session, text)

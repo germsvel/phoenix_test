@@ -52,6 +52,12 @@ defmodule PhoenixTest.Static do
     end
   end
 
+  def click(_session, _selector) do
+    %ArgumentError{
+      message: "`click` can not be used for static views. Use `click_link` or `click_button` etc."
+    }
+  end
+
   def click_link(session, selector \\ "a", text) do
     link =
       session
@@ -324,6 +330,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
 
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
+  defdelegate click(session, selector), to: Static
   defdelegate click_link(session, text), to: Static
   defdelegate click_link(session, selector, text), to: Static
   defdelegate click_button(session, text), to: Static

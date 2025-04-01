@@ -218,6 +218,30 @@ defmodule PhoenixTest do
   end
 
   @doc """
+  Clicks an element with the given selector. The clicked element needs to have
+  a `phx-click` attribute defined. However, the click helper has several limitations:
+
+  - it does not work for Static pages as it does not make sense in the context of a static view.
+  - it does not work with form elements (use the designated helpers like `check` etc. for that)
+
+  ## Examples
+
+  ```heex
+  <div phx-click="toggle" aria-label="toggle element">Element that toggles something</div>
+  <button class="toggle-panel" data-element-id="1">Element with class and data-element attribute</button>
+  ```
+
+  ```elixir
+  session
+  |> click("div[aria-label='toggle element']") # <- will match the aria label
+
+  session
+  |> click("button.toggle-panel[data-element-id='1']) # <- will match the element `button`, the class `.toggle-paenl` and the `data` attribute
+  ```
+  """
+  defdelegate click(session, selector), to: Driver
+
+  @doc """
   Clicks a link with given text (using a substring match) and performs the
   action.
 

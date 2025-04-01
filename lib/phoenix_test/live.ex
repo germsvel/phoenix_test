@@ -54,6 +54,13 @@ defmodule PhoenixTest.Live do
     end
   end
 
+  def click(session, selector) do
+    session.view
+    |> element(selector)
+    |> render_click()
+    |> maybe_redirect(session)
+  end
+
   def click_link(session, selector \\ "a", text) do
     session.view
     |> element(selector, text)
@@ -491,6 +498,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
 
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
+  defdelegate click(session, selector), to: Live
   defdelegate click_link(session, text), to: Live
   defdelegate click_link(session, selector, text), to: Live
   defdelegate click_button(session, text), to: Live

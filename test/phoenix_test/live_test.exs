@@ -127,6 +127,38 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "click/2" do
+    test "clicks a button by selector", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click("#show-tab-btn")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
+    test "clicks a div by an aria label as selector", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click("[aria-label='toggle element']")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
+    test "clicks a button by an element, class and data selector", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click("button.toggle-panel[data-element-id='1']")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
+    test "clicks a link", %{conn: conn} do
+      session =
+        conn
+        |> visit("/live/index")
+        |> click("a#navigate-link")
+
+      assert PhoenixTest.Driver.current_path(session) == "/live/page_2?details=true&foo=bar"
+    end
+  end
+
   describe "click_button/2" do
     test "finds button by substring", %{conn: conn} do
       conn

@@ -7,7 +7,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
     ~H"""
     <h1 id="title" class="title" data-role="title">LiveView main page</h1>
 
-    <.link navigate="/live/page_2?details=true&foo=bar">Navigate link</.link>
+    <.link navigate="/live/page_2?details=true&foo=bar" id="navigate-link">Navigate link</.link>
     <.link patch="/live/index?details=true&foo=bar">Patch link</.link>
     <.link href="/page/index?details=true&foo=bar">Navigate to non-liveview</.link>
 
@@ -28,6 +28,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <button phx-click="change-page-title">Change page title</button>
 
     <button phx-click="show-tab">Show tab</button>
+
+    <button phx-click="show-tab" id="show-tab-btn">`button` element for the `click/2` test</button>
+    <div phx-click="show-tab" aria-label="toggle element">`div` element for the `click/2` test</div>
+    <button phx-click="show-tab" class="toggle-panel" data-element-id="1">
+      `div` element with a custom data-test attribute for the `click/2` test
+    </button>
 
     <div :if={@show_tab} id="tab">
       <h2>Tab title</h2>
@@ -205,7 +211,9 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label for={@uploads.avatar.ref}>Avatar</label>
       <.live_file_input upload={@uploads.avatar} />
 
-      <button type="submit" name="full_form_button" value="save">Save Full Form</button>
+      <button type="submit" name="full_form_button" value="save" id="click-submit-btn">
+        Save Full Form
+      </button>
     </form>
 
     <form id="redirect-form" phx-submit="save-redirect-form">
