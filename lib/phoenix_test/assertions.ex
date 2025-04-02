@@ -9,6 +9,43 @@ defmodule PhoenixTest.Assertions do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
+  defmodule Opts do
+    @moduledoc false
+    defstruct [
+      :at,
+      :count,
+      :exact,
+      :text,
+      :value
+    ]
+
+    def parse(opts) when is_list(opts) do
+      count = Keyword.get(opts, :count, :any)
+      exact = Keyword.get(opts, :exact, false)
+      text = Keyword.get(opts, :text, :no_text)
+      value = Keyword.get(opts, :value, :no_value)
+      at = Keyword.get(opts, :at, :any)
+
+      %__MODULE__{
+        at: at,
+        count: count,
+        exact: exact,
+        text: text,
+        value: value
+      }
+    end
+
+    def to_list(%__MODULE__{} = opts) do
+      [
+        at: opts.at,
+        count: opts.count,
+        exact: opts.exact,
+        text: opts.text,
+        value: opts.value
+      ]
+    end
+  end
+
   @doc """
   Asserts that the rendered HTML content within the given session contains an
   element matching the specified selector and (optional) text.
@@ -68,7 +105,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_has(session, selector, opts) when is_list(opts) do
-    count = Keyword.get(opts, :count, :any)
+    opts = Opts.parse(opts)
     finder = finder_fun(selector, opts)
 
     session
@@ -83,7 +120,7 @@ defmodule PhoenixTest.Assertions do
           message: assert_not_found_error_msg(selector, opts, potential_matches)
 
       {:found, found} ->
-        if count in [:any, 1] do
+        if opts.count in [:any, 1] do
           assert true
         else
           raise AssertionError,
@@ -93,7 +130,7 @@ defmodule PhoenixTest.Assertions do
       {:found_many, found} ->
         found_count = Enum.count(found)
 
-        if count in [:any, found_count] do
+        if opts.count in [:any, found_count] do
           assert true
         else
           raise AssertionError,
@@ -155,7 +192,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_has(session, selector, opts) when is_list(opts) do
-    count = Keyword.get(opts, :count, :any)
+    opts = Opts.parse(opts)
     finder = finder_fun(selector, opts)
 
     session
@@ -169,7 +206,7 @@ defmodule PhoenixTest.Assertions do
         refute false
 
       {:found, element} ->
-        if count in [:any, 1] do
+        if opts.count in [:any, 1] do
           raise AssertionError, message: refute_found_error_msg(selector, opts, [element])
         else
           refute false
@@ -178,7 +215,7 @@ defmodule PhoenixTest.Assertions do
       {:found_many, elements} ->
         found_count = Enum.count(elements)
 
-        if count in [:any, found_count] do
+        if opts.count in [:any, found_count] do
           raise AssertionError, message: refute_found_error_msg(selector, opts, elements)
         else
           refute false
@@ -304,39 +341,25 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp assert_incorrect_count_error_msg(selector, opts, found) do
-    text = Keyword.get(opts, :text, :no_text)
-    value = Keyword.get(opts, :value, :no_value)
-    expected_count = Keyword.get(opts, :count, :any)
-
-    "Expected #{expected_count} elements with #{inspect(selector)}"
-    |> maybe_append_text(text)
-    |> maybe_append_value(value)
+    "Expected #{opts.count} elements with #{inspect(selector)}"
+    |> maybe_append_text(opts.text)
+    |> maybe_append_value(opts.value)
     |> append_found(found)
   end
 
   defp assert_not_found_error_msg(selector, opts, other_matches \\ []) do
-    count = Keyword.get(opts, :count, :any)
-    position = Keyword.get(opts, :at, :any)
-    text = Keyword.get(opts, :text, :no_text)
-    value = Keyword.get(opts, :value, :no_value)
-
-    "Could not find #{count} elements with selector #{inspect(selector)}"
-    |> maybe_append_text(text)
-    |> maybe_append_value(value)
-    |> maybe_append_position(position)
+    "Could not find #{opts.count} elements with selector #{inspect(selector)}"
+    |> maybe_append_text(opts.text)
+    |> maybe_append_value(opts.value)
+    |> maybe_append_position(opts.at)
     |> append_found_other_matches(selector, other_matches)
   end
 
   def refute_found_error_msg(selector, opts, found) do
-    refute_count = Keyword.get(opts, :count, :any)
-    at = Keyword.get(opts, :at, :any)
-    text = Keyword.get(opts, :text, :no_text)
-    value = Keyword.get(opts, :value, :no_value)
-
-    "Expected not to find #{refute_count} elements with selector #{inspect(selector)}"
-    |> maybe_append_text(text)
-    |> maybe_append_value(value)
-    |> maybe_append_position(at)
+    "Expected not to find #{opts.count} elements with selector #{inspect(selector)}"
+    |> maybe_append_text(opts.text)
+    |> maybe_append_value(opts.value)
+    |> maybe_append_position(opts.at)
     |> append_found(found)
   end
 
@@ -362,20 +385,17 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
-  defp finder_fun(selector, opts) do
-    text = Keyword.get(opts, :text, :no_text)
-    value = Keyword.get(opts, :value, :no_value)
-
-    case {text, value} do
+  defp finder_fun(selector, %Opts{} = opts) do
+    case {opts.text, opts.value} do
       {:no_text, :no_value} ->
-        &Query.find(&1, selector, opts)
+        &Query.find(&1, selector, Opts.to_list(opts))
 
       {:no_text, value} ->
         selector = selector <> "[value=#{inspect(value)}]"
-        &Query.find(&1, selector, opts)
+        &Query.find(&1, selector, Opts.to_list(opts))
 
       {text, :no_value} ->
-        &Query.find(&1, selector, text, opts)
+        &Query.find(&1, selector, text, Opts.to_list(opts))
 
       {_text, _value} ->
         raise ArgumentError, "Cannot provide both :text and :value to assertions"
