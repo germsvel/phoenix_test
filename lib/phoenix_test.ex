@@ -1279,7 +1279,11 @@ defmodule PhoenixTest do
   - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to assert text within HTML elements that also
   contain other HTML elements. But sometimes we want to assert the exact text is
-  present. For that, use `exact: true`. (defaults to `false`)
+  present. For that, use `exact: true`. Note: this only works with the `:text`
+  option. (defaults to `false`)
+
+  - `value`: the element's value to look for. Note that you cannot specify both
+  `text` and `value` as options.
 
   - `count`: the number of items you expect to match CSS selector (and `text` if
   provided)
@@ -1301,6 +1305,9 @@ defmodule PhoenixTest do
   # assert there's an element with ID "user" and text "Aragorn"
   assert_has(session, "#user", text: "Aragorn", exact: true)
     # ^ succeeds only if text found is "Aragorn". Fails if finds "Aragorn, Son of Arathorn"
+
+  # assert there's an input with value "Frodo"
+  assert_has(session, "input", value: "Frodo")
 
   # assert there are two elements with class "posts"
   assert_has(session, ".posts", count: 2)
@@ -1353,7 +1360,11 @@ defmodule PhoenixTest do
   - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to refute text within HTML elements that also
   contain other HTML elements. But sometimes we want to refute the exact text is
-  absent. For that, use `exact: true`.
+  absent. For that, use `exact: true`. Note: this only works with the `:text`
+  option.
+
+  - `value`: the element's value to look for. Note that you cannot specify both
+  `text` and `value` as options.
 
   - `count`: the number of items you're expecting _should not_ match the CSS
   selector (and `text` if provided)
@@ -1373,6 +1384,9 @@ defmodule PhoenixTest do
 
   # refute there's an element with ID "user" and exact text "Aragorn"
   refute_has(session, "#user", text: "Aragorn", exact: true)
+
+  # refute there's an input with value "Frodo"
+  refute_has(session, "input", value: "Frodo")
 
   # refute there are two elements with class "posts" (less or more will not raise)
   refute_has(session, ".posts", count: 2)
