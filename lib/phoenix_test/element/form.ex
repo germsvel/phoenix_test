@@ -50,6 +50,13 @@ defmodule PhoenixTest.Element.Form do
     }
   end
 
+  def form_element_names(%__MODULE__{} = form) do
+    form.raw
+    |> Html.all("[name]")
+    |> Enum.map(&Html.attribute(&1, "name"))
+    |> Enum.uniq()
+  end
+
   def phx_change?(form) do
     form.parsed
     |> Html.attribute("phx-change")
