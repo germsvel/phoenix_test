@@ -68,6 +68,6 @@ defmodule PhoenixTest.LiveViewTimeout do
   end
 
   defp via_assert_redirect(session) do
-    Phoenix.LiveViewTest.assert_redirect(session)
+    Phoenix.LiveViewTest.assert_redirect(session.view)
   end
 end
