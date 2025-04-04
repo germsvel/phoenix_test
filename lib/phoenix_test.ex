@@ -463,6 +463,8 @@ defmodule PhoenixTest do
 
   - `exact`: whether to match label text exactly. (Defaults to `true`)
 
+  - `hidden_input_id`: force hidden input data.
+
   ## Examples
 
   Given we have a form that contains this:
@@ -524,7 +526,7 @@ defmodule PhoenixTest do
   ```
   """
   def fill_in(session, label, opts) when is_binary(label) and is_list(opts) do
-    opts = Keyword.validate!(opts, [:with, exact: true])
+    opts = Keyword.validate!(opts, [:with, :hidden_input_id, exact: true])
     Driver.fill_in(session, label, opts)
   end
 
@@ -563,7 +565,7 @@ defmodule PhoenixTest do
   ```
   """
   def fill_in(session, input_selector, label, opts) when is_binary(label) and is_list(opts) do
-    opts = Keyword.validate!(opts, [:with, exact: true])
+    opts = Keyword.validate!(opts, [:with, :hidden_input_id, exact: true])
     Driver.fill_in(session, input_selector, label, opts)
   end
 

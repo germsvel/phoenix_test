@@ -96,6 +96,8 @@ defmodule PhoenixTest.Live do
             form.form_data
           end
 
+        additional_data = FormData.merge(active_form.force_form_data, additional_data)
+
         session
         |> Map.put(:active_form, ActiveForm.new())
         |> submit_form(form.selector, form_data, additional_data)
@@ -119,7 +121,7 @@ defmodule PhoenixTest.Live do
     |> render_html()
     |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
-    |> then(&fill_in_field_data(session, &1))
+    |> then(&fill_in_field_data(session, &1, force: not is_nil(opts[:hidden_input_id])))
   end
 
   def select(session, option, opts) do
@@ -319,14 +321,16 @@ defmodule PhoenixTest.Live do
 
     form = Field.parent_form!(field)
 
+    add_or_force = if opts[:force], do: &ActiveForm.force_form_data/2, else: &ActiveForm.add_form_data/2
+
     session =
       Map.update!(session, :active_form, fn active_form ->
         if active_form.selector == form.selector do
-          ActiveForm.add_form_data(session.active_form, field)
+          add_or_force.(session.active_form, field)
         else
           [id: form.id, selector: form.selector]
           |> ActiveForm.new()
-          |> ActiveForm.add_form_data(field)
+          |> add_or_force.(field)
         end
       end)
 
@@ -351,7 +355,7 @@ defmodule PhoenixTest.Live do
 
     selector = active_form.selector
 
-    submit_form(session, selector, active_form.form_data)
+    submit_form(session, selector, active_form.form_data, active_form.force_form_data)
   end
 
   defp no_active_form_error do
@@ -387,7 +391,7 @@ defmodule PhoenixTest.Live do
       Form.has_action?(form) ->
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.Static.submit_form(selector, form_data)
+        |> PhoenixTest.Static.submit_form(selector, form_data, additional_data)
 
       true ->
         raise ArgumentError,
@@ -453,9 +457,11 @@ defmodule PhoenixTest.Live do
         active_form? = form.selector == active_form.selector
         form_data = FormData.merge(form.form_data, if(active_form?, do: active_form.form_data, else: FormData.new()))
 
+        additional_data = if(active_form?, do: active_form.force_form_data, else: FormData.new())
+
         session.conn
         |> PhoenixTest.Static.build()
-        |> PhoenixTest.Static.submit_form(form.selector, form_data)
+        |> PhoenixTest.Static.submit_form(form.selector, form_data, additional_data)
 
       {:found_many, _} ->
         raise ArgumentError, "Found multiple forms with phx-trigger-action."

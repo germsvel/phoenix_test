@@ -405,6 +405,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "book-characters: Frodo")
     end
 
+    test "force fills hidden input", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Monetary amount", with: "4200", hidden_input_id: "monetary-hidden")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "monetary: 4200")
+    end
+
     test "raises an error when element can't be found with label", %{conn: conn} do
       msg = ~r/Could not find element with label "Non-existent Email Label"./
 

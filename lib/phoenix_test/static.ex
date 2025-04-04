@@ -214,7 +214,7 @@ defmodule PhoenixTest.Static do
     submit_active_form(session, form)
   end
 
-  def submit_form(session, selector, form_data) do
+  def submit_form(session, selector, form_data, additional_data \\ FormData.new()) do
     form =
       session
       |> render_html()
@@ -223,7 +223,11 @@ defmodule PhoenixTest.Static do
         Form.put_button_data(form, form.submit_button)
       end)
 
-    to_submit = FormPayload.new(FormData.merge(form.form_data, form_data))
+    to_submit =
+      form.form_data
+      |> FormData.merge(form_data)
+      |> FormData.merge(additional_data)
+      |> FormPayload.new()
 
     session
     |> Map.put(:active_form, ActiveForm.new())
