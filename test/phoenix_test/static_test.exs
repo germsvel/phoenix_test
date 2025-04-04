@@ -421,7 +421,7 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "book-characters: Frodo")
     end
 
-    test "force fills hidden input", %{conn: conn} do
+    test "with_hidden sets hidden input value", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("Monetary amount", with: "42.00", with_hidden: {"monetary-hidden", "4200"})
