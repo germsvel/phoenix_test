@@ -120,10 +120,18 @@ defmodule PhoenixTest.Static do
 
   def fill_in(session, input_selector, label, opts) do
     {value, opts} = Keyword.pop!(opts, :with)
+    {hidden, opts} = Keyword.pop(opts, :with_hidden)
 
-    session
-    |> render_html()
-    |> Field.find_input!(input_selector, label, opts)
+    html = render_html(session)
+    input = Field.find_input!(html, input_selector, label, opts)
+
+    {input, value} =
+      case hidden do
+        nil -> {input, value}
+        {id, value} -> {Field.find_hidden_input!(html, id), value}
+      end
+
+    input
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end

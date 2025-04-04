@@ -11,13 +11,7 @@ defmodule PhoenixTest.Element.Field do
   defstruct ~w[source_raw parsed label id name value selector]a
 
   def find_input!(html, input_selectors, label, opts) do
-    field =
-      if opts[:hidden_input_id] do
-        Query.find!(html, "input[type=hidden][id=#{inspect(opts[:hidden_input_id])}]")
-      else
-        Query.find_by_label!(html, input_selectors, label, opts)
-      end
-
+    field = Query.find_by_label!(html, input_selectors, label, opts)
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
     value = Html.attribute(field, "value")
@@ -26,6 +20,22 @@ defmodule PhoenixTest.Element.Field do
       source_raw: html,
       parsed: field,
       label: label,
+      id: id,
+      name: name,
+      value: value,
+      selector: Element.build_selector(field)
+    }
+  end
+
+  def find_hidden_input!(html, id) do
+    field = Query.find!(html, "input[type=hidden][id=#{inspect(id)}]")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value")
+
+    %__MODULE__{
+      source_raw: html,
+      parsed: field,
+      label: nil,
       id: id,
       name: name,
       value: value,

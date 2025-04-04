@@ -116,12 +116,23 @@ defmodule PhoenixTest.Live do
 
   def fill_in(session, input_selector, label, opts) do
     {value, opts} = Keyword.pop!(opts, :with)
+    {hidden, opts} = Keyword.pop(opts, :with_hidden)
 
-    session
-    |> render_html()
-    |> Field.find_input!(input_selector, label, opts)
-    |> Map.put(:value, to_string(value))
-    |> then(&fill_in_field_data(session, &1, force: not is_nil(opts[:hidden_input_id])))
+    html = render_html(session)
+    input = Field.find_input!(html, input_selector, label, opts)
+
+    case hidden do
+      nil ->
+        input
+        |> Map.put(:value, to_string(value))
+        |> then(&fill_in_field_data(session, &1))
+
+      {id, value} ->
+        html
+        |> Field.find_hidden_input!(id)
+        |> Map.put(:value, to_string(value))
+        |> then(&fill_in_field_data(session, &1, force: true))
+    end
   end
 
   def select(session, option, opts) do
@@ -316,7 +327,7 @@ defmodule PhoenixTest.Live do
     """
   end
 
-  defp fill_in_field_data(session, field) do
+  defp fill_in_field_data(session, field, opts \\ []) do
     Field.validate_name!(field)
 
     form = Field.parent_form!(field)
