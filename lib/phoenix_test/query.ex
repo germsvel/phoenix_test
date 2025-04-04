@@ -156,21 +156,6 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_id!(html, id) do
-    html
-    |> find("[id=#{inspect(id)}]")
-    |> case do
-      {:found, element} ->
-        element
-
-      :not_found ->
-        raise(ArgumentError, "Could not find element with id #{inspect(id)}")
-
-      {:found_many, _} ->
-        raise(ArgumentError, "Found multiple elements with id #{inspect(id)}")
-    end
-  end
-
   def find_by_label!(html, input_selectors, label, opts \\ [exact: true]) do
     input_selectors = List.wrap(input_selectors)
 
