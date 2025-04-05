@@ -342,4 +342,46 @@ defmodule PhoenixTest.Element.FormTest do
       assert form.method == "put"
     end
   end
+
+  describe "form_element_names/1" do
+    test "returns list of names for all inputs, selects, texareas, etc." do
+      html = """
+      <form>
+        <input type="hidden" name="method" value="delete"/>
+        <input name="some_input" value="value" />
+        <select name="some_select">
+          <option value="a">A</option>
+          <option value="b" selected>B</option>
+        </select>
+
+        <select multiple name="select_multiple[]">
+          <option value="select_1" selected>Selected 1</option>
+          <option value="select_2" selected>Selected 2</option>
+          <option value="select_3">Not Selected</option>
+        </select>
+
+        <input name="some_checkbox" type="checkbox" value="not_checked" />
+        <input name="some_checkbox" type="checkbox" value="checked" checked />
+
+        <input name="some_radio" type="radio" value="not_checked" />
+        <input name="some_radio" type="radio" value="checked" checked />
+
+        <textarea name="some_textarea">
+          Default text
+        </textarea>
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+      names = Form.form_element_names(form)
+
+      assert "method" in names
+      assert "some_input" in names
+      assert "some_select" in names
+      assert "select_multiple[]" in names
+      assert "some_checkbox" in names
+      assert "some_radio" in names
+      assert "some_textarea" in names
+    end
+  end
 end

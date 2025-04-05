@@ -515,6 +515,18 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label for={@uploads.tiny.ref}>Tiny</label>
       <.live_file_input upload={@uploads.tiny} />
     </form>
+
+    <form id="conditional-inputs" phx-change="save-form" phx-submit="save-form">
+      <label>
+        <input name="hide_to_remove" type="checkbox" value="on" /> Hide to remove
+      </label>
+      <label :if={@form_data["hide_to_remove"] != "on"}>
+        To remove <input name="to_remove" type="text" />
+      </label>
+      <label>
+        To keep <input name="to_keep" type="text" />
+      </label>
+    </form>
     """
   end
 

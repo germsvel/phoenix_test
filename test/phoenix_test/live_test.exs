@@ -909,6 +909,18 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "button: save")
     end
 
+    test "handles inputs that get removed through other actions without raising error", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("To keep", with: "this input should stay")
+      |> fill_in("To remove", with: "this input will now be removed")
+      |> submit()
+      |> check("Hide to remove")
+      |> submit()
+      |> assert_has("#form-data", text: "this input should stay")
+      |> refute_has("#form-data", text: "this input will now be removed")
+    end
+
     test "raises an error if there's no active form", %{conn: conn} do
       message = ~r/There's no active form. Fill in a form with `fill_in`, `select`, etc./
 

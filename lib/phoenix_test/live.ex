@@ -366,6 +366,7 @@ defmodule PhoenixTest.Live do
       |> render_html()
       |> Form.find!(selector)
 
+    form_data = remove_data_for_fields_that_have_been_removed(form_data, form)
     form_data = FormData.merge(form.form_data, form_data)
 
     additional_data =
@@ -393,6 +394,14 @@ defmodule PhoenixTest.Live do
         raise ArgumentError,
               "Expected form with selector #{inspect(selector)} to have a `phx-submit` or `action` defined."
     end
+  end
+
+  defp remove_data_for_fields_that_have_been_removed(form_data, form) do
+    element_names = Form.form_element_names(form)
+
+    FormData.filter(form_data, fn %{name: name} ->
+      name in element_names
+    end)
   end
 
   def open_browser(%{view: view} = session, open_fun \\ &Phoenix.LiveViewTest.open_browser/1) do

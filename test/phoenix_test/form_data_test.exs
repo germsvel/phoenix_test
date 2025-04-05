@@ -121,6 +121,23 @@ defmodule PhoenixTest.FormDataTest do
     end
   end
 
+  describe "filter" do
+    test "filters form data based on function provivded" do
+      form_data =
+        FormData.new()
+        |> FormData.add_data("name", "frodo")
+        |> FormData.add_data("email", "frodo@fellowship.com")
+
+      filtered_data =
+        FormData.filter(form_data, fn %{name: name, value: value} ->
+          name == "name" and value == "frodo"
+        end)
+
+      assert FormData.has_data?(filtered_data, "name", "frodo")
+      refute FormData.has_data?(filtered_data, "email", "frodo@fellowship.com")
+    end
+  end
+
   describe "to_list" do
     test "transforms FormData into a list" do
       form_data =

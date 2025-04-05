@@ -47,6 +47,13 @@ defmodule PhoenixTest.FormData do
     %__MODULE__{data: data1 ++ data2}
   end
 
+  def filter(%__MODULE__{data: data}, fun) do
+    data =
+      Enum.filter(data, fn {name, value} -> fun.(%{name: name, value: value}) end)
+
+    %__MODULE__{data: data}
+  end
+
   def empty?(%__MODULE__{data: data}) do
     Enum.empty?(data)
   end
