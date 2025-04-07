@@ -15,21 +15,24 @@ defmodule PhoenixTest.Assertions do
       :at,
       :count,
       :exact,
+      :label,
       :text,
       :value
     ]
 
     def parse(opts) when is_list(opts) do
+      at = Keyword.get(opts, :at, :any)
       count = Keyword.get(opts, :count, :any)
       exact = Keyword.get(opts, :exact, false)
+      label = Keyword.get(opts, :label, :no_label)
       text = Keyword.get(opts, :text, :no_text)
       value = Keyword.get(opts, :value, :no_value)
-      at = Keyword.get(opts, :at, :any)
 
       %__MODULE__{
         at: at,
         count: count,
         exact: exact,
+        label: label,
         text: text,
         value: value
       }
@@ -40,6 +43,7 @@ defmodule PhoenixTest.Assertions do
         at: opts.at,
         count: opts.count,
         exact: opts.exact,
+        label: opts.label,
         text: opts.text,
         value: opts.value
       ]
@@ -104,6 +108,7 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
+  @label_related_failures [:no_label, :missing_for, :missing_input]
   def assert_has(session, selector, opts) when is_list(opts) do
     opts = Opts.parse(opts)
     finder = finder_fun(selector, opts)
@@ -118,6 +123,20 @@ defmodule PhoenixTest.Assertions do
       {:not_found, potential_matches} ->
         raise AssertionError,
           message: assert_not_found_error_msg(selector, opts, potential_matches)
+
+      {:not_found, failure, potential_matches} when failure in @label_related_failures ->
+        raise AssertionError,
+          message: assert_not_found_error_msg(selector, opts, potential_matches)
+
+      {:not_found, :found_many_labels_with_inputs, _label_elements, found} ->
+        found_count = Enum.count(found)
+
+        if opts.count in [:any, found_count] do
+          assert true
+        else
+          raise AssertionError,
+            message: assert_incorrect_count_error_msg(selector, opts, found)
+        end
 
       {:found, found} ->
         if opts.count in [:any, 1] do
@@ -204,6 +223,18 @@ defmodule PhoenixTest.Assertions do
 
       {:not_found, _} ->
         refute false
+
+      {:not_found, failure, _} when failure in @label_related_failures ->
+        refute false
+
+      {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
+        found_count = Enum.count(elements)
+
+        if opts.count in [:any, found_count] do
+          raise AssertionError, message: refute_found_error_msg(selector, opts, elements)
+        else
+          refute false
+        end
 
       {:found, element} ->
         if opts.count in [:any, 1] do
@@ -341,27 +372,33 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp assert_incorrect_count_error_msg(selector, opts, found) do
-    "Expected #{opts.count} elements with #{inspect(selector)}"
+    "Expected #{count_elements(opts.count)} with #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
+    |> maybe_append_label(opts.label)
     |> append_found(found)
   end
 
   defp assert_not_found_error_msg(selector, opts, other_matches \\ []) do
-    "Could not find #{opts.count} elements with selector #{inspect(selector)}"
+    "Could not find #{count_elements(opts.count)} with selector #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
+    |> maybe_append_label(opts.label)
     |> maybe_append_position(opts.at)
     |> append_found_other_matches(selector, other_matches)
   end
 
   def refute_found_error_msg(selector, opts, found) do
-    "Expected not to find #{opts.count} elements with selector #{inspect(selector)}"
+    "Expected not to find #{count_elements(opts.count)} with selector #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
+    |> maybe_append_label(opts.label)
     |> maybe_append_position(opts.at)
     |> append_found(found)
   end
+
+  defp count_elements(1), do: "1 element"
+  defp count_elements(count), do: "#{count} elements"
 
   defp append_found(msg, found) do
     msg <> "\n\n" <> "But found #{Enum.count(found)}:" <> "\n\n" <> format_found_elements(found)
@@ -382,6 +419,9 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_value(msg, :no_value), do: msg
   defp maybe_append_value(msg, value), do: msg <> " and value #{inspect(value)}"
 
+  defp maybe_append_label(msg, :no_label), do: msg
+  defp maybe_append_label(msg, label), do: msg <> " with label #{inspect(label)}"
+
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
@@ -391,14 +431,25 @@ defmodule PhoenixTest.Assertions do
         &Query.find(&1, selector, Opts.to_list(opts))
 
       {:no_text, value} ->
-        selector = selector <> "[value=#{inspect(value)}]"
-        &Query.find(&1, selector, Opts.to_list(opts))
+        value_finder_fun(value, selector, opts)
 
       {text, :no_value} ->
         &Query.find(&1, selector, text, Opts.to_list(opts))
 
       {_text, _value} ->
         raise ArgumentError, "Cannot provide both :text and :value to assertions"
+    end
+  end
+
+  defp value_finder_fun(value, selector, %Opts{} = opts) do
+    selector = selector <> "[value=#{inspect(value)}]"
+
+    case opts.label do
+      :no_label ->
+        &Query.find(&1, selector, Opts.to_list(opts))
+
+      label when is_binary(label) ->
+        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
     end
   end
 

@@ -1270,26 +1270,34 @@ defmodule PhoenixTest do
   defdelegate assert_has(session, selector), to: Driver
 
   @doc """
-  Assert helper to ensure an element with given CSS selector and options.
+  Assertion helper to ensure an element with given CSS selector and contents is
+  found
 
   It'll raise an error if no elements are found, but it will _not_ raise if more
-  than one matching element is found.
+  than one matching element is found (unless `:count` option is used).
+
+  You can assert an element's contents using `:text` or assert a field's value
+  using `:value` (with an optional `:label`).
+
+  NOTE that you cannot specify both `:text` and `:value` as options.
 
   ## Options
 
-  - `text`: the text filter to look for.
+  - `text`: the text contents to look for.
+
+  - `value`: the element's value to look for.
+
+  - `label`: the label associated to the form field with `value`
 
   - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to assert text within HTML elements that also
   contain other HTML elements. But sometimes we want to assert the exact text is
-  present. For that, use `exact: true`. Note: this only works with the `:text`
-  option. (defaults to `false`)
+  present. For that, use `exact: true`. Note: when used with `:value`, the
+  exactness applies to the label's text, not the input's value. (defaults to
+  `false`)
 
-  - `value`: the element's value to look for. Note that you cannot specify both
-  `text` and `value` as options.
-
-  - `count`: the number of items you expect to match CSS selector (and `text` if
-  provided)
+  - `count`: the number of items you expect to match CSS selector (and `text` or
+  `value` if provided)
 
   - `at`: (integer) position of the element to be asserted against
 
@@ -1311,6 +1319,9 @@ defmodule PhoenixTest do
 
   # assert there's an input with value "Frodo"
   assert_has(session, "input", value: "Frodo")
+
+  # assert there's an input with value "Frodo" labeled by "Hobbit"
+  assert_has(session, "input", value: "Frodo", label: "Hobbit")
 
   # assert there are two elements with class "posts"
   assert_has(session, ".posts", count: 2)
@@ -1352,25 +1363,29 @@ defmodule PhoenixTest do
 
   @doc """
   Opposite of `assert_has/3` helper. Verifies that element with
-  given CSS selector and `text` is _not_ present.
+  given CSS selector and content is _not_ present.
 
   It'll raise an error if any elements that match selector and options.
+
+  NOTE that you cannot specify both `:text` and `:value` as options.
 
   ## Options
 
   - `text`: the text filter to look for.
 
+  - `value`: the element's value to look for.
+
+  - `label`: the label associated to the form field with `value`
+
   - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to refute text within HTML elements that also
   contain other HTML elements. But sometimes we want to refute the exact text is
-  absent. For that, use `exact: true`. Note: this only works with the `:text`
-  option.
-
-  - `value`: the element's value to look for. Note that you cannot specify both
-  `text` and `value` as options.
+  absent. For that, use `exact: true`. Note: when used with `:value`, the
+  exactness applies to the label's text, not the input's value. (defaults to
+  `false`)
 
   - `count`: the number of items you're expecting _should not_ match the CSS
-  selector (and `text` if provided)
+  selector (and `text` or `value` if provided)
 
   - `at`: (integer) position of the element to be refuted against
 
@@ -1390,6 +1405,9 @@ defmodule PhoenixTest do
 
   # refute there's an input with value "Frodo"
   refute_has(session, "input", value: "Frodo")
+
+  # refute there's an input with value "Frodo" and label "Hobbit"
+  refute_has(session, "input", value: "Frodo", label: "Hobbit")
 
   # refute there are two elements with class "posts" (less or more will not raise)
   refute_has(session, ".posts", count: 2)

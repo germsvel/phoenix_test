@@ -379,7 +379,21 @@ defmodule PhoenixTest.WebApp.PageView do
     ~H"""
     <h1>Find by value</h1>
     <form action="/">
-      <input type="text" name="user" value="Frodo" />
+      <label>
+        Hobbit <input type="text" name="user" value="Frodo" />
+      </label>
+
+      <label for="wizard">
+        Wizard
+      </label>
+      <input id="wizard" type="text" name="user" value="Gandalf" />
+
+      <label>
+        Kingdoms <input type="text" name="kingdom" value="Gondor" />
+      </label>
+      <label>
+        Kingdoms <input type="text" name="kingdom" value="Gondor" />
+      </label>
     </form>
     """
   end
