@@ -105,13 +105,56 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("input", value: "Frodo")
     end
 
-    test "raises an error if value can not be found", %{conn: conn} do
+    test "succeeds when searching by value and implicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", label: "Hobbit", value: "Frodo")
+    end
+
+    test "succeeds when searching by value and explicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", label: "Wizard", value: "Gandalf")
+    end
+
+    test "raises an error if value cannot be found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
       msg = ~r/Could not find any elements with selector "input" and value "does-not-exist"/
 
       assert_raise AssertionError, msg, fn ->
         assert_has(session, "input", value: "does-not-exist")
+      end
+    end
+
+    test "raises an error if label and value are found more than expected", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      assert_has(session, "input", label: "Kingdoms", value: "Gondor")
+      assert_has(session, "input", label: "Kingdoms", value: "Gondor", count: 2)
+
+      assert_raise AssertionError, ~r/with "input" and value "Gondor" with label "Kingdoms"/, fn ->
+        assert_has(session, "input", label: "Kingdoms", value: "Gondor", count: 1)
+      end
+    end
+
+    test "raises an error if label (with value) cannot be found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "input" and value "Frodo" with label "Halfling"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "input", label: "Halfling", value: "Frodo")
+      end
+    end
+
+    test "raises an error if value (with label) cannot be found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "input" and value "Sam" with label "Hobbit"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "input", label: "Hobbit", value: "Sam")
       end
     end
 
@@ -255,7 +298,7 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         ignore_whitespace("""
-        Expected 1 elements with ".multiple_links".
+        Expected 1 element with ".multiple_links".
 
         But found 2:
         """)
@@ -409,7 +452,7 @@ defmodule PhoenixTest.AssertionsTest do
 
       msg =
         ignore_whitespace("""
-        Expected not to find 1 elements with selector "h1".
+        Expected not to find 1 element with selector "h1".
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -602,6 +645,20 @@ defmodule PhoenixTest.AssertionsTest do
       |> refute_has("input", value: "not-frodo")
     end
 
+    test "can refute by value and implicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("input", label: "Halfling", value: "Frodo")
+      |> refute_has("input", label: "Hobbit", value: "Sam")
+    end
+
+    test "can refute by value and explicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("input", label: "Istari", value: "Gandalf")
+      |> refute_has("input", label: "Wizard", value: "Saruman")
+    end
+
     test "raises an error if value is found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
@@ -609,6 +666,26 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise AssertionError, msg, fn ->
         refute_has(session, "input", value: "Frodo")
+      end
+    end
+
+    test "raises an error if label and value are found more/less than expected", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      refute_has(session, "input", label: "Kingdoms", value: "Gondor", count: 1)
+
+      assert_raise AssertionError, ~r/with selector "input" and value "Gondor" with label "Kingdoms"/, fn ->
+        refute_has(session, "input", label: "Kingdoms", value: "Gondor")
+      end
+    end
+
+    test "raises an error if label and value are found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "input" and value "Frodo" with label "Hobbit"/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, "input", label: "Hobbit", value: "Frodo")
       end
     end
 
