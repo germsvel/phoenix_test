@@ -104,6 +104,35 @@ defmodule PhoenixTest.FormDataTest do
 
       assert FormData.has_data?(form_data, "name", "Hello world")
     end
+
+    test "does not duplicate list data (with same name with [] and same value)" do
+      form_data =
+        FormData.new()
+        |> FormData.add_data("email[]", "value")
+        |> FormData.add_data("email[]", "value")
+
+      data = FormData.to_list(form_data)
+
+      assert data == [{"email[]", "value"}]
+    end
+
+    test "preserves multiple entries with different values if name has []" do
+      form_data =
+        FormData.new()
+        |> FormData.add_data("email[]", "value")
+        |> FormData.add_data("email[]", "value2")
+
+      assert FormData.has_data?(form_data, "email[]", "value")
+      assert FormData.has_data?(form_data, "email[]", "value2")
+    end
+
+    test "adds a list of data" do
+      form_data =
+        FormData.add_data(FormData.new(), [{"name", "frodo"}, {"email", "frodo@example.com"}])
+
+      assert FormData.has_data?(form_data, "name", "frodo")
+      assert FormData.has_data?(form_data, "email", "frodo@example.com")
+    end
   end
 
   describe "merge" do
@@ -138,6 +167,19 @@ defmodule PhoenixTest.FormDataTest do
     end
   end
 
+  describe "empty?" do
+    test "returns true if there's no data" do
+      assert FormData.empty?(FormData.new())
+    end
+
+    test "returns false if it has some data" do
+      form_data =
+        FormData.add_data(FormData.new(), "name", "frodo")
+
+      refute FormData.empty?(form_data)
+    end
+  end
+
   describe "to_list" do
     test "transforms FormData into a list" do
       form_data =
@@ -145,10 +187,9 @@ defmodule PhoenixTest.FormDataTest do
         |> FormData.add_data("name", "frodo")
         |> FormData.add_data("email", "frodo@fellowship.com")
 
-      assert FormData.to_list(form_data) == [
-               {"name", "frodo"},
-               {"email", "frodo@fellowship.com"}
-             ]
+      list = FormData.to_list(form_data)
+
+      assert list == [{"email", "frodo@fellowship.com"}, {"name", "frodo"}]
     end
 
     test "preserves select options ordering" do
@@ -168,28 +209,6 @@ defmodule PhoenixTest.FormDataTest do
                {"name[]", "select_2"},
                {"name[]", "select_3"}
              ]
-    end
-
-    test "deduplicates data with same name with [] and same value" do
-      form_data =
-        FormData.new()
-        |> FormData.add_data("email[]", "value")
-        |> FormData.add_data("email[]", "value")
-
-      data = FormData.to_list(form_data)
-
-      assert data == [{"email[]", "value"}]
-    end
-
-    test "preserves multiple entries with different values if name has []" do
-      form_data =
-        FormData.new()
-        |> FormData.add_data("email[]", "value")
-        |> FormData.add_data("email[]", "value2")
-
-      data = FormData.to_list(form_data)
-
-      assert data == [{"email[]", "value"}, {"email[]", "value2"}]
     end
 
     test "only returns one name (preserving of operations when deduplicating data)" do

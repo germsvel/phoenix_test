@@ -133,7 +133,7 @@ defmodule PhoenixTest.Element.Form do
         {_, false, [only_selected]} -> to_form_field(select, only_selected)
         {_, true, [_ | _] = all_selected} -> to_form_field(select, all_selected)
         {[first | _], false, _} -> to_form_field(select, first)
-        {_, true, _} -> to_form_field(select, [])
+        {_, true, _} -> []
       end
     end)
   end

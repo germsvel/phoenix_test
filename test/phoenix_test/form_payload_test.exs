@@ -66,7 +66,7 @@ defmodule PhoenixTest.FormPayloadTest do
 
       form = Form.find!(html, "form")
 
-      assert %{"checkbox" => ["some_value", "another_value"]} = FormPayload.new(form.form_data)
+      assert %{"checkbox" => ["another_value", "some_value"]} = FormPayload.new(form.form_data)
     end
 
     test "single checkboxe value named with [] resolves to a list" do
@@ -92,7 +92,7 @@ defmodule PhoenixTest.FormPayloadTest do
 
       form = Form.find!(html, "form")
 
-      assert %{"hidden" => ["some_value", "another_value"]} = FormPayload.new(form.form_data)
+      assert %{"hidden" => ["another_value", "some_value"]} = FormPayload.new(form.form_data)
     end
 
     test "single hidden input value named with [] resolves to a list" do

@@ -5,7 +5,7 @@ defmodule PhoenixTest.FormData do
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Select
 
-  defstruct data: []
+  defstruct data: %{}
 
   def new, do: %__MODULE__{}
 
@@ -22,11 +22,8 @@ defmodule PhoenixTest.FormData do
   end
 
   def add_data(%__MODULE__{} = form_data, %Select{value: values} = field) when is_list(values) do
-    new_data = Enum.map(values, &{field.name, &1})
-    add_data(form_data, new_data)
+    add_data(form_data, field.name, values)
   end
-
-  def add_data(form_data, []), do: form_data
 
   def add_data(form_data, data) when is_list(data) do
     Enum.reduce(data, form_data, fn new_data, acc ->
@@ -34,22 +31,34 @@ defmodule PhoenixTest.FormData do
     end)
   end
 
+  def add_data(%__MODULE__{} = form_data, name, value) when is_nil(name) or is_nil(value), do: form_data
+
   def add_data(%__MODULE__{} = form_data, name, value) do
-    if name && value do
-      new_data = format_data(name, value)
-      %__MODULE__{form_data | data: form_data.data ++ new_data}
+    if String.ends_with?(name, "[]") do
+      new_data =
+        Map.update(form_data.data, name, List.wrap(value), fn existing_value ->
+          if value in existing_value do
+            existing_value
+          else
+            [value | existing_value]
+          end
+        end)
+
+      %__MODULE__{form_data | data: new_data}
     else
-      form_data
+      %__MODULE__{form_data | data: Map.put(form_data.data, name, value)}
     end
   end
 
   def merge(%__MODULE__{data: data1}, %__MODULE__{data: data2}) do
-    %__MODULE__{data: data1 ++ data2}
+    %__MODULE__{data: Map.merge(data1, data2)}
   end
 
   def filter(%__MODULE__{data: data}, fun) do
     data =
-      Enum.filter(data, fn {name, value} -> fun.(%{name: name, value: value}) end)
+      data
+      |> Enum.filter(fn {name, value} -> fun.(%{name: name, value: value}) end)
+      |> Map.new()
 
     %__MODULE__{data: data}
   end
@@ -59,31 +68,19 @@ defmodule PhoenixTest.FormData do
   end
 
   def has_data?(%__MODULE__{data: data}, name, value) do
-    {name, value} in data
+    field_data = Map.get(data, name, [])
+    value == field_data or value in field_data
   end
 
   def to_list(%__MODULE__{data: data}) do
-    deduplicate_preserving_order(data)
-  end
-
-  defp deduplicate_preserving_order(data) do
     data
-    |> Enum.reverse()
-    |> Enum.uniq_by(fn {key, value} ->
-      if String.ends_with?(key, "[]") do
-        {key, value}
-      else
-        key
-      end
+    |> Enum.map(fn
+      {key, values} when is_list(values) ->
+        Enum.map(values, &{key, &1})
+
+      {_key, _value} = field ->
+        field
     end)
-    |> Enum.reverse()
-  end
-
-  defp format_data(name, values) when is_binary(name) and is_list(values) do
-    Enum.map(values, &{name, &1})
-  end
-
-  defp format_data(name, value) when is_binary(name) do
-    [{name, value}]
+    |> List.flatten()
   end
 end
