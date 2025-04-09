@@ -53,10 +53,14 @@ defmodule PhoenixTest.ConnHandlerTest do
       end)
     end
 
-    test "raises error if route doesn't exist", %{conn: conn} do
+    test "raises error if app route doesn't exist", %{conn: conn} do
       assert_raise ArgumentError, ~r/path doesn't exist/, fn ->
         ConnHandler.visit(conn, "/non_route")
       end
+    end
+
+    test "does not raise error if url is external (typically a redirect)", %{conn: conn} do
+      assert ConnHandler.visit(conn, "http://google.com/something")
     end
   end
 
