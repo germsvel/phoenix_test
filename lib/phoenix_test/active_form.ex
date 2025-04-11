@@ -3,7 +3,13 @@ defmodule PhoenixTest.ActiveForm do
 
   alias PhoenixTest.FormData
 
-  defstruct [:id, :selector, form_data: FormData.new(), uploads: FormData.new()]
+  defstruct [
+    :id,
+    :selector,
+    form_data: FormData.new(),
+    force_form_data: FormData.new(),
+    uploads: FormData.new()
+  ]
 
   @doc """
   Data structure for tracking active form fields filled.
@@ -17,6 +23,10 @@ defmodule PhoenixTest.ActiveForm do
 
   def add_form_data(%__MODULE__{} = active_form, new_form_data) do
     Map.update!(active_form, :form_data, &FormData.add_data(&1, new_form_data))
+  end
+
+  def force_form_data(%__MODULE__{} = active_form, new_form_data) do
+    Map.update!(active_form, :force_form_data, &FormData.add_data(&1, new_form_data))
   end
 
   def add_upload(%__MODULE__{} = active_form, new_upload) do
