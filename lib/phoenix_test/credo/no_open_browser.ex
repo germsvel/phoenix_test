@@ -3,10 +3,6 @@ if Code.ensure_loaded?(Credo) do
     @moduledoc """
     A Credo check that disallows the use of `open_browser/1` in test code.
 
-    The `open_browser/1` function is useful during development but should not be
-    committed in tests as it would open browsers during CI runs, which can cause
-    unexpected behavior and CI failures.
-
     ## Usage
 
     Add this check to your `.credo.exs` file:
@@ -27,7 +23,14 @@ if Code.ensure_loaded?(Credo) do
     """
     use Credo.Check,
       base_priority: :normal,
-      category: :warning
+      category: :warning,
+      explanations: [
+        check: """
+        The `open_browser/1` function is useful during development but should not be
+        committed in tests as it would open browsers during CI runs, which can cause
+        unexpected behavior and CI failures.
+        """
+      ]
 
     def run(source_file, params \\ []) do
       issue_meta = IssueMeta.for(source_file, params)
@@ -35,6 +38,10 @@ if Code.ensure_loaded?(Credo) do
     end
 
     defp traverse({:open_browser, meta, _} = ast, issues, issue_meta) do
+      {ast, issues ++ [issue_for(meta[:line], issue_meta)]}
+    end
+
+    defp traverse({:., meta, [{:__aliases__, _, [:PhoenixTest]}, :open_browser]} = ast, issues, issue_meta) do
       {ast, issues ++ [issue_for(meta[:line], issue_meta)]}
     end
 
