@@ -2,7 +2,6 @@ defmodule PhoenixTest.LiveTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.Locators
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Driver
@@ -299,7 +298,7 @@ defmodule PhoenixTest.LiveTest do
       |> within("#email-form", fn session ->
         fill_in(session, "Email", with: "someone@example.com")
       end)
-      |> assert_has(input(label: "Email", value: "someone@example.com"))
+      |> assert_has("input", label: "Email", value: "someone@example.com")
     end
 
     test "raises when data is not in scoped HTML", %{conn: conn} do
@@ -318,7 +317,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> fill_in("Email", with: "someone@example.com")
-      |> assert_has(input(label: "Email", value: "someone@example.com"))
+      |> assert_has("input", label: "Email", value: "someone@example.com")
     end
 
     test "can fill input with `nil` to override existing value", %{conn: conn} do

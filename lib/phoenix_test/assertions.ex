@@ -5,7 +5,6 @@ defmodule PhoenixTest.Assertions do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Html
-  alias PhoenixTest.Locators
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
@@ -81,13 +80,6 @@ defmodule PhoenixTest.Assertions do
 
   def assert_has(session, selector) when is_binary(selector) do
     assert_has(session, selector, count: :any)
-  end
-
-  def assert_has(session, locator) do
-    html = PhoenixTest.Driver.render_html(session)
-    selector = Locators.compile(locator, html)
-
-    assert_has(session, selector)
   end
 
   def assert_has(session, "title", opts) do

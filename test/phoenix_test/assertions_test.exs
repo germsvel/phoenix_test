@@ -2,7 +2,6 @@ defmodule PhoenixTest.AssertionsTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
-  import PhoenixTest.Locators
   import PhoenixTest.TestHelpers
 
   alias ExUnit.AssertionError
@@ -45,12 +44,6 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> assert_has("li")
-    end
-
-    test "takes in input helper in assertion", %{conn: conn} do
-      conn
-      |> visit("/page/index")
-      |> assert_has(input(type: "text", label: "User Name"))
     end
   end
 
