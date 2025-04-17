@@ -963,6 +963,25 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "general form logic" do
+    test "handles inputs_for ordinal inputs", %{conn: conn} do
+      conn
+      |> visit("/live/ordinal_inputs")
+      |> fill_in("Title", with: "Fellowship")
+      |> click_button("Add Email")
+      |> fill_in("#mailing_list_emails_0_email", "Email", with: "Bow")
+      |> click_button("Add Email")
+      |> fill_in("#mailing_list_emails_1_email", "Email", with: "Muffins")
+      |> click_button("Add Email")
+      |> fill_in("#mailing_list_emails_2_email", "Email", with: "Arrows")
+      |> click_link("a[phx-value-index='1']", "Remove")
+      |> submit()
+      |> assert_has("[data-role=email]", text: "Bow")
+      |> assert_has("[data-role=email]", text: "Arrows")
+      |> refute_has("[data-role=email]", text: "Muffins")
+    end
+  end
+
   describe "open_browser" do
     setup do
       open_fun = fn view ->
