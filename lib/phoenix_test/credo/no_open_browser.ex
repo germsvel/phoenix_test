@@ -1,26 +1,7 @@
 if Code.ensure_loaded?(Credo) do
   defmodule PhoenixTest.Credo.NoOpenBrowser do
-    @moduledoc """
-    A Credo check that disallows the use of `open_browser/1` in test code.
+    @moduledoc false
 
-    ## Usage
-
-    Add this check to your `.credo.exs` file:
-
-    ```elixir
-    %{
-      configs: [
-        %{
-          name: "default",
-          requires: ["./deps/phoenix_test/lib/phoenix_test/credo/**/*.ex"],
-          checks: [
-            {PhoenixTest.Credo.NoOpenBrowser, []}
-          ]
-        }
-      ]
-    }
-    ```
-    """
     use Credo.Check,
       base_priority: :normal,
       category: :warning,
@@ -29,6 +10,26 @@ if Code.ensure_loaded?(Credo) do
         The `open_browser/1` function is useful during development but should not be
         committed in tests as it would open browsers during CI runs, which can cause
         unexpected behavior and CI failures.
+
+        A Credo check that disallows the use of `open_browser/1` in test code.
+
+        ## Usage
+
+        Add this check to your `.credo.exs` file:
+
+        ```elixir
+        %{
+          configs: [
+            %{
+              name: "default",
+              requires: ["./deps/phoenix_test/lib/phoenix_test/credo/**/*.ex"],
+              checks: [
+                {PhoenixTest.Credo.NoOpenBrowser, []}
+              ]
+            }
+          ]
+        }
+        ```
         """
       ]
 
