@@ -528,7 +528,7 @@ defmodule PhoenixTest.Query do
         fn element -> Html.text(element) =~ text end
       end
 
-    Enum.filter(elements, filter_fun)
+    Enum.filter(elements, &(&1 |> Floki.filter_out("select") |> filter_fun.()))
   end
 
   defp filter_by_position(elements, opts) do
