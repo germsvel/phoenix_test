@@ -982,6 +982,50 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "live view navigation via handle_info" do
+    test "redirect with assert_path", %{conn: conn} do
+      conn
+      |> visit("/live/handle_info")
+      |> click_link("Redirect")
+      |> assert_path("/live/index")
+    end
+
+    test "redirect with unwrap", %{conn: conn} do
+      conn
+      |> visit("/live/handle_info")
+      |> click_link("Redirect")
+      |> unwrap(&Phoenix.LiveViewTest.assert_redirect(&1, "/live/index"))
+    end
+
+    test "redirect with tap", %{conn: conn} do
+      conn
+      |> visit("/live/handle_info")
+      |> click_link("Redirect")
+      |> tap(&Phoenix.LiveViewTest.assert_redirect(&1.view, "/live/index"))
+    end
+
+    test "patch with assert_path", %{conn: conn} do
+      conn
+      |> visit("/live/handle_info")
+      |> click_link("Patch")
+      |> assert_path("/live/info_handled")
+    end
+
+    test "patch with unwrap", %{conn: conn} do
+      conn
+      |> visit("/live/handle_info")
+      |> click_link("Patch")
+      |> unwrap(&Phoenix.LiveViewTest.assert_patch(&1, "/live/info_handled"))
+    end
+
+    test "patch with tap", %{conn: conn} do
+      conn
+      |> visit("/live/handle_info")
+      |> click_link("Patch")
+      |> tap(&Phoenix.LiveViewTest.assert_patch(&1.view, "/live/info_handled"))
+    end
+  end
+
   describe "open_browser" do
     setup do
       open_fun = fn view ->
