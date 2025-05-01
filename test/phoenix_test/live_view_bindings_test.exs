@@ -60,6 +60,19 @@ defmodule PhoenixTest.LiveViewBindingsTest do
       assert LiveViewBindings.phx_click?(element)
     end
 
+    test "returns true if JS command is a patch (LiveViewTest can handle)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <div phx-click={JS.patch("/some/path")}></div>
+        """)
+
+      [element] = Floki.find(html, "div")
+
+      assert LiveViewBindings.phx_click?(element)
+    end
+
     test "returns false if JS command is a dispatch" do
       assigns = %{}
 

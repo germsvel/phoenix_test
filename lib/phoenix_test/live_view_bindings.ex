@@ -10,11 +10,20 @@ defmodule PhoenixTest.LiveViewBindings do
     |> valid_event_or_js_command?()
   end
 
-  defp valid_event_or_js_command?("[" <> _ = js_command), do: valid_js_command?(js_command)
+  defp valid_event_or_js_command?("[" <> _ = js_command) do
+    js_command
+    |> JSON.decode!()
+    |> any_valid_js_command?()
+  end
+
   defp valid_event_or_js_command?(value), do: Utils.present?(value)
 
-  @commands_live_view_test_handles ~w[push navigate]
-  defp valid_js_command?(js_command) do
-    String.contains?(js_command, @commands_live_view_test_handles)
+  defp any_valid_js_command?(js_commands) do
+    Enum.any?(js_commands, &valid_js_command?/1)
   end
+
+  defp valid_js_command?(["navigate", _opts]), do: true
+  defp valid_js_command?(["patch", _opts]), do: true
+  defp valid_js_command?(["push", _opts]), do: true
+  defp valid_js_command?([_command, _opts]), do: false
 end
