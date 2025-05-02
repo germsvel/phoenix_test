@@ -12,7 +12,7 @@ defmodule PhoenixTest.LiveViewBindings do
 
   defp valid_event_or_js_command?("[" <> _ = js_command) do
     js_command
-    |> JSON.decode!()
+    |> Jason.decode!()
     |> any_valid_js_command?()
   end
 
