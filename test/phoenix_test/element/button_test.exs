@@ -149,6 +149,19 @@ defmodule PhoenixTest.Element.ButtonTest do
       assert is_nil(button.name)
       assert is_nil(button.value)
     end
+
+    test "returns empty value if name is present and no value is found" do
+      html = """
+      <button name="generate">
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert button.name == "generate"
+      assert button.value == ""
+    end
   end
 
   describe "belongs_to_form?" do
