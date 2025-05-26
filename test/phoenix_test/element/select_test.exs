@@ -19,6 +19,23 @@ defmodule PhoenixTest.Element.SelectTest do
       assert ["select_2"] = field.value
     end
 
+    test "finds select nested in label" do
+      html = """
+      <label>
+        Name
+        <select id="name" name="name">
+          <option value="select_1">Select 1</option>
+          <option value="select_2">Select 2</option>
+        </select>
+      </label>
+      """
+
+      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+
+      assert ~s|[id="name"]| = field.selector
+      assert ["select_2"] = field.value
+    end
+
     test "returns multiple selected option value" do
       html = """
       <label for="name">Name</label>
