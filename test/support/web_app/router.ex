@@ -41,6 +41,8 @@ defmodule PhoenixTest.WebApp.Router do
       live "/live/async_page", AsyncPageLive
       live "/live/async_page_2", AsyncPage2Live
       live "/live/ordinal_inputs", OrdinalInputsLive
+      live "/live/handle_info", HandleInfoLive, :to_handle
+      live "/live/info_handled", HandleInfoLive, :handled
     end
 
     scope "/auth" do
