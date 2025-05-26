@@ -193,6 +193,11 @@ defmodule PhoenixTest do
   ```
 
   For more info, see `within/3`.
+
+  ## Credo
+
+  Add `PhoenixTest.Credo.NoOpenBrowser` to your `.credo.exs` config file to prevent
+  dev-only `open_browser/1` from lingering in your code base.
   """
 
   alias PhoenixTest.ConnHandler
