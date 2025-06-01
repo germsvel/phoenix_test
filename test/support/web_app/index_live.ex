@@ -541,6 +541,11 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label for={@uploads.redirect_avatar.ref}>Redirect Avatar</label>
       <.live_file_input upload={@uploads.redirect_avatar} />
     </form>
+
+    <button phx-click="change-h3" phx-no-format>
+      An ID-less Span Wrapped
+      <span>Button</span>
+    </button>
     """
   end
 
