@@ -280,6 +280,12 @@ defmodule PhoenixTest.LiveTest do
         end)
       end
     end
+
+    test "does not raise when clicking a button that contains text wrapped in another element", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("An ID-less Span Wrapped")
+    end
   end
 
   describe "within/3" do

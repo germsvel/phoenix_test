@@ -70,7 +70,7 @@ defmodule PhoenixTest.Live do
       |> Query.find_by_role!(locator)
       |> Button.build(html)
 
-    click_button(session, button.selector, button.text)
+    click_button(session, button.selector, text)
   end
 
   def click_button(session, selector, text) do
