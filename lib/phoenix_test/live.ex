@@ -379,7 +379,8 @@ defmodule PhoenixTest.Live do
       |> render_html()
       |> Form.find!(selector)
 
-    form_data = select_form_data_to_submit(form, form_data)
+    form_data = remove_data_for_fields_that_have_been_removed(form_data, form)
+    form_data = FormData.merge(form.form_data, form_data)
 
     additional_data =
       if form.submit_button do
@@ -408,28 +409,12 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  defp select_form_data_to_submit(form, form_data) do
-    element_names_present_in_final_form = Form.form_element_names(form)
-    form_data = remove_data_for_fields_that_have_been_removed(form_data, element_names_present_in_final_form)
+  defp remove_data_for_fields_that_have_been_removed(form_data, form) do
+    element_names = Form.form_element_names(form)
 
-    FormData.merge(form.form_data, form_data)
-  end
-
-  defp remove_data_for_fields_that_have_been_removed(form_data, element_names_present_in_final_form) do
     FormData.filter(form_data, fn %{name: name} ->
-      if index_based_field?(name) do
-        # We do not include index-based fields since those can be deleted and
-        # another (same name but diff value) take its place. Thus, we'll rely on
-        # the data found on the page.
-        false
-      else
-        name in element_names_present_in_final_form
-      end
+      name in element_names
     end)
-  end
-
-  defp index_based_field?(name) do
-    Regex.match?(~r/\[\d\]/, name)
   end
 
   def open_browser(%{view: view} = session, open_fun \\ &Phoenix.LiveViewTest.open_browser/1) do
