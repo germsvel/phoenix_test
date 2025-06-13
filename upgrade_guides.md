@@ -1,6 +1,29 @@
 Upgrade Guides
 ==============
 
+## Upgrading to 0.7.0
+
+Version 0.7.0 has a potentially breaking changes for those using the `upload`
+helpers.
+
+PhoenixTest will now automatically trigger `phx-change` on `upload`.
+
+If you were previously triggering `phx-change` after your `upload`, you might
+now get duplicate `phx-change` events. Ideally, you simply no longer have to do
+that.
+
+For more information, see the discussion in PR [#162] or commit [8edd7b4].
+
+[#162]: https://github.com/germsvel/phoenix_test/pull/162
+[8edd7b4]: https://github.com/germsvel/phoenix_test/commit/8edd7b4
+
+### Why the change?
+
+We always want PhoenixTest to behave as closely as possible like real Phoenix
+does. When you have an upload, it triggers your `phx-change` event. So, we want
+to emulate that. All other form helpers already do that. But `upload` didn't do
+it until now.
+
 ## Upgrading to 0.6.0
 
 Version 0.6.0 has one deprecation warning and one (potentially) breaking change.

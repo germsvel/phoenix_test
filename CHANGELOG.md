@@ -7,6 +7,67 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.7.0
+
+### Potentially breaking change
+
+- If you test uploads. PhoenixTest will now automatically trigger `phx-change`
+  on `upload`. If you were previously triggering `phx-change` after your
+  `upload`, you might now get duplicate `phx-change` events. See PR [#162] or
+  commit [8edd7b4] for more information.
+
+### New
+
+- Adds: asserting by value and label (#204). Commit [515242d]
+- Adds asserting & refuting by `:value` (#199). Commit [6271e81]
+
+### Improvements
+
+- Allow `JS.patch` in `phx-click` bindings. Commit [6012517]
+- Handles LiveView forms that remove elements (#202). Commit [6f610f2]
+- Allow empty maps to be passed into `assert_path` as `query_params` (#196).
+  Commit [04ca498]
+- `assert_path` handles query params with [] (#195). Commit [ac52f8b]
+- Include simple `phx-*` attributes in selectors (#193). Commit [a327ccf]
+
+### Fixes
+
+- Do not raise non-existent path if URL is external (#206). Commits [891733f]
+- Pass the original filter text from `click_button/2` when calling
+  `click_button/3` (#222). Commit [dc17378]
+- Fix: Find select nested in label (#210). Commit [450ad7d]
+- return empty value for button if name is present and no value is found (#220).
+  Commit [45ee501]
+- Use Jason instead of native JSON to support < 1.18. Commit [632a5c6]
+- Fix: pass view to assert_redirect. Commit [2b73714]
+- Fix: Handle prefilled values for type=email etc. Commit [ec4440d]
+- Test all "simple-value" input defaults. Commit [45b62ca]
+- Check local path's endpoint at runtime to fix warning. Commit [1dbf12e]
+
+[#162]: https://github.com/germsvel/phoenix_test/pull/162
+[dc17378]: https://github.com/germsvel/phoenix_test/commit/dc17378
+[1dbf12e]: https://github.com/germsvel/phoenix_test/commit/1dbf12e
+[f9d1bb9]: https://github.com/germsvel/phoenix_test/commit/f9d1bb9
+[45ee501]: https://github.com/germsvel/phoenix_test/commit/45ee501
+[450ad7d]: https://github.com/germsvel/phoenix_test/commit/450ad7d
+[632a5c6]: https://github.com/germsvel/phoenix_test/commit/632a5c6
+[6012517]: https://github.com/germsvel/phoenix_test/commit/6012517
+[d99c572]: https://github.com/germsvel/phoenix_test/commit/d99c572
+[7a9b97b]: https://github.com/germsvel/phoenix_test/commit/7a9b97b
+[891733f]: https://github.com/germsvel/phoenix_test/commit/891733f
+[b1400b3]: https://github.com/germsvel/phoenix_test/commit/b1400b3
+[515242d]: https://github.com/germsvel/phoenix_test/commit/515242d
+[8edd7b4]: https://github.com/germsvel/phoenix_test/commit/8edd7b4
+[6f610f2]: https://github.com/germsvel/phoenix_test/commit/6f610f2
+[2b73714]: https://github.com/germsvel/phoenix_test/commit/2b73714
+[2f6f3f6]: https://github.com/germsvel/phoenix_test/commit/2f6f3f6
+[6271e81]: https://github.com/germsvel/phoenix_test/commit/6271e81
+[45b62ca]: https://github.com/germsvel/phoenix_test/commit/45b62ca
+[ec4440d]: https://github.com/germsvel/phoenix_test/commit/ec4440d
+[04ca498]: https://github.com/germsvel/phoenix_test/commit/04ca498
+[ac52f8b]: https://github.com/germsvel/phoenix_test/commit/ac52f8b
+[a327ccf]: https://github.com/germsvel/phoenix_test/commit/a327ccf
+
 ## 0.6.0
 
 ### Breaking changes & deprecations
