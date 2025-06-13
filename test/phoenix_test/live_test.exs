@@ -996,6 +996,17 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "nested forms with inputs_for" do
+    test "handles form with phx-submit (without phx-change)", %{conn: conn} do
+      conn
+      |> visit("/live/simple_ordinal_inputs")
+      |> fill_in("Title", with: "Fellowship")
+      |> fill_in("#simple_mailing_list_emails_0_email", "Email", with: "Bow")
+      |> submit()
+      |> assert_has("[data-role=email]", text: "Bow")
+    end
+  end
+
   describe "open_browser" do
     setup do
       open_fun = fn view ->

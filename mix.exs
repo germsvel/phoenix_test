@@ -41,6 +41,7 @@ defmodule PhoenixTest.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ecto, "~> 3.12", only: :test},
       {:esbuild, "~> 0.8", only: :test, runtime: false},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:jason, "~> 1.4"},
@@ -49,6 +50,7 @@ defmodule PhoenixTest.MixProject do
       {:makeup_html, "~> 0.1.0", only: :dev, runtime: false},
       {:mime, ">= 1.0.0", optional: true},
       {:phoenix, ">= 1.7.10"},
+      {:phoenix_ecto, "~> 4.6", only: :test},
       {:phoenix_live_view, "~> 0.20 or ~> 1.0 or ~> 1.1"},
       {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
       {:benchee, "~> 1.3", only: [:dev, :test]},
