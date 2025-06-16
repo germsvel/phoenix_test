@@ -148,6 +148,32 @@ defmodule PhoenixTest.FormDataTest do
       assert FormData.has_data?(form_data, "name", "frodo")
       assert FormData.has_data?(form_data, "email", "frodo@fellowship.com")
     end
+
+    test "when a key ends in [], values are combined" do
+      fd1 =
+        FormData.add_data(FormData.new(), "contact[]", "email")
+
+      fd2 =
+        FormData.add_data(FormData.new(), "contact[]", "sms")
+
+      form_data = FormData.merge(fd1, fd2)
+
+      assert FormData.has_data?(form_data, "contact[]", "email")
+      assert FormData.has_data?(form_data, "contact[]", "sms")
+    end
+
+    test "when a key doesn't end in [], new value overrides original value" do
+      fd1 =
+        FormData.add_data(FormData.new(), "contact", "email")
+
+      fd2 =
+        FormData.add_data(FormData.new(), "contact", "sms")
+
+      form_data = FormData.merge(fd1, fd2)
+
+      refute FormData.has_data?(form_data, "contact", "email")
+      assert FormData.has_data?(form_data, "contact", "sms")
+    end
   end
 
   describe "filter" do
