@@ -465,8 +465,16 @@ defmodule PhoenixTest.LiveTest do
     test "works for multiple select", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> select("Race", option: "Elf")
       |> select("Race 2", option: ["Elf", "Dwarf"])
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "[elf, dwarf]")
+    end
+
+    test "works for multiple select with repeated calls", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Race 2", option: "Elf")
+      |> select("Race 2", option: "Elf")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "[elf, dwarf]")
     end
