@@ -9,6 +9,13 @@ defmodule PhoenixTest.Html do
     element |> Floki.text() |> String.trim() |> normalize_whitespace()
   end
 
+  def attribute(element, attr) when is_binary(element) do
+    element
+    |> Floki.parse_document!()
+    |> Floki.attribute(attr)
+    |> List.first()
+  end
+
   def attribute(element, attr) do
     element
     |> Floki.attribute(attr)
