@@ -17,16 +17,28 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.LiveViewTimeout
   alias PhoenixTest.Locators
   alias PhoenixTest.Query
-
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  alias PhoenixTest.Utils
 
   defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
-    {:ok, view, _html} = live(conn)
+    {:ok, view, _html} = live_with_current_endpoint(conn)
     current_path = ConnHandler.build_current_path(conn)
     {:ok, watcher} = start_watcher(view)
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
+  end
+
+  defp live_with_current_endpoint(conn, path \\ nil, opts \\ []) do
+    cond do
+        is_binary(path) ->
+          Phoenix.LiveViewTest.__live__(dispatch(conn, Utils.current_endpoint(), :get, path), path, opts)
+
+        is_nil(path) ->
+          Phoenix.LiveViewTest.__live__(conn, nil, opts)
+
+        true ->
+          raise RuntimeError, "path must be nil or a binary, got: #{inspect(path)}"
+      end
   end
 
   defp start_watcher(view) do
@@ -259,9 +271,11 @@ defmodule PhoenixTest.Live do
       type: mime_type
     }
 
+    builder = fn -> Phoenix.ChannelTest.__connect__(Utils.current_endpoint(), Phoenix.LiveView.Socket, %{}, []) end
+
     upload_progress_result =
       session.view
-      |> file_input(form.selector, live_upload_name, [entry])
+      |> Phoenix.LiveViewTest.__file_input__(form.selector, live_upload_name, [entry], builder)
       |> render_upload(file_name)
       |> maybe_throw_upload_errors(session, file_name, live_upload_name)
 
@@ -448,12 +462,29 @@ defmodule PhoenixTest.Live do
     maybe_redirect({:error, redirect_tuple}, session)
   end
 
+  defp follow_redirect_with_current_endpoint(reason, conn, to \\ nil) do
+    endpoint = Utils.current_endpoint()
+
+    case reason do
+      {:error, {:live_redirect, opts}} ->
+        {conn, to} = Phoenix.LiveViewTest.__follow_redirect__(conn, endpoint, to, opts)
+        live_with_current_endpoint(conn, to)
+
+      {:error, {:redirect, opts}} ->
+        {conn, to} = Phoenix.LiveViewTest.__follow_redirect__(conn, endpoint, to, opts)
+        {:ok, dispatch(conn, endpoint, :get, to)}
+
+      _ ->
+        raise "LiveView did not redirect"
+    end
+  end
+
   defp maybe_redirect({:error, {kind, %{to: path}}} = result, session) when kind in [:redirect, :live_redirect] do
     session = %{session | current_path: path}
     conn = session.conn
 
     result
-    |> follow_redirect(ConnHandler.recycle_all_headers(conn))
+    |> follow_redirect_with_current_endpoint(ConnHandler.recycle_all_headers(conn))
     |> maybe_redirect(session)
   end
 
