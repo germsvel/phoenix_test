@@ -1,6 +1,8 @@
 defmodule PhoenixTest.Utils do
   @moduledoc false
 
+  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+
   def present?(term), do: !blank?(term)
   def blank?(term), do: term == nil || term == ""
 
@@ -21,15 +23,20 @@ defmodule PhoenixTest.Utils do
       raise "no :app set in Mix project config"
     end
 
-    endpoints_by_app = 
-      case Application.fetch_env(:phoenix_test, :endpoints) do
-        {:ok, endpoints} -> endpoints
-        :error -> raise "no :endpoints set in config"
-      end
+    Application.fetch_env(:phoenix_test, :endpoints)
+    |> case do
+      {:ok, endpoints} -> 
+        Access.fetch(endpoints, current_app)
+        |> case do
+          {:ok, endpoint} -> endpoint
+          :error -> raise "no endpoint set for #{current_app} in config"
+        end
 
-    case Access.fetch(endpoints_by_app, current_app) do
-      {:ok, endpoint} -> endpoint
-      :error -> raise "no endpoint set for #{current_app} in config"
+      :error ->
+        case @endpoint do
+          nil -> raise "no endpoint set in config"
+          _ -> @endpoint
+        end
     end
   end
 end
