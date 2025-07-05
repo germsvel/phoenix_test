@@ -722,6 +722,12 @@ defmodule PhoenixTest.AssertionsTest do
       assert_path(session, "/page/index", query_params: %{"users" => ["frodo", "sam"]})
     end
 
+    test "handles query params that have a map as a value" do
+      session = %Live{current_path: "/page/index?filter[name]=frodo&filter[height]=1.24m"}
+
+      assert_path(session, "/page/index", query_params: %{"filter" => %{"name" => "frodo", "height" => "1.24m"}})
+    end
+
     test "handles asserting empty query params" do
       session = %Live{current_path: "/page/index"}
 
