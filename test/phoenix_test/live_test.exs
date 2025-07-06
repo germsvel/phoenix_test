@@ -544,6 +544,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "admin: on")
     end
 
+    test "preserves initially checked box in group", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Checkbox group 2")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "checkbox_group: [1, 2]")
+    end
+
     test "handle checkbox name with '?'", %{conn: conn} do
       conn
       |> visit("/live/index")
