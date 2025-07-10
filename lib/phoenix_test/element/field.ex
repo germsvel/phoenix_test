@@ -27,6 +27,22 @@ defmodule PhoenixTest.Element.Field do
     }
   end
 
+  def find_hidden_input!(html, id) do
+    field = Query.find!(html, "input[type=hidden][id=#{inspect(id)}]")
+    name = Html.attribute(field, "name")
+    value = Html.attribute(field, "value")
+
+    %__MODULE__{
+      source_raw: html,
+      parsed: field,
+      label: nil,
+      id: id,
+      name: name,
+      value: value,
+      selector: Element.build_selector(field)
+    }
+  end
+
   def find_checkbox!(html, input_selector, label, opts) do
     field = Query.find_by_label!(html, input_selector, label, opts)
 
