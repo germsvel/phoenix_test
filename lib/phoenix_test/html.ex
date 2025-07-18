@@ -22,6 +22,12 @@ defmodule PhoenixTest.Html do
     |> List.first()
   end
 
+  def all(html, selector) when is_binary(html) do
+    html
+    |> Floki.parse_document!()
+    |> Floki.find(selector)
+  end
+
   def all(html, selector) do
     Floki.find(html, selector)
   end

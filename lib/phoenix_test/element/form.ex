@@ -159,8 +159,16 @@ defmodule PhoenixTest.Element.Form do
     {name, element_value(value_element)}
   end
 
+  defp element_value(element) when is_binary(element) do
+    element |> String.trim() |> normalize_whitespace()
+  end
+
   defp element_value(element) do
     Html.attribute(element, "value") || Html.text(element)
+  end
+
+  defp normalize_whitespace(string) do
+    String.replace(string, ~r/[\s]+/, " ")
   end
 
   defp operative_method({"form", _attrs, fields} = form) do
