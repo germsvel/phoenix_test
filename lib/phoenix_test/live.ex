@@ -475,7 +475,7 @@ defmodule PhoenixTest.Live do
         active_form? = form.selector == active_form.selector
         form_data = FormData.merge(form.form_data, if(active_form?, do: active_form.form_data, else: FormData.new()))
 
-        session.conn
+        %{session.conn | resp_body: html}
         |> PhoenixTest.Static.build()
         |> PhoenixTest.Static.submit_form(form.selector, form_data)
 
