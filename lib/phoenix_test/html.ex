@@ -2,7 +2,7 @@ defmodule PhoenixTest.Html do
   @moduledoc false
 
   def parse(html) do
-    Floki.parse_document!(html)
+    Floki.parse_fragment!(html)
   end
 
   def text(element) do
@@ -11,15 +11,18 @@ defmodule PhoenixTest.Html do
 
   def attribute(element, attr) when is_binary(element) do
     element
-    |> Floki.parse_document!()
-    |> Floki.attribute(attr)
-    |> List.first()
+    |> parse()
+    |> attribute(attr)
   end
 
   def attribute(element, attr) do
     element
     |> Floki.attribute(attr)
     |> List.first()
+  end
+
+  def all(html, selector) when is_binary(html) do
+    html |> parse() |> all(selector)
   end
 
   def all(html, selector) do
