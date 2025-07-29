@@ -463,6 +463,8 @@ defmodule PhoenixTest do
 
   - `exact`: whether to match label text exactly. (Defaults to `true`)
 
+  - `with_hidden`: mimic JavaScript hook that sets hidden input. Format: `{hidden_input_id, value}`
+
   ## Examples
 
   Given we have a form that contains this:
@@ -509,6 +511,28 @@ defmodule PhoenixTest do
   |> fill_in("Name", with: "Aragorn", exact: false)
   ```
 
+  ## Hidden inputs and JavaScript hooks
+
+  If your view relies on JavaScript hooks, consider using a browser based solution
+  such as `phoenix_test_playwright`. However, for small edge cases you can mimic
+  JS hooks using the `with_hidden` option.
+
+  ### Example
+
+  Given the following:
+
+  ```html
+  <input id="monetary-hidden" type="hidden" name="monetary" value="200" />
+  <label>Monetary amount <input value="2.00" phx-hook="Monetary" id="monetary-presentation" /></label>
+  ```
+
+  We can fill in the `monetary-hidden` field:
+
+  ```elixir
+  session
+  |> fill_in("Monetary amount", with: "42.00", with_hidden: {"monetary-hidden", "4200"})
+  ```
+
   ## Labels and Accessibility
 
   This function requires a label to target the input element. This is by design, as labels are
@@ -524,7 +548,7 @@ defmodule PhoenixTest do
   ```
   """
   def fill_in(session, label, opts) when is_binary(label) and is_list(opts) do
-    opts = Keyword.validate!(opts, [:with, exact: true])
+    opts = Keyword.validate!(opts, [:with, :with_hidden, exact: true])
     Driver.fill_in(session, label, opts)
   end
 
@@ -563,7 +587,7 @@ defmodule PhoenixTest do
   ```
   """
   def fill_in(session, input_selector, label, opts) when is_binary(label) and is_list(opts) do
-    opts = Keyword.validate!(opts, [:with, exact: true])
+    opts = Keyword.validate!(opts, [:with, :with_hidden, exact: true])
     Driver.fill_in(session, input_selector, label, opts)
   end
 

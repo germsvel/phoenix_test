@@ -205,6 +205,13 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label for={@uploads.avatar.ref}>Avatar</label>
       <.live_file_input upload={@uploads.avatar} />
 
+      <div>
+        <input id="monetary-hidden" type="hidden" name="monetary" value="200" />
+        <label>
+          Monetary amount <input value="2.00" phx-hook="Monetary" id="monetary-presentation" />
+        </label>
+      </div>
+
       <button type="submit" name="full_form_button" value="save">Save Full Form</button>
     </form>
 

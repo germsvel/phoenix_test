@@ -184,6 +184,13 @@ defmodule PhoenixTest.WebApp.PageView do
         <input type="checkbox" name="member_of_fellowship" />
       </div>
 
+      <div>
+        <input id="monetary-hidden" type="hidden" name="monetary" value="200" />
+        <label>
+          Monetary amount <input value="2.00" phx-hook="Monetary" id="monetary-presentation" />
+        </label>
+      </div>
+
       <button name="full_form_button" value="save">Save Full Form</button>
     </form>
 
