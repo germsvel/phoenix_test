@@ -1165,6 +1165,15 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
+    test "handles phx-trigger-action on dynamically rendered forms", %{conn: conn} do
+      conn
+      |> visit("/live/dynamic_form")
+      |> click_button("Show Form")
+      |> fill_in("Message", with: "test")
+      |> submit()
+      |> assert_has("#form-data", text: "message: test")
+    end
+
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
         conn
