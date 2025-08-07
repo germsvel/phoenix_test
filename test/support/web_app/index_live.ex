@@ -173,6 +173,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
         <option value="orc">Orc</option>
       </select>
 
+      <label>
+        <input type="checkbox" name="checkbox_group[]" value="1" checked />
+        Checkbox group 1 (initially checked)
+      </label>
+      <label><input type="checkbox" name="checkbox_group[]" value="2" /> Checkbox group 2</label>
+
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>
