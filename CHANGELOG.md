@@ -7,6 +7,25 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.7.1
+
+### Improvements
+
+- Updated deps versions (Phoenix 1.8 support) [03fb661]
+- Use Floki 0.38 and fix deprecations [26575bc], [c479154]
+
+### Fixes
+
+- Fix phx-trigger-action handling for dynamically rendered forms [fe5e986]
+- Fix: `assert_path` handles nested query params [6a56cf9]
+
+[fe5e986]: https://github.com/germsvel/phoenix_test/commit/fe5e986
+[03fb661]: https://github.com/germsvel/phoenix_test/commit/03fb661
+[26575bc]: https://github.com/germsvel/phoenix_test/commit/26575bc
+[c479154]: https://github.com/germsvel/phoenix_test/commit/c479154
+[6a56cf9]: https://github.com/germsvel/phoenix_test/commit/6a56cf9
+
+
 ## 0.7.0
 
 ### Potentially breaking change
