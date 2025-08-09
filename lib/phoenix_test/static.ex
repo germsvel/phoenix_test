@@ -2,6 +2,7 @@ defmodule PhoenixTest.Static do
   @moduledoc false
 
   import Phoenix.ConnTest
+  import PhoenixTest.SessionHelpers, only: [within_selector: 2]
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.ConnHandler
@@ -21,7 +22,7 @@ defmodule PhoenixTest.Static do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct conn: nil, active_form: ActiveForm.new(), within: nil, current_path: ""
 
   def build(conn) do
     %__MODULE__{conn: conn, current_path: ConnHandler.build_current_path(conn)}
@@ -39,20 +40,15 @@ defmodule PhoenixTest.Static do
     end
   end
 
-  def render_html(%{conn: conn, within: within}) do
-    case within do
-      :none ->
-        html_response(conn, conn.status)
-
-      selector ->
-        conn
-        |> html_response(conn.status)
-        |> Query.find!(selector)
-        |> Html.raw()
-    end
+  def render_html(%{conn: conn}) do
+    conn
+    |> html_response(conn.status)
+    |> Html.parse()
   end
 
   def click_link(session, selector \\ "a", text) do
+    selector = within_selector(session, selector)
+
     link =
       session
       |> render_html()
@@ -75,7 +71,9 @@ defmodule PhoenixTest.Static do
   end
 
   def click_button(session, text) do
-    locator = Locators.button(text: text)
+    %Locators.Button{} = locator = Locators.button(text: text)
+    locator = %{locator | selectors: within_selector(session, locator.selectors)}
+
     html = render_html(session)
 
     button =
@@ -87,10 +85,12 @@ defmodule PhoenixTest.Static do
   end
 
   def click_button(session, selector, text) do
+    selector = within_selector(session, selector)
     active_form = session.active_form
 
     html = render_html(session)
-    button = Button.find!(html, selector, text)
+    %Button{} = button = Button.find!(html, selector, text)
+    button = %{button | selector: within_selector(session, button.selector)}
 
     if Button.has_data_method?(button) do
       form =
@@ -119,6 +119,7 @@ defmodule PhoenixTest.Static do
   end
 
   def fill_in(session, input_selector, label, opts) do
+    input_selector = within_selector(session, input_selector)
     {value, opts} = Keyword.pop!(opts, :with)
 
     session
@@ -133,6 +134,7 @@ defmodule PhoenixTest.Static do
   end
 
   def select(session, input_selector, option, opts) do
+    input_selector = within_selector(session, input_selector)
     {label, opts} = Keyword.pop!(opts, :from)
 
     session
@@ -146,6 +148,8 @@ defmodule PhoenixTest.Static do
   end
 
   def check(session, input_selector, label, opts) do
+    input_selector = within_selector(session, input_selector)
+
     session
     |> render_html()
     |> Field.find_checkbox!(input_selector, label, opts)
@@ -157,6 +161,8 @@ defmodule PhoenixTest.Static do
   end
 
   def uncheck(session, input_selector, label, opts) do
+    input_selector = within_selector(session, input_selector)
+
     session
     |> render_html()
     |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
@@ -168,6 +174,8 @@ defmodule PhoenixTest.Static do
   end
 
   def choose(session, input_selector, label, opts) do
+    input_selector = within_selector(session, input_selector)
+
     session
     |> render_html()
     |> Field.find_input!(input_selector, label, opts)
@@ -179,6 +187,7 @@ defmodule PhoenixTest.Static do
   end
 
   def upload(session, input_selector, label, path, opts) do
+    input_selector = within_selector(session, input_selector)
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
     field = session |> render_html() |> Field.find_input!(input_selector, label, opts)
@@ -215,6 +224,8 @@ defmodule PhoenixTest.Static do
   end
 
   def submit_form(session, selector, form_data) do
+    selector = within_selector(session, selector)
+
     form =
       session
       |> render_html()
@@ -235,9 +246,9 @@ defmodule PhoenixTest.Static do
 
     html =
       session.conn.resp_body
-      |> Floki.parse_document!()
-      |> Floki.traverse_and_update(&OpenBrowser.prefix_static_paths(&1, @endpoint))
-      |> Floki.raw_html()
+      |> Html.parse()
+      |> Html.postwalk(&OpenBrowser.prefix_static_paths(&1, @endpoint))
+      |> Html.raw()
 
     File.write!(path, html)
 

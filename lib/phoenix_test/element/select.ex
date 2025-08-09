@@ -22,11 +22,11 @@ defmodule PhoenixTest.Element.Select do
       case {multiple, option} do
         {true, [_ | _]} ->
           Enum.map(option, fn opt ->
-            Query.find!(Html.raw(field), "option", opt, exact: exact_option)
+            Query.find!(field, "option", opt, exact: exact_option)
           end)
 
         {true, _} ->
-          [Query.find!(Html.raw(field), "option", option, exact: exact_option)]
+          [Query.find!(field, "option", option, exact: exact_option)]
 
         {false, [_ | _]} ->
           msg = """
@@ -40,7 +40,7 @@ defmodule PhoenixTest.Element.Select do
           raise ArgumentError, msg
 
         {false, _} ->
-          [field |> Html.raw() |> Query.find!("option", option, exact: exact_option)]
+          [Query.find!(field, "option", option, exact: exact_option)]
       end
 
     values = Enum.map(selected_options, fn option -> Html.attribute(option, "value") end)
@@ -53,7 +53,7 @@ defmodule PhoenixTest.Element.Select do
       name: name,
       value: values,
       selected_options: selected_options,
-      selector: Element.build_selector(field)
+      selector: Element.build_selector(field, opts[:within])
     }
   end
 

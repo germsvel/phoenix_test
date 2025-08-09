@@ -175,15 +175,15 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        ignore_whitespace("""
-        Could not find any elements with selector "h1" and text "Super page".
+        """
 
-        Found these elements matching the selector "h1":
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
-        """)
+        Could not find any elements with selector "h1" and text "Super page"
+
+             Found these elements matching the selector "h1":
+
+             <h1 id="title" class="title" data-role="title">Main page</h1>
+        """
 
       assert_raise AssertionError, msg, fn ->
         assert_has(conn, "h1", text: "Super page")
@@ -254,23 +254,19 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        ignore_whitespace("""
-        Could not find any elements with selector "#multiple-items" and text "Frodo".
+        """
 
-        Found these elements matching the selector "#multiple-items":
 
-        <ul id="multiple-items">
-          <li>
-            Aragorn
-          </li>
-          <li>
-            Legolas
-          </li>
-          <li>
-            Gimli
-          </li>
-        </ul>
-        """)
+        Could not find any elements with selector "#multiple-items" and text "Frodo"
+
+             Found these elements matching the selector "#multiple-items":
+
+             <ul id="multiple-items">
+               <li>Aragorn</li>
+               <li>Legolas</li>
+               <li>Gimli</li>
+             </ul>
+        """
 
       assert_raise AssertionError, msg, fn ->
         assert_has(conn, "#multiple-items", text: "Frodo")
@@ -324,16 +320,15 @@ defmodule PhoenixTest.AssertionsTest do
     end
 
     test "raises if `exact` text doesn't match", %{conn: conn} do
-      msg =
-        ignore_whitespace("""
-        Could not find any elements with selector "h1" and text "Main".
+      msg = """
 
-        Found these elements matching the selector "h1":
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
-        """)
+      Could not find any elements with selector "h1" and text "Main"
+
+           Found these elements matching the selector "h1":
+
+           <h1 id="title" class="title" data-role="title">Main page</h1>
+      """
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -395,15 +390,15 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if element is found", %{conn: conn} do
       msg =
-        ignore_whitespace("""
-        Expected not to find any elements with selector "h1".
+        """
 
-        But found 1:
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
-        """)
+        Expected not to find any elements with selector "h1"
+
+             But found 1:
+
+             <h1 id="title" class="title" data-role="title">Main page</h1>
+        """
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -538,15 +533,15 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        ignore_whitespace("""
-        Expected not to find any elements with selector "#title" and text "Main page".
+        """
 
-        But found 1:
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
-        """)
+        Expected not to find any elements with selector "#title" and text "Main page"
+
+             But found 1:
+
+             <h1 id="title" class="title" data-role="title">Main page</h1>
+        """
 
       assert_raise AssertionError, msg, fn ->
         refute_has(conn, "#title", text: "Main page")
@@ -557,19 +552,16 @@ defmodule PhoenixTest.AssertionsTest do
       conn = visit(conn, "/page/index")
 
       msg =
-        ignore_whitespace("""
-        Expected not to find any elements with selector ".multiple_links" and text "Multiple links".
+        """
 
-        But found 2:
 
-        <a class="multiple_links" href="/page/page_3">
-          Multiple links
-        </a>
+        Expected not to find any elements with selector ".multiple_links" and text "Multiple links"
 
-        <a class="multiple_links" href="/page/page_4">
-          Multiple links
-        </a>
-        """)
+             But found 2:
+
+             <a class="multiple_links" href="/page/page_3">Multiple links</a>
+             <a class="multiple_links" href="/page/page_4">Multiple links</a>
+        """
 
       assert_raise AssertionError, msg, fn ->
         refute_has(conn, ".multiple_links", text: "Multiple links")
@@ -584,15 +576,15 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if `exact` text makes refutation false", %{conn: conn} do
       msg =
-        ignore_whitespace("""
-        Expected not to find any elements with selector "h1" and text "Main".
+        """
 
-        But found 1:
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
-        """)
+        Expected not to find any elements with selector "h1" and text "Main"
+
+             But found 1:
+
+             <h1 id="title" class="title" data-role="title">Main page</h1>
+        """
 
       assert_raise AssertionError, msg, fn ->
         conn
@@ -615,15 +607,15 @@ defmodule PhoenixTest.AssertionsTest do
 
     test "raises if it finds element at `at` position", %{conn: conn} do
       msg =
-        ignore_whitespace("""
+        """
+
+
         Expected not to find any elements with selector "#multiple-items li" and text "Legolas" at position 2
 
-        But found 1:
+             But found 1:
 
-        <li>
-          Legolas
-        </li>
-        """)
+             <li>Legolas</li>
+        """
 
       assert_raise AssertionError, msg, fn ->
         conn

@@ -5,6 +5,7 @@ defmodule PhoenixTest.LiveTest do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Driver
+  alias PhoenixTest.Html
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -268,7 +269,23 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if active form but can't find button", %{conn: conn} do
-      msg = ~r/Could not find an element/
+      msg = """
+      Could not find an element with given selectors.
+
+      I was looking for an element with one of these selectors:
+
+      - "#no-phx-change-form button" with content "No button"
+      - "#no-phx-change-form [role=\\\"button\\\"]" with content "No button"
+      - "#no-phx-change-form input[type=\\\"button\\\"][value=\\\"No button\\\"]"
+      - "#no-phx-change-form input[type=\\\"image\\\"][value=\\\"No button\\\"]"
+      - "#no-phx-change-form input[type=\\\"reset\\\"][value=\\\"No button\\\"]"
+      - "#no-phx-change-form input[type=\\\"submit\\\"][value=\\\"No button\\\"]"
+
+      I found some elements that match the selector but not the content:
+
+      <button type="submit">Save name</button>
+
+      """
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -308,7 +325,21 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises when data is not in scoped HTML", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with label "User Name"/, fn ->
+      msg = """
+      Could not find element with label "User Name" and provided selectors.
+
+      Labels found
+      ============
+
+      <label for="email">Email</label>
+
+      Searched for labeled elements with these selectors:
+
+      - "input:not([type='hidden'])"
+      - "textarea"
+      """
+
+      assert_raise ArgumentError, msg, fn ->
         conn
         |> visit("/live/index")
         |> within("#email-form", fn session ->
@@ -1120,7 +1151,7 @@ defmodule PhoenixTest.LiveTest do
         |> within("#no-phx-change-form", &fill_in(&1, "Name", with: "Aragorn"))
         |> Driver.render_html()
 
-      assert starting_html == ending_html
+      assert Html.element(starting_html) == Html.element(ending_html)
     end
 
     test "follows redirects on phx-change", %{conn: conn} do

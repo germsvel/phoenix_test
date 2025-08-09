@@ -2,6 +2,7 @@ defmodule PhoenixTest.Live do
   @moduledoc false
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
+  import PhoenixTest.SessionHelpers, only: [within_selector: 2]
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Assertions
@@ -20,7 +21,7 @@ defmodule PhoenixTest.Live do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: nil, current_path: ""
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
@@ -41,20 +42,15 @@ defmodule PhoenixTest.Live do
     page_title(view)
   end
 
-  def render_html(%{view: view, within: within}) do
-    case within do
-      :none ->
-        render(view)
-
-      selector ->
-        view
-        |> render()
-        |> Query.find!(selector)
-        |> Html.raw()
-    end
+  def render_html(%{view: view}) do
+    view
+    |> render()
+    |> Html.parse()
   end
 
   def click_link(session, selector \\ "a", text) do
+    selector = within_selector(session, selector)
+
     session.view
     |> element(selector, text)
     |> render_click()
@@ -62,20 +58,27 @@ defmodule PhoenixTest.Live do
   end
 
   def click_button(session, text) do
-    locator = Locators.button(text: text)
+    %Locators.Button{} = locator = Locators.button(text: text)
+    locator = %{locator | selectors: within_selector(session, locator.selectors)}
     html = render_html(session)
 
     button =
       html
       |> Query.find_by_role!(locator)
-      |> Button.build(html)
+      |> Button.build(html, within: session.within)
 
-    click_button(session, button.selector, text)
+    click_button(session, button.selector, text, button: button)
   end
 
-  def click_button(session, selector, text) do
-    html = render_html(session)
-    button = Button.find!(html, selector, text)
+  def click_button(session, selector, text, opts \\ []) do
+    button =
+      if button = opts[:button] do
+        button
+      else
+        session
+        |> render_html()
+        |> Button.find!(selector, text, within: session.within)
+      end
 
     cond do
       Button.phx_click?(button) ->
@@ -113,13 +116,14 @@ defmodule PhoenixTest.Live do
   end
 
   def fill_in(session, input_selector, label, opts) do
+    opts = input_opts_within(session, opts)
     {value, opts} = Keyword.pop!(opts, :with)
 
     session
     |> render_html()
     |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
-    |> then(&fill_in_field_data(session, &1))
+    |> then(&fill_in_field_data(session, &1, opts))
   end
 
   def select(session, option, opts) do
@@ -127,6 +131,7 @@ defmodule PhoenixTest.Live do
   end
 
   def select(session, input_selector, option, opts) do
+    input_selector = within_selector(session, input_selector)
     {label, opts} = Keyword.pop!(opts, :from)
 
     field =
@@ -136,7 +141,7 @@ defmodule PhoenixTest.Live do
 
     cond do
       Select.belongs_to_form?(field) ->
-        fill_in_field_data(session, field)
+        fill_in_field_data(session, field, opts)
 
       Select.phx_click_options?(field) ->
         Enum.reduce(field.value, session, fn value, session ->
@@ -158,6 +163,8 @@ defmodule PhoenixTest.Live do
   end
 
   def check(session, input_selector, label, opts) do
+    input_selector = within_selector(session, input_selector)
+
     field =
       session
       |> render_html()
@@ -171,7 +178,7 @@ defmodule PhoenixTest.Live do
         |> maybe_redirect(session)
 
       Field.belongs_to_form?(field) ->
-        fill_in_field_data(session, field)
+        fill_in_field_data(session, field, opts)
 
       true ->
         raise ArgumentError, """
@@ -185,6 +192,7 @@ defmodule PhoenixTest.Live do
   end
 
   def uncheck(session, input_selector, label, opts) do
+    input_selector = within_selector(session, input_selector)
     html = render_html(session)
     field = Field.find_checkbox!(html, input_selector, label, opts)
 
@@ -207,7 +215,7 @@ defmodule PhoenixTest.Live do
       Field.belongs_to_form?(field) ->
         html
         |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
-        |> then(&fill_in_field_data(session, &1))
+        |> then(&fill_in_field_data(session, &1, opts))
 
       true ->
         raise ArgumentError, """
@@ -221,10 +229,10 @@ defmodule PhoenixTest.Live do
   end
 
   def choose(session, input_selector, label, opts) do
+    opts = input_opts_within(session, opts)
+
     field =
-      session
-      |> render_html()
-      |> Field.find_input!(input_selector, label, opts)
+      session |> render_html() |> Field.find_input!(input_selector, label, opts)
 
     cond do
       Field.phx_click?(field) ->
@@ -234,7 +242,7 @@ defmodule PhoenixTest.Live do
         |> maybe_redirect(session)
 
       Field.belongs_to_form?(field) ->
-        fill_in_field_data(session, field)
+        fill_in_field_data(session, field, opts)
 
       true ->
         raise ArgumentError, """
@@ -248,6 +256,8 @@ defmodule PhoenixTest.Live do
   end
 
   def upload(session, input_selector, label, path, opts) do
+    opts = input_opts_within(session, opts)
+
     field =
       session
       |> render_html()
@@ -255,7 +265,7 @@ defmodule PhoenixTest.Live do
 
     file_stat = File.stat!(path)
     file_name = Path.basename(path)
-    form = Field.parent_form!(field)
+    form = Field.parent_form!(field, opts)
     live_upload_name = String.to_existing_atom(field.name)
     mime_type = FileUpload.mime_type(path)
 
@@ -289,9 +299,15 @@ defmodule PhoenixTest.Live do
 
   defp maybe_throw_upload_errors({:error, [[_id, error]]}, session, file_name, live_upload_name) do
     case error do
-      :not_accepted -> raise ArgumentError, message: not_accepted_error_msg(session, file_name, live_upload_name)
-      :too_many_files -> raise ArgumentError, message: too_many_files_error_msg(session, file_name, live_upload_name)
-      :too_large -> raise ArgumentError, message: too_large_error_msg(session, file_name, live_upload_name)
+      :not_accepted ->
+        raise ArgumentError, message: not_accepted_error_msg(session, file_name, live_upload_name)
+
+      :too_many_files ->
+        raise ArgumentError,
+          message: too_many_files_error_msg(session, file_name, live_upload_name)
+
+      :too_large ->
+        raise ArgumentError, message: too_large_error_msg(session, file_name, live_upload_name)
     end
   end
 
@@ -335,10 +351,10 @@ defmodule PhoenixTest.Live do
     """
   end
 
-  defp fill_in_field_data(session, field) do
+  defp fill_in_field_data(session, field, opts) do
     Field.validate_name!(field)
 
-    form = Field.parent_form!(field)
+    form = Field.parent_form!(field, opts)
 
     session =
       Map.update!(session, :active_form, fn active_form ->
@@ -507,6 +523,9 @@ defmodule PhoenixTest.Live do
   rescue
     ArgumentError -> :no_path
   end
+
+  defp input_opts_within(%{within: nil}, opts), do: opts
+  defp input_opts_within(%{within: parent}, opts), do: Keyword.put(opts, :within, parent)
 end
 
 defimpl PhoenixTest.Driver, for: PhoenixTest.Live do

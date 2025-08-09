@@ -1,35 +1,41 @@
 defmodule PhoenixTest.Html do
   @moduledoc false
 
-  def parse(html) do
-    Floki.parse_fragment!(html)
+  def parse(%LazyHTML{} = html), do: html
+
+  def parse(html) when is_binary(html) do
+    LazyHTML.from_document(html)
   end
 
-  def text(element) do
-    element |> Floki.text() |> String.trim() |> normalize_whitespace()
+  def text(%LazyHTML{} = element) do
+    element |> LazyHTML.text() |> String.trim() |> normalize_whitespace()
   end
 
-  def attribute(element, attr) when is_binary(element) do
+  def attribute(%LazyHTML{} = element, attr) when is_binary(attr) do
     element
-    |> parse()
-    |> attribute(attr)
-  end
-
-  def attribute(element, attr) do
-    element
-    |> Floki.attribute(attr)
+    |> LazyHTML.attribute(attr)
     |> List.first()
   end
 
-  def all(html, selector) when is_binary(html) do
-    html |> parse() |> all(selector)
+  def all(%LazyHTML{} = html, selector) when is_binary(selector) do
+    LazyHTML.query(html, selector)
   end
 
-  def all(html, selector) do
-    Floki.find(html, selector)
+  def raw(%LazyHTML{} = html), do: LazyHTML.to_html(html)
+
+  def postwalk(%LazyHTML{} = html, postwalk_fun) when is_function(postwalk_fun, 1) do
+    html
+    |> LazyHTML.to_tree()
+    |> LazyHTML.Tree.postwalk(postwalk_fun)
+    |> LazyHTML.from_tree()
   end
 
-  def raw(html_string), do: Floki.raw_html(html_string, pretty: true)
+  def element(%LazyHTML{} = html) do
+    case Enum.at(html, 0) do
+      nil -> nil
+      %LazyHTML{} = element -> element |> LazyHTML.to_tree() |> hd()
+    end
+  end
 
   defp normalize_whitespace(string) do
     String.replace(string, ~r/[\s]+/, " ")

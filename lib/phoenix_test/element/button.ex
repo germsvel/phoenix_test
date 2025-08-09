@@ -10,28 +10,33 @@ defmodule PhoenixTest.Element.Button do
 
   defstruct ~w[source_raw raw parsed id selector text name value form_id]a
 
-  def find!(html, selector, text) do
+  def find!(html, selector, text, opts \\ []) do
     html
-    |> Query.find!(selector, text)
-    |> build(html)
+    |> Query.find!(selector, text, opts)
+    |> build(html, opts)
   end
 
   def find_first(html) do
-    html
-    |> Query.find("button")
-    |> case do
-      {:found, element} -> build(element, html)
-      {:found_many, [element | _]} -> build(element, html)
-      :not_found -> nil
+    case Query.find(html, "button") do
+      {:found, element} ->
+        build(element, html)
+
+      {:found_many, query} ->
+        query
+        |> Enum.at(0)
+        |> build(html)
+
+      :not_found ->
+        nil
     end
   end
 
-  def build(parsed, source_raw) do
+  def build(parsed, source_raw, opts \\ []) do
     button_html = Html.raw(parsed)
     id = Html.attribute(parsed, "id")
     name = Html.attribute(parsed, "name")
     value = Html.attribute(parsed, "value") || if name, do: ""
-    selector = Element.build_selector(parsed)
+    selector = Element.build_selector(parsed, opts[:within])
     text = Html.text(parsed)
     form_id = Html.attribute(parsed, "form")
 
@@ -71,7 +76,7 @@ defmodule PhoenixTest.Element.Button do
     if button.form_id do
       Form.find!(button.source_raw, "[id=#{inspect(button.form_id)}]")
     else
-      Form.find_by_descendant!(button.source_raw, button)
+      Form.find_by_descendant!(button.source_raw, button, nil)
     end
   end
 end
