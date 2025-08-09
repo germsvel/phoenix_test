@@ -30,7 +30,11 @@ defmodule PhoenixTest.Element.SelectTest do
       </label>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+      assert_raise ArgumentError, fn ->
+        Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+      end
+
+      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: false)
 
       assert ~s|[id="name"]| = field.selector
       assert ["select_2"] = field.value

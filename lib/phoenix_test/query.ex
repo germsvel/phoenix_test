@@ -1,6 +1,8 @@
 defmodule PhoenixTest.Query do
   @moduledoc false
 
+  import PhoenixTest.SessionHelpers, only: [within_selector: 2]
+
   alias PhoenixTest.Element
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
@@ -56,6 +58,8 @@ defmodule PhoenixTest.Query do
   end
 
   def find(html, selector, opts) when is_list(opts) do
+    selector = within_selector(opts[:within], selector)
+
     html
     |> Html.parse()
     |> Html.all(selector)
@@ -64,11 +68,12 @@ defmodule PhoenixTest.Query do
       [] ->
         :not_found
 
-      [element] ->
-        {:found, element}
-
-      [_ | _] = elements ->
-        {:found_many, elements}
+      %LazyHTML{} = query ->
+        case Enum.count(query) do
+          0 -> :not_found
+          1 -> {:found, query}
+          _ -> {:found_many, query}
+        end
     end
   end
 
@@ -78,38 +83,40 @@ defmodule PhoenixTest.Query do
       |> Html.parse()
       |> Html.all(selector)
 
-    elements_matched_selector
-    |> filter_by_position(opts)
-    |> filter_by_text(text, opts)
-    |> case do
+    result =
+      elements_matched_selector
+      |> filter_by_position(opts)
+      |> filter_by_text(text, opts)
+
+    case result do
       [] -> {:not_found, elements_matched_selector}
       [found] -> {:found, found}
       [_ | _] = found_many -> {:found_many, found_many}
     end
   end
 
-  def find_by_role!(html, locator) do
+  def find_by_role!(html, locator, opts \\ []) do
     selectors = Locators.role_selectors(locator)
 
-    find_one_of!(html, selectors)
+    find_one_of!(html, selectors, opts)
   end
 
-  def find_one_of!(html, elements) do
+  def find_one_of!(html, elements, opts \\ []) do
     html
-    |> find_one_of(elements)
+    |> find_one_of(elements, opts)
     |> case do
       {:not_found, []} ->
         raise ArgumentError, """
         Could not find an element with given selectors.
 
-        I was looking for an element with one of these selectors: #{format_selectors_for_error_msg(elements)}
+        I was looking for an element with one of these selectors:#{format_selectors_for_error_msg(elements)}
         """
 
       {:not_found, potential_matches} ->
         raise ArgumentError, """
         Could not find an element with given selectors.
 
-        I was looking for an element with one of these selectors: #{format_selectors_for_error_msg(elements)}
+        I was looking for an element with one of these selectors:#{format_selectors_for_error_msg(elements)}
 
         I found some elements that match the selector but not the content:
 
@@ -130,11 +137,11 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_one_of(html, elements) do
+  def find_one_of(html, elements, opts \\ []) do
     results =
       Enum.map(elements, fn
-        {selector, text} -> find(html, selector, text)
-        selector -> find(html, selector)
+        {selector, text} -> find(html, selector, text, opts)
+        selector -> find(html, selector, opts)
       end)
 
     results
@@ -179,7 +186,7 @@ defmodule PhoenixTest.Query do
 
         #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
 
-        Searched for labeled elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
+        Searched for labeled elements with these selectors:#{format_selectors_for_error_msg(input_selectors)}
         """
 
         raise ArgumentError, msg
@@ -209,7 +216,7 @@ defmodule PhoenixTest.Query do
 
         #{Html.raw(found_label)}
 
-        Searched for elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
+        Searched for elements with these selectors:#{format_selectors_for_error_msg(input_selectors)}
         """
 
         raise ArgumentError, msg
@@ -255,7 +262,7 @@ defmodule PhoenixTest.Query do
 
         #{Html.raw(input_element)}
 
-        Searched for elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
+        Searched for elements with these selectors:#{format_selectors_for_error_msg(input_selectors)}
         """
 
         raise ArgumentError, msg
@@ -275,8 +282,11 @@ defmodule PhoenixTest.Query do
       {:found_many, associations} ->
         maybe_field_elements =
           Enum.map(associations, fn
-            {:implicit_association, _label_element, element} -> {:found, element}
-            {:explicit_association, label_element} -> find_explicit_label_input(html, input_selectors, label_element)
+            {:implicit_association, _label_element, element} ->
+              {:found, element}
+
+            {:explicit_association, label_element} ->
+              find_explicit_label_input(html, input_selectors, label_element)
           end)
 
         label_elements =
@@ -290,10 +300,17 @@ defmodule PhoenixTest.Query do
           {:found, _} -> true
           _ -> false
         end)
+        |> Enum.map(fn {:found, element} -> element end)
+        |> Enum.uniq()
         |> case do
-          [] -> {:not_found, :found_many_labels, label_elements}
-          [{:found, element}] -> {:found, element}
-          [_ | _] = found -> {:not_found, :found_many_labels_with_inputs, label_elements, Enum.map(found, &elem(&1, 1))}
+          [] ->
+            {:not_found, :found_many_labels, label_elements}
+
+          [element] ->
+            {:found, element}
+
+          [_ | _] = found ->
+            {:not_found, :found_many_labels_with_inputs, label_elements, found}
         end
 
       {:not_found, potential_matches} ->
@@ -302,9 +319,9 @@ defmodule PhoenixTest.Query do
   end
 
   defp find_labels(html, input_selectors, label, opts) do
-    html
-    |> find("label", label, opts)
-    |> case do
+    selector = within_selector(opts[:within], "label")
+
+    case find(html, selector, label, opts) do
       {:not_found, potential_matches} ->
         {:not_found, potential_matches}
 
@@ -341,18 +358,7 @@ defmodule PhoenixTest.Query do
 
       :not_found ->
         msg = """
-        Could not find any #{inspect(ancestor)} elements.
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, potential_matches} ->
-        msg = """
-        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}.
-
-        Found other potential #{inspect(ancestor)}:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
         """
 
         raise ArgumentError, msg
@@ -379,18 +385,7 @@ defmodule PhoenixTest.Query do
 
       :not_found ->
         msg = """
-        Could not find any #{inspect(ancestor)} elements.
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, potential_matches} ->
-        msg = """
         Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
-
-        Found other potential #{inspect(ancestor)}:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
         """
 
         raise ArgumentError, msg
@@ -426,52 +421,46 @@ defmodule PhoenixTest.Query do
   defp filter_ancestor_with_descendant(ancestors, descendant_selector, descendant_text) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      case find(Html.raw(ancestor), descendant_selector, descendant_text) do
-        {:not_found, _} -> false
-        {:found, _element} -> true
-        {:found_many, _elements} -> true
-      end
+      result = find(ancestor, descendant_selector, descendant_text)
+      is_tuple(result) and elem(result, 0) in [:found, :found_many]
     end)
-    |> case do
-      [] -> {:not_found, ancestors}
-      [ancestor] -> {:found, ancestor}
-      [_ | _] = ancestors -> {:found_many, ancestors}
-    end
+    |> consolidate_ancestors()
   end
 
   defp filter_ancestor_with_descendant(ancestors, descendant_selector) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      case find(Html.raw(ancestor), descendant_selector) do
-        :not_found -> false
-        {:found, _element} -> true
-        {:found_many, _elements} -> true
-      end
+      result = find(ancestor, descendant_selector)
+      is_tuple(result) and elem(result, 0) in [:found, :found_many]
     end)
-    |> case do
-      [] -> {:not_found, ancestors}
-      [ancestor] -> {:found, ancestor}
-      [_ | _] = ancestors -> {:found_many, ancestors}
-    end
+    |> consolidate_ancestors()
   end
+
+  defp consolidate_ancestors([]), do: :not_found
+  defp consolidate_ancestors([element]), do: {:found, element}
+  defp consolidate_ancestors([_ | _] = elements), do: {:found_many, elements}
 
   defp determine_implicit_or_explicit_label(html, label, input_selectors) do
     explicit = find_explicit_label_input(html, input_selectors, label)
-    implicit = find_one_of(Html.raw(label), input_selectors)
+    implicit = find_one_of(label, input_selectors)
 
     case {explicit, implicit} do
-      {{:found, explicit_el}, {:found, implicit_el}} when explicit_el != implicit_el ->
-        msg = """
-        Found a label which references two different inputs.
+      {{:found, explicit_el}, {:found, implicit_el}} ->
+        if Html.element(explicit_el) == Html.element(implicit_el) do
+          {:implicit_association, label, implicit_el}
+        else
+          msg = """
+          Found a label which references two different inputs.
 
-        Please remove either the 'for' attribute or the nested input
+          Please remove either the 'for' attribute or the nested input
 
-        to ensure the correct input can be targeted:
+          to ensure the correct input can be targeted:
 
-        #{Html.raw(label)}
-        """
+          #{Html.raw(label)}
+          """
 
-        raise ArgumentError, msg
+          raise ArgumentError, msg
+        end
 
       {_, {:found, implicit_el}} ->
         {:implicit_association, label, implicit_el}
@@ -503,6 +492,28 @@ defmodule PhoenixTest.Query do
           ^label_for -> found
           _ -> {:not_found, :mismatched_id, label, element}
         end
+
+      {:found_many, [element | _] = results} ->
+        results
+        |> Enum.find(fn element ->
+          case Html.attribute(element, "id") do
+            ^label_for -> {:found, element}
+            _ -> nil
+          end
+        end)
+        |> then(fn
+          nil -> {:not_found, :mismatched_id, label, element}
+          found -> found
+        end)
+
+      {:found_many, %LazyHTML{} = html} ->
+        html
+        |> Html.all("[id='#{label_for}']")
+        |> Enum.at(0)
+        |> then(fn
+          nil -> {:not_found, :mismatched_id, label, html}
+          element -> {:found, element}
+        end)
     end
   end
 
@@ -511,7 +522,7 @@ defmodule PhoenixTest.Query do
   end
 
   defp combine_selector(input_selector, label_for) do
-    if Element.selector_has_id?(input_selector) do
+    if Element.selector_has_id?(input_selector, label_for) do
       input_selector
     else
       input_selector <> "[id='#{label_for}']"
@@ -528,7 +539,7 @@ defmodule PhoenixTest.Query do
         fn element -> Html.text(element) =~ text end
       end
 
-    Enum.filter(elements, &(&1 |> Floki.filter_out("select") |> filter_fun.()))
+    Enum.filter(elements, &(&1 |> LazyHTML.filter(":not(select)") |> filter_fun.()))
   end
 
   defp filter_by_position(elements, opts) do
@@ -549,8 +560,10 @@ defmodule PhoenixTest.Query do
       {:not_found, _} -> true
       _ -> false
     end)
-    |> Enum.reduce([], fn {:not_found, values}, acc ->
-      values ++ acc
+    |> Enum.map(fn {:not_found, values} -> values end)
+    |> then(fn
+      [element] -> element
+      elements -> elements
     end)
   end
 

@@ -14,7 +14,8 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data)
+      selector = Element.build_selector(data, nil)
+      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
 
       assert ~s|[id="name"]| = selector
     end
@@ -28,7 +29,8 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data)
+      selector = Element.build_selector(data, nil)
+      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
 
       assert ~s(input[type="text"][name="name"]) = selector
     end
@@ -42,7 +44,8 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data)
+      selector = Element.build_selector(data, nil)
+      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
 
       assert ~s(input[phx-click="save-user"][type="text"][name="name"]) = selector
     end
@@ -59,29 +62,33 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data)
+      selector = Element.build_selector(data, nil)
+      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
 
       assert ~s(input[type="text"][name="name"]) = selector
     end
   end
 
-  describe "selector_has_id?" do
+  describe "selector_has_id?/2" do
     test "returns true if selector has #<id>" do
       selector = "#name"
 
-      assert Element.selector_has_id?(selector)
+      assert Element.selector_has_id?(selector, "name")
+      refute Element.selector_has_id?(selector, "nome")
     end
 
     test "returns true if selector has [id=<id>]" do
       selector = "[id='name']"
 
-      assert Element.selector_has_id?(selector)
+      assert Element.selector_has_id?(selector, "name")
+      refute Element.selector_has_id?(selector, "nome")
     end
 
     test "returns false if selector doesn't have id" do
       selector = "[data-role='name']"
 
-      refute Element.selector_has_id?(selector)
+      refute Element.selector_has_id?(selector, "name")
+      refute Element.selector_has_id?(selector, "nome")
     end
   end
 end

@@ -12,7 +12,7 @@ defmodule PhoenixTest.OpenBrowser do
 
     case node do
       # Remove script tags
-      {"script", _, _} -> nil
+      {"script", _, _} -> []
       # Skip prefixing src attributes on anchor tags
       {"a", _, _} = link -> link
       {el, attrs, children} -> {el, maybe_prefix_static_path(attrs, static_path), children}
