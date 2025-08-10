@@ -26,15 +26,9 @@ defmodule PhoenixTest.Element.Form do
     end
   end
 
-  def find_by_descendant!(html, descendant, opts \\ []) do
-    selector =
-      case opts[:within] do
-        nil -> "form"
-        parent -> "#{parent} form, #{parent}:is(form)"
-      end
-
+  def find_by_descendant!(html, descendant) do
     html
-    |> Query.find_ancestor!(selector, descendant_selector(descendant))
+    |> Query.find_ancestor!("form", descendant_selector(descendant))
     |> build()
   end
 
@@ -42,7 +36,7 @@ defmodule PhoenixTest.Element.Form do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
     action = Html.attribute(form, "action")
-    selector = Element.build_selector(form, nil)
+    selector = Element.build_selector(form)
 
     %__MODULE__{
       action: action,

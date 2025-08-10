@@ -14,8 +14,7 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data, nil)
-      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
+      selector = Element.build_selector(data)
 
       assert ~s|[id="name"]| = selector
     end
@@ -29,8 +28,7 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data, nil)
-      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
+      selector = Element.build_selector(data)
 
       assert ~s(input[type="text"][name="name"]) = selector
     end
@@ -44,8 +42,7 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data, nil)
-      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
+      selector = Element.build_selector(data)
 
       assert ~s(input[phx-click="save-user"][type="text"][name="name"]) = selector
     end
@@ -62,8 +59,7 @@ defmodule PhoenixTest.ElementTest do
           "input"
         )
 
-      selector = Element.build_selector(data, nil)
-      "#great-form " <> ^selector = Element.build_selector(data, "#great-form")
+      selector = Element.build_selector(data)
 
       assert ~s(input[type="text"][name="name"]) = selector
     end

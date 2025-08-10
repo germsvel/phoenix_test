@@ -18,12 +18,10 @@ defmodule PhoenixTest.Locators do
   def role_selectors(%Button{} = button) do
     %Button{text: text, selectors: selectors} = button
 
-    Enum.map(selectors, fn selector ->
-      cond do
-        String.ends_with?(selector, "button") -> {selector, text}
-        String.ends_with?(selector, ~s|[role="button"]|) -> {selector, text}
-        true -> "#{selector}[value=#{inspect(text)}]"
-      end
+    Enum.map(selectors, fn
+      "button" -> {"button", text}
+      ~s|[role="button"]| -> {~s|[role="button"]|, text}
+      role -> role <> "[value=#{inspect(text)}]"
     end)
   end
 end

@@ -1,6 +1,8 @@
 defmodule PhoenixTest.QueryTest do
   use ExUnit.Case, async: true
 
+  import PhoenixTest.TestHelpers
+
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
   alias PhoenixTest.Query
@@ -289,7 +291,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       msg =
-        """
+        ignore_whitespace("""
         Could not find an element with given selectors.
 
         I was looking for an element with one of these selectors:
@@ -301,7 +303,7 @@ defmodule PhoenixTest.QueryTest do
 
         <h2>Hello</h2>
         <h2>Greetings</h2>
-        """
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
@@ -367,16 +369,17 @@ defmodule PhoenixTest.QueryTest do
       <input id="name"/>
       """
 
-      msg = """
-      Could not find element with label "Name" and provided selectors.
+      msg =
+        ignore_whitespace("""
+        Could not find element with label "Name" and provided selectors.
 
-      Labels found
-      ============
+        Labels found
+        ============
 
 
 
-      Searched for labeled elements with these selectors:"input"
-      """
+        Searched for labeled elements with these selectors: "input"
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_by_label!(html, "input", "Name")
@@ -409,11 +412,9 @@ defmodule PhoenixTest.QueryTest do
       <input type="text" name="name" />
       """
 
-      assert_raise ArgumentError,
-                   ~r/but can't find labeled element whose `id` matches label's `for` attribute/,
-                   fn ->
-                     Query.find_by_label!(html, "input", "Name")
-                   end
+      assert_raise ArgumentError, ~r/but can't find labeled element whose `id` matches label's `for` attribute/, fn ->
+        Query.find_by_label!(html, "input", "Name")
+      end
     end
 
     test "raises error if multiple labels match" do
@@ -527,22 +528,11 @@ defmodule PhoenixTest.QueryTest do
       <input id="not-name" type="text" name="name" />
       """
 
-      msg = """
-      Found label but can't find labeled element whose `id` matches label's `for` attribute.
-
-      (Label's `for` attribute must point to element's `id`)
-
-      Label found
-      ===========
-
-      <label for="name">Name</label>
-
-      Searched for elements with these selectors:"#not-name"
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "#not-name", "Name")
-      end
+      assert_raise ArgumentError,
+                   ~r/Found label but can't find labeled element whose `id` matches label's `for` attribute./,
+                   fn ->
+                     Query.find_by_label!(html, "#not-name", "Name")
+                   end
     end
 
     test "raises error if label matches element with id but not the provided selector" do
@@ -551,22 +541,11 @@ defmodule PhoenixTest.QueryTest do
       <input id="not-name" type="text" name="name" />
       """
 
-      msg = """
-      Found label but can't find labeled element whose `id` matches label's `for` attribute.
-
-      (Label's `for` attribute must point to element's `id`)
-
-      Label found
-      ===========
-
-      <label for="name">Name</label>
-
-      Searched for elements with these selectors:"input[id='not-name']"
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input[id='not-name']", "Name")
-      end
+      assert_raise ArgumentError,
+                   ~r/Found label but can't find labeled element whose `id` matches label's `for` attribute/,
+                   fn ->
+                     Query.find_by_label!(html, "input[id='not-name']", "Name")
+                   end
     end
 
     test "raises error if label matches element with provided selector but input doesn't have matching id" do
@@ -600,8 +579,7 @@ defmodule PhoenixTest.QueryTest do
       <input id="name"/>
       """
 
-      assert {:not_found, :no_label, %LazyHTML{} = element} =
-               Query.find_by_label(html, "input", "Name")
+      assert {:not_found, :no_label, %LazyHTML{} = element} = Query.find_by_label(html, "input", "Name")
 
       assert Enum.empty?(element)
     end
@@ -632,8 +610,7 @@ defmodule PhoenixTest.QueryTest do
       </label>
       """
 
-      assert {:not_found, :missing_for, label} =
-               Query.find_by_label(html, "input[name='not-greeting']", "Hello")
+      assert {:not_found, :missing_for, label} = Query.find_by_label(html, "input[name='not-greeting']", "Hello")
 
       assert {"label", [], _} = Html.element(label)
     end
@@ -664,8 +641,7 @@ defmodule PhoenixTest.QueryTest do
       <label for="second_greeting">Hello</label>
       """
 
-      assert {:not_found, :found_many_labels, labels} =
-               Query.find_by_label(html, "input", "Hello")
+      assert {:not_found, :found_many_labels, labels} = Query.find_by_label(html, "input", "Hello")
 
       assert length(labels) == 2
       assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
@@ -679,8 +655,7 @@ defmodule PhoenixTest.QueryTest do
       <input id="second_greeting" />
       """
 
-      assert {:not_found, :found_many_labels_with_inputs, labels, inputs} =
-               Query.find_by_label(html, "input", "Hello")
+      assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
 
       assert length(labels) == 2
       assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
@@ -696,8 +671,7 @@ defmodule PhoenixTest.QueryTest do
       <label>Hello <input id="second_greeting" /></label>
       """
 
-      assert {:not_found, :found_many_labels_with_inputs, labels, inputs} =
-               Query.find_by_label(html, "input", "Hello")
+      assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
 
       assert length(labels) == 2
       assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()

@@ -53,7 +53,7 @@ defmodule PhoenixTest.Element.Select do
       name: name,
       value: values,
       selected_options: selected_options,
-      selector: Element.build_selector(field, opts[:within])
+      selector: Element.build_selector(field)
     }
   end
 

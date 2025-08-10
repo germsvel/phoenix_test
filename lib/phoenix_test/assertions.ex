@@ -2,7 +2,6 @@ defmodule PhoenixTest.Assertions do
   @moduledoc false
 
   import ExUnit.Assertions
-  import PhoenixTest.SessionHelpers
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Html
@@ -104,7 +103,6 @@ defmodule PhoenixTest.Assertions do
   @label_related_failures [:no_label, :missing_for, :missing_input]
   def assert_has(session, selector, opts) when is_list(opts) do
     opts = Opts.parse(opts)
-    selector = within_selector(session, selector)
     finder = finder_fun(selector, opts)
 
     session
@@ -206,7 +204,6 @@ defmodule PhoenixTest.Assertions do
 
   def refute_has(session, selector, opts) when is_list(opts) do
     opts = Opts.parse(opts)
-    selector = within_selector(session, selector)
     finder = finder_fun(selector, opts)
 
     session
