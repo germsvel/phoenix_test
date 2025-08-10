@@ -1,18 +1,16 @@
 defmodule PhoenixTest.Element do
   @moduledoc false
-  import PhoenixTest.SessionHelpers, only: [within_selector: 2]
 
   alias PhoenixTest.Html
 
-  def build_selector(%LazyHTML{} = html, within) do
+  def build_selector(%LazyHTML{} = html) do
     html
     |> Html.element()
-    |> build_selector(within)
+    |> build_selector()
   end
 
-  def build_selector({tag, attributes, _}, within) do
-    attributes
-    |> Enum.reduce_while(tag, fn
+  def build_selector({tag, attributes, _}) do
+    Enum.reduce_while(attributes, tag, fn
       {"id", id}, _ when is_binary(id) ->
         {:halt, "[id=#{inspect(id)}]"}
 
@@ -29,7 +27,6 @@ defmodule PhoenixTest.Element do
       {k, v}, acc ->
         {:cont, acc <> "[#{k}=#{inspect(v)}]"}
     end)
-    |> then(&within_selector(within, &1))
   end
 
   defp encoded_live_view_js?(value) do

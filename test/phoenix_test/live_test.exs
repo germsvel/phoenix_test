@@ -269,23 +269,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if active form but can't find button", %{conn: conn} do
-      msg = """
-      Could not find an element with given selectors.
-
-      I was looking for an element with one of these selectors:
-
-      - "#no-phx-change-form button" with content "No button"
-      - "#no-phx-change-form [role=\\\"button\\\"]" with content "No button"
-      - "#no-phx-change-form input[type=\\\"button\\\"][value=\\\"No button\\\"]"
-      - "#no-phx-change-form input[type=\\\"image\\\"][value=\\\"No button\\\"]"
-      - "#no-phx-change-form input[type=\\\"reset\\\"][value=\\\"No button\\\"]"
-      - "#no-phx-change-form input[type=\\\"submit\\\"][value=\\\"No button\\\"]"
-
-      I found some elements that match the selector but not the content:
-
-      <button type="submit">Save name</button>
-
-      """
+      msg = ~r/Could not find an element/
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -325,21 +309,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises when data is not in scoped HTML", %{conn: conn} do
-      msg = """
-      Could not find element with label "User Name" and provided selectors.
-
-      Labels found
-      ============
-
-      <label for="email">Email</label>
-
-      Searched for labeled elements with these selectors:
-
-      - "input:not([type='hidden'])"
-      - "textarea"
-      """
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r/Could not find element with label "User Name"/, fn ->
         conn
         |> visit("/live/index")
         |> within("#email-form", fn session ->

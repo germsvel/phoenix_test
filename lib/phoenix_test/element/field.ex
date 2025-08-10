@@ -23,7 +23,7 @@ defmodule PhoenixTest.Element.Field do
       id: id,
       name: name,
       value: value,
-      selector: Element.build_selector(field, opts[:within])
+      selector: Element.build_selector(field)
     }
   end
 
@@ -41,7 +41,7 @@ defmodule PhoenixTest.Element.Field do
       id: id,
       name: name,
       value: value,
-      selector: Element.build_selector(field, opts[:within])
+      selector: Element.build_selector(field)
     }
   end
 
@@ -60,12 +60,12 @@ defmodule PhoenixTest.Element.Field do
       id: id,
       name: name,
       value: value,
-      selector: Element.build_selector(field, opts[:within])
+      selector: Element.build_selector(field)
     }
   end
 
-  def parent_form!(field, opts \\ []) do
-    Form.find_by_descendant!(field.source_raw, field, opts)
+  def parent_form!(field) do
+    Form.find_by_descendant!(field.source_raw, field)
   end
 
   def phx_click?(field), do: LiveViewBindings.phx_click?(field.parsed)

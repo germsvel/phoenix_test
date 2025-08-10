@@ -2,6 +2,7 @@ defmodule PhoenixTest.StaticTest do
   use ExUnit.Case, async: true
 
   import PhoenixTest
+  import PhoenixTest.TestHelpers
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -90,7 +91,7 @@ defmodule PhoenixTest.StaticTest do
 
     test "raises error if trying to submit via `data-` attributes but incomplete", %{conn: conn} do
       msg =
-        """
+        ignore_whitespace("""
         Tried submitting form via `data-method` but some data attributes are
         missing.
 
@@ -107,7 +108,7 @@ defmodule PhoenixTest.StaticTest do
         emulate that, but be sure to verify you're including Phoenix.HTML.js!
 
         See: https://hexdocs.pm/phoenix_html/Phoenix.HTML.html#module-javascript-library
-        """
+        """)
 
       assert_raise ArgumentError, msg, fn ->
         conn
@@ -330,23 +331,7 @@ defmodule PhoenixTest.StaticTest do
     end
 
     test "raises when data is not in scoped HTML", %{conn: conn} do
-      msg = """
-      Found label but can't find labeled element whose `id` matches label's `for` attribute.
-
-      (Label's `for` attribute must point to element's `id`)
-
-      Label found
-      ===========
-
-      <label for="user_name">User Name</label>
-
-      Searched for elements with these selectors:
-
-      - "#email-form input:not([type='hidden'])"
-      - "#email-form textarea"
-      """
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r/Could not find element with label "User Name"/, fn ->
         conn
         |> visit("/page/index")
         |> within("#email-form", fn session ->

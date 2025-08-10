@@ -2,7 +2,6 @@ defmodule PhoenixTest.Static do
   @moduledoc false
 
   import Phoenix.ConnTest
-  import PhoenixTest.SessionHelpers, only: [within_selector: 2]
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.ConnHandler
@@ -22,7 +21,7 @@ defmodule PhoenixTest.Static do
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct conn: nil, active_form: ActiveForm.new(), within: nil, current_path: ""
+  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
     %__MODULE__{conn: conn, current_path: ConnHandler.build_current_path(conn)}
@@ -40,15 +39,19 @@ defmodule PhoenixTest.Static do
     end
   end
 
-  def render_html(%{conn: conn}) do
-    conn
-    |> html_response(conn.status)
-    |> Html.parse()
+  def render_html(%{conn: conn, within: within}) do
+    html =
+      conn
+      |> html_response(conn.status)
+      |> Html.parse()
+
+    case within do
+      :none -> html
+      selector when is_binary(selector) -> Html.all(html, selector)
+    end
   end
 
   def click_link(session, selector \\ "a", text) do
-    selector = within_selector(session, selector)
-
     link =
       session
       |> render_html()
@@ -71,9 +74,7 @@ defmodule PhoenixTest.Static do
   end
 
   def click_button(session, text) do
-    %Locators.Button{} = locator = Locators.button(text: text)
-    locator = %{locator | selectors: within_selector(session, locator.selectors)}
-
+    locator = Locators.button(text: text)
     html = render_html(session)
 
     button =
@@ -85,12 +86,10 @@ defmodule PhoenixTest.Static do
   end
 
   def click_button(session, selector, text) do
-    selector = within_selector(session, selector)
     active_form = session.active_form
 
     html = render_html(session)
-    %Button{} = button = Button.find!(html, selector, text)
-    button = %{button | selector: within_selector(session, button.selector)}
+    button = Button.find!(html, selector, text)
 
     if Button.has_data_method?(button) do
       form =
@@ -119,7 +118,6 @@ defmodule PhoenixTest.Static do
   end
 
   def fill_in(session, input_selector, label, opts) do
-    input_selector = within_selector(session, input_selector)
     {value, opts} = Keyword.pop!(opts, :with)
 
     session
@@ -134,7 +132,6 @@ defmodule PhoenixTest.Static do
   end
 
   def select(session, input_selector, option, opts) do
-    input_selector = within_selector(session, input_selector)
     {label, opts} = Keyword.pop!(opts, :from)
 
     session
@@ -148,8 +145,6 @@ defmodule PhoenixTest.Static do
   end
 
   def check(session, input_selector, label, opts) do
-    input_selector = within_selector(session, input_selector)
-
     session
     |> render_html()
     |> Field.find_checkbox!(input_selector, label, opts)
@@ -161,8 +156,6 @@ defmodule PhoenixTest.Static do
   end
 
   def uncheck(session, input_selector, label, opts) do
-    input_selector = within_selector(session, input_selector)
-
     session
     |> render_html()
     |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
@@ -174,8 +167,6 @@ defmodule PhoenixTest.Static do
   end
 
   def choose(session, input_selector, label, opts) do
-    input_selector = within_selector(session, input_selector)
-
     session
     |> render_html()
     |> Field.find_input!(input_selector, label, opts)
@@ -187,7 +178,6 @@ defmodule PhoenixTest.Static do
   end
 
   def upload(session, input_selector, label, path, opts) do
-    input_selector = within_selector(session, input_selector)
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
     field = session |> render_html() |> Field.find_input!(input_selector, label, opts)
@@ -224,8 +214,6 @@ defmodule PhoenixTest.Static do
   end
 
   def submit_form(session, selector, form_data) do
-    selector = within_selector(session, selector)
-
     form =
       session
       |> render_html()
