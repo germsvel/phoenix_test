@@ -10,6 +10,10 @@ defmodule PhoenixTest.LiveViewBindings do
     |> valid_event_or_js_command?()
   end
 
+  def phx_value?({_element, attributes, _children}) do
+    Enum.any?(attributes, fn {key, _value} -> String.starts_with?(key, "phx-value-") end)
+  end
+
   defp valid_event_or_js_command?("[" <> _ = js_command) do
     js_command
     |> Jason.decode!()
