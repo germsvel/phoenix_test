@@ -677,6 +677,19 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#checkbox-phx-click-values-abc[checked=checked]")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
     end
+
+    test "sends phx-click JS command value when attribute used", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refute_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
+      |> check("Checkbox def")
+      |> assert_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> assert_has("#checkbox-phx-click-values-def-value", text: "Checked")
+      |> uncheck("Checkbox def")
+      |> refute_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
+    end
   end
 
   describe "choose/3" do
