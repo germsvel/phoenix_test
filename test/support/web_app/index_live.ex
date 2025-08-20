@@ -314,8 +314,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
         <label for="complex-movie">Movie <span>*</span></label>
       </fieldset>
 
-      <label for={@uploads.avatar.ref}>Avatar <span>*</span></label>
-      <.live_file_input upload={@uploads.avatar} />
+      <label for={@uploads.avatar_2.ref}>Avatar <span>*</span></label>
+      <.live_file_input upload={@uploads.avatar_2} />
 
       <button type="submit">Save</button>
     </form>
@@ -529,8 +529,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
     </form>
 
     <form id="upload-change-form" phx-change="upload-change">
-      <label for={@uploads.avatar.ref}>Avatar</label>
-      <.live_file_input upload={@uploads.avatar} />
+      <label for={@uploads.avatar_3.ref}>Avatar</label>
+      <.live_file_input upload={@uploads.avatar_3} />
     </form>
 
     <div :if={@upload_change_triggered} id="upload-change-result">
@@ -574,6 +574,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> assign(:redirect_and_trigger_submit, false)
       |> assign(:upload_change_triggered, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:avatar_2, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:avatar_3, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:tiny, accept: ~w(.jpg .jpeg), max_file_size: 1000)
@@ -611,18 +613,14 @@ defmodule PhoenixTest.WebApp.IndexLive do
   end
 
   def handle_event("save-form", form_data, socket) do
-    avatars =
-      consume_uploaded_entries(socket, :avatar, fn _, %{client_name: name} ->
-        {:ok, name}
-      end)
-
-    main_avatars =
-      consume_uploaded_entries(socket, :main_avatar, fn _, %{client_name: name} -> {:ok, name} end)
+    files = &consume_uploaded_entries(socket, &1, fn _, %{client_name: name} -> {:ok, name} end)
 
     form_data =
       form_data
-      |> Map.put("avatar", List.first(avatars))
-      |> Map.put("main_avatar", List.first(main_avatars))
+      |> Map.put("avatar", :avatar |> files.() |> List.first())
+      |> Map.put("avatar_2", :avatar_2 |> files.() |> List.first())
+      |> Map.put("avatar_3", :avatar_3 |> files.() |> List.first())
+      |> Map.put("main_avatar", :main_avatar |> files.() |> List.first())
 
     {
       :noreply,

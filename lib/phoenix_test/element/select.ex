@@ -14,7 +14,7 @@ defmodule PhoenixTest.Element.Select do
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 
-    multiple = Html.attribute(field, "multiple") == "multiple"
+    multiple = not is_nil(Html.attribute(field, "multiple"))
 
     exact_option = Keyword.get(opts, :exact_option, true)
 

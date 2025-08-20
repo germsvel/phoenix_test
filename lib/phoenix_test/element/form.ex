@@ -92,8 +92,8 @@ defmodule PhoenixTest.Element.Form do
   )
 
   @hidden_inputs "input[type=hidden]"
-  @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
-  @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
+  @checked_radio_buttons "input:not([disabled])[type=radio][checked][value]"
+  @checked_checkboxes "input:not([disabled])[type=checkbox][checked][value]"
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
   @pre_filled_simple_value_inputs Enum.map_join(@simple_value_types, ",", &"input:not([disabled])[type=#{&1}][value]")
 
