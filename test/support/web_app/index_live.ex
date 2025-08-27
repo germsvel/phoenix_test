@@ -548,7 +548,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
     </button>
 
     <div>
-      <label for={"checkbox-phx-click-values-abc"}>Checkbox abc</label>
+      <label for="checkbox-phx-click-values-abc">Checkbox abc</label>
       <input
         type="checkbox"
         id="checkbox-phx-click-values-abc"
@@ -556,20 +556,20 @@ defmodule PhoenixTest.WebApp.IndexLive do
         phx-value-id="abc"
         checked={@checked_keys["abc"]}
       />
-      <span id={"checkbox-phx-click-values-abc-value"}>
+      <span id="checkbox-phx-click-values-abc-value">
         {if(@checked_keys["abc"], do: "Checked", else: "Unchecked")}
       </span>
     </div>
 
     <div>
-      <label for={"checkbox-phx-click-values-def"}>Checkbox def</label>
+      <label for="checkbox-phx-click-values-def">Checkbox def</label>
       <input
         type="checkbox"
         id="checkbox-phx-click-values-def"
         phx-click={Phoenix.LiveView.JS.push("toggle-checkbox-phx-value", value: %{id: "def"})}
         checked={@checked_keys["def"]}
       />
-      <span id={"checkbox-phx-click-values-def-value"}>
+      <span id="checkbox-phx-click-values-def-value">
         {if(@checked_keys["def"], do: "Checked", else: "Unchecked")}
       </span>
     </div>
