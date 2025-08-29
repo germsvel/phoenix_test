@@ -189,6 +189,14 @@ defmodule PhoenixTest.Live do
     field = Field.find_checkbox!(html, input_selector, label, opts)
 
     cond do
+      # Support phx-click on checkboxes that have phx-value-key attributes too
+      Field.phx_click?(field) and Field.phx_value?(field) ->
+        session.view
+        |> element(field.selector)
+        |> render_click()
+        |> maybe_redirect(session)
+
+      # Support phx-click on checkboxes that aren't in forms
       Field.phx_click?(field) ->
         event = Html.attribute(field.parsed, "phx-click")
 

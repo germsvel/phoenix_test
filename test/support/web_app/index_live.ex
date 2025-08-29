@@ -546,6 +546,33 @@ defmodule PhoenixTest.WebApp.IndexLive do
       An ID-less Span Wrapped
       <span>Button</span>
     </button>
+
+    <div>
+      <label for="checkbox-phx-click-values-abc">Checkbox abc</label>
+      <input
+        type="checkbox"
+        id="checkbox-phx-click-values-abc"
+        phx-click="toggle-checkbox-phx-value"
+        phx-value-id="abc"
+        checked={@checked_keys["abc"]}
+      />
+      <span id="checkbox-phx-click-values-abc-value">
+        {if(@checked_keys["abc"], do: "Checked", else: "Unchecked")}
+      </span>
+    </div>
+
+    <div>
+      <label for="checkbox-phx-click-values-def">Checkbox def</label>
+      <input
+        type="checkbox"
+        id="checkbox-phx-click-values-def"
+        phx-click={Phoenix.LiveView.JS.push("toggle-checkbox-phx-value", value: %{id: "def"})}
+        checked={@checked_keys["def"]}
+      />
+      <span id="checkbox-phx-click-values-def-value">
+        {if(@checked_keys["def"], do: "Checked", else: "Unchecked")}
+      </span>
+    </div>
     """
   end
 
@@ -569,6 +596,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
       |> assign(:hidden_input_race, "human")
+      |> assign(:checked_keys, %{"abc" => false, "def" => false})
       |> assign(:trigger_submit, false)
       |> assign(:trigger_multiple_submit, false)
       |> assign(:redirect_and_trigger_submit, false)
@@ -799,6 +827,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
       :noreply,
       assign(socket, :upload_change_triggered, true)
     }
+  end
+
+  def handle_event("toggle-checkbox-phx-value", %{"id" => id}, socket) do
+    checked_keys = Map.update(socket.assigns.checked_keys, id, true, &(not &1))
+
+    {:noreply, assign(socket, :checked_keys, checked_keys)}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do
