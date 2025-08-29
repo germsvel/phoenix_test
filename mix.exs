@@ -45,7 +45,7 @@ defmodule PhoenixTest.MixProject do
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:floki, ">= 0.30.0", only: :test, runtime: false},
       {:jason, "~> 1.4"},
-      {:lazy_html, "~> 0.1.6"},
+      {:lazy_html, "~> 0.1.7"},
       {:makeup_eex, "~> 0.1.0", only: :dev, runtime: false},
       {:makeup_html, "~> 0.1.0", only: :dev, runtime: false},
       {:mime, ">= 1.0.0", optional: true},
