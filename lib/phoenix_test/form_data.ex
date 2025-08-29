@@ -40,7 +40,7 @@ defmodule PhoenixTest.FormData do
           if value in existing_value do
             existing_value
           else
-            [value | existing_value]
+            existing_value ++ List.wrap(value)
           end
         end)
 
