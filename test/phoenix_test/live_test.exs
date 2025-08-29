@@ -764,7 +764,7 @@ defmodule PhoenixTest.LiveTest do
         |> upload("Avatar", "test/files/elixir.jpg", exact: false)
         |> click_button("Save")
       end)
-      |> assert_has("#form-data", text: "avatar: elixir.jpg")
+      |> assert_has("#form-data", text: "avatar_2: elixir.jpg")
     end
 
     test "can specify input selector when multiple inputs have same label", %{conn: conn} do
