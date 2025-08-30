@@ -17,6 +17,12 @@ defmodule PhoenixTest.Html do
     |> List.first()
   end
 
+  def attributes(%LazyHTML{} = element) do
+    element
+    |> LazyHTML.attributes()
+    |> List.first()
+  end
+
   def all(%LazyHTML{} = html, selector) when is_binary(selector) do
     LazyHTML.query(html, selector)
   end

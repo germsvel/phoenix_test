@@ -147,9 +147,7 @@ defmodule PhoenixTest.Element.Form do
           [to_form_field(select, selected_options)]
 
         _ ->
-          selected_options
-          |> Enum.map(&to_form_field(select, &1))
-          |> Enum.reverse()
+          Enum.map(selected_options, &to_form_field(select, &1))
       end
     end)
   end
