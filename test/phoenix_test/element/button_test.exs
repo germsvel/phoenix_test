@@ -97,13 +97,7 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      button_html = """
-      <button>
-        Save
-      </button>
-      """
-
-      assert button.raw == button_html
+      assert button.raw =~ ~r/^<button>\s*Save\s*<\/button>$/
     end
   end
 

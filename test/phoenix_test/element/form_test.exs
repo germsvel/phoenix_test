@@ -4,6 +4,7 @@ defmodule PhoenixTest.Element.FormTest do
   alias PhoenixTest.Element.Button
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Form
+  alias PhoenixTest.Html
 
   describe "find!" do
     test "finds a form by selector" do
@@ -68,7 +69,9 @@ defmodule PhoenixTest.Element.FormTest do
       input_form = Form.find_by_descendant!(html, field)
       find_form = Form.find!(html, "#user-form")
 
-      assert input_form == find_form
+      assert %{input_form | parsed: nil} == %{find_form | parsed: nil}
+
+      assert Html.element(input_form.parsed) == Html.element(find_form.parsed)
     end
   end
 

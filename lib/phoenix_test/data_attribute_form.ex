@@ -3,7 +3,7 @@ defmodule PhoenixTest.DataAttributeForm do
 
   alias PhoenixTest.Html
 
-  def build({_, _, _} = element) do
+  def build(%LazyHTML{} = element) do
     method = Html.attribute(element, "data-method")
     action = Html.attribute(element, "data-to")
     csrf_token = Html.attribute(element, "data-csrf")

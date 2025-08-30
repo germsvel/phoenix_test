@@ -64,11 +64,12 @@ defmodule PhoenixTest.Query do
       [] ->
         :not_found
 
-      [element] ->
-        {:found, element}
-
-      [_ | _] = elements ->
-        {:found_many, elements}
+      %LazyHTML{} = query ->
+        case Enum.count(query) do
+          0 -> :not_found
+          1 -> {:found, query}
+          _ -> {:found_many, query}
+        end
     end
   end
 
@@ -290,10 +291,11 @@ defmodule PhoenixTest.Query do
           {:found, _} -> true
           _ -> false
         end)
+        |> Enum.map(fn {:found, element} -> element end)
         |> case do
           [] -> {:not_found, :found_many_labels, label_elements}
-          [{:found, element}] -> {:found, element}
-          [_ | _] = found -> {:not_found, :found_many_labels_with_inputs, label_elements, Enum.map(found, &elem(&1, 1))}
+          [element] -> {:found, element}
+          [_ | _] = found -> {:not_found, :found_many_labels_with_inputs, label_elements, found}
         end
 
       {:not_found, potential_matches} ->
@@ -426,7 +428,7 @@ defmodule PhoenixTest.Query do
   defp filter_ancestor_with_descendant(ancestors, descendant_selector, descendant_text) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      case find(Html.raw(ancestor), descendant_selector, descendant_text) do
+      case find(ancestor, descendant_selector, descendant_text) do
         {:not_found, _} -> false
         {:found, _element} -> true
         {:found_many, _elements} -> true
@@ -442,7 +444,7 @@ defmodule PhoenixTest.Query do
   defp filter_ancestor_with_descendant(ancestors, descendant_selector) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      case find(Html.raw(ancestor), descendant_selector) do
+      case find(ancestor, descendant_selector) do
         :not_found -> false
         {:found, _element} -> true
         {:found_many, _elements} -> true
@@ -457,21 +459,25 @@ defmodule PhoenixTest.Query do
 
   defp determine_implicit_or_explicit_label(html, label, input_selectors) do
     explicit = find_explicit_label_input(html, input_selectors, label)
-    implicit = find_one_of(Html.raw(label), input_selectors)
+    implicit = find_one_of(label, input_selectors)
 
     case {explicit, implicit} do
-      {{:found, explicit_el}, {:found, implicit_el}} when explicit_el != implicit_el ->
-        msg = """
-        Found a label which references two different inputs.
+      {{:found, explicit_el}, {:found, implicit_el}} ->
+        if Html.element(explicit_el) == Html.element(implicit_el) do
+          {:implicit_association, label, implicit_el}
+        else
+          msg = """
+          Found a label which references two different inputs.
 
-        Please remove either the 'for' attribute or the nested input
+          Please remove either the 'for' attribute or the nested input
 
-        to ensure the correct input can be targeted:
+          to ensure the correct input can be targeted:
 
-        #{Html.raw(label)}
-        """
+          #{Html.raw(label)}
+          """
 
-        raise ArgumentError, msg
+          raise ArgumentError, msg
+        end
 
       {_, {:found, implicit_el}} ->
         {:implicit_association, label, implicit_el}
@@ -511,7 +517,7 @@ defmodule PhoenixTest.Query do
   end
 
   defp combine_selector(input_selector, label_for) do
-    if Element.selector_has_id?(input_selector) do
+    if Element.selector_has_id?(input_selector, label_for) do
       input_selector
     else
       input_selector <> "[id='#{label_for}']"
@@ -528,7 +534,7 @@ defmodule PhoenixTest.Query do
         fn element -> Html.text(element) =~ text end
       end
 
-    Enum.filter(elements, &(&1 |> Floki.filter_out("select") |> filter_fun.()))
+    Enum.filter(elements, &(&1 |> LazyHTML.filter(":not(select)") |> filter_fun.()))
   end
 
   defp filter_by_position(elements, opts) do
@@ -549,8 +555,10 @@ defmodule PhoenixTest.Query do
       {:not_found, _} -> true
       _ -> false
     end)
-    |> Enum.reduce([], fn {:not_found, values}, acc ->
-      values ++ acc
+    |> Enum.map(fn {:not_found, values} -> values end)
+    |> then(fn
+      [element] -> element
+      elements -> elements
     end)
   end
 
