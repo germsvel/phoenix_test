@@ -611,7 +611,6 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :missing_for, label} = Query.find_by_label(html, "input[name='not-greeting']", "Hello")
-
       assert {"label", [], _} = Html.element(label)
     end
 
@@ -642,7 +641,6 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :found_many_labels, labels} = Query.find_by_label(html, "input", "Hello")
-
       assert length(labels) == 2
       assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
     end
@@ -656,7 +654,6 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
-
       assert length(labels) == 2
       assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
       assert length(inputs) == 2
@@ -672,7 +669,6 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
-
       assert length(labels) == 2
       assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
       assert length(inputs) == 2
@@ -791,6 +787,11 @@ defmodule PhoenixTest.QueryTest do
 
       msg = """
       Could not find "form" for an element with selector "#greeting".
+
+      Found other potential "form":
+
+      <form id="super-form">
+      </form>
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -804,7 +805,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       msg = """
-      Could not find "form" for an element with selector "#greeting".
+      Could not find any "form" elements.
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -869,7 +870,12 @@ defmodule PhoenixTest.QueryTest do
       """
 
       msg = """
-      Could not find "form" for an element with selector "button".
+      Could not find "form" for an element with selector "button" and text "Save".
+
+      Found other potential "form":
+
+      <form id="super-form">
+      </form>
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -883,7 +889,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       msg = """
-      Could not find "form" for an element with selector "button".
+      Could not find any "form" elements.
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -912,7 +918,9 @@ defmodule PhoenixTest.QueryTest do
       <input id="greeting" />
       """
 
-      :not_found = Query.find_ancestor(html, "form", "#greeting")
+      {:not_found, [element]} = Query.find_ancestor(html, "form", "#greeting")
+
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
   end
 
@@ -956,7 +964,8 @@ defmodule PhoenixTest.QueryTest do
       </form>
       """
 
-      :not_found = Query.find_ancestor(html, "form", {"button", "Save"})
+      {:not_found, [element]} = Query.find_ancestor(html, "form", {"button", "Save"})
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
   end
 end

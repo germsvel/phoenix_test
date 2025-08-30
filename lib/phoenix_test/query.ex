@@ -292,7 +292,6 @@ defmodule PhoenixTest.Query do
           _ -> false
         end)
         |> Enum.map(fn {:found, element} -> element end)
-        |> Enum.uniq()
         |> case do
           [] -> {:not_found, :found_many_labels, label_elements}
           [element] -> {:found, element}
@@ -344,7 +343,18 @@ defmodule PhoenixTest.Query do
 
       :not_found ->
         msg = """
-        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
+        Could not find any #{inspect(ancestor)} elements.
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, potential_matches} ->
+        msg = """
+        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}.
+
+        Found other potential #{inspect(ancestor)}:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
         """
 
         raise ArgumentError, msg
@@ -371,7 +381,18 @@ defmodule PhoenixTest.Query do
 
       :not_found ->
         msg = """
+        Could not find any #{inspect(ancestor)} elements.
+        """
+
+        raise ArgumentError, msg
+
+      {:not_found, potential_matches} ->
+        msg = """
         Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
+
+        Found other potential #{inspect(ancestor)}:
+
+        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
         """
 
         raise ArgumentError, msg
@@ -407,24 +428,34 @@ defmodule PhoenixTest.Query do
   defp filter_ancestor_with_descendant(ancestors, descendant_selector, descendant_text) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      result = find(ancestor, descendant_selector, descendant_text)
-      is_tuple(result) and elem(result, 0) in [:found, :found_many]
+      case find(ancestor, descendant_selector, descendant_text) do
+        {:not_found, _} -> false
+        {:found, _element} -> true
+        {:found_many, _elements} -> true
+      end
     end)
-    |> consolidate_ancestors()
+    |> case do
+      [] -> {:not_found, ancestors}
+      [ancestor] -> {:found, ancestor}
+      [_ | _] = ancestors -> {:found_many, ancestors}
+    end
   end
 
   defp filter_ancestor_with_descendant(ancestors, descendant_selector) do
     ancestors
     |> Enum.filter(fn ancestor ->
-      result = find(ancestor, descendant_selector)
-      is_tuple(result) and elem(result, 0) in [:found, :found_many]
+      case find(ancestor, descendant_selector) do
+        :not_found -> false
+        {:found, _element} -> true
+        {:found_many, _elements} -> true
+      end
     end)
-    |> consolidate_ancestors()
+    |> case do
+      [] -> {:not_found, ancestors}
+      [ancestor] -> {:found, ancestor}
+      [_ | _] = ancestors -> {:found_many, ancestors}
+    end
   end
-
-  defp consolidate_ancestors([]), do: :not_found
-  defp consolidate_ancestors([element]), do: {:found, element}
-  defp consolidate_ancestors([_ | _] = elements), do: {:found_many, elements}
 
   defp determine_implicit_or_explicit_label(html, label, input_selectors) do
     explicit = find_explicit_label_input(html, input_selectors, label)
@@ -478,28 +509,6 @@ defmodule PhoenixTest.Query do
           ^label_for -> found
           _ -> {:not_found, :mismatched_id, label, element}
         end
-
-      {:found_many, [element | _] = results} ->
-        results
-        |> Enum.find(fn element ->
-          case Html.attribute(element, "id") do
-            ^label_for -> {:found, element}
-            _ -> nil
-          end
-        end)
-        |> then(fn
-          nil -> {:not_found, :mismatched_id, label, element}
-          found -> found
-        end)
-
-      {:found_many, %LazyHTML{} = html} ->
-        html
-        |> Html.all("[id='#{label_for}']")
-        |> Enum.at(0)
-        |> then(fn
-          nil -> {:not_found, :mismatched_id, label, html}
-          element -> {:found, element}
-        end)
     end
   end
 
