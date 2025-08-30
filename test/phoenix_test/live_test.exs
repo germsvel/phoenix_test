@@ -190,7 +190,8 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "email: some@example.com")
     end
 
-    test "submits owner form if button isn't nested inside form (including button data)", %{conn: conn} do
+    test "submits owner form if button isn't nested inside form (including button data)",
+         %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#owner-form", fn session ->
@@ -282,7 +283,8 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "does not raise when clicking a button that contains text wrapped in another element", %{conn: conn} do
+    test "does not raise when clicking a button that contains text wrapped in another element",
+         %{conn: conn} do
       conn
       |> visit("/live/index")
       |> click_button("An ID-less Span Wrapped")
@@ -518,12 +520,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "favorite-character: Frodo")
     end
 
-    test "raises an error if select option is neither in a form nor has a phx-click", %{conn: conn} do
+    test "raises an error if select option is neither in a form nor has a phx-click",
+         %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/to have a valid `phx-click` attribute on options or to belong to a `form`/, fn ->
-        select(session, "Invalid Select Option", option: "Dog")
-      end
+      assert_raise ArgumentError,
+                   ~r/to have a valid `phx-click` attribute on options or to belong to a `form`/,
+                   fn ->
+                     select(session, "Invalid Select Option", option: "Dog")
+                   end
     end
   end
 
@@ -591,9 +596,11 @@ defmodule PhoenixTest.LiveTest do
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/have a valid `phx-click` attribute or belong to a `form`/, fn ->
-        check(session, "Invalid Checkbox")
-      end
+      assert_raise ArgumentError,
+                   ~r/have a valid `phx-click` attribute or belong to a `form`/,
+                   fn ->
+                     check(session, "Invalid Checkbox")
+                   end
     end
   end
 
@@ -661,34 +668,36 @@ defmodule PhoenixTest.LiveTest do
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/have a valid `phx-click` attribute or belong to a `form`/, fn ->
-        uncheck(session, "Invalid Checkbox")
-      end
+      assert_raise ArgumentError,
+                   ~r/have a valid `phx-click` attribute or belong to a `form`/,
+                   fn ->
+                     uncheck(session, "Invalid Checkbox")
+                   end
     end
 
     test "sends phx-value when phx-click attribute used", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refute_has("#checkbox-phx-click-values-abc[checked=checked]")
+      |> refute_has("#checkbox-phx-click-values-abc:checked")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
       |> check("Checkbox abc")
-      |> assert_has("#checkbox-phx-click-values-abc[checked]")
+      |> assert_has("#checkbox-phx-click-values-abc:checked")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Checked")
       |> uncheck("Checkbox abc")
-      |> refute_has("#checkbox-phx-click-values-abc[checked]")
+      |> refute_has("#checkbox-phx-click-values-abc:checked")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
     end
 
     test "sends phx-click JS command value when attribute used", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refute_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> refute_has("#checkbox-phx-click-values-def:checked")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
       |> check("Checkbox def")
-      |> assert_has("#checkbox-phx-click-values-def[checked]")
+      |> assert_has("#checkbox-phx-click-values-def:checked")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Checked")
       |> uncheck("Checkbox def")
-      |> refute_has("#checkbox-phx-click-values-def[checked]")
+      |> refute_has("#checkbox-phx-click-values-def:checked")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
     end
   end
@@ -727,7 +736,8 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "book-or-movie: book")
     end
 
-    test "can specify input selector when multiple options have same label in same form", %{conn: conn} do
+    test "can specify input selector when multiple options have same label in same form",
+         %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#same-labels", fn session ->
@@ -739,9 +749,11 @@ defmodule PhoenixTest.LiveTest do
     test "raises an error if radio is neither in a form nor has a phx-click", %{conn: conn} do
       session = visit(conn, "/live/index")
 
-      assert_raise ArgumentError, ~r/to have a valid `phx-click` attribute or belong to a `form` element/, fn ->
-        choose(session, "Invalid Radio Button")
-      end
+      assert_raise ArgumentError,
+                   ~r/to have a valid `phx-click` attribute or belong to a `form` element/,
+                   fn ->
+                     choose(session, "Invalid Radio Button")
+                   end
     end
   end
 
@@ -779,7 +791,8 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "main_avatar: elixir.jpg")
     end
 
-    test "upload (without other form actions) does not work with submit (matches browser behavior)", %{conn: conn} do
+    test "upload (without other form actions) does not work with submit (matches browser behavior)",
+         %{conn: conn} do
       session =
         conn
         |> visit("/live/index")
@@ -959,7 +972,8 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "button: save")
     end
 
-    test "handles inputs that get removed through other actions without raising error", %{conn: conn} do
+    test "handles inputs that get removed through other actions without raising error",
+         %{conn: conn} do
       conn
       |> visit("/live/index")
       |> fill_in("To keep", with: "this input should stay")
@@ -1150,7 +1164,9 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> fill_in("Trigger action", with: "engage")
       |> submit()
-      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> assert_has("#form-data",
+        text: "trigger_action_hidden_input: trigger_action_hidden_value"
+      )
       |> assert_has("#form-data", text: "trigger_action_input: engage")
     end
 
@@ -1158,7 +1174,9 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> click_button("Trigger from elsewhere")
-      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> assert_has("#form-data",
+        text: "trigger_action_hidden_input: trigger_action_hidden_value"
+      )
       |> refute_has("#form-data", text: "trigger_action_input:")
     end
 
@@ -1255,7 +1273,8 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page", timeout: 250)
     end
 
-    test "can handle multiple LiveViews (redirect one to another) with async behavior", %{conn: conn} do
+    test "can handle multiple LiveViews (redirect one to another) with async behavior",
+         %{conn: conn} do
       conn
       |> visit("/live/async_page")
       |> click_button("Async navigate to async 2 page!")
