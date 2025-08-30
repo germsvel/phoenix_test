@@ -79,12 +79,10 @@ defmodule PhoenixTest.Query do
       |> Html.parse()
       |> Html.all(selector)
 
-    result =
-      elements_matched_selector
-      |> filter_by_position(opts)
-      |> filter_by_text(text, opts)
-
-    case result do
+    elements_matched_selector
+    |> filter_by_position(opts)
+    |> filter_by_text(text, opts)
+    |> case do
       [] -> {:not_found, elements_matched_selector}
       [found] -> {:found, found}
       [_ | _] = found_many -> {:found_many, found_many}
@@ -307,7 +305,9 @@ defmodule PhoenixTest.Query do
   end
 
   defp find_labels(html, input_selectors, label, opts) do
-    case find(html, "label", label, opts) do
+    html
+    |> find("label", label, opts)
+    |> case do
       {:not_found, potential_matches} ->
         {:not_found, potential_matches}
 
