@@ -17,17 +17,12 @@ defmodule PhoenixTest.Element.Button do
   end
 
   def find_first(html) do
-    case Query.find(html, "button") do
-      {:found, element} ->
-        build(element, html)
-
-      {:found_many, query} ->
-        query
-        |> Enum.at(0)
-        |> build(html)
-
-      :not_found ->
-        nil
+    html
+    |> Query.find("button")
+    |> case do
+      {:found, element} -> build(element, html)
+      {:found_many, elements} -> elements |> Enum.at(0) |> build(html)
+      :not_found -> nil
     end
   end
 
