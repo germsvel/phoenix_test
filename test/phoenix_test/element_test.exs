@@ -73,11 +73,18 @@ defmodule PhoenixTest.ElementTest do
       refute Element.selector_has_id?(selector, "nome")
     end
 
-    test "returns true if selector has [id=<id>]" do
+    test "returns true if selector has [id=<id>] with single quotes" do
       selector = "[id='name']"
 
       assert Element.selector_has_id?(selector, "name")
       refute Element.selector_has_id?(selector, "nome")
+    end
+
+    test "returns true if selector has [id=<id>] with double quotes" do
+      selector = ~s|[id="user_name"]|
+
+      assert Element.selector_has_id?(selector, "user_name")
+      refute Element.selector_has_id?(selector, "user_nome")
     end
 
     test "returns false if selector doesn't have id" do

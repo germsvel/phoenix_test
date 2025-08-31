@@ -30,6 +30,6 @@ defmodule PhoenixTest.Element do
   end
 
   def selector_has_id?(selector, id) when is_binary(selector) and is_binary(id) do
-    Enum.any?(["[id='#{id}'", ~s|[id="id"]|, "##{id}"], &String.contains?(selector, &1))
+    Enum.any?(["[id='#{id}'", ~s|[id="#{id}"|, "##{id}"], &String.contains?(selector, &1))
   end
 end
