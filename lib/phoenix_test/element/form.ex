@@ -162,12 +162,6 @@ defmodule PhoenixTest.Element.Form do
     to_form_field(element, element)
   end
 
-  defp to_form_field(name_element, value_elements) when is_list(value_elements) do
-    name = Html.attribute(name_element, "name")
-    values = Enum.map(value_elements, &element_value/1)
-    {name, values}
-  end
-
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
     {name, element_value(value_element)}
