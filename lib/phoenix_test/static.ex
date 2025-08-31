@@ -18,8 +18,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.Locators
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Query
-
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  alias PhoenixTest.Utils
 
   defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
@@ -236,7 +235,7 @@ defmodule PhoenixTest.Static do
     html =
       session.conn.resp_body
       |> Floki.parse_document!()
-      |> Floki.traverse_and_update(&OpenBrowser.prefix_static_paths(&1, @endpoint))
+      |> Floki.traverse_and_update(&OpenBrowser.prefix_static_paths(&1, Utils.current_endpoint()))
       |> Floki.raw_html()
 
     File.write!(path, html)
@@ -280,7 +279,7 @@ defmodule PhoenixTest.Static do
 
     conn
     |> ConnHandler.recycle_all_headers()
-    |> dispatch(@endpoint, form.method, form.action, payload)
+    |> dispatch(Utils.current_endpoint(), form.method, form.action, payload)
     |> maybe_redirect(session)
   end
 

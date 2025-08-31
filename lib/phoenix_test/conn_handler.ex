@@ -1,12 +1,11 @@
 defmodule PhoenixTest.ConnHandler do
   @moduledoc false
   import Phoenix.ConnTest
-
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  alias PhoenixTest.Utils
 
   def visit(conn, path) do
     conn
-    |> get(path)
+    |> dispatch(Utils.current_endpoint(), :get, path)
     |> visit()
   end
 

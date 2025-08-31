@@ -17,13 +17,12 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.LiveViewTimeout
   alias PhoenixTest.Locators
   alias PhoenixTest.Query
-
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  alias PhoenixTest.EndpointHelpers
 
   defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
 
   def build(conn) do
-    {:ok, view, _html} = live(conn)
+    {:ok, view, _html} = EndpointHelpers.live_with_current_endpoint(conn)
     current_path = ConnHandler.build_current_path(conn)
     {:ok, watcher} = start_watcher(view)
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
@@ -269,7 +268,7 @@ defmodule PhoenixTest.Live do
 
     upload_progress_result =
       session.view
-      |> file_input(form.selector, live_upload_name, [entry])
+      |> EndpointHelpers.file_input_with_current_endpoint(form.selector, live_upload_name, [entry])
       |> render_upload(file_name)
       |> maybe_throw_upload_errors(session, file_name, live_upload_name)
 
@@ -461,7 +460,7 @@ defmodule PhoenixTest.Live do
     conn = session.conn
 
     result
-    |> follow_redirect(ConnHandler.recycle_all_headers(conn))
+    |> EndpointHelpers.follow_redirect_with_current_endpoint(ConnHandler.recycle_all_headers(conn))
     |> maybe_redirect(session)
   end
 
