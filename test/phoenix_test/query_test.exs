@@ -369,17 +369,9 @@ defmodule PhoenixTest.QueryTest do
       <input id="name"/>
       """
 
-      msg =
-        ignore_whitespace("""
-        Could not find element with label "Name" and provided selectors.
-
-        Labels found
-        ============
-
-
-
-        Searched for labeled elements with these selectors: "input"
-        """)
+      msg = """
+      Could not find element with label "Name"
+      """
 
       assert_raise ArgumentError, msg, fn ->
         Query.find_by_label!(html, "input", "Name")

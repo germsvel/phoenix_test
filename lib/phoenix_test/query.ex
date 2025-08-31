@@ -164,26 +164,27 @@ defmodule PhoenixTest.Query do
       {:found, element} ->
         element
 
-      {:not_found, :no_label, []} ->
-        msg = """
-        Could not find element with label #{inspect(label)}
-        """
-
-        raise ArgumentError, msg
-
       {:not_found, :no_label, potential_matches} ->
-        msg = """
-        Could not find element with label #{inspect(label)} and provided selectors.
+        if Enum.empty?(potential_matches) do
+          msg = """
+          Could not find element with label #{inspect(label)}
+          """
 
-        Labels found
-        ============
+          raise ArgumentError, msg
+        else
+          msg = """
+          Could not find element with label #{inspect(label)} and provided selectors.
 
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+          Labels found
+          ============
 
-        Searched for labeled elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
-        """
+          #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
 
-        raise ArgumentError, msg
+          Searched for labeled elements with these selectors: #{format_selectors_for_error_msg(input_selectors)}
+          """
+
+          raise ArgumentError, msg
+        end
 
       {:not_found, :missing_for, found_label} ->
         msg = """
