@@ -671,10 +671,10 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#checkbox-phx-click-values-abc[checked=checked]")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
       |> check("Checkbox abc")
-      |> assert_has("#checkbox-phx-click-values-abc[checked=checked]")
+      |> assert_has("#checkbox-phx-click-values-abc[checked]")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Checked")
       |> uncheck("Checkbox abc")
-      |> refute_has("#checkbox-phx-click-values-abc[checked=checked]")
+      |> refute_has("#checkbox-phx-click-values-abc[checked]")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
     end
 
@@ -684,10 +684,10 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#checkbox-phx-click-values-def[checked=checked]")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
       |> check("Checkbox def")
-      |> assert_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> assert_has("#checkbox-phx-click-values-def[checked]")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Checked")
       |> uncheck("Checkbox def")
-      |> refute_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> refute_has("#checkbox-phx-click-values-def[checked]")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
     end
   end
