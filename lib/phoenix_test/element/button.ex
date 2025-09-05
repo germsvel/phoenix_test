@@ -21,7 +21,7 @@ defmodule PhoenixTest.Element.Button do
     |> Query.find("button")
     |> case do
       {:found, element} -> build(element, html)
-      {:found_many, [element | _]} -> build(element, html)
+      {:found_many, elements} -> elements |> Enum.at(0) |> build(html)
       :not_found -> nil
     end
   end

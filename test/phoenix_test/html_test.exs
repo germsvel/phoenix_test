@@ -14,7 +14,7 @@ defmodule PhoenixTest.HtmlTest do
 
       result =
         html
-        |> Html.parse()
+        |> Html.parse_fragment()
         |> Html.text()
 
       assert result == "hello world!"

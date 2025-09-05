@@ -396,13 +396,15 @@ defmodule PhoenixTest.Assertions do
     msg <> "\n\n" <> "But found #{Enum.count(found)}:" <> "\n\n" <> format_found_elements(found)
   end
 
-  defp append_found_other_matches(msg, _selector, []), do: msg
-
   defp append_found_other_matches(msg, selector, matches) do
-    msg <>
-      "\n\n" <>
-      "Found these elements matching the selector #{inspect(selector)}:" <>
-      "\n\n" <> format_found_elements(matches)
+    if Enum.empty?(matches) do
+      msg
+    else
+      msg <>
+        "\n\n" <>
+        "Found these elements matching the selector #{inspect(selector)}:" <>
+        "\n\n" <> format_found_elements(matches)
+    end
   end
 
   defp maybe_append_text(msg, :no_text), do: msg
