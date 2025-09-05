@@ -11,6 +11,15 @@ defmodule PhoenixTest.Html do
     element |> LazyHTML.text() |> String.trim() |> normalize_whitespace()
   end
 
+  def element_text(%LazyHTML{} = element) do
+    element
+    |> LazyHTML.child_nodes()
+    |> Enum.flat_map(&extract_if_text/1)
+    |> Enum.join("")
+    |> String.trim()
+    |> normalize_whitespace()
+  end
+
   def attribute(%LazyHTML{} = element, attr) when is_binary(attr) do
     element
     |> LazyHTML.attribute(attr)
@@ -45,5 +54,15 @@ defmodule PhoenixTest.Html do
 
   defp normalize_whitespace(string) do
     String.replace(string, ~r/[\s]+/, " ")
+  end
+
+  defp extract_if_text(node) do
+    node
+    |> LazyHTML.child_nodes()
+    |> Enum.count()
+    |> case do
+      0 -> [text(node)]
+      _ -> []
+    end
   end
 end

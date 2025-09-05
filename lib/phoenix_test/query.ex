@@ -530,7 +530,7 @@ defmodule PhoenixTest.Query do
 
     filter_fun =
       if exact_match do
-        fn element -> Html.text(element) == text end
+        fn element -> Html.element_text(element) == text end
       else
         fn element -> Html.text(element) =~ text end
       end
