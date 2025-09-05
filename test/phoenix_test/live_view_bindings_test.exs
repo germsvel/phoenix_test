@@ -17,7 +17,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click="save" />
         """)
 
-      element = html |> Html.parse() |> Html.all("input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -30,7 +30,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input value="Hello world" />
         """)
 
-      element = html |> Html.parse() |> Html.all("input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       refute LiveViewBindings.phx_click?(element)
     end
@@ -43,7 +43,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.push("save")} />
         """)
 
-      element = html |> Html.parse() |> Html.all("input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -56,7 +56,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.navigate("save")} />
         """)
 
-      element = html |> Html.parse() |> Html.all("input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -69,7 +69,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <div phx-click={JS.patch("/some/path")}></div>
         """)
 
-      element = html |> Html.parse() |> Html.all("div")
+      element = html |> Html.parse_fragment() |> Html.all("div")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -82,7 +82,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.dispatch("change")} />
         """)
 
-      element = html |> Html.parse() |> Html.all("input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       refute LiveViewBindings.phx_click?(element)
     end
@@ -95,7 +95,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.push("save") |> JS.dispatch("change")} />
         """)
 
-      element = html |> Html.parse() |> Html.all("input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end

@@ -1,10 +1,16 @@
 defmodule PhoenixTest.Html do
   @moduledoc false
 
-  def parse(%LazyHTML{} = html), do: html
+  def parse_document(%LazyHTML{} = html), do: html
 
-  def parse(html) when is_binary(html) do
+  def parse_document(html) when is_binary(html) do
     LazyHTML.from_document(html)
+  end
+
+  def parse_fragment(%LazyHTML{} = html), do: html
+
+  def parse_fragment(html) when is_binary(html) do
+    LazyHTML.from_fragment(html)
   end
 
   def text(%LazyHTML{} = element) do

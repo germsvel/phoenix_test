@@ -45,7 +45,7 @@ defmodule PhoenixTest.Live do
     html =
       view
       |> render()
-      |> Html.parse()
+      |> Html.parse_fragment()
 
     case within do
       :none -> html

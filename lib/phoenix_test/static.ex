@@ -43,7 +43,7 @@ defmodule PhoenixTest.Static do
     html =
       conn
       |> html_response(conn.status)
-      |> Html.parse()
+      |> Html.parse_document()
 
     case within do
       :none -> html
@@ -234,7 +234,7 @@ defmodule PhoenixTest.Static do
 
     html =
       session.conn.resp_body
-      |> Html.parse()
+      |> Html.parse_document()
       |> Html.postwalk(&OpenBrowser.prefix_static_paths(&1, @endpoint))
       |> Html.raw()
 

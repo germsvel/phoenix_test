@@ -57,7 +57,7 @@ defmodule PhoenixTest.Query do
 
   def find(html, selector, opts) when is_list(opts) do
     html
-    |> Html.parse()
+    |> Html.parse_fragment()
     |> Html.all(selector)
     |> filter_by_position(opts)
     |> case do
@@ -76,7 +76,7 @@ defmodule PhoenixTest.Query do
   def find(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
     elements_matched_selector =
       html
-      |> Html.parse()
+      |> Html.parse_fragment()
       |> Html.all(selector)
 
     elements_matched_selector
