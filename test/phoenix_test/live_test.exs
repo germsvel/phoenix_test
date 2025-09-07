@@ -5,6 +5,7 @@ defmodule PhoenixTest.LiveTest do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Driver
+  alias PhoenixTest.Html
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -668,26 +669,26 @@ defmodule PhoenixTest.LiveTest do
     test "sends phx-value when phx-click attribute used", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refute_has("#checkbox-phx-click-values-abc[checked=checked]")
+      |> refute_has("#checkbox-phx-click-values-abc:checked")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
       |> check("Checkbox abc")
-      |> assert_has("#checkbox-phx-click-values-abc[checked]")
+      |> assert_has("#checkbox-phx-click-values-abc:checked")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Checked")
       |> uncheck("Checkbox abc")
-      |> refute_has("#checkbox-phx-click-values-abc[checked]")
+      |> refute_has("#checkbox-phx-click-values-abc:checked")
       |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
     end
 
     test "sends phx-click JS command value when attribute used", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refute_has("#checkbox-phx-click-values-def[checked=checked]")
+      |> refute_has("#checkbox-phx-click-values-def:checked")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
       |> check("Checkbox def")
-      |> assert_has("#checkbox-phx-click-values-def[checked]")
+      |> assert_has("#checkbox-phx-click-values-def:checked")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Checked")
       |> uncheck("Checkbox def")
-      |> refute_has("#checkbox-phx-click-values-def[checked]")
+      |> refute_has("#checkbox-phx-click-values-def:checked")
       |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
     end
   end
@@ -1120,7 +1121,7 @@ defmodule PhoenixTest.LiveTest do
         |> within("#no-phx-change-form", &fill_in(&1, "Name", with: "Aragorn"))
         |> Driver.render_html()
 
-      assert starting_html == ending_html
+      assert Html.element(starting_html) == Html.element(ending_html)
     end
 
     test "follows redirects on phx-change", %{conn: conn} do

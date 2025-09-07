@@ -35,12 +35,14 @@ defmodule PhoenixTest.LiveViewBindings do
   defp valid_js_command?(["push", _opts]), do: true
   defp valid_js_command?([_command, _opts]), do: false
 
-  defp any_phx_value_attributes?({_element, attributes, _children}) when is_list(attributes) do
-    Enum.any?(attributes, fn {key, _value} -> String.starts_with?(key, "phx-value-") end)
+  defp any_phx_value_attributes?(%LazyHTML{} = element) do
+    element
+    |> Html.attributes()
+    |> Enum.any?(fn {key, _value} -> String.starts_with?(key, "phx-value-") end)
   end
 
-  defp phx_click_command_has_value?(parsed_element) when is_tuple(parsed_element) do
-    parsed_element
+  defp phx_click_command_has_value?(%LazyHTML{} = element) do
+    element
     |> Html.attribute("phx-click")
     |> phx_click_command_has_value?()
   end

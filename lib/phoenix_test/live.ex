@@ -42,15 +42,14 @@ defmodule PhoenixTest.Live do
   end
 
   def render_html(%{view: view, within: within}) do
-    case within do
-      :none ->
-        render(view)
+    html =
+      view
+      |> render()
+      |> Html.parse_fragment()
 
-      selector ->
-        view
-        |> render()
-        |> Query.find!(selector)
-        |> Html.raw()
+    case within do
+      :none -> html
+      selector when is_binary(selector) -> Html.all(html, selector)
     end
   end
 
@@ -70,12 +69,18 @@ defmodule PhoenixTest.Live do
       |> Query.find_by_role!(locator)
       |> Button.build(html)
 
-    click_button(session, button.selector, text)
+    click_button(session, button.selector, text, button: button)
   end
 
-  def click_button(session, selector, text) do
-    html = render_html(session)
-    button = Button.find!(html, selector, text)
+  def click_button(session, selector, text, opts \\ []) do
+    button =
+      if button = opts[:button] do
+        button
+      else
+        session
+        |> render_html()
+        |> Button.find!(selector, text)
+      end
 
     cond do
       Button.phx_click?(button) ->

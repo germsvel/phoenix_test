@@ -40,15 +40,14 @@ defmodule PhoenixTest.Static do
   end
 
   def render_html(%{conn: conn, within: within}) do
-    case within do
-      :none ->
-        html_response(conn, conn.status)
+    html =
+      conn
+      |> html_response(conn.status)
+      |> Html.parse_document()
 
-      selector ->
-        conn
-        |> html_response(conn.status)
-        |> Query.find!(selector)
-        |> Html.raw()
+    case within do
+      :none -> html
+      selector when is_binary(selector) -> Html.all(html, selector)
     end
   end
 
@@ -235,9 +234,9 @@ defmodule PhoenixTest.Static do
 
     html =
       session.conn.resp_body
-      |> Floki.parse_document!()
-      |> Floki.traverse_and_update(&OpenBrowser.prefix_static_paths(&1, @endpoint))
-      |> Floki.raw_html()
+      |> Html.parse_document()
+      |> Html.postwalk(&OpenBrowser.prefix_static_paths(&1, @endpoint))
+      |> Html.raw()
 
     File.write!(path, html)
 
