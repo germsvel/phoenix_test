@@ -69,23 +69,23 @@ defmodule PhoenixTest.Live do
       |> Query.find_by_role!(locator)
       |> Button.build(html)
 
-    click_button(session, button.selector, text, button: button)
+    handle_click_button(session, button)
   end
 
-  def click_button(session, selector, text, opts \\ []) do
+  def click_button(session, selector, text) do
     button =
-      if button = opts[:button] do
-        button
-      else
-        session
-        |> render_html()
-        |> Button.find!(selector, text)
-      end
+      session
+      |> render_html()
+      |> Button.find!(selector, text)
 
+    handle_click_button(session, button)
+  end
+
+  defp handle_click_button(session, button) do
     cond do
       Button.phx_click?(button) ->
         session.view
-        |> element(selector, text)
+        |> element(button.selector, button.text)
         |> render_click()
         |> maybe_redirect(session)
 
@@ -107,7 +107,8 @@ defmodule PhoenixTest.Live do
 
       true ->
         raise ArgumentError, """
-        Expected element with selector #{inspect(selector)} and text #{inspect(text)} to have a valid `phx-click` attribute or belong to a `form` element.
+        Expected element with selector #{inspect(button.selector)} and text
+          #{inspect(button.text)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
   end

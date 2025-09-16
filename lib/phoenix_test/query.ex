@@ -553,7 +553,7 @@ defmodule PhoenixTest.Query do
   defp potential_matches(results) do
     results
     |> Enum.filter(fn
-      {:not_found, _} -> true
+      {:not_found, elements} -> !Enum.empty?(elements)
       _ -> false
     end)
     |> Enum.map(fn {:not_found, values} -> values end)
