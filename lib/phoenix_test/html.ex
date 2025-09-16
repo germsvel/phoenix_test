@@ -13,17 +13,28 @@ defmodule PhoenixTest.Html do
     LazyHTML.from_fragment(html)
   end
 
-  def text(%LazyHTML{} = element) do
-    element |> LazyHTML.text() |> String.trim() |> normalize_whitespace()
-  end
-
-  def element_text(%LazyHTML{} = element) do
+  def visible_text(%LazyHTML{} = element) do
     element
-    |> LazyHTML.child_nodes()
-    |> Enum.flat_map(&extract_if_text/1)
-    |> Enum.join("")
+    |> LazyHTML.to_tree(skip_whitespace_nodes: false)
+    |> text_without_select_options()
     |> String.trim()
     |> normalize_whitespace()
+  end
+
+  defp text_without_select_options(tree, acc \\ "")
+
+  defp text_without_select_options([], acc), do: acc
+
+  defp text_without_select_options([node | rest], acc) do
+    acc =
+      case node do
+        {"select", _, _} -> acc
+        {:comment, _} -> acc
+        {_, _, children} -> acc <> text_without_select_options(children)
+        text when is_binary(text) -> acc <> text
+      end
+
+    text_without_select_options(rest, acc)
   end
 
   def attribute(%LazyHTML{} = element, attr) when is_binary(attr) do
@@ -60,15 +71,5 @@ defmodule PhoenixTest.Html do
 
   defp normalize_whitespace(string) do
     String.replace(string, ~r/[\s]+/, " ")
-  end
-
-  defp extract_if_text(node) do
-    node
-    |> LazyHTML.child_nodes()
-    |> Enum.count()
-    |> case do
-      0 -> [text(node)]
-      _ -> []
-    end
   end
 end

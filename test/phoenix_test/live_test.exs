@@ -402,6 +402,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Frodo")
     end
 
+    test "can target a label with exact: true", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#complex-labels", fn session ->
+        fill_in(session, "Name *", with: "Frodo", exact: true)
+      end)
+      |> assert_has("#form-data", text: "name: Frodo")
+    end
+
     test "can target input with selector if multiple labels have same text", %{conn: conn} do
       conn
       |> visit("/live/index")
