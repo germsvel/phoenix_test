@@ -573,6 +573,61 @@ defmodule PhoenixTest do
   end
 
   @doc """
+  Change a form using map syntax
+
+  An alternative to `fill_in/3`, which wraps `Phoenix.LiveViewTest.form/3` followed
+  by `Phoenix.LiveViewTest.render_change/1`
+
+  Often you'll have multiple field_name & field_value's you want to fill a form in with, but
+  don't want to manually use `fill_in/3` for each of them
+
+  Phoenix.LiveViewTest solves this with `form/3`, which lets you use a map of attrs
+
+  So if your form looks like this
+  ```html
+  <input type="text" name="my_form[name]" />
+  <input type="text" name="my_form[favorite_color]" />
+  ```
+
+  Then in Phoenix.LiveViewTest you might do
+  ```elixir
+  valid_attrs = %{name: "hello", favorite_color: "blue"}
+
+  assert view
+    |> form("#my_form", user: valid_attrs)
+    |> render_submit() =~ "Name updated"
+  ```
+
+  Instead, with PhoenixTest you can do
+  ```elixir
+  conn
+  |> visit("/")
+  |> change_form("#my_form", user: @valid_attrs)
+  ```
+  """
+  def change_form(session, selector, form_data) do
+    change_or_submit_form(session, selector, form_data, :render_change)
+  end
+
+  @doc """
+  Submit a form using map syntax
+
+  The same as `change_form/3` but uses `Phoenix.LiveViewTest.render_submit/1` instead
+  of `Phoenix.LiveViewTest.render_change/1`
+  """
+  def submit_form(session, selector, form_data) do
+    change_or_submit_form(session, selector, form_data, :render_submit)
+  end
+
+  defp change_or_submit_form(session, selector, form_data, function_name) do
+    unwrap(session, fn view ->
+      view
+      |> Phoenix.LiveViewTest.form(selector, form_data)
+      |> then(&apply(Phoenix.LiveViewTest, function_name, [&1]))
+    end)
+  end
+
+  @doc """
   Selects an option from a select dropdown.
 
   ## Options
