@@ -7,6 +7,32 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.8.0
+
+### Improvements
+
+- Support LiveView 1.1 ([9ced344]), and replace Floki with LazyHTML ([c6c2483], [1c45a80])
+  - Note: Drops LiveView 0.20 in deps [499c3aa]
+  - Boolean attribute support [72e37fd]
+
+- Add credo NoOpenBrowser check [b1add28]
+- Support phx-value and JS command values with uncheck [63c0c2a]
+
+### Fixes
+
+- Preserve order of appearance for array inputs [5fd0f32]
+
+[1c45a80]: https://github.com/germsvel/phoenix_test/commit/1c45a80
+[b1add28]: https://github.com/germsvel/phoenix_test/commit/b1add28
+[499c3aa]: https://github.com/germsvel/phoenix_test/commit/499c3aa
+[32dd749]: https://github.com/germsvel/phoenix_test/commit/32dd749
+[c6c2483]: https://github.com/germsvel/phoenix_test/commit/c6c2483
+[b30665d]: https://github.com/germsvel/phoenix_test/commit/b30665d
+[9ced344]: https://github.com/germsvel/phoenix_test/commit/9ced344
+[72e37fd]: https://github.com/germsvel/phoenix_test/commit/72e37fd
+[5fd0f32]: https://github.com/germsvel/phoenix_test/commit/5fd0f32
+[63c0c2a]: https://github.com/germsvel/phoenix_test/commit/63c0c2a
+
 ## 0.7.1
 
 ### Improvements
