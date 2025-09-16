@@ -97,13 +97,7 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      button_html = """
-      <button>
-        Save
-      </button>
-      """
-
-      assert button.raw == button_html
+      assert button.raw =~ ~r/^<button>\s*Save\s*<\/button>$/
     end
   end
 
@@ -148,6 +142,19 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       assert is_nil(button.name)
       assert is_nil(button.value)
+    end
+
+    test "returns empty value if name is present and no value is found" do
+      html = """
+      <button name="generate">
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert button.name == "generate"
+      assert button.value == ""
     end
   end
 

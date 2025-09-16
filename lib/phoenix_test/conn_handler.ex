@@ -50,7 +50,12 @@ defmodule PhoenixTest.ConnHandler do
 
   @plug_adapters_test_conn_default_host "www.example.com"
   defp local_path?(conn) do
-    conn.host == @plug_adapters_test_conn_default_host or conn.host == @endpoint.host()
+    conn.host == @plug_adapters_test_conn_default_host or conn.host == endpoint_host()
+  end
+
+  defp endpoint_host do
+    endpoint_at_runtime_to_avoid_warning = Application.get_env(:phoenix_test, :endpoint)
+    endpoint_at_runtime_to_avoid_warning.host()
   end
 
   defp route_exists?(conn) do

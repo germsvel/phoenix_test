@@ -56,7 +56,7 @@ defmodule PhoenixTest.FormPayloadTest do
              } = FormPayload.new(form.form_data)
     end
 
-    test "multiple checkbox values named with [] resolve to a list" do
+    test "multiple checkbox values named with [] resolve to a list in order of their appearance" do
       html = """
       <form id="form">
         <input name="checkbox[]" type="checkbox" value="some_value" checked />
@@ -66,7 +66,7 @@ defmodule PhoenixTest.FormPayloadTest do
 
       form = Form.find!(html, "form")
 
-      assert %{"checkbox" => ["another_value", "some_value"]} = FormPayload.new(form.form_data)
+      assert %{"checkbox" => ["some_value", "another_value"]} = FormPayload.new(form.form_data)
     end
 
     test "single checkboxe value named with [] resolves to a list" do
@@ -82,7 +82,7 @@ defmodule PhoenixTest.FormPayloadTest do
       assert %{"checkbox" => ["some_value"]} = FormPayload.new(form.form_data)
     end
 
-    test "multiple hidden inputs named with [] resolve to a list" do
+    test "multiple hidden inputs named with [] resolve to a list in order of their appearance" do
       html = """
       <form id="form">
         <input name="hidden[]" type="hidden" value="some_value" />
@@ -92,7 +92,7 @@ defmodule PhoenixTest.FormPayloadTest do
 
       form = Form.find!(html, "form")
 
-      assert %{"hidden" => ["another_value", "some_value"]} = FormPayload.new(form.form_data)
+      assert %{"hidden" => ["some_value", "another_value"]} = FormPayload.new(form.form_data)
     end
 
     test "single hidden input value named with [] resolves to a list" do

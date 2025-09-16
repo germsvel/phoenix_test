@@ -1,7 +1,11 @@
 defmodule PhoenixTest.Element do
   @moduledoc false
 
-  def build_selector({tag, attributes, _}) do
+  alias PhoenixTest.Html
+
+  def build_selector(%LazyHTML{} = html) do
+    {tag, attributes, _} = Html.element(html)
+
     Enum.reduce_while(attributes, tag, fn
       {"id", id}, _ when is_binary(id) ->
         {:halt, "[id=#{inspect(id)}]"}
@@ -25,7 +29,7 @@ defmodule PhoenixTest.Element do
     value =~ "[["
   end
 
-  def selector_has_id?(selector) when is_binary(selector) do
-    String.contains?(selector, ["[id=", "#"])
+  def selector_has_id?(selector, id) when is_binary(selector) and is_binary(id) do
+    Enum.any?(["[id='#{id}'", ~s|[id="#{id}"|, "##{id}"], &String.contains?(selector, &1))
   end
 end

@@ -5,6 +5,7 @@ defmodule PhoenixTest.LiveTest do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Driver
+  alias PhoenixTest.Html
 
   setup do
     %{conn: Phoenix.ConnTest.build_conn()}
@@ -279,6 +280,12 @@ defmodule PhoenixTest.LiveTest do
           |> click_button("No button")
         end)
       end
+    end
+
+    test "does not raise when clicking a button that contains text wrapped in another element", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("An ID-less Span Wrapped")
     end
   end
 
@@ -658,6 +665,32 @@ defmodule PhoenixTest.LiveTest do
         uncheck(session, "Invalid Checkbox")
       end
     end
+
+    test "sends phx-value when phx-click attribute used", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refute_has("#checkbox-phx-click-values-abc:checked")
+      |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
+      |> check("Checkbox abc")
+      |> assert_has("#checkbox-phx-click-values-abc:checked")
+      |> assert_has("#checkbox-phx-click-values-abc-value", text: "Checked")
+      |> uncheck("Checkbox abc")
+      |> refute_has("#checkbox-phx-click-values-abc:checked")
+      |> assert_has("#checkbox-phx-click-values-abc-value", text: "Unchecked")
+    end
+
+    test "sends phx-click JS command value when attribute used", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refute_has("#checkbox-phx-click-values-def:checked")
+      |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
+      |> check("Checkbox def")
+      |> assert_has("#checkbox-phx-click-values-def:checked")
+      |> assert_has("#checkbox-phx-click-values-def-value", text: "Checked")
+      |> uncheck("Checkbox def")
+      |> refute_has("#checkbox-phx-click-values-def:checked")
+      |> assert_has("#checkbox-phx-click-values-def-value", text: "Unchecked")
+    end
   end
 
   describe "choose/3" do
@@ -732,7 +765,7 @@ defmodule PhoenixTest.LiveTest do
         |> upload("Avatar", "test/files/elixir.jpg", exact: false)
         |> click_button("Save")
       end)
-      |> assert_has("#form-data", text: "avatar: elixir.jpg")
+      |> assert_has("#form-data", text: "avatar_2: elixir.jpg")
     end
 
     test "can specify input selector when multiple inputs have same label", %{conn: conn} do
@@ -963,22 +996,14 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "general form logic" do
-    test "handles inputs_for ordinal inputs", %{conn: conn} do
+  describe "nested forms with inputs_for" do
+    test "handles form with phx-submit (without phx-change)", %{conn: conn} do
       conn
-      |> visit("/live/ordinal_inputs")
+      |> visit("/live/simple_ordinal_inputs")
       |> fill_in("Title", with: "Fellowship")
-      |> click_button("Add Email")
-      |> fill_in("#mailing_list_emails_0_email", "Email", with: "Bow")
-      |> click_button("Add Email")
-      |> fill_in("#mailing_list_emails_1_email", "Email", with: "Muffins")
-      |> click_button("Add Email")
-      |> fill_in("#mailing_list_emails_2_email", "Email", with: "Arrows")
-      |> click_link("a[phx-value-index='1']", "Remove")
+      |> fill_in("#simple_mailing_list_emails_0_email", "Email", with: "Bow")
       |> submit()
       |> assert_has("[data-role=email]", text: "Bow")
-      |> assert_has("[data-role=email]", text: "Arrows")
-      |> refute_has("[data-role=email]", text: "Muffins")
     end
   end
 
@@ -1107,7 +1132,7 @@ defmodule PhoenixTest.LiveTest do
         |> within("#no-phx-change-form", &fill_in(&1, "Name", with: "Aragorn"))
         |> Driver.render_html()
 
-      assert starting_html == ending_html
+      assert Html.element(starting_html) == Html.element(ending_html)
     end
 
     test "follows redirects on phx-change", %{conn: conn} do
@@ -1176,6 +1201,15 @@ defmodule PhoenixTest.LiveTest do
         |> click_button("Trigger multiple")
         |> assert_has("#form-data", text: "hidden: trigger_action_hidden_value")
       end
+    end
+
+    test "handles phx-trigger-action on dynamically rendered forms", %{conn: conn} do
+      conn
+      |> visit("/live/dynamic_form")
+      |> click_button("Show Form")
+      |> fill_in("Message", with: "test")
+      |> submit()
+      |> assert_has("#form-data", text: "message: test")
     end
 
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do

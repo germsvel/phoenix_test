@@ -100,9 +100,7 @@ defmodule PhoenixTest.StaticTest do
 
         I found:
 
-        <a href="/users/2" data-method="delete">
-          Incomplete data-method Delete
-        </a>
+        <a href="/users/2" data-method="delete">Incomplete data-method Delete</a>
 
         It seems these are missing: data-to, data-csrf.
 
@@ -848,7 +846,7 @@ defmodule PhoenixTest.StaticTest do
         assert content = File.read!(path)
 
         assert content =~
-                 ~r[<link phx-track-static="phx-track-static" rel="stylesheet" href="file:.*phoenix_test\/priv\/static\/assets\/app\.css"\/>]
+                 ~r[<link phx-track-static="" rel="stylesheet" href="file:.*phoenix_test\/priv\/static\/assets\/app\.css"\/>]
 
         refute content =~ "<script>"
         refute content =~ "console.log(\"Hey, I'm some JavaScript!\")"

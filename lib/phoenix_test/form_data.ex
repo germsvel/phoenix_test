@@ -40,7 +40,7 @@ defmodule PhoenixTest.FormData do
           if value in existing_value do
             existing_value
           else
-            [value | existing_value]
+            existing_value ++ List.wrap(value)
           end
         end)
 
@@ -69,7 +69,7 @@ defmodule PhoenixTest.FormData do
 
   def has_data?(%__MODULE__{data: data}, name, value) do
     field_data = Map.get(data, name, [])
-    value == field_data or value in List.wrap(field_data)
+    value == field_data or value in field_data
   end
 
   def to_list(%__MODULE__{data: data}) do

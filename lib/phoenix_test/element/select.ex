@@ -14,7 +14,7 @@ defmodule PhoenixTest.Element.Select do
     id = Html.attribute(field, "id")
     name = Html.attribute(field, "name")
 
-    multiple = Html.attribute(field, "multiple") == "multiple"
+    multiple = not is_nil(Html.attribute(field, "multiple"))
 
     exact_option = Keyword.get(opts, :exact_option, true)
 
@@ -22,11 +22,11 @@ defmodule PhoenixTest.Element.Select do
       case {multiple, option} do
         {true, [_ | _]} ->
           Enum.map(option, fn opt ->
-            Query.find!(Html.raw(field), "option", opt, exact: exact_option)
+            Query.find!(field, "option", opt, exact: exact_option)
           end)
 
         {true, _} ->
-          [Query.find!(Html.raw(field), "option", option, exact: exact_option)]
+          [Query.find!(field, "option", option, exact: exact_option)]
 
         {false, [_ | _]} ->
           msg = """
@@ -40,7 +40,7 @@ defmodule PhoenixTest.Element.Select do
           raise ArgumentError, msg
 
         {false, _} ->
-          [field |> Html.raw() |> Query.find!("option", option, exact: exact_option)]
+          [Query.find!(field, "option", option, exact: exact_option)]
       end
 
     values = Enum.map(selected_options, fn option -> Html.attribute(option, "value") end)
