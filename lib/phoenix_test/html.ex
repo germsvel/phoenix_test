@@ -13,7 +13,13 @@ defmodule PhoenixTest.Html do
     LazyHTML.from_fragment(html)
   end
 
-  def visible_text(%LazyHTML{} = element) do
+  @doc """
+  Returns the rendered text content of an element and its descendants.
+  Similar to Javascript [innerText](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/innerText) property,
+  but with the following differences:
+  - exclude select `option` labels
+  """
+  def inner_text(%LazyHTML{} = element) do
     element
     |> LazyHTML.to_tree(skip_whitespace_nodes: false)
     |> text_without_select_options()

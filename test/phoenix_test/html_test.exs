@@ -3,7 +3,7 @@ defmodule PhoenixTest.HtmlTest do
 
   alias PhoenixTest.Html
 
-  describe "visible_text" do
+  describe "inner_text" do
     test "extracts text from parsed html, removing extra whitespace" do
       html = """
         <label>
@@ -15,7 +15,7 @@ defmodule PhoenixTest.HtmlTest do
       result =
         html
         |> Html.parse_fragment()
-        |> Html.visible_text()
+        |> Html.inner_text()
 
       assert result == "hello world!"
     end
@@ -35,7 +35,7 @@ defmodule PhoenixTest.HtmlTest do
       result =
         html
         |> Html.parse_fragment()
-        |> Html.visible_text()
+        |> Html.inner_text()
 
       assert result == "Choose an option: More text here"
     end

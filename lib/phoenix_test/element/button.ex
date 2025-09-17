@@ -32,7 +32,7 @@ defmodule PhoenixTest.Element.Button do
     name = Html.attribute(parsed, "name")
     value = Html.attribute(parsed, "value") || if name, do: ""
     selector = Element.build_selector(parsed)
-    text = Html.visible_text(parsed)
+    text = Html.inner_text(parsed)
     form_id = Html.attribute(parsed, "form")
 
     %__MODULE__{
