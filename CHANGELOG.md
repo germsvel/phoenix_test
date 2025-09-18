@@ -7,6 +7,16 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.8.1
+
+### Fixes
+
+- Fix: allow multiple select and checkboxes [334af88]
+- Fix: Consider nested text in labels [c73ab4a]
+
+[334af88]: https://github.com/germsvel/phoenix_test/commit/334af88
+[c73ab4a]: https://github.com/germsvel/phoenix_test/commit/c73ab4a
+
 ## 0.8.0
 
 ### Improvements
