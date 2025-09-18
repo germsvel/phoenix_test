@@ -168,7 +168,7 @@ defmodule PhoenixTest.Element.Form do
   end
 
   defp element_value(element) do
-    Html.attribute(element, "value") || Html.text(element)
+    Html.attribute(element, "value") || Html.inner_text(element)
   end
 
   defp operative_method(%LazyHTML{} = form) do

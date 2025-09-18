@@ -173,7 +173,7 @@ defmodule PhoenixTest.Query do
           raise ArgumentError, msg
         else
           msg = """
-          Could not find element with label #{inspect(label)} and provided selectors.
+          Could not find element with label #{inspect(label)} and provided selectors #{inspect(input_selectors)}.
 
           Labels found
           ============
@@ -530,9 +530,9 @@ defmodule PhoenixTest.Query do
 
     filter_fun =
       if exact_match do
-        fn element -> Html.element_text(element) == text end
+        &(Html.inner_text(&1) == text)
       else
-        fn element -> Html.text(element) =~ text end
+        &(Html.inner_text(&1) =~ text)
       end
 
     Enum.filter(elements, &(&1 |> LazyHTML.filter(":not(select)") |> filter_fun.()))
