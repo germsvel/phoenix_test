@@ -34,7 +34,7 @@ defmodule PhoenixTest.FormData do
   def add_data(%__MODULE__{} = form_data, name, value) when is_nil(name) or is_nil(value), do: form_data
 
   def add_data(%__MODULE__{} = form_data, name, value) do
-    if String.ends_with?(name, "[]") do
+    if allows_multiple_values?(name) do
       new_data =
         Map.update(form_data.data, name, List.wrap(value), fn existing_value ->
           if value in existing_value do
@@ -51,8 +51,19 @@ defmodule PhoenixTest.FormData do
   end
 
   def merge(%__MODULE__{data: data1}, %__MODULE__{data: data2}) do
-    %__MODULE__{data: Map.merge(data1, data2)}
+    data =
+      Map.merge(data1, data2, fn k, v1, v2 ->
+        if allows_multiple_values?(k) do
+          Enum.uniq(v1 ++ v2)
+        else
+          v2
+        end
+      end)
+
+    %__MODULE__{data: data}
   end
+
+  defp allows_multiple_values?(field_name), do: String.ends_with?(field_name, "[]")
 
   def filter(%__MODULE__{data: data}, fun) do
     data =
@@ -69,7 +80,8 @@ defmodule PhoenixTest.FormData do
 
   def has_data?(%__MODULE__{data: data}, name, value) do
     field_data = Map.get(data, name, [])
-    value == field_data or value in field_data
+
+    value == field_data or value in List.wrap(field_data)
   end
 
   def to_list(%__MODULE__{data: data}) do
