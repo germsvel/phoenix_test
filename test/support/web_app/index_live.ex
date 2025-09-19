@@ -3,6 +3,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
   use Phoenix.LiveView
 
+  alias Phoenix.LiveView.JS
+
   def render(assigns) do
     ~H"""
     <h1 id="title" class="title" data-role="title">LiveView main page</h1>
@@ -19,6 +21,15 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <h2 :if={@details}>LiveView main page details</h2>
 
     <h3>{@h3}</h3>
+
+    <div>
+      <div>
+        wibble <button phx-click={JS.push("wibble")}>action</button>
+      </div>
+      <div>
+        wobble <button phx-click={JS.push("wobble")}>action</button>
+      </div>
+    </div>
 
     <button phx-click="change-h3">Change h3</button>
 
