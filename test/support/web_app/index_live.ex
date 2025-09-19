@@ -24,10 +24,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <div>
       <div>
-        wibble <button phx-click={JS.push("wibble")}>action</button>
+        wibble <button phx-click="wibble">action</button>
       </div>
       <div>
-        wobble <button phx-click={JS.push("wobble")}>action</button>
+        wobble <button phx-click="wobble">action</button>
       </div>
     </div>
 
