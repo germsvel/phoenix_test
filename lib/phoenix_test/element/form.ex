@@ -32,7 +32,7 @@ defmodule PhoenixTest.Element.Form do
     |> build()
   end
 
-  defp build({"form", _, _} = form) do
+  defp build(%LazyHTML{} = form) do
     raw = Html.raw(form)
     id = Html.attribute(form, "id")
     action = Html.attribute(form, "action")
@@ -46,12 +46,12 @@ defmodule PhoenixTest.Element.Form do
       parsed: form,
       raw: raw,
       selector: selector,
-      submit_button: Button.find_first(raw)
+      submit_button: Button.find_first(form)
     }
   end
 
   def form_element_names(%__MODULE__{} = form) do
-    form.raw
+    form.parsed
     |> Html.all("[name]")
     |> Enum.map(&Html.attribute(&1, "name"))
     |> Enum.uniq()
@@ -91,11 +91,16 @@ defmodule PhoenixTest.Element.Form do
     week
   )
 
-  @hidden_inputs "input[type=hidden]"
-  @checked_radio_buttons "input:not([disabled])[type=radio][checked=checked][value]"
-  @checked_checkboxes "input:not([disabled])[type=checkbox][checked=checked][value]"
+  @hidden_inputs "input[type='hidden']"
+  @checked_radio_buttons "input:not([disabled])[type='radio'][value]:checked"
+  @checked_checkboxes "input:not([disabled])[type='checkbox'][value]:checked"
   @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
-  @pre_filled_simple_value_inputs Enum.map_join(@simple_value_types, ",", &"input:not([disabled])[type=#{&1}][value]")
+
+  @pre_filled_simple_value_inputs Enum.map_join(
+                                    @simple_value_types,
+                                    ",",
+                                    &"input:not([disabled])[type='#{&1}'][value]"
+                                  )
 
   defp form_data(form) do
     FormData.new()
@@ -117,23 +122,32 @@ defmodule PhoenixTest.Element.Form do
   defp form_data_textarea(form) do
     form
     |> Html.all("textarea:not([disabled])")
-    |> Enum.map(fn {"textarea", _attrs, value_elements} = textarea ->
-      to_form_field(textarea, value_elements)
-    end)
+    |> Enum.map(&to_form_field/1)
   end
 
   defp form_data_select(form) do
     form
     |> Html.all("select:not([disabled])")
-    |> Enum.map(fn select ->
-      multiple = !is_nil(Html.attribute(select, "multiple"))
+    |> Enum.flat_map(fn select ->
+      selected_options = Html.all(select, "option[selected]")
+      multiple? = Html.attribute(select, "multiple") != nil
 
-      case {Html.all(select, "option"), multiple, Html.all(select, "option[selected]")} do
-        {[], _, _} -> []
-        {_, false, [only_selected]} -> to_form_field(select, only_selected)
-        {_, true, [_ | _] = all_selected} -> to_form_field(select, all_selected)
-        {[first | _], false, _} -> to_form_field(select, first)
-        {_, true, _} -> []
+      case {multiple?, Enum.count(selected_options)} do
+        {true, 0} ->
+          []
+
+        {false, 0} ->
+          if option = select |> Html.all("option") |> Enum.at(0) do
+            [to_form_field(select, option)]
+          else
+            []
+          end
+
+        {false, _} ->
+          [to_form_field(select, selected_options)]
+
+        _ ->
+          Enum.map(selected_options, &to_form_field(select, &1))
       end
     end)
   end
@@ -148,37 +162,22 @@ defmodule PhoenixTest.Element.Form do
     to_form_field(element, element)
   end
 
-  defp to_form_field(name_element, value_elements) when is_list(value_elements) do
-    name = Html.attribute(name_element, "name")
-    values = Enum.map(value_elements, &element_value/1)
-    {name, values}
-  end
-
   defp to_form_field(name_element, value_element) do
     name = Html.attribute(name_element, "name")
     {name, element_value(value_element)}
   end
 
   defp element_value(element) do
-    Html.attribute(element, "value") || Html.text(element)
+    Html.attribute(element, "value") || Html.inner_text(element)
   end
 
-  defp operative_method({"form", _attrs, fields} = form) do
-    hidden_input_method_value(fields) || Html.attribute(form, "method") || "get"
+  defp operative_method(%LazyHTML{} = form) do
+    hidden_input_method_value(form) || Html.attribute(form, "method") || "get"
   end
 
-  defp hidden_input_method_value(fields) do
-    fields
-    |> Enum.find(:no_method_input, fn
-      {"input", _, _} = field ->
-        Html.attribute(field, "name") == "_method"
-
-      _ ->
-        false
-    end)
-    |> case do
-      :no_method_input -> nil
-      field -> Html.attribute(field, "value")
-    end
+  defp hidden_input_method_value(form) do
+    form
+    |> Html.all("input[type='hidden'][name='_method']")
+    |> Enum.find_value(&Html.attribute(&1, "value"))
   end
 end

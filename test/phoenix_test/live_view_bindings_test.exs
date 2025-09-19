@@ -5,6 +5,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
   import Phoenix.LiveViewTest
 
   alias Phoenix.LiveView.JS
+  alias PhoenixTest.Html
   alias PhoenixTest.LiveViewBindings
 
   describe "phx_click?" do
@@ -16,7 +17,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click="save" />
         """)
 
-      [element] = Floki.find(html, "input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -29,7 +30,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input value="Hello world" />
         """)
 
-      [element] = Floki.find(html, "input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       refute LiveViewBindings.phx_click?(element)
     end
@@ -42,7 +43,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.push("save")} />
         """)
 
-      [element] = Floki.find(html, "input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -55,7 +56,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.navigate("save")} />
         """)
 
-      [element] = Floki.find(html, "input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -68,7 +69,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <div phx-click={JS.patch("/some/path")}></div>
         """)
 
-      [element] = Floki.find(html, "div")
+      element = html |> Html.parse_fragment() |> Html.all("div")
 
       assert LiveViewBindings.phx_click?(element)
     end
@@ -81,7 +82,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.dispatch("change")} />
         """)
 
-      [element] = Floki.find(html, "input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       refute LiveViewBindings.phx_click?(element)
     end
@@ -94,7 +95,7 @@ defmodule PhoenixTest.LiveViewBindingsTest do
         <input phx-click={JS.push("save") |> JS.dispatch("change")} />
         """)
 
-      [element] = Floki.find(html, "input")
+      element = html |> Html.parse_fragment() |> Html.all("input")
 
       assert LiveViewBindings.phx_click?(element)
     end

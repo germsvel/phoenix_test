@@ -173,6 +173,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
         <option value="orc">Orc</option>
       </select>
 
+      <label>
+        <input type="checkbox" name="checkbox_group[]" value="1" checked />
+        Checkbox group 1 (initially checked)
+      </label>
+      <label><input type="checkbox" name="checkbox_group[]" value="2" /> Checkbox group 2</label>
+
       <fieldset>
         <legend>Please select your preferred contact method:</legend>
         <div>
@@ -314,8 +320,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
         <label for="complex-movie">Movie <span>*</span></label>
       </fieldset>
 
-      <label for={@uploads.avatar.ref}>Avatar <span>*</span></label>
-      <.live_file_input upload={@uploads.avatar} />
+      <label for={@uploads.avatar_2.ref}>Avatar <span>*</span></label>
+      <.live_file_input upload={@uploads.avatar_2} />
 
       <button type="submit">Save</button>
     </form>
@@ -529,8 +535,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
     </form>
 
     <form id="upload-change-form" phx-change="upload-change">
-      <label for={@uploads.avatar.ref}>Avatar</label>
-      <.live_file_input upload={@uploads.avatar} />
+      <label for={@uploads.avatar_3.ref}>Avatar</label>
+      <.live_file_input upload={@uploads.avatar_3} />
     </form>
 
     <div :if={@upload_change_triggered} id="upload-change-result">
@@ -541,6 +547,38 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <label for={@uploads.redirect_avatar.ref}>Redirect Avatar</label>
       <.live_file_input upload={@uploads.redirect_avatar} />
     </form>
+
+    <button phx-click="change-h3" phx-no-format>
+      An ID-less Span Wrapped
+      <span>Button</span>
+    </button>
+
+    <div>
+      <label for="checkbox-phx-click-values-abc">Checkbox abc</label>
+      <input
+        type="checkbox"
+        id="checkbox-phx-click-values-abc"
+        phx-click="toggle-checkbox-phx-value"
+        phx-value-id="abc"
+        checked={@checked_keys["abc"]}
+      />
+      <span id="checkbox-phx-click-values-abc-value">
+        {if(@checked_keys["abc"], do: "Checked", else: "Unchecked")}
+      </span>
+    </div>
+
+    <div>
+      <label for="checkbox-phx-click-values-def">Checkbox def</label>
+      <input
+        type="checkbox"
+        id="checkbox-phx-click-values-def"
+        phx-click={Phoenix.LiveView.JS.push("toggle-checkbox-phx-value", value: %{id: "def"})}
+        checked={@checked_keys["def"]}
+      />
+      <span id="checkbox-phx-click-values-def-value">
+        {if(@checked_keys["def"], do: "Checked", else: "Unchecked")}
+      </span>
+    </div>
     """
   end
 
@@ -564,11 +602,14 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> assign(:show_form_errors, false)
       |> assign(:cities, [])
       |> assign(:hidden_input_race, "human")
+      |> assign(:checked_keys, %{"abc" => false, "def" => false})
       |> assign(:trigger_submit, false)
       |> assign(:trigger_multiple_submit, false)
       |> assign(:redirect_and_trigger_submit, false)
       |> assign(:upload_change_triggered, false)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:avatar_2, accept: ~w(.jpg .jpeg))
+      |> allow_upload(:avatar_3, accept: ~w(.jpg .jpeg))
       |> allow_upload(:main_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:backup_avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:tiny, accept: ~w(.jpg .jpeg), max_file_size: 1000)
@@ -606,18 +647,14 @@ defmodule PhoenixTest.WebApp.IndexLive do
   end
 
   def handle_event("save-form", form_data, socket) do
-    avatars =
-      consume_uploaded_entries(socket, :avatar, fn _, %{client_name: name} ->
-        {:ok, name}
-      end)
-
-    main_avatars =
-      consume_uploaded_entries(socket, :main_avatar, fn _, %{client_name: name} -> {:ok, name} end)
+    files = &consume_uploaded_entries(socket, &1, fn _, %{client_name: name} -> {:ok, name} end)
 
     form_data =
       form_data
-      |> Map.put("avatar", List.first(avatars))
-      |> Map.put("main_avatar", List.first(main_avatars))
+      |> Map.put("avatar", :avatar |> files.() |> List.first())
+      |> Map.put("avatar_2", :avatar_2 |> files.() |> List.first())
+      |> Map.put("avatar_3", :avatar_3 |> files.() |> List.first())
+      |> Map.put("main_avatar", :main_avatar |> files.() |> List.first())
 
     {
       :noreply,
@@ -794,6 +831,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
       :noreply,
       assign(socket, :upload_change_triggered, true)
     }
+  end
+
+  def handle_event("toggle-checkbox-phx-value", %{"id" => id}, socket) do
+    checked_keys = Map.update(socket.assigns.checked_keys, id, true, &(not &1))
+
+    {:noreply, assign(socket, :checked_keys, checked_keys)}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do

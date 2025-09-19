@@ -180,9 +180,7 @@ defmodule PhoenixTest.AssertionsTest do
 
         Found these elements matching the selector "h1":
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
+        <h1 id="title" class="title" data-role="title">Main page</h1>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -260,15 +258,9 @@ defmodule PhoenixTest.AssertionsTest do
         Found these elements matching the selector "#multiple-items":
 
         <ul id="multiple-items">
-          <li>
-            Aragorn
-          </li>
-          <li>
-            Legolas
-          </li>
-          <li>
-            Gimli
-          </li>
+          <li>Aragorn</li>
+          <li>Legolas</li>
+          <li>Gimli</li>
         </ul>
         """)
 
@@ -330,9 +322,7 @@ defmodule PhoenixTest.AssertionsTest do
 
         Found these elements matching the selector "h1":
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
+        <h1 id="title" class="title" data-role="title">Main page</h1>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -400,9 +390,7 @@ defmodule PhoenixTest.AssertionsTest do
 
         But found 1:
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
+        <h1 id="title" class="title" data-role="title">Main page</h1>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -543,9 +531,7 @@ defmodule PhoenixTest.AssertionsTest do
 
         But found 1:
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
+        <h1 id="title" class="title" data-role="title">Main page</h1>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -562,13 +548,8 @@ defmodule PhoenixTest.AssertionsTest do
 
         But found 2:
 
-        <a class="multiple_links" href="/page/page_3">
-          Multiple links
-        </a>
-
-        <a class="multiple_links" href="/page/page_4">
-          Multiple links
-        </a>
+        <a class="multiple_links" href="/page/page_3">Multiple links</a>
+        <a class="multiple_links" href="/page/page_4">Multiple links</a>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -589,9 +570,7 @@ defmodule PhoenixTest.AssertionsTest do
 
         But found 1:
 
-        <h1 id="title" class="title" data-role="title">
-          Main page
-        </h1>
+        <h1 id="title" class="title" data-role="title">Main page</h1>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -620,9 +599,7 @@ defmodule PhoenixTest.AssertionsTest do
 
         But found 1:
 
-        <li>
-          Legolas
-        </li>
+        <li>Legolas</li>
         """)
 
       assert_raise AssertionError, msg, fn ->
@@ -720,6 +697,12 @@ defmodule PhoenixTest.AssertionsTest do
       session = %Live{current_path: "/page/index?users[]=frodo&users[]=sam"}
 
       assert_path(session, "/page/index", query_params: %{"users" => ["frodo", "sam"]})
+    end
+
+    test "handles query params that have a map as a value" do
+      session = %Live{current_path: "/page/index?filter[name]=frodo&filter[height]=1.24m"}
+
+      assert_path(session, "/page/index", query_params: %{"filter" => %{"name" => "frodo", "height" => "1.24m"}})
     end
 
     test "handles asserting empty query params" do

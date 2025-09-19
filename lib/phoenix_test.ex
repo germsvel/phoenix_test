@@ -30,8 +30,8 @@ defmodule PhoenixTest do
 
   ## Setup
 
-  PhoenixTest requires Phoenix `1.7+` and LiveView `0.20+`. It may work with
-  earlier versions, but I have not tested that.
+  PhoenixTest requires Phoenix `1.7+` and LiveView `1.0+`. It may work with
+  earlier versions, but those are "officially" supported.
 
   ### Installation
 
@@ -40,7 +40,7 @@ defmodule PhoenixTest do
   ```elixir
   def deps do
     [
-      {:phoenix_test, "~> 0.6.0", only: :test, runtime: false}
+      {:phoenix_test, "~> 0.8.1", only: :test, runtime: false}
     ]
   end
   ```
@@ -193,6 +193,11 @@ defmodule PhoenixTest do
   ```
 
   For more info, see `within/3`.
+
+  ## Credo
+
+  Add `PhoenixTest.Credo.NoOpenBrowser` to your `.credo.exs` config file to prevent
+  dev-only `open_browser/1` from lingering in your code base.
   """
 
   alias PhoenixTest.ConnHandler

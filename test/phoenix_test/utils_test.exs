@@ -27,5 +27,13 @@ defmodule PhoenixTest.UtilsTest do
 
       assert %{"greet" => ["hello", "hola"]} = result
     end
+
+    test "preserves nested map values" do
+      original = %{foo: %{bar: "baz"}}
+
+      result = Utils.stringify_keys_and_values(original)
+
+      assert %{"foo" => %{"bar" => "baz"}} = result
+    end
   end
 end

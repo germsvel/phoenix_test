@@ -3,6 +3,7 @@ defmodule PhoenixTest.QueryTest do
 
   import PhoenixTest.TestHelpers
 
+  alias PhoenixTest.Html
   alias PhoenixTest.Locators
   alias PhoenixTest.Query
 
@@ -12,9 +13,9 @@ defmodule PhoenixTest.QueryTest do
       <h1>Hello</h1>
       """
 
-      element = Query.find!(html, "h1")
+      %LazyHTML{} = element = Query.find!(html, "h1")
 
-      assert {"h1", _, ["Hello"]} = element
+      assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
     test "raises error if no element is found" do
@@ -45,9 +46,9 @@ defmodule PhoenixTest.QueryTest do
       <h1>Hello</h1>
       """
 
-      element = Query.find!(html, "h1", "Hello")
+      %LazyHTML{} = element = Query.find!(html, "h1", "Hello")
 
-      assert {"h1", _, ["Hello"]} = element
+      assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
     test "raises error if no element is found" do
@@ -80,7 +81,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find(html, "h1")
 
-      assert {"h1", _, ["Hello"]} = element
+      assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
     test "finds element with an attribute selector" do
@@ -90,7 +91,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find(html, "#title")
 
-      assert {"h1", [{"id", "title"}], ["Hello"]} = element
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
     end
 
     test "finds elements if multiple match selector" do
@@ -99,10 +100,12 @@ defmodule PhoenixTest.QueryTest do
       <div class="greeting">Hi</div>
       """
 
-      {:found_many, [el1, el2]} = Query.find(html, ".greeting")
+      {:found_many, %LazyHTML{} = elements} = Query.find(html, ".greeting")
 
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = el1
-      assert {"div", [{"class", "greeting"}], ["Hi"]} = el2
+      assert [
+               {"div", [{"class", "greeting"}], ["Hello"]},
+               {"div", [{"class", "greeting"}], ["Hi"]}
+             ] = LazyHTML.to_tree(elements)
     end
 
     test "returns :not_found if selector doesn't match an element" do
@@ -122,7 +125,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find(html, "h1", "Hello")
 
-      assert {"h1", _, ["Hello"]} = element
+      assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
     test "ignores element's extra whitespace" do
@@ -132,7 +135,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find(html, "h1", "Hello")
 
-      assert {"h1", _, ["Hello       "]} = element
+      assert {"h1", _, ["Hello       "]} = Html.element(element)
     end
 
     test "matches on exact text if required" do
@@ -151,7 +154,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find(html, "#title", "Hello")
 
-      assert {"h1", [{"id", "title"}], ["Hello"]} = element
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
     end
 
     test "finds elements if multiple match selector AND text" do
@@ -162,8 +165,8 @@ defmodule PhoenixTest.QueryTest do
 
       {:found_many, [el1, el2]} = Query.find(html, ".greeting", "Hello")
 
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = el1
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = el2
+      assert {"div", [{"class", "greeting"}], ["Hello"]} = Html.element(el1)
+      assert {"div", [{"class", "greeting"}], ["Hello"]} = Html.element(el2)
     end
 
     test "only returns element `at` (1-based index) if requested" do
@@ -172,9 +175,9 @@ defmodule PhoenixTest.QueryTest do
       <div id="2" class="greeting">Hello</div>
       """
 
-      {:found, el} = Query.find(html, ".greeting", "Hello", at: 2)
+      {:found, element} = Query.find(html, ".greeting", "Hello", at: 2)
 
-      assert {"div", [{"id", "2"}, _], ["Hello"]} = el
+      assert {"div", [{"id", "2"}, _], ["Hello"]} = Html.element(element)
     end
 
     test "finds element with text if multiple match CSS selector" do
@@ -185,7 +188,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find(html, ".greeting", "Hello")
 
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = element
+      assert {"div", [{"class", "greeting"}], ["Hello"]} = Html.element(element)
     end
 
     test "returns :not_found if selector and text don't match an element" do
@@ -193,7 +196,8 @@ defmodule PhoenixTest.QueryTest do
       <h1 id="title">Hello</h1>
       """
 
-      assert {:not_found, []} = Query.find(html, ".no-value", "no value")
+      assert {:not_found, %LazyHTML{} = elements} = Query.find(html, ".no-value", "no value")
+      assert Enum.empty?(elements)
     end
 
     test "returns :not_found with elements that matched selector but not text (if any)" do
@@ -201,8 +205,8 @@ defmodule PhoenixTest.QueryTest do
       <h1 id="title">Hello</h1>
       """
 
-      assert {:not_found, [element]} = Query.find(html, "h1", "no value")
-      assert {"h1", [{"id", "title"}], ["Hello"]} = element
+      assert {:not_found, %LazyHTML{} = element} = Query.find(html, "h1", "no value")
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
     end
   end
 
@@ -216,7 +220,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_by_role!(html, locator)
 
-      assert {"button", _, ["Hello"]} = element
+      assert {"button", _, ["Hello"]} = Html.element(element)
     end
 
     test "raises an error if there's no match" do
@@ -254,7 +258,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_one_of!(html, [{"h1", "Hello"}, {"h2", "Hi"}])
 
-      assert {"h1", _, ["Hello"]} = element
+      assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
     test "raises error if multiple match" do
@@ -297,13 +301,8 @@ defmodule PhoenixTest.QueryTest do
 
         I found some elements that match the selector but not the content:
 
-        <h2>
-          Hello
-        </h2>
-
-        <h2>
-          Greetings
-        </h2>
+        <h2>Hello</h2>
+        <h2>Greetings</h2>
         """)
 
       assert_raise ArgumentError, msg, fn ->
@@ -321,7 +320,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
 
-      assert {"h1", _, ["Hello"]} = element
+      assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
     test "finds elements with selector or selector and text" do
@@ -332,7 +331,7 @@ defmodule PhoenixTest.QueryTest do
 
       assert {:found, _element} = Query.find_one_of(html, [{"h1", "Hello"}])
       assert {:found, element} = Query.find_one_of(html, ["h1"])
-      assert {"h1", [{"id", "title"}], ["Hello"]} = element
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
     end
 
     test "returns {:found_many, found} when several match" do
@@ -343,8 +342,8 @@ defmodule PhoenixTest.QueryTest do
 
       {:found_many, [elem1, elem2]} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
 
-      assert {"h1", _, ["Hello"]} = elem1
-      assert {"h2", _, ["Hi"]} = elem2
+      assert {"h1", _, ["Hello"]} = Html.element(elem1)
+      assert {"h2", _, ["Hi"]} = Html.element(elem2)
     end
 
     test "returns :not_found when no selector matches" do
@@ -358,7 +357,7 @@ defmodule PhoenixTest.QueryTest do
       assert {:not_found, matched_selector_but_not_text} =
                Query.find_one_of(html, [{"h2", "Hi"}])
 
-      [a, b] = matched_selector_but_not_text
+      [a, b] = LazyHTML.to_tree(matched_selector_but_not_text)
       assert {"h2", _, ["Hello"]} = a
       assert {"h2", _, ["Greetings"]} = b
     end
@@ -474,7 +473,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_by_label!(html, "input", "Hello")
 
-      assert {"input", [{"id", "greeting"}], []} = element
+      assert {"input", [{"id", "greeting"}], []} = Html.element(element)
     end
 
     test "returns found element label points to (even if id has ? character)" do
@@ -485,7 +484,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_by_label!(html, "input", "Hello")
 
-      assert {"input", [{"id", "greeting?"}], []} = element
+      assert {"input", [{"id", "greeting?"}], []} = Html.element(element)
     end
 
     test "returns found element when association is implicit" do
@@ -498,7 +497,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_by_label!(html, "input", "Hello")
 
-      assert {"input", [{"name", "greeting"}], []} = element
+      assert {"input", [{"name", "greeting"}], []} = Html.element(element)
     end
 
     test "can filter labels based on associated input's selector" do
@@ -512,7 +511,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_by_label!(html, "#greeting", "Hello")
 
-      assert {"input", [{"id", "greeting"} | _], []} = element
+      assert {"input", [{"id", "greeting"} | _], []} = Html.element(element)
     end
 
     test "raises error if label's for doesn't have matching element with id" do
@@ -521,9 +520,11 @@ defmodule PhoenixTest.QueryTest do
       <input id="not-name" type="text" name="name" />
       """
 
-      assert_raise ArgumentError, ~r/label's `for` attribute did not match the labeled element's `id`/, fn ->
-        Query.find_by_label!(html, "#not-name", "Name")
-      end
+      assert_raise ArgumentError,
+                   ~r/Found label but can't find labeled element whose `id` matches label's `for` attribute./,
+                   fn ->
+                     Query.find_by_label!(html, "#not-name", "Name")
+                   end
     end
 
     test "raises error if label matches element with id but not the provided selector" do
@@ -532,9 +533,11 @@ defmodule PhoenixTest.QueryTest do
       <input id="not-name" type="text" name="name" />
       """
 
-      assert_raise ArgumentError, ~r/label's `for` attribute did not match the labeled element's `id`/, fn ->
-        Query.find_by_label!(html, "input[id='not-name']", "Name")
-      end
+      assert_raise ArgumentError,
+                   ~r/Found label but can't find labeled element whose `id` matches label's `for` attribute/,
+                   fn ->
+                     Query.find_by_label!(html, "input[id='not-name']", "Name")
+                   end
     end
 
     test "raises error if label matches element with provided selector but input doesn't have matching id" do
@@ -568,7 +571,9 @@ defmodule PhoenixTest.QueryTest do
       <input id="name"/>
       """
 
-      assert {:not_found, :no_label, []} = Query.find_by_label(html, "input", "Name")
+      assert {:not_found, :no_label, %LazyHTML{} = element} = Query.find_by_label(html, "input", "Name")
+
+      assert Enum.empty?(element)
     end
 
     test "returns :no_label error with other labels present if some are found" do
@@ -577,7 +582,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :no_label, labels} = Query.find_by_label(html, "input", "Email")
-      assert {"label", [{"for", "name"}], ["Names"]} = hd(labels)
+      assert {"label", [{"for", "name"}], ["Names"]} = Html.element(labels)
     end
 
     test "returns :missing_for error if label doesn't have a `for` attribute" do
@@ -586,7 +591,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :missing_for, label} = Query.find_by_label(html, "input", "Name")
-      assert {"label", [], ["Name"]} = label
+      assert {"label", [], ["Name"]} = Html.element(label)
     end
 
     test "raises :missing_for error if label with element and implicit association but input selector doesn't match" do
@@ -598,7 +603,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :missing_for, label} = Query.find_by_label(html, "input[name='not-greeting']", "Hello")
-      assert {"label", [], _} = label
+      assert {"label", [], _} = Html.element(label)
     end
 
     test "returns :missing_input error if label's `for` doesn't have corresponding `id`" do
@@ -608,18 +613,17 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:not_found, :missing_input, label} = Query.find_by_label(html, "input", "Name")
-      assert {"label", [{"for", "name"}], ["Name"]} = label
+      assert {"label", [{"for", "name"}], ["Name"]} = Html.element(label)
     end
 
-    test "returns :mismatched_id error if label's for doesn't have matching element with id" do
+    test "returns :missing_input error if label's `for` doesn't have matching element with same id" do
       html = """
       <label for="name">Name</label>
       <input id="not-name" type="text" name="name" />
       """
 
-      assert {:not_found, :mismatched_id, label, input} = Query.find_by_label(html, "#not-name", "Name")
-      assert {"label", _, ["Name"]} = label
-      assert {"input", _, []} = input
+      assert {:not_found, :missing_input, label} = Query.find_by_label(html, "#not-name", "Name")
+      assert {"label", _, ["Name"]} = Html.element(label)
     end
 
     test "returns :found_many_labels error if multiple labels match" do
@@ -630,7 +634,7 @@ defmodule PhoenixTest.QueryTest do
 
       assert {:not_found, :found_many_labels, labels} = Query.find_by_label(html, "input", "Hello")
       assert length(labels) == 2
-      assert {"label", _, ["Hello"]} = hd(labels)
+      assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
     end
 
     test "returns :found_many_labels_with_inputs error if multiple labels and inputs match" do
@@ -643,9 +647,9 @@ defmodule PhoenixTest.QueryTest do
 
       assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
       assert length(labels) == 2
-      assert {"label", _, ["Hello"]} = hd(labels)
+      assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
       assert length(inputs) == 2
-      assert {"input", _, []} = hd(inputs)
+      assert {"input", _, []} = inputs |> hd() |> Html.element()
     end
 
     test "returns :found_many_labels_with_inputs error if multiple labels and inputs match (one explicit, one implicit)" do
@@ -658,9 +662,9 @@ defmodule PhoenixTest.QueryTest do
 
       assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
       assert length(labels) == 2
-      assert {"label", _, ["Hello"]} = hd(labels)
+      assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
       assert length(inputs) == 2
-      assert {"input", _, []} = hd(inputs)
+      assert {"input", _, []} = inputs |> hd() |> Html.element()
     end
 
     test "raises error if label has for attribute and nested input" do
@@ -683,7 +687,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:found, element} = Query.find_by_label(html, "input", "Hello")
-      assert {"input", [{"id", "greeting"}], []} = element
+      assert {"input", [{"id", "greeting"}], []} = Html.element(element)
     end
 
     test "returns {:found, element} even if id has ? character" do
@@ -693,7 +697,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:found, element} = Query.find_by_label(html, "input", "Hello")
-      assert {"input", [{"id", "greeting?"}], []} = element
+      assert {"input", [{"id", "greeting?"}], []} = Html.element(element)
     end
 
     test "returns {:found, element} when association is implicit" do
@@ -705,7 +709,7 @@ defmodule PhoenixTest.QueryTest do
       """
 
       assert {:found, element} = Query.find_by_label(html, "input", "Hello")
-      assert {"input", [{"name", "greeting"}], []} = element
+      assert {"input", [{"name", "greeting"}], []} = Html.element(element)
     end
 
     test "can filter labels based on associated input's selector" do
@@ -719,7 +723,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find_by_label(html, "#greeting", "Hello")
 
-      assert {"input", [{"id", "greeting"} | _], []} = element
+      assert {"input", [{"id", "greeting"} | _], []} = Html.element(element)
     end
   end
 
@@ -733,7 +737,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_ancestor!(html, "form", "#greeting")
 
-      assert {"form", [{"id", "super-form"}], _} = element
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
 
     test "raises error if it finds too many ancestor element that match selector" do
@@ -756,10 +760,9 @@ defmodule PhoenixTest.QueryTest do
       <form id="form-1">
         <input type="text" name="email"/>
       </form>
-
       <form id="form-2">
         <input type="text" name="email"/>
-      </form>\n
+      </form>
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -780,7 +783,7 @@ defmodule PhoenixTest.QueryTest do
       Found other potential "form":
 
       <form id="super-form">
-      </form>\n
+      </form>
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -817,7 +820,7 @@ defmodule PhoenixTest.QueryTest do
 
       element = Query.find_ancestor!(html, "form", {"button", "Save"})
 
-      assert {"form", [{"id", "super-form"}], _} = element
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
 
     test "raises if there are multiple possible matches for given selector and text filter" do
@@ -839,16 +842,11 @@ defmodule PhoenixTest.QueryTest do
         Potential matches:
 
         <form id="super-form">
-          <button>
-            Save
-          </button>
+          <button>Save</button>
         </form>
-
         <form id="other-form">
-          <button>
-            Save
-          </button>
-        </form>\n
+          <button>Save</button>
+        </form>
         """
 
       assert_raise ArgumentError, msg, fn ->
@@ -869,7 +867,7 @@ defmodule PhoenixTest.QueryTest do
       Found other potential "form":
 
       <form id="super-form">
-      </form>\n
+      </form>
       """
 
       assert_raise ArgumentError, msg, fn ->
@@ -902,7 +900,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find_ancestor(html, "form", "#greeting")
 
-      assert {"form", [{"id", "super-form"}], _} = element
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
 
     test "returns error if cannot find ancestor element" do
@@ -912,9 +910,9 @@ defmodule PhoenixTest.QueryTest do
       <input id="greeting" />
       """
 
-      {:not_found, [other_potential_match]} = Query.find_ancestor(html, "form", "#greeting")
+      {:not_found, [element]} = Query.find_ancestor(html, "form", "#greeting")
 
-      assert {"form", [{"id", "super-form"}], _} = other_potential_match
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
   end
 
@@ -932,7 +930,7 @@ defmodule PhoenixTest.QueryTest do
 
       {:found, element} = Query.find_ancestor(html, "form", {"button", "Save"})
 
-      assert {"form", [{"id", "super-form"}], _} = element
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
 
     test "returns multiple ancestors if many are found (given selector and text filter)" do
@@ -948,8 +946,8 @@ defmodule PhoenixTest.QueryTest do
 
       {:found_many, [el1, el2]} = Query.find_ancestor(html, "form", {"button", "Save"})
 
-      assert {"form", [{"id", "super-form"}], _} = el1
-      assert {"form", [{"id", "other-form"}], _} = el2
+      assert {"form", [{"id", "super-form"}], _} = Html.element(el1)
+      assert {"form", [{"id", "other-form"}], _} = Html.element(el2)
     end
 
     test "returns error if cannot find ancestor element" do
@@ -958,10 +956,8 @@ defmodule PhoenixTest.QueryTest do
       </form>
       """
 
-      {:not_found, [other_potential_match]} =
-        Query.find_ancestor(html, "form", {"button", "Save"})
-
-      assert {"form", [{"id", "super-form"}], _} = other_potential_match
+      {:not_found, [element]} = Query.find_ancestor(html, "form", {"button", "Save"})
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
   end
 end

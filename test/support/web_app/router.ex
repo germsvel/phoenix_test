@@ -40,7 +40,8 @@ defmodule PhoenixTest.WebApp.Router do
       live "/live/page_2", Page2Live
       live "/live/async_page", AsyncPageLive
       live "/live/async_page_2", AsyncPage2Live
-      live "/live/ordinal_inputs", OrdinalInputsLive
+      live "/live/dynamic_form", DynamicFormLive
+      live "/live/simple_ordinal_inputs", SimpleOrdinalInputsLive
     end
 
     scope "/auth" do

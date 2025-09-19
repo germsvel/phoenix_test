@@ -4,7 +4,7 @@ defmodule PhoenixTest.WebApp.ErrorView do
   def render(_template, assigns) do
     ~H"""
     <h2>{@status}</h2>
-    <p>{inspect(@reason)}</p>
+    <p>{@reason.message}</p>
     """
   end
 end
