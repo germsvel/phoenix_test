@@ -135,10 +135,10 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#tab", text: "Tab title")
     end
 
-    test "bug", %{conn: conn} do
+    test "selector inside within only finds contained elements", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> within("div:lexbor-contains('wibble')", fn session ->
+      |> within(".wibble", fn session ->
         # Should only find a single button, but finds 2
         click_button(session, "button", "action")
       end)

@@ -3,8 +3,6 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
   use Phoenix.LiveView
 
-  alias Phoenix.LiveView.JS
-
   def render(assigns) do
     ~H"""
     <h1 id="title" class="title" data-role="title">LiveView main page</h1>
@@ -23,11 +21,11 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <h3>{@h3}</h3>
 
     <div>
-      <div>
-        wibble <button phx-click={JS.push("wibble")}>action</button>
+      <div class="wibble">
+        <button phx-click="do-it">action</button>
       </div>
-      <div>
-        wobble <button phx-click={JS.push("wobble")}>action</button>
+      <div class="wobble">
+        <button phx-click="do-it">action</button>
       </div>
     </div>
 
@@ -855,6 +853,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
     checked_keys = Map.update(socket.assigns.checked_keys, id, true, &(not &1))
 
     {:noreply, assign(socket, :checked_keys, checked_keys)}
+  end
+
+  def handle_event("do-it", _, socket) do
+    {:noreply, socket}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do
