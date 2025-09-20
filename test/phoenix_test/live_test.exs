@@ -135,6 +135,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#tab", text: "Tab title")
     end
 
+    test "selector inside within only finds contained elements", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within(".wibble", fn session ->
+        # Should only find a single button, but finds 2
+        click_button(session, "button", "action")
+      end)
+    end
+
     test "handles a `phx-click` button", %{conn: conn} do
       conn
       |> visit("/live/index")

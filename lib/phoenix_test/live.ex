@@ -82,6 +82,8 @@ defmodule PhoenixTest.Live do
   end
 
   defp handle_click_button(session, button) do
+    button = %{button | selector: PhoenixTest.SessionHelpers.scope_selector(session.within, button.selector)}
+
     cond do
       Button.phx_click?(button) ->
         session.view
