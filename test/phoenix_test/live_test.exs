@@ -127,7 +127,7 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "click_button/2" do
+  describe "click_button" do
     test "finds button by substring", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -286,6 +286,12 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> click_button("An ID-less Span Wrapped")
+    end
+
+    test "does not raise when targetting duplicate button differentiated by wrapped ID", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("#button-with-id-1 button", "Duplicate button with wrapped id")
     end
   end
 
