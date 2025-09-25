@@ -29,6 +29,13 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <button phx-click="show-tab">Show tab</button>
 
+    <div id="button-with-id-1">
+      <button phx-click="show-tab">Duplicate button with wrapped id</button>
+    </div>
+    <div id="button-with-id-2">
+      <button phx-click="show-tab">Duplicate button with wrapped id</button>
+    </div>
+
     <div :if={@show_tab} id="tab">
       <h2>Tab title</h2>
     </div>

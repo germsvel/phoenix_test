@@ -57,6 +57,18 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       assert button.selector == ~s(button[name="super"][value="button"])
     end
+
+    test "keeps provided selector if more complex than 'button'" do
+      html = """
+        <div id="button-id">
+          <button>Save</button>
+        </div>
+      """
+
+      button = Button.find!(html, "#button-id button", "Save")
+
+      assert button.selector == ~s(#button-id button)
+    end
   end
 
   describe "button.form_id" do

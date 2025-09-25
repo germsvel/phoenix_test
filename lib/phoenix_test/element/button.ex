@@ -14,6 +14,17 @@ defmodule PhoenixTest.Element.Button do
     html
     |> Query.find!(selector, text)
     |> build(html)
+    |> keep_best_selector(selector)
+  end
+
+  defp keep_best_selector(button, provided_selector) do
+    case provided_selector do
+      "button" ->
+        button
+
+      anything_better_than_button ->
+        %{button | selector: anything_better_than_button}
+    end
   end
 
   def find_first(html) do
