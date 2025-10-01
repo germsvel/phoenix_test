@@ -239,6 +239,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
+    test "doesn't submit if form if not type 'submit'", %{conn: conn} do
+      # The form has a phx-submit that isn't implemented, so a submit would raise here
+      conn
+      |> visit("/live/index")
+      |> within("#should-not-submit-form", &click_button(&1, "Non submit button"))
+    end
+
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg = ~r/to have a `phx-submit` or `action` defined/
 

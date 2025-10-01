@@ -145,6 +145,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
       </button>
     </form>
 
+    <form id="should-not-submit-form" phx-submit="not-implemented-event">
+      <button type="button">Non submit button</button>
+    </form>
+
     <form id="full-form" phx-submit="save-form" phx-change="upload-change">
       <label for="first_name">First Name</label>
       <input id="first_name" name="first_name" />
