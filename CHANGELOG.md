@@ -7,6 +7,14 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.8.2
+
+### Fixes
+
+- Fix: keep provided selector in `click_button/3` [97f664d]
+
+[97f664d]: https://github.com/germsvel/phoenix_test/commit/97f664d
+
 ## 0.8.1
 
 ### Fixes
