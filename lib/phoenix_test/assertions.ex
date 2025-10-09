@@ -5,6 +5,7 @@ defmodule PhoenixTest.Assertions do
 
   alias ExUnit.AssertionError
   alias PhoenixTest.Html
+  alias PhoenixTest.Operation
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
@@ -65,6 +66,7 @@ defmodule PhoenixTest.Assertions do
   """
   def assert_has(session, "title") do
     title = PhoenixTest.Driver.render_page_title(session)
+    session = set_operation(session, :assert_has, title)
 
     if is_nil(title) || title == "" do
       raise AssertionError,
@@ -86,6 +88,7 @@ defmodule PhoenixTest.Assertions do
     text = Keyword.fetch!(opts, :text)
     exact = Keyword.get(opts, :exact, false)
     title = PhoenixTest.Driver.render_page_title(session)
+    session = set_operation(session, :assert_has, title)
     matches? = if exact, do: title == text, else: title =~ text
 
     if matches? do
@@ -104,11 +107,9 @@ defmodule PhoenixTest.Assertions do
   def assert_has(session, selector, opts) when is_list(opts) do
     opts = Opts.parse(opts)
     finder = finder_fun(selector, opts)
+    session = set_operation(session, :assert_has)
 
-    session
-    |> PhoenixTest.Driver.render_html()
-    |> finder.()
-    |> case do
+    case finder.(session.current_operation.html) do
       :not_found ->
         raise AssertionError, assert_not_found_error_msg(selector, opts)
 
@@ -167,6 +168,7 @@ defmodule PhoenixTest.Assertions do
   """
   def refute_has(session, "title") do
     title = PhoenixTest.Driver.render_page_title(session)
+    session = set_operation(session, :refute_has, title)
 
     if is_nil(title) do
       refute false
@@ -188,6 +190,7 @@ defmodule PhoenixTest.Assertions do
     text = Keyword.fetch!(opts, :text)
     exact = Keyword.get(opts, :exact, false)
     title = PhoenixTest.Driver.render_page_title(session)
+    session = set_operation(session, :refute_has, title)
     matches? = if exact, do: title == text, else: title =~ text
 
     if matches? do
@@ -205,11 +208,9 @@ defmodule PhoenixTest.Assertions do
   def refute_has(session, selector, opts) when is_list(opts) do
     opts = Opts.parse(opts)
     finder = finder_fun(selector, opts)
+    session = set_operation(session, :refute_has)
 
-    session
-    |> PhoenixTest.Driver.render_html()
-    |> finder.()
-    |> case do
+    case finder.(session.current_operation.html) do
       :not_found ->
         refute false
 
@@ -249,6 +250,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_path(session, path) do
+    session = set_operation(session, :assert_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
     if path_matches?(path, uri.path) do
@@ -321,6 +323,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_path(session, path) do
+    session = set_operation(session, :refute_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
     if uri.path == path do
@@ -337,6 +340,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_path(session, path, opts) do
+    session = set_operation(session, :refute_path, "")
     params = Keyword.get(opts, :query_params)
 
     refute_query_params(session, params) || refute_path(session, path)
@@ -452,4 +456,9 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp format_found_elements(element), do: format_found_elements([element])
+
+  defp set_operation(session, name, rendered_html \\ nil) do
+    html = rendered_html || PhoenixTest.Driver.render_html(session)
+    Map.put(session, :current_operation, Operation.new(name, html))
+  end
 end

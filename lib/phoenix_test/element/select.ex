@@ -6,8 +6,8 @@ defmodule PhoenixTest.Element.Select do
   alias PhoenixTest.LiveViewBindings
   alias PhoenixTest.Query
 
-  @enforce_keys ~w[source_raw selected_options parsed label id name value selector]a
-  defstruct ~w[source_raw selected_options parsed label id name value selector]a
+  @enforce_keys ~w[selected_options parsed label id name value selector]a
+  defstruct ~w[selected_options parsed label id name value selector]a
 
   def find_select_option!(html, input_selector, label, option, opts) do
     field = Query.find_by_label!(html, input_selector, label, opts)
@@ -46,7 +46,6 @@ defmodule PhoenixTest.Element.Select do
     values = Enum.map(selected_options, fn option -> Html.attribute(option, "value") end)
 
     %__MODULE__{
-      source_raw: html,
       parsed: field,
       label: label,
       id: id,
@@ -65,8 +64,8 @@ defmodule PhoenixTest.Element.Select do
     field.selector <> " option[value=#{inspect(value)}]"
   end
 
-  def belongs_to_form?(field) do
-    case Query.find_ancestor(field.source_raw, "form", field.selector) do
+  def belongs_to_form?(field, html) do
+    case Query.find_ancestor(html, "form", field.selector) do
       {:found, _} -> true
       _ -> false
     end

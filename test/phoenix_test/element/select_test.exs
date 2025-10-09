@@ -96,7 +96,7 @@ defmodule PhoenixTest.Element.SelectTest do
 
       field = Select.find_select_option!(html, "select", "Name", "Select 1", exact: true)
 
-      assert Select.belongs_to_form?(field)
+      assert Select.belongs_to_form?(field, html)
     end
 
     test "returns false if field is outside of a form" do
@@ -109,7 +109,7 @@ defmodule PhoenixTest.Element.SelectTest do
 
       field = Select.find_select_option!(html, "select", "Name", "Select 1", exact: true)
 
-      refute Select.belongs_to_form?(field)
+      refute Select.belongs_to_form?(field, html)
     end
   end
 

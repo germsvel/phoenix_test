@@ -97,38 +97,6 @@ defmodule PhoenixTest.Element.ButtonTest do
     end
   end
 
-  describe "button.raw" do
-    test "returns the button's HTML" do
-      html = """
-      <form>
-        <button>
-          Save
-        </button>
-      </form>
-      """
-
-      button = Button.find!(html, "button", "Save")
-
-      assert button.raw =~ ~r/^<button>\s*Save\s*<\/button>$/
-    end
-  end
-
-  describe "button.source_raw" do
-    test "returns the original HTML from which the button was found" do
-      html = """
-      <form>
-        <button>
-          Save
-        </button>
-      </form>
-      """
-
-      button = Button.find!(html, "button", "Save")
-
-      assert button.source_raw == html
-    end
-  end
-
   describe "button.name and button.value" do
     test "returns button's name and value if present" do
       html = """
@@ -182,7 +150,7 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      assert Button.belongs_to_form?(button)
+      assert Button.belongs_to_form?(button, html)
     end
 
     test "returns true if button has a form attribute" do
@@ -194,7 +162,7 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      assert Button.belongs_to_form?(button)
+      assert Button.belongs_to_form?(button, html)
     end
 
     test "returns false if button stands alone" do
@@ -206,7 +174,7 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      refute Button.belongs_to_form?(button)
+      refute Button.belongs_to_form?(button, html)
     end
   end
 
@@ -263,7 +231,7 @@ defmodule PhoenixTest.Element.ButtonTest do
   end
 
   describe "parent_form!" do
-    test "returns the ancestor form when button was found" do
+    test "returns the ancestor form from html" do
       html = """
       <form id="form">
         <button>
@@ -275,7 +243,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       form =
         html
         |> Button.find!("button", "Save")
-        |> Button.parent_form!()
+        |> Button.parent_form!(html)
 
       assert form.id == "form"
     end
@@ -292,7 +260,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       form =
         html
         |> Button.find!("button", "Save")
-        |> Button.parent_form!()
+        |> Button.parent_form!(html)
 
       assert form.id == "form"
     end
@@ -308,7 +276,7 @@ defmodule PhoenixTest.Element.ButtonTest do
         Button.find!(html, "button", "Save")
 
       assert_raise ArgumentError, fn ->
-        Button.parent_form!(button)
+        Button.parent_form!(button, html)
       end
     end
   end

@@ -17,11 +17,12 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
   alias PhoenixTest.OpenBrowser
+  alias PhoenixTest.Operation
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: "", current_operation: nil
 
   def build(conn) do
     %__MODULE__{conn: conn, current_path: ConnHandler.build_current_path(conn)}
@@ -52,10 +53,8 @@ defmodule PhoenixTest.Static do
   end
 
   def click_link(session, selector \\ "a", text) do
-    link =
-      session
-      |> render_html()
-      |> Link.find!(selector, text)
+    session = set_operation(session, :click_link)
+    link = Link.find!(session.current_operation.html, selector, text)
 
     if Link.has_data_method?(link) do
       form =
@@ -75,33 +74,38 @@ defmodule PhoenixTest.Static do
 
   def click_button(session, text) do
     locator = Locators.button(text: text)
-    html = render_html(session)
+    session = set_operation(session, :click_button)
 
     button =
-      html
+      session.current_operation.html
       |> Query.find_by_role!(locator)
-      |> Button.build(html)
+      |> Button.build()
 
-    click_button(session, button.selector, button.text)
+    handle_click_button(session, button)
   end
 
   def click_button(session, selector, text) do
-    active_form = session.active_form
+    session = set_operation(session, :click_button)
+    button = Button.find!(session.current_operation.html, selector, text)
 
-    html = render_html(session)
-    button = Button.find!(html, selector, text)
+    handle_click_button(session, button)
+  end
+
+  defp handle_click_button(session, button) do
+    active_form = session.active_form
+    html = session.current_operation.html
 
     if Button.has_data_method?(button) do
       form =
         button.parsed
         |> DataAttributeForm.build()
-        |> DataAttributeForm.validate!(selector, text)
+        |> DataAttributeForm.validate!(button.selector, button.text)
 
       perform_submit(session, form, form.data)
     else
       form =
         button
-        |> Button.parent_form!()
+        |> Button.parent_form!(html)
         |> Form.put_button_data(button)
 
       if active_form.selector == form.selector do
@@ -119,9 +123,9 @@ defmodule PhoenixTest.Static do
 
   def fill_in(session, input_selector, label, opts) do
     {value, opts} = Keyword.pop!(opts, :with)
+    session = set_operation(session, :fill_in)
 
-    session
-    |> render_html()
+    session.current_operation.html
     |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
@@ -133,9 +137,9 @@ defmodule PhoenixTest.Static do
 
   def select(session, input_selector, option, opts) do
     {label, opts} = Keyword.pop!(opts, :from)
+    session = set_operation(session, :select)
 
-    session
-    |> render_html()
+    session.current_operation.html
     |> Select.find_select_option!(input_selector, label, option, opts)
     |> then(&fill_in_field_data(session, &1))
   end
@@ -145,8 +149,9 @@ defmodule PhoenixTest.Static do
   end
 
   def check(session, input_selector, label, opts) do
-    session
-    |> render_html()
+    session = set_operation(session, :check)
+
+    session.current_operation.html
     |> Field.find_checkbox!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
@@ -156,8 +161,9 @@ defmodule PhoenixTest.Static do
   end
 
   def uncheck(session, input_selector, label, opts) do
-    session
-    |> render_html()
+    session = set_operation(session, :uncheck)
+
+    session.current_operation.html
     |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
@@ -167,8 +173,9 @@ defmodule PhoenixTest.Static do
   end
 
   def choose(session, input_selector, label, opts) do
-    session
-    |> render_html()
+    session = set_operation(session, :choose)
+
+    session.current_operation.html
     |> Field.find_input!(input_selector, label, opts)
     |> then(&fill_in_field_data(session, &1))
   end
@@ -180,8 +187,10 @@ defmodule PhoenixTest.Static do
   def upload(session, input_selector, label, path, opts) do
     mime_type = FileUpload.mime_type(path)
     upload = %Plug.Upload{content_type: mime_type, filename: Path.basename(path), path: path}
-    field = session |> render_html() |> Field.find_input!(input_selector, label, opts)
-    form = Field.parent_form!(field)
+    session = set_operation(session, :upload)
+    html = session.current_operation.html
+    field = Field.find_input!(html, input_selector, label, opts)
+    form = Field.parent_form!(field, html)
     upload_data = {field.name, upload}
 
     Map.update!(session, :active_form, fn active_form ->
@@ -201,10 +210,10 @@ defmodule PhoenixTest.Static do
     unless ActiveForm.active?(active_form), do: raise(no_active_form_error())
 
     selector = active_form.selector
+    session = set_operation(session, :submit)
 
     form =
-      session
-      |> render_html()
+      session.current_operation.html
       |> Form.find!(selector)
       |> then(fn form ->
         Form.put_button_data(form, form.submit_button)
@@ -214,9 +223,10 @@ defmodule PhoenixTest.Static do
   end
 
   def submit_form(session, selector, form_data) do
+    session = set_operation!(session, :submit_form)
+
     form =
-      session
-      |> render_html()
+      session.current_operation.html
       |> Form.find!(selector)
       |> then(fn form ->
         Form.put_button_data(form, form.submit_button)
@@ -253,7 +263,7 @@ defmodule PhoenixTest.Static do
 
   defp fill_in_field_data(session, field) do
     Field.validate_name!(field)
-    form = Field.parent_form!(field)
+    form = Field.parent_form!(field, session.current_operation.html)
 
     Map.update!(session, :active_form, fn active_form ->
       if active_form.selector == form.selector do
@@ -307,6 +317,18 @@ defmodule PhoenixTest.Static do
 
       %{status: _} ->
         %{session | conn: conn, current_path: ConnHandler.build_current_path(conn)}
+    end
+  end
+
+  defp set_operation(session, name, rendered_html \\ nil) do
+    html = rendered_html || render_html(session)
+    Map.put(session, :current_operation, Operation.new(name, html))
+  end
+
+  defp set_operation!(session, name) do
+    case session.current_operation do
+      %Operation{} -> session
+      nil -> set_operation(session, name)
     end
   end
 end

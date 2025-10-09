@@ -5,16 +5,14 @@ defmodule PhoenixTest.Element.Link do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[raw parsed id selector text href]a
+  defstruct ~w[parsed id selector text href]a
 
   def find!(html, selector, text) do
     link = Query.find!(html, selector, text)
-    link_html = Html.raw(link)
     id = Html.attribute(link, "id")
     href = Html.attribute(link, "href")
 
     %__MODULE__{
-      raw: link_html,
       parsed: link,
       id: id,
       selector: selector,

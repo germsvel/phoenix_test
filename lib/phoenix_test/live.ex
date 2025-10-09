@@ -16,11 +16,18 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Html
   alias PhoenixTest.LiveViewTimeout
   alias PhoenixTest.Locators
+  alias PhoenixTest.Operation
   alias PhoenixTest.Query
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
-  defstruct view: nil, watcher: nil, conn: nil, active_form: ActiveForm.new(), within: :none, current_path: ""
+  defstruct view: nil,
+            watcher: nil,
+            conn: nil,
+            active_form: ActiveForm.new(),
+            within: :none,
+            current_path: "",
+            current_operation: nil
 
   def build(conn) do
     {:ok, view, _html} = live(conn)
@@ -54,6 +61,8 @@ defmodule PhoenixTest.Live do
   end
 
   def click_link(session, selector \\ "a", text) do
+    session = set_operation(session, :click_link, "")
+
     session.view
     |> element(selector, text)
     |> render_click()
@@ -62,26 +71,27 @@ defmodule PhoenixTest.Live do
 
   def click_button(session, text) do
     locator = Locators.button(text: text)
-    html = render_html(session)
+    session = set_operation(session, :click_button)
 
     button =
-      html
+      session.current_operation.html
       |> Query.find_by_role!(locator)
-      |> Button.build(html)
+      |> Button.build()
 
     handle_click_button(session, button)
   end
 
   def click_button(session, selector, text) do
-    button =
-      session
-      |> render_html()
-      |> Button.find!(selector, text)
+    session = set_operation(session, :click_button)
+    html = session.current_operation.html
+    button = Button.find!(html, selector, text)
 
     handle_click_button(session, button)
   end
 
   defp handle_click_button(session, button) do
+    html = session.current_operation.html
+
     cond do
       Button.phx_click?(button) ->
         session.view
@@ -89,10 +99,10 @@ defmodule PhoenixTest.Live do
         |> render_click()
         |> maybe_redirect(session)
 
-      Button.belongs_to_form?(button) ->
+      Button.belongs_to_form?(button, html) ->
         active_form = session.active_form
         additional_data = FormData.add_data(FormData.new(), button)
-        form = Button.parent_form!(button)
+        form = Button.parent_form!(button, html)
 
         form_data =
           if active_form.selector == form.selector do
@@ -120,9 +130,9 @@ defmodule PhoenixTest.Live do
 
   def fill_in(session, input_selector, label, opts) do
     {value, opts} = Keyword.pop!(opts, :with)
+    session = set_operation(session, :fill_in)
 
-    session
-    |> render_html()
+    session.current_operation.html
     |> Field.find_input!(input_selector, label, opts)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
@@ -133,15 +143,15 @@ defmodule PhoenixTest.Live do
   end
 
   def select(session, input_selector, option, opts) do
+    session = set_operation(session, :select)
+    html = session.current_operation.html
     {label, opts} = Keyword.pop!(opts, :from)
 
     field =
-      session
-      |> render_html()
-      |> Select.find_select_option!(input_selector, label, option, opts)
+      Select.find_select_option!(session.current_operation.html, input_selector, label, option, opts)
 
     cond do
-      Select.belongs_to_form?(field) ->
+      Select.belongs_to_form?(field, html) ->
         fill_in_field_data(session, field)
 
       Select.phx_click_options?(field) ->
@@ -164,10 +174,9 @@ defmodule PhoenixTest.Live do
   end
 
   def check(session, input_selector, label, opts) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_checkbox!(input_selector, label, opts)
+    session = set_operation(session, :check)
+    html = session.current_operation.html
+    field = Field.find_checkbox!(html, input_selector, label, opts)
 
     cond do
       Field.phx_click?(field) ->
@@ -176,7 +185,7 @@ defmodule PhoenixTest.Live do
         |> render_click()
         |> maybe_redirect(session)
 
-      Field.belongs_to_form?(field) ->
+      Field.belongs_to_form?(field, html) ->
         fill_in_field_data(session, field)
 
       true ->
@@ -191,18 +200,17 @@ defmodule PhoenixTest.Live do
   end
 
   def uncheck(session, input_selector, label, opts) do
-    html = render_html(session)
+    session = set_operation(session, :uncheck)
+    html = session.current_operation.html
     field = Field.find_checkbox!(html, input_selector, label, opts)
 
     cond do
-      # Support phx-click on checkboxes that have phx-value-key attributes too
       Field.phx_click?(field) and Field.phx_value?(field) ->
         session.view
         |> element(field.selector)
         |> render_click()
         |> maybe_redirect(session)
 
-      # Support phx-click on checkboxes that aren't in forms
       Field.phx_click?(field) ->
         event = Html.attribute(field.parsed, "phx-click")
 
@@ -210,7 +218,7 @@ defmodule PhoenixTest.Live do
         |> render_click(event, %{})
         |> maybe_redirect(session)
 
-      Field.belongs_to_form?(field) ->
+      Field.belongs_to_form?(field, html) ->
         html
         |> Field.find_hidden_uncheckbox!(input_selector, label, opts)
         |> then(&fill_in_field_data(session, &1))
@@ -227,10 +235,9 @@ defmodule PhoenixTest.Live do
   end
 
   def choose(session, input_selector, label, opts) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_input!(input_selector, label, opts)
+    session = set_operation(session, :choose)
+    html = session.current_operation.html
+    field = Field.find_input!(html, input_selector, label, opts)
 
     cond do
       Field.phx_click?(field) ->
@@ -239,7 +246,7 @@ defmodule PhoenixTest.Live do
         |> render_click()
         |> maybe_redirect(session)
 
-      Field.belongs_to_form?(field) ->
+      Field.belongs_to_form?(field, html) ->
         fill_in_field_data(session, field)
 
       true ->
@@ -254,14 +261,13 @@ defmodule PhoenixTest.Live do
   end
 
   def upload(session, input_selector, label, path, opts) do
-    field =
-      session
-      |> render_html()
-      |> Field.find_input!(input_selector, label, opts)
+    session = set_operation(session, :upload)
+    html = session.current_operation.html
+    field = Field.find_input!(html, input_selector, label, opts)
 
     file_stat = File.stat!(path)
     file_name = Path.basename(path)
-    form = Field.parent_form!(field)
+    form = Field.parent_form!(field, html)
     live_upload_name = String.to_existing_atom(field.name)
     mime_type = FileUpload.mime_type(path)
 
@@ -342,9 +348,10 @@ defmodule PhoenixTest.Live do
   end
 
   defp fill_in_field_data(session, field) do
+    html = session.current_operation.html
     Field.validate_name!(field)
 
-    form = Field.parent_form!(field)
+    form = Field.parent_form!(field, html)
 
     session =
       Map.update!(session, :active_form, fn active_form ->
@@ -378,7 +385,9 @@ defmodule PhoenixTest.Live do
 
     selector = active_form.selector
 
-    submit_form(session, selector, active_form.form_data)
+    session
+    |> set_operation(:submit)
+    |> submit_form(selector, active_form.form_data)
   end
 
   defp no_active_form_error do
@@ -388,10 +397,7 @@ defmodule PhoenixTest.Live do
   end
 
   def submit_form(session, selector, form_data, additional_data \\ FormData.new()) do
-    form =
-      session
-      |> render_html()
-      |> Form.find!(selector)
+    form = Form.find!(session.current_operation.html, selector)
 
     form_data = remove_data_for_fields_that_have_been_removed(form_data, form)
     form_data = FormData.merge(form.form_data, form_data)
@@ -512,6 +518,11 @@ defmodule PhoenixTest.Live do
     assert_patch(view, 0)
   rescue
     ArgumentError -> :no_path
+  end
+
+  defp set_operation(session, name, rendered_html \\ nil) do
+    html = rendered_html || render_html(session)
+    Map.put(session, :current_operation, Operation.new(name, html))
   end
 end
 

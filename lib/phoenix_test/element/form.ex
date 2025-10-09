@@ -8,7 +8,7 @@ defmodule PhoenixTest.Element.Form do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[selector raw parsed id action method form_data submit_button]a
+  defstruct ~w[selector parsed id action method form_data submit_button]a
 
   def find!(html, selector) do
     html
@@ -33,7 +33,6 @@ defmodule PhoenixTest.Element.Form do
   end
 
   defp build(%LazyHTML{} = form) do
-    raw = Html.raw(form)
     id = Html.attribute(form, "id")
     action = Html.attribute(form, "action")
     selector = Element.build_selector(form)
@@ -44,7 +43,6 @@ defmodule PhoenixTest.Element.Form do
       id: id,
       method: operative_method(form),
       parsed: form,
-      raw: raw,
       selector: selector,
       submit_button: Button.find_first(form)
     }

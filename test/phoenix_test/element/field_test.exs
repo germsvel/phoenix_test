@@ -12,8 +12,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_input!(html, "input", "Name", exact: true)
 
-      assert %{source_raw: ^html, id: "name", label: "Name", name: "name", value: "Hello world"} =
-               field
+      assert %{id: "name", label: "Name", name: "name", value: "Hello world"} = field
     end
 
     test "finds radio button specified by label" do
@@ -30,7 +29,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_input!(html, "input", "Elf", exact: true)
 
-      assert %{source_raw: ^html, id: "elf", label: "Elf", name: "race", value: "elf"} = field
+      assert %{id: "elf", label: "Elf", name: "race", value: "elf"} = field
     end
 
     test "finds input if nested inside label (and no id)" do
@@ -43,7 +42,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_input!(html, "input", "Name", exact: true)
 
-      assert %{source_raw: ^html, label: "Name", name: "name", value: "Hello world"} = field
+      assert %{label: "Name", name: "name", value: "Hello world"} = field
     end
 
     test "builds a selector based on id if id is present" do
@@ -80,8 +79,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_checkbox!(html, "input", "Yes", exact: true)
 
-      assert %{source_raw: ^html, id: "yes", label: "Yes", name: "yes", value: "on"} =
-               field
+      assert %{id: "yes", label: "Yes", name: "yes", value: "on"} = field
     end
 
     test "finds a checkbox and uses value if present" do
@@ -106,8 +104,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
 
-      assert %{source_raw: ^html, id: "yes", label: "Yes", name: "yes", value: "no"} =
-               field
+      assert %{id: "yes", label: "Yes", name: "yes", value: "no"} = field
     end
 
     test "raises an error if checkbox input doesn't have a `name` (needed to find hidden input)" do
@@ -170,7 +167,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_input!(html, "input", "Name", exact: true)
 
-      assert Field.belongs_to_form?(field)
+      assert Field.belongs_to_form?(field, html)
     end
 
     test "returns false if field is outside of a form" do
@@ -181,7 +178,7 @@ defmodule PhoenixTest.Element.FieldTest do
 
       field = Field.find_input!(html, "input", "Name", exact: true)
 
-      refute Field.belongs_to_form?(field)
+      refute Field.belongs_to_form?(field, html)
     end
   end
 
