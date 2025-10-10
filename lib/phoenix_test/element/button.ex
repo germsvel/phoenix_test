@@ -57,7 +57,8 @@ defmodule PhoenixTest.Element.Button do
   end
 
   def belongs_to_form?(%__MODULE__{} = button, html) do
-    !!button.form_id || belongs_to_ancestor_form?(button, html)
+    type = Html.attribute(button.parsed, "type") || "submit"
+    !!button.form_id || (type == "submit" && belongs_to_ancestor_form?(button, html))
   end
 
   defp belongs_to_ancestor_form?(button, html) do
