@@ -62,6 +62,7 @@ defmodule PhoenixTest.Live do
 
   def click_link(session, selector \\ "a", text) do
     session = set_operation(session, :click_link, "")
+    selector = PhoenixTest.SessionHelpers.scope_selector(session.within, selector)
 
     session.view
     |> element(selector, text)
@@ -91,7 +92,7 @@ defmodule PhoenixTest.Live do
 
   defp handle_click_button(session, button) do
     html = session.current_operation.html
-    button = %{button | selector: PhoenixTest.SessionHelpers.scope_selector(session.within, button.selector)}
+    button = scope_selector(button, session.within)
 
     cond do
       Button.phx_click?(button) ->
@@ -135,6 +136,7 @@ defmodule PhoenixTest.Live do
 
     session.current_operation.html
     |> Field.find_input!(input_selector, label, opts)
+    |> scope_selector(session.within)
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end
@@ -149,7 +151,9 @@ defmodule PhoenixTest.Live do
     {label, opts} = Keyword.pop!(opts, :from)
 
     field =
-      Select.find_select_option!(session.current_operation.html, input_selector, label, option, opts)
+      session.current_operation.html
+      |> Select.find_select_option!(input_selector, label, option, opts)
+      |> scope_selector(session.within)
 
     cond do
       Select.belongs_to_form?(field, html) ->
@@ -177,7 +181,11 @@ defmodule PhoenixTest.Live do
   def check(session, input_selector, label, opts) do
     session = set_operation(session, :check)
     html = session.current_operation.html
-    field = Field.find_checkbox!(html, input_selector, label, opts)
+
+    field =
+      html
+      |> Field.find_checkbox!(input_selector, label, opts)
+      |> scope_selector(session.within)
 
     cond do
       Field.phx_click?(field) ->
@@ -203,7 +211,11 @@ defmodule PhoenixTest.Live do
   def uncheck(session, input_selector, label, opts) do
     session = set_operation(session, :uncheck)
     html = session.current_operation.html
-    field = Field.find_checkbox!(html, input_selector, label, opts)
+
+    field =
+      html
+      |> Field.find_checkbox!(input_selector, label, opts)
+      |> scope_selector(session.within)
 
     cond do
       Field.phx_click?(field) and Field.phx_value?(field) ->
@@ -238,7 +250,11 @@ defmodule PhoenixTest.Live do
   def choose(session, input_selector, label, opts) do
     session = set_operation(session, :choose)
     html = session.current_operation.html
-    field = Field.find_input!(html, input_selector, label, opts)
+
+    field =
+      html
+      |> Field.find_input!(input_selector, label, opts)
+      |> scope_selector(session.within)
 
     cond do
       Field.phx_click?(field) ->
@@ -264,7 +280,11 @@ defmodule PhoenixTest.Live do
   def upload(session, input_selector, label, path, opts) do
     session = set_operation(session, :upload)
     html = session.current_operation.html
-    field = Field.find_input!(html, input_selector, label, opts)
+
+    field =
+      html
+      |> Field.find_input!(input_selector, label, opts)
+      |> scope_selector(session.within)
 
     file_stat = File.stat!(path)
     file_name = Path.basename(path)
@@ -524,6 +544,10 @@ defmodule PhoenixTest.Live do
   defp set_operation(session, name, rendered_html \\ nil) do
     html = rendered_html || render_html(session)
     Map.put(session, :current_operation, Operation.new(name, html))
+  end
+
+  defp scope_selector(object, within) do
+    %{object | selector: PhoenixTest.SessionHelpers.scope_selector(within, object.selector)}
   end
 end
 
