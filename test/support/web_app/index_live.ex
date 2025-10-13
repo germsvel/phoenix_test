@@ -3,6 +3,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
   use Phoenix.LiveView
 
+  alias Phoenix.LiveView.JS
+
   def render(assigns) do
     ~H"""
     <h1 id="title" class="title" data-role="title">LiveView main page</h1>
@@ -143,6 +145,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <button type="submit" name="user[no-phx-change-form-button]" value="save">
         Save Nested Form
       </button>
+    </form>
+
+    <form id="should-not-submit-form" phx-submit="not-implemented-event">
+      <button type="button" phx-click={JS.toggle()}>Non submit button</button>
     </form>
 
     <form id="full-form" phx-submit="save-form" phx-change="upload-change">

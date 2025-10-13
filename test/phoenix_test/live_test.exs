@@ -239,6 +239,16 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
+    test "Raises an error if button with type 'button' inside form doesn't have valid phx-click", %{conn: conn} do
+      msg = ~r/to have a valid `phx-click` attribute or belong to a `form`/
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> within("#should-not-submit-form", &click_button(&1, "Non submit button"))
+      end
+    end
+
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg = ~r/to have a `phx-submit` or `action` defined/
 
