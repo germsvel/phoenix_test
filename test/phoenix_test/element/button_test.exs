@@ -138,6 +138,32 @@ defmodule PhoenixTest.Element.ButtonTest do
     end
   end
 
+  describe "button.type" do
+    test "returns button's type if present" do
+      html = """
+      <button type="button">
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert button.type == "button"
+    end
+
+    test "returns 'submit' if the button has no type attribute" do
+      html = """
+      <button>
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert button.type == "submit"
+    end
+  end
+
   describe "belongs_to_form?" do
     test "returns true if button has a form ancestor" do
       html = """
@@ -151,6 +177,20 @@ defmodule PhoenixTest.Element.ButtonTest do
       button = Button.find!(html, "button", "Save")
 
       assert Button.belongs_to_form?(button, html)
+    end
+
+    test "returns false if button has type='button'" do
+      html = """
+      <form>
+        <button type="button">
+          Save
+        </button>
+      </form>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      refute Button.belongs_to_form?(button, html)
     end
 
     test "returns true if button has a form attribute" do

@@ -8,7 +8,7 @@ defmodule PhoenixTest.Element.Button do
   alias PhoenixTest.Query
   alias PhoenixTest.Utils
 
-  defstruct ~w[parsed id selector text name value form_id]a
+  defstruct ~w[parsed id selector text type name value form_id]a
 
   def find!(html, selector, text) do
     html
@@ -43,6 +43,7 @@ defmodule PhoenixTest.Element.Button do
     value = Html.attribute(parsed, "value") || if name, do: ""
     selector = Element.build_selector(parsed)
     text = Html.inner_text(parsed)
+    type = Html.attribute(parsed, "type") || "submit"
     form_id = Html.attribute(parsed, "form")
 
     %__MODULE__{
@@ -50,6 +51,7 @@ defmodule PhoenixTest.Element.Button do
       id: id,
       selector: selector,
       text: text,
+      type: type,
       name: name,
       value: value,
       form_id: form_id
@@ -57,8 +59,7 @@ defmodule PhoenixTest.Element.Button do
   end
 
   def belongs_to_form?(%__MODULE__{} = button, html) do
-    type = Html.attribute(button.parsed, "type") || "submit"
-    !!button.form_id || (type == "submit" && belongs_to_ancestor_form?(button, html))
+    !!button.form_id || (button.type == "submit" && belongs_to_ancestor_form?(button, html))
   end
 
   defp belongs_to_ancestor_form?(button, html) do
