@@ -35,7 +35,7 @@ defmodule PhoenixTest.Static do
     |> render_html()
     |> Query.find("title")
     |> case do
-      {:found, element} -> Html.inner_text(element)
+      {:found, element} -> Html.element_text(element)
       _ -> nil
     end
   end

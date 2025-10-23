@@ -42,7 +42,7 @@ defmodule PhoenixTest.Element.Button do
     name = Html.attribute(parsed, "name")
     value = Html.attribute(parsed, "value") || if name, do: ""
     selector = Element.build_selector(parsed)
-    text = Html.inner_text(parsed)
+    text = Html.element_text(parsed)
     type = Html.attribute(parsed, "type") || "submit"
     form_id = Html.attribute(parsed, "form")
 

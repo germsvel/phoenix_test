@@ -725,6 +725,20 @@ defmodule PhoenixTest.QueryTest do
 
       assert {"input", [{"id", "greeting"} | _], []} = Html.element(element)
     end
+
+    test "can filter labels wrapping a pre-filled textarea" do
+      html = """
+      <label for="wrapped-notes">
+        Wrapped notes <textarea name="wrapped-notes" rows="5" cols="33">
+          Prefilled wrapped notes
+        </textarea>
+      </label>
+      """
+
+      {:found, element} = Query.find_by_label(html, "label", "Wrapped notes")
+
+      assert {"label", [{"for", "wrapped-notes"}], _} = Html.element(element)
+    end
   end
 
   describe "find_ancestor!/3" do

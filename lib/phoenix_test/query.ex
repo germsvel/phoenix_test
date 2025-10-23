@@ -530,9 +530,9 @@ defmodule PhoenixTest.Query do
 
     filter_fun =
       if exact_match do
-        &(Html.inner_text(&1) == text)
+        &(Html.element_text(&1) == text)
       else
-        &(Html.inner_text(&1) =~ text)
+        &(Html.element_text(&1) =~ text)
       end
 
     Enum.filter(elements, &(&1 |> LazyHTML.filter(":not(select)") |> filter_fun.()))
