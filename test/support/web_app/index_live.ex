@@ -206,8 +206,14 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" rows="5" cols="33">
-      Prefilled notes
+        Prefilled notes
       </textarea>
+
+      <label for="wrapped-notes">
+        Wrapped notes <textarea name="wrapped-notes" rows="5" cols="33">
+          Prefilled wrapped notes
+        </textarea>
+      </label>
 
       <label for="disabled_textarea">Disabled textaread</label>
       <textarea id="disabled_textarea" name="disabled_textarea" rows="5" cols="33" disabled>

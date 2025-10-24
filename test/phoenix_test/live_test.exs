@@ -362,6 +362,14 @@ defmodule PhoenixTest.LiveTest do
       )
     end
 
+    test "can fill-in prefilled textareas where label wraps textarea", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Wrapped notes", with: "Some description")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "wrapped-notes: Some description")
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")
