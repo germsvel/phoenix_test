@@ -7,6 +7,16 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.8.3
+
+### Fixes
+
+- Fix double textarea fill-in bug (Improve `HTML.inner_text`. Rename `element_text`) [37bc521]
+- Fix: button type="button" should not submit form (#263) [af62179]
+
+[37bc521]: https://github.com/germsvel/phoenix_test/commit/37bc521
+[af62179]: https://github.com/germsvel/phoenix_test/commit/af62179
+
 ## 0.8.2
 
 ### Fixes
