@@ -1,0 +1,25 @@
+#!/bin/bash
+
+last_release_tag=$(git describe --tags --abbrev=0)
+last_release_sha=$(git rev-parse "$last_release_tag"^)
+
+latest_sha=$(git rev-parse HEAD)
+
+changelog_entries=$(git log "$last_release_sha".."$latest_sha" --pretty=format:"- %s [%h]")
+
+changelog_file="CHANGELOG.md"
+temp_file=$(mktemp)
+
+echo "## Unreleased" > "$temp_file"
+echo "" >> "$temp_file"
+echo "$changelog_entries" >> "$temp_file"
+echo "" >> "$temp_file"
+
+commit_links=$(git log "$last_release_sha".."$latest_sha" --pretty=format:"[%h]: https://github.com/germsvel/phoenix_test/commit/%h")
+echo "$commit_links" >> "$temp_file"
+echo "" >> "$temp_file"
+
+cat "$changelog_file" >> "$temp_file"
+mv "$temp_file" "$changelog_file"
+
+echo "Changelog updated"
