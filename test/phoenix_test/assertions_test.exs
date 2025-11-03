@@ -110,6 +110,14 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("input", label: "Wizard", value: "Gandalf")
     end
 
+    test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_has("label", text: "Country")
+      |> assert_has("#country-form", text: "Country")
+      |> assert_has("[data-phx-main]", text: "Country")
+    end
+
     test "raises an error if value cannot be found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
