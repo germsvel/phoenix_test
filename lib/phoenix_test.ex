@@ -421,10 +421,13 @@ defmodule PhoenixTest do
   defdelegate click_button(session, selector, text), to: Driver
 
   @doc """
-  Helpers to scope filling out form within a given selector. Use this if you
-  have more than one form on a page with similar labels.
+  Helper to scope filling out form within a given selector or targeting child
+  LiveViews.
 
   ## Examples
+
+  For example, you can use this if you have more than one form on a page with
+  similar labels.
 
   Given we have some HTML like this:
 
@@ -449,6 +452,24 @@ defmodule PhoenixTest do
     session
     |> fill_in("Name", with: "Aragorn")
     |> check("Admin")
+  end)
+  ```
+
+  ---
+
+  You can also use `within/2` to scope actions to a child LiveView (i.e.
+  something rendered via
+  [`live_render/3`](https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html#live_render/3)).
+
+  NOTE: that child LiveViews can _only_ be targeted by ID, so make sure the
+  selector you pass to `within/2` is an ID.
+
+  ```elixir
+  session
+  |> within("#child-live-view", fn session ->
+    session
+    |> fill_in("Email", with: "someone@example.com")
+    |> click_button("Save") # <- event triggered will be sent to child LiveView
   end)
   ```
   """
