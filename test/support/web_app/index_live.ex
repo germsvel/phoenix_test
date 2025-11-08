@@ -22,6 +22,15 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <h3>{@h3}</h3>
 
+    <div>
+      <div class="wibble">
+        <button phx-click="do-it">action</button>
+      </div>
+      <div class="wobble">
+        <button phx-click="do-it">action</button>
+      </div>
+    </div>
+
     <button phx-click="change-h3">Change h3</button>
 
     <button phx-click="push-navigate">Button with push navigation</button>
@@ -856,6 +865,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
     checked_keys = Map.update(socket.assigns.checked_keys, id, true, &(not &1))
 
     {:noreply, assign(socket, :checked_keys, checked_keys)}
+  end
+
+  def handle_event("do-it", _, socket) do
+    {:noreply, socket}
   end
 
   defp render_input_data(key, value) when value == "" or is_nil(value) do

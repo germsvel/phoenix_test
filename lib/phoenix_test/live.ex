@@ -2,6 +2,7 @@ defmodule PhoenixTest.Live do
   @moduledoc false
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
+  import PhoenixTest.SessionHelpers, only: [scope_selector: 2]
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.Assertions
@@ -75,7 +76,7 @@ defmodule PhoenixTest.Live do
     session = set_operation(session, :click_link, "")
 
     session.view
-    |> element(selector, text)
+    |> element(scope_selector(selector, session.within), text)
     |> render_click()
     |> maybe_redirect(session)
   end
@@ -106,7 +107,7 @@ defmodule PhoenixTest.Live do
     cond do
       Button.phx_click?(button) ->
         session.view
-        |> element(button.selector, button.text)
+        |> element(scope_selector(button.selector, session.within), button.text)
         |> render_click()
         |> maybe_redirect(session)
 
@@ -181,9 +182,7 @@ defmodule PhoenixTest.Live do
     session = set_operation(session, :select)
     html = session.current_operation.html
     {label, opts} = Keyword.pop!(opts, :from)
-
-    field =
-      Select.find_select_option!(session.current_operation.html, input_selector, label, option, opts)
+    field = Select.find_select_option!(session.current_operation.html, input_selector, label, option, opts)
 
     cond do
       Select.belongs_to_form?(field, html) ->
@@ -192,7 +191,7 @@ defmodule PhoenixTest.Live do
       Select.phx_click_options?(field) ->
         Enum.reduce(field.value, session, fn value, session ->
           session.view
-          |> element(Select.select_option_selector(field, value))
+          |> element(field |> Select.select_option_selector(value) |> scope_selector(session.within))
           |> render_click()
           |> maybe_redirect(session)
         end)
@@ -216,7 +215,7 @@ defmodule PhoenixTest.Live do
     cond do
       Field.phx_click?(field) ->
         session.view
-        |> element(field.selector)
+        |> element(scope_selector(field.selector, session.within))
         |> render_click()
         |> maybe_redirect(session)
 
@@ -242,7 +241,7 @@ defmodule PhoenixTest.Live do
     cond do
       Field.phx_click?(field) and Field.phx_value?(field) ->
         session.view
-        |> element(field.selector)
+        |> element(scope_selector(field.selector, session.within))
         |> render_click()
         |> maybe_redirect(session)
 
@@ -277,7 +276,7 @@ defmodule PhoenixTest.Live do
     cond do
       Field.phx_click?(field) ->
         session.view
-        |> element(field.selector)
+        |> element(scope_selector(field.selector, session.within))
         |> render_click()
         |> maybe_redirect(session)
 
