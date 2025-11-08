@@ -14,10 +14,12 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
   alias PhoenixTest.Html
+  alias PhoenixTest.LiveViewBindings
   alias PhoenixTest.LiveViewTimeout
   alias PhoenixTest.Locators
   alias PhoenixTest.Operation
   alias PhoenixTest.Query
+  alias PhoenixTest.SessionHelpers
 
   @endpoint Application.compile_env(:phoenix_test, :endpoint)
 
@@ -34,6 +36,15 @@ defmodule PhoenixTest.Live do
     current_path = ConnHandler.build_current_path(conn)
     {:ok, watcher} = start_watcher(view)
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
+  end
+
+  def build_live_child(session, selector) do
+    "#" <> child_id = selector
+
+    child_view = find_live_child(session.view, child_id)
+
+    {:ok, watcher} = start_watcher(child_view)
+    %__MODULE__{session | view: child_view, watcher: watcher}
   end
 
   defp start_watcher(view) do
@@ -121,6 +132,30 @@ defmodule PhoenixTest.Live do
           #{inspect(button.text)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
+  end
+
+  def within(session, selector, fun) when is_binary(selector) and is_function(fun, 1) do
+    if id_selector?(selector) && targets_nested_live_view?(session, selector) do
+      session
+      |> build_live_child(selector)
+      |> fun.()
+    else
+      SessionHelpers.within(session, selector, fun)
+    end
+  end
+
+  defp id_selector?(selector) do
+    case selector do
+      "#" <> _ -> true
+      _ -> false
+    end
+  end
+
+  defp targets_nested_live_view?(session, selector) do
+    session
+    |> render_html()
+    |> Query.find!(selector)
+    |> LiveViewBindings.phx_session?()
   end
 
   def fill_in(session, label, opts) do
@@ -530,7 +565,6 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   alias PhoenixTest.Assertions
   alias PhoenixTest.ConnHandler
   alias PhoenixTest.Live
-  alias PhoenixTest.SessionHelpers
 
   def visit(session, path) do
     ConnHandler.visit(session.conn, path)
@@ -542,7 +576,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate click_link(session, selector, text), to: Live
   defdelegate click_button(session, text), to: Live
   defdelegate click_button(session, selector, text), to: Live
-  defdelegate within(session, selector, fun), to: SessionHelpers
+  defdelegate within(session, selector, fun), to: Live
   defdelegate fill_in(session, label, opts), to: Live
   defdelegate fill_in(session, input_selector, label, opts), to: Live
   defdelegate select(session, option, opts), to: Live

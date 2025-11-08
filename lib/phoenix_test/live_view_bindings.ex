@@ -18,6 +18,12 @@ defmodule PhoenixTest.LiveViewBindings do
     end
   end
 
+  def phx_session?(parsed_element) do
+    parsed_element
+    |> Html.attribute("data-phx-session")
+    |> Utils.present?()
+  end
+
   defp valid_event_or_js_command?("[" <> _ = js_command) do
     js_command
     |> Jason.decode!()
