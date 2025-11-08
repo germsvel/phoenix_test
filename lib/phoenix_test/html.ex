@@ -13,9 +13,13 @@ defmodule PhoenixTest.Html do
     LazyHTML.from_fragment(html)
   end
 
+  def text(%LazyHTML{} = element) do
+    LazyHTML.text(element)
+  end
+
   def element_text(%LazyHTML{} = element) do
     element
-    |> LazyHTML.to_tree(skip_whitespace_nodes: false)
+    |> LazyHTML.to_tree(skip_whitespace_nodes: true)
     |> text_from_text_nodes()
     |> String.trim()
     |> normalize_whitespace()
@@ -34,11 +38,11 @@ defmodule PhoenixTest.Html do
           acc <> text
 
         {tag, _, children} when tag in @text_tags ->
-          acc <> text_from_text_nodes(children)
+          acc <> " " <> text_from_text_nodes(children)
 
         {_tag, _, children} ->
           if top_level_tag?(acc) do
-            acc <> text_from_text_nodes(children)
+            acc <> " " <> text_from_text_nodes(children)
           else
             acc
           end
