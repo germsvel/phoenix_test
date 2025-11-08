@@ -7,6 +7,24 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.9.0
+
+### Added
+
+- feat: Target nested LiveViews with `within/2` (#270) [dd34446]
+
+### Improvements
+
+- Scope selectors in `within/2` for non-form actions [729e3cb]
+
+### Fixes
+
+- fix: only filter by element text when finding labels [d19c6cf]
+
+[729e3cb]: https://github.com/germsvel/phoenix_test/commit/729e3cb
+[d19c6cf]: https://github.com/germsvel/phoenix_test/commit/d19c6cf
+[dd34446]: https://github.com/germsvel/phoenix_test/commit/dd34446
+
 ## 0.8.3
 
 ### Fixes
