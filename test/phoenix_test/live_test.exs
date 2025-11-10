@@ -11,6 +11,12 @@ defmodule PhoenixTest.LiveTest do
     %{conn: Phoenix.ConnTest.build_conn()}
   end
 
+  test "ignores <br/>", %{conn: conn} do
+    conn
+    |> visit("/live/index")
+    |> assert_has("#with-br", text: "With br")
+  end
+
   describe "render_page_title/1" do
     test "renders the default page title", %{conn: conn} do
       title =

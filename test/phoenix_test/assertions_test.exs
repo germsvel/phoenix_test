@@ -118,6 +118,18 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("[data-phx-main]", text: "Country")
     end
 
+    test "succeeds on text assertion, ignores newline", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_has("#with-newline", text: "With newline")
+    end
+
+    test "succeeds on text assertion, ignores <br/>", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> assert_has("#with-br", text: "With br")
+    end
+
     test "raises an error if value cannot be found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 

@@ -93,6 +93,15 @@ defmodule PhoenixTest.WebApp.IndexLive do
       </label>
     </form>
 
+    <div id="with-newline">
+      With
+      newline
+    </div>
+
+    <div id="with-br">
+      With <br /> br
+    </div>
+
     <form id="country-form" phx-change="select-country">
       <label for="country">Country</label>
       <select id="country" name="country">
