@@ -4,10 +4,11 @@ defmodule PhoenixTest.HtmlTest do
   alias PhoenixTest.Html
 
   describe "element_text" do
-    test "extracts text from parsed html, removing extra whitespace" do
+    test "extracts text from parsed html, removing extra tags & whitespace" do
       html = """
       <label>
         hello
+        <br />
         <em>world!</em>
       </label>
       """
@@ -20,18 +21,18 @@ defmodule PhoenixTest.HtmlTest do
       assert result == "hello world!"
     end
 
-    test "extracts the text from the top level element, but includes known text elements)" do
+    test "extracts the text from the top level element along with nested text" do
       html = """
       <div>
         hello
         <a href="/">elixir</a>
         <span>and</span>
         <small>phoenix</small>
-        <em>world!</em>
-
-        <label>excluded text</label>
-        <form>also excluded</form>
-        <textarea>also excluded</textarea>
+        </br>
+        <em>
+          test
+          world!
+        </em>
       </div>
       """
 
@@ -40,7 +41,7 @@ defmodule PhoenixTest.HtmlTest do
         |> Html.parse_fragment()
         |> Html.element_text()
 
-      assert result == "hello elixir and phoenix world!"
+      assert result == "hello elixir and phoenix test world!"
     end
 
     test "extracts text but excludes select elements and their options" do
