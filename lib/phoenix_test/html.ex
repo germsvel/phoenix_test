@@ -13,10 +13,6 @@ defmodule PhoenixTest.Html do
     LazyHTML.from_fragment(html)
   end
 
-  def text(%LazyHTML{} = element) do
-    LazyHTML.text(element)
-  end
-
   def element_text(%LazyHTML{} = element) do
     element
     |> LazyHTML.to_tree(skip_whitespace_nodes: true)
@@ -25,8 +21,7 @@ defmodule PhoenixTest.Html do
     |> normalize_whitespace()
   end
 
-  # combination of tags listed in "Text Content" and "Inline Text Semantics" in https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements
-  @text_tags ~w[a abbr b bdo blockquote br cite code dfn dd div dl dt em i figcaption figure hr kbd li mark menu ol p pre q rp rt s samp small span strong sub sup time u ul var wbr]
+  @dont_include_children_tags ~w[select textarea]
   defp text_from_text_nodes(tree, acc \\ "")
 
   defp text_from_text_nodes([], acc), do: acc
@@ -37,7 +32,7 @@ defmodule PhoenixTest.Html do
         text when is_binary(text) ->
           acc <> text
 
-        {tag, _, children} when tag in @text_tags ->
+        {tag, _, children} when tag not in @dont_include_children_tags ->
           acc <> " " <> text_from_text_nodes(children)
 
         {_tag, _, children} ->

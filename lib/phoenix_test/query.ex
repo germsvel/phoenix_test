@@ -79,16 +79,9 @@ defmodule PhoenixTest.Query do
       |> Html.parse_fragment()
       |> Html.all(selector)
 
-    text_filter_fun =
-      if selector == "label" do
-        &filter_by_element_text(&1, text, opts)
-      else
-        &filter_by_text(&1, text, opts)
-      end
-
     elements_matched_selector
     |> filter_by_position(opts)
-    |> text_filter_fun.()
+    |> filter_by_element_text(text, opts)
     |> case do
       [] -> {:not_found, elements_matched_selector}
       [found] -> {:found, found}
@@ -540,19 +533,6 @@ defmodule PhoenixTest.Query do
         &(Html.element_text(&1) == text)
       else
         &(Html.element_text(&1) =~ text)
-      end
-
-    Enum.filter(elements, &(&1 |> LazyHTML.filter(":not(select)") |> filter_fun.()))
-  end
-
-  defp filter_by_text(elements, text, opts) do
-    exact_match = Keyword.get(opts, :exact, false)
-
-    filter_fun =
-      if exact_match do
-        &(Html.text(&1) == text)
-      else
-        &(Html.text(&1) =~ text)
       end
 
     Enum.filter(elements, filter_fun)
