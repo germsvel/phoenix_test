@@ -7,6 +7,12 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.9.1
+
+- fix: Go back to excluding fields in `element_text`. Remove HTML.text (#273) [bb3380f]
+
+[bb3380f]: https://github.com/germsvel/phoenix_test/commit/bb3380f
+
 ## 0.9.0
 
 ### Added
