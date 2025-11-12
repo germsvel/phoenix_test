@@ -343,6 +343,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     ConnHandler.visit(session.conn, path)
   end
 
+  def refresh(session) do
+    ConnHandler.visit(session.conn, current_path(session))
+  end
+
   defdelegate render_page_title(session), to: Static
   defdelegate render_html(session), to: Static
   defdelegate click_link(session, text), to: Static
