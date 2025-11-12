@@ -569,6 +569,10 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
     ConnHandler.visit(session.conn, path)
   end
 
+  def refresh(session) do
+    ConnHandler.visit(session.conn, current_path(session))
+  end
+
   defdelegate render_page_title(session), to: Live
   defdelegate render_html(session), to: Live
   defdelegate click_link(session, text), to: Live
