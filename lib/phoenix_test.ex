@@ -1526,4 +1526,11 @@ defmodule PhoenixTest do
   """
   @doc group: "Assertions"
   defdelegate refute_path(session, path, opts), to: Driver
+
+  @doc """
+  Reloads the current page, similar to pressing F5 or Cmd+r in the browser.
+  """
+  def refresh(session) do
+    visit(session, Driver.current_path(session))
+  end
 end

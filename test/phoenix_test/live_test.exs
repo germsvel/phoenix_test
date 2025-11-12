@@ -1178,6 +1178,15 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "refresh" do
+    test "preserves current path", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> refresh()
+      |> assert_path("/live/index")
+    end
+  end
+
   describe "shared form helpers behavior" do
     test "triggers phx-change validations", %{conn: conn} do
       conn
