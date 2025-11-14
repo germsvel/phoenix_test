@@ -139,21 +139,21 @@ defmodule PhoenixTest.Query do
       end)
 
     results
-    |> Enum.filter(fn
-      :not_found -> false
-      {:not_found, _} -> false
-      {:found, _} -> true
-      {:found_many, _} -> true
+    |> Enum.flat_map(fn
+      :not_found -> []
+      {:not_found, _} -> []
+      {:found, el} -> [el]
+      {:found_many, els} -> els
     end)
     |> case do
       [] ->
         {:not_found, potential_matches(results)}
 
       [found] ->
-        found
+        {:found, found}
 
-      [_, _] = found_many ->
-        {:found_many, Enum.map(found_many, &elem(&1, 1))}
+      [_ | _] = found_many ->
+        {:found_many, found_many}
     end
   end
 
