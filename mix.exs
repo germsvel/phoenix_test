@@ -9,9 +9,12 @@ defmodule PhoenixTest.MixProject do
   pages.
   """
 
+  @app_name :phoenix_test
+
   def project do
     [
-      app: :phoenix_test,
+      app: @app_name,
+      compilers: [:gleam | Mix.compilers()],
       version: @version,
       description: @description,
       elixir: "~> 1.15",
@@ -27,7 +30,13 @@ defmodule PhoenixTest.MixProject do
         setup: :test,
         "assets.setup": :test,
         "assets.build": :test
-      ]
+      ],
+      archives: [mix_gleam: "~> 0.6"],
+      erlc_paths: [
+        "build/dev/erlang/#{@app_name}/_gleam_artefacts"
+      ],
+      erlc_include_path: "build/dev/erlang/#{@app_name}/include",
+      prune_code_paths: false
     ]
   end
 
@@ -55,7 +64,9 @@ defmodule PhoenixTest.MixProject do
       {:plug_cowboy, "~> 2.7", only: :test, runtime: false},
       {:benchee, "~> 1.3", only: [:dev, :test]},
       {:styler, "~> 0.11", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false, optional: true}
+      # {:credo, "~> 1.7", only: [:dev, :test], runtime: false, optional: true},
+      {:gleam_stdlib, "~> 0.65"},
+      {:butterbee, "~> 1.0", only: :test, app: false}
     ]
   end
 
@@ -81,6 +92,7 @@ defmodule PhoenixTest.MixProject do
 
   defp aliases do
     [
+      "deps.get": ["deps.get", "gleam.deps.get"],
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["esbuild.install --if-missing"],
       "assets.build": ["esbuild default"],

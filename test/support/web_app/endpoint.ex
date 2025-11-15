@@ -10,7 +10,7 @@ defmodule PhoenixTest.WebApp.Endpoint do
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]],
+    websocket: [],
     longpoll: [connect_info: [session: @session_options]]
 
   plug Plug.Static,
