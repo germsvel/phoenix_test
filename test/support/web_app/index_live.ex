@@ -607,6 +607,20 @@ defmodule PhoenixTest.WebApp.IndexLive do
         {if(@checked_keys["def"], do: "Checked", else: "Unchecked")}
       </span>
     </div>
+
+    <form phx-change="dummy-change">
+      <label for="input-with-change">Input with change</label>
+      <input
+        id="input-with-change"
+        name="input-with-change"
+        phx-change="input-changed"
+      />
+    </form>
+
+    <div :if={@input_change_data} id="input-with-change-result">
+      _target: {@input_change_data["_target"]}
+      value: {@input_change_data["input-with-change"]}
+    </div>
     """
   end
 
@@ -635,6 +649,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> assign(:trigger_multiple_submit, false)
       |> assign(:redirect_and_trigger_submit, false)
       |> assign(:upload_change_triggered, false)
+      |> assign(:input_change_data, nil)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:avatar_2, accept: ~w(.jpg .jpeg))
       |> allow_upload(:avatar_3, accept: ~w(.jpg .jpeg))
@@ -859,6 +874,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
       :noreply,
       assign(socket, :upload_change_triggered, true)
     }
+  end
+
+  def handle_event("input-changed", params, socket) do
+    {:noreply, assign(socket, :input_change_data, params)}
   end
 
   def handle_event("toggle-checkbox-phx-value", %{"id" => id}, socket) do

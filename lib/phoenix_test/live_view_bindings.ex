@@ -10,6 +10,12 @@ defmodule PhoenixTest.LiveViewBindings do
     |> valid_event_or_js_command?()
   end
 
+  def phx_change?(parsed_element) do
+    parsed_element
+    |> Html.attribute("phx-change")
+    |> valid_event_or_js_command?()
+  end
+
   def phx_value?(parsed_element) do
     cond do
       any_phx_value_attributes?(parsed_element) -> true
