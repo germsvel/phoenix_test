@@ -1401,5 +1401,37 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Async redirect!")
       |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
     end
+
+    test "check triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Checkbox 1")
+      |> assert_has("#input-with-change-result", text: "_target: checkbox-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Checkbox 1")
+    end
+
+    test "choose triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> choose("Option 1")
+      |> assert_has("#input-with-change-result", text: "_target: radio-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Option 1")
+    end
+
+    test "fill_in triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Input with change", with: "a test value")
+      |> assert_has("#input-with-change-result", text: "_target: input-with-change")
+      |> assert_has("#input-with-change-result", text: "value: a test value")
+    end
+
+    test "select triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Select with change", option: "Option 1")
+      |> assert_has("#input-with-change-result", text: "_target: select-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Option 1")
+    end
   end
 end

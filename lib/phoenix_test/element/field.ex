@@ -69,6 +69,8 @@ defmodule PhoenixTest.Element.Field do
 
   def phx_value?(field), do: LiveViewBindings.phx_value?(field.parsed)
 
+  def phx_change?(field), do: LiveViewBindings.phx_change?(field.parsed)
+
   def belongs_to_form?(field, html) do
     case Query.find_ancestor(html, "form", field.selector) do
       {:found, _} -> true

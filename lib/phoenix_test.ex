@@ -480,8 +480,12 @@ defmodule PhoenixTest do
 
   This can be followed by a `click_button/3` or `submit/1` to submit the form.
 
+  If the input has a `phx-change` attribute, the `phx-change` will be triggered.
+  For this to work, the input needs to be wrapped with a `<form>` element
+  (just like a regular LiveView).
+
   If the form is a LiveView form, and if the form has a `phx-change` attribute
-  defined, `fill_in/3` will trigger the `phx-change` event.
+  defined, `fill_in/3` will trigger the `phx-change` event on the form.
 
   ## Options
 

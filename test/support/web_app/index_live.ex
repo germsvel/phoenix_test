@@ -620,6 +620,64 @@ defmodule PhoenixTest.WebApp.IndexLive do
         {if(@checked_keys["def"], do: "Checked", else: "Unchecked")}
       </span>
     </div>
+
+    <form phx-change="dummy-change">
+      <label for="input-with-change">Input with change</label>
+      <input
+        id="input-with-change"
+        name="input-with-change"
+        phx-change="input-changed"
+      />
+      
+    <!-- Radio inputs -->
+      <input
+        type="radio"
+        id="radio-input-choice-1"
+        name="radio-with-change"
+        value="Option 1"
+        phx-change="input-changed"
+      />
+      <label for="radio-input-choice-1">Option 1</label>
+
+      <input
+        type="radio"
+        id="radio-input-choice-2"
+        name="radio-with-change"
+        value="Option 2"
+        phx-change="input-changed"
+      />
+      <label for="radio-input-choice-2">Option 2</label>
+      
+    <!-- Checkboxes -->
+      <label for="checkbox-input-checkbox-1">Checkbox 1</label>
+      <input
+        id="checkbox-input-checkbox-1"
+        type="checkbox"
+        name="checkbox-with-change"
+        value="Checkbox 1"
+        phx-change="input-changed"
+      />
+
+      <label for="checkbox-input-checkbox-2">Checkbox 2</label>
+      <input
+        id="checkbox-input-checkbox-2"
+        type="checkbox"
+        name="checkbox-with-change"
+        value="Checkbox 2"
+        phx-change="input-changed"
+      />
+      
+    <!-- Select -->
+      <label for="select-with-change">Select with change</label>
+      <select id="select-with-change" name="select-with-change" phx-change="input-changed">
+        <option value="Option 1">Option 1</option>
+        <option value="Option 2">Option 2</option>
+      </select>
+    </form>
+
+    <div :if={@input_change_data} id="input-with-change-result">
+      _target: {@input_change_data.target} value: {@input_change_data.value}
+    </div>
     """
   end
 
@@ -648,6 +706,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       |> assign(:trigger_multiple_submit, false)
       |> assign(:redirect_and_trigger_submit, false)
       |> assign(:upload_change_triggered, false)
+      |> assign(:input_change_data, nil)
       |> allow_upload(:avatar, accept: ~w(.jpg .jpeg))
       |> allow_upload(:avatar_2, accept: ~w(.jpg .jpeg))
       |> allow_upload(:avatar_3, accept: ~w(.jpg .jpeg))
@@ -872,6 +931,13 @@ defmodule PhoenixTest.WebApp.IndexLive do
       :noreply,
       assign(socket, :upload_change_triggered, true)
     }
+  end
+
+  def handle_event("input-changed", params, socket) do
+    # disregard the input name. We are only interested in the event target and the sent value
+    [{_, target}, {_input_name, value} | _rest] = Map.to_list(params)
+
+    {:noreply, assign(socket, :input_change_data, %{target: target, value: value})}
   end
 
   def handle_event("toggle-checkbox-phx-value", %{"id" => id}, socket) do
