@@ -7,8 +7,17 @@ defmodule PhoenixTest.Element.Link do
 
   defstruct ~w[parsed id selector text href]a
 
+  def find(html, selector, text) do
+    with {:found, link} <- Query.find(html, selector, text) do
+      {:found, build(link, selector, text)}
+    end
+  end
+
   def find!(html, selector, text) do
-    link = Query.find!(html, selector, text)
+    html |> Query.find!(selector, text) |> build(selector, text)
+  end
+
+  defp build(link, selector, text) do
     id = Html.attribute(link, "id")
     href = Html.attribute(link, "href")
 
