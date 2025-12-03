@@ -110,6 +110,20 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("input", label: "Wizard", value: "Gandalf")
     end
 
+    test "assert by label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", label: "Hobbit")
+    end
+
+    test "assert by label raises an error if label not found", %{conn: conn} do
+      assert_raise AssertionError, fn ->
+        conn
+        |> visit("/page/by_value")
+        |> assert_has("input", label: "Unknown")
+      end
+    end
+
     test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -635,6 +649,20 @@ defmodule PhoenixTest.AssertionsTest do
       |> visit("/page/by_value")
       |> refute_has("input", label: "Istari", value: "Gandalf")
       |> refute_has("input", label: "Wizard", value: "Saruman")
+    end
+
+    test "refute by label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("input", label: "Unknown")
+    end
+
+    test "refute by label raises an error if label found", %{conn: conn} do
+      assert_raise AssertionError, fn ->
+        conn
+        |> visit("/page/by_value")
+        |> refute_has("input", label: "Hobbit")
+      end
     end
 
     test "raises an error if value is found", %{conn: conn} do
