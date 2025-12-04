@@ -1401,5 +1401,13 @@ defmodule PhoenixTest.LiveTest do
       |> click_button("Async redirect!")
       |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
     end
+
+    test "fill_in triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Input with change", with: "a test value")
+      |> assert_has("#input-with-change-result", text: "_target: input-with-change")
+      |> assert_has("#input-with-change-result", text: "value: a test value")
+    end
   end
 end
