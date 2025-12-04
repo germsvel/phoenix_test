@@ -1391,9 +1391,7 @@ defmodule PhoenixTest do
   """
   @doc group: "Assertions"
   def assert_has(session, selector, text, opts) when is_binary(text) and is_list(opts) do
-    if opts[:text] do
-      raise ArgumentError, message: "Cannot specify both `:text` and the text string as the third argument."
-    end
+    validate_no_duplicate_text_opt!(opts, "assert_has", selector, text)
 
     Driver.assert_has(session, selector, Keyword.put(opts, :text, text))
   end
@@ -1509,9 +1507,7 @@ defmodule PhoenixTest do
   """
   @doc group: "Assertions"
   def refute_has(session, selector, text, opts) when is_binary(text) and is_list(opts) do
-    if opts[:text] do
-      raise ArgumentError, message: "Cannot specify both `:text` and the text string as the third argument."
-    end
+    validate_no_duplicate_text_opt!(opts, "refute_has", selector, text)
 
     Driver.refute_has(session, selector, Keyword.put(opts, :text, text))
   end
@@ -1590,4 +1586,21 @@ defmodule PhoenixTest do
   """
   @doc group: "Assertions"
   defdelegate refute_path(session, path, opts), to: Driver
+
+  defp validate_no_duplicate_text_opt!(opts, function_name, selector, text) do
+    if opts[:text] do
+      opts_without_text = Keyword.drop(opts, [:text])
+      opts_message = Enum.map_join(opts_without_text, ", ", fn {k, v} -> "#{k}: #{v}" end)
+
+      message = """
+      Cannot specify `text` as the third argument and `:text` as an option.
+
+      You might want to change it to:
+
+      #{function_name}(session, "#{selector}", "#{text}", #{opts_message})
+      """
+
+      raise ArgumentError, message: message
+    end
+  end
 end

@@ -372,6 +372,19 @@ defmodule PhoenixTest.AssertionsTest do
         |> assert_has("#multiple-items li", at: 2, text: "Aragorn")
       end
     end
+
+    test "provides a clear error when trying to specify both text string arg and :text keyword arg", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      msg =
+        "Cannot specify `text` as the third argument and `:text` as an option.\n\n" <>
+          "You might want to change it to:\n\n" <>
+          "assert_has(session, \"h1\", \"Main page\", exact: true, count: 1)\n"
+
+      assert_raise ArgumentError, msg, fn ->
+        assert_has(session, "h1", "Main page", text: "Other text", exact: true, count: 1)
+      end
+    end
   end
 
   describe "refute_has/2" do
@@ -718,11 +731,16 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
-    test "raises if user provides :text and :value options", %{conn: conn} do
+    test "provides a clear error when trying to specify both text string arg and :text keyword arg", %{conn: conn} do
       session = visit(conn, "/page/index")
 
-      assert_raise ArgumentError, ~r/Cannot provide both :text and :value/, fn ->
-        refute_has(session, "div", text: "some text", value: "some value")
+      msg =
+        "Cannot specify `text` as the third argument and `:text` as an option.\n\n" <>
+          "You might want to change it to:\n\n" <>
+          "refute_has(session, \"h1\", \"Main page\", exact: true, count: 1)\n"
+
+      assert_raise ArgumentError, msg, fn ->
+        refute_has(session, "h1", "Main page", text: "Other text", exact: true, count: 1)
       end
     end
   end
