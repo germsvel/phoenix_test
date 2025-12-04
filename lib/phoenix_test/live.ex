@@ -73,12 +73,21 @@ defmodule PhoenixTest.Live do
   end
 
   def click_link(session, selector \\ "a", text) do
-    session = set_operation(session, :click_link, "")
+    session = set_operation(session, :click_link)
+    selector = scope_selector(selector, session.within)
 
-    session.view
-    |> element(scope_selector(selector, session.within), text)
-    |> render_click()
-    |> maybe_redirect(session)
+    with {:found, link} <- PhoenixTest.Element.Link.find(session.current_operation.html, selector, text),
+         true <- PhoenixTest.Element.Link.has_data_method?(link) do
+      %{session.conn | resp_body: session.current_operation.html}
+      |> PhoenixTest.Static.build()
+      |> PhoenixTest.Static.click_with_data_method(link)
+    else
+      _ ->
+        session.view
+        |> element(selector, text)
+        |> render_click()
+        |> maybe_redirect(session)
+    end
   end
 
   def click_button(session, text) do
@@ -126,6 +135,11 @@ defmodule PhoenixTest.Live do
         session
         |> Map.put(:active_form, ActiveForm.new())
         |> submit_form(form.selector, form_data, additional_data)
+
+      Button.has_data_method?(button) ->
+        %{session.conn | resp_body: html}
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.Static.click_with_data_method(button)
 
       true ->
         raise ArgumentError, """

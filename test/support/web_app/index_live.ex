@@ -40,6 +40,19 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <button phx-click="show-tab">Show tab</button>
 
+    <a
+      href="/page/delete_record"
+      data-method="delete"
+      data-to="/page/delete_record"
+      data-csrf="sometoken"
+    >
+      Data-method Delete
+    </a>
+
+    <button data-method="delete" data-to="/page/delete_record" data-csrf="sometoken">
+      Data-method Delete
+    </button>
+
     <div id="button-with-id-1">
       <button phx-click="show-tab">Duplicate button with wrapped id</button>
     </div>

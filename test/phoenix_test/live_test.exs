@@ -102,6 +102,13 @@ defmodule PhoenixTest.LiveTest do
       end)
     end
 
+    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Data-method Delete")
+      |> assert_has("h1", text: "Record deleted")
+    end
+
     test "raises error when there are multiple links with same text", %{conn: conn} do
       assert_raise ArgumentError, ~r/2 of them matched the text filter/, fn ->
         conn
@@ -246,6 +253,13 @@ defmodule PhoenixTest.LiveTest do
       |> within("#non-liveview-form", &fill_in(&1, "Name", with: "Aragorn"))
       |> click_button("Submit Non LiveView")
       |> assert_has("#form-data", text: "name: Aragorn")
+    end
+
+    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Data-method Delete")
+      |> assert_has("h1", text: "Record deleted")
     end
 
     test "Raises an error if button with type 'button' inside form doesn't have valid phx-click", %{conn: conn} do
