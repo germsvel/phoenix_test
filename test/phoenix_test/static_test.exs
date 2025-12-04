@@ -914,11 +914,11 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
-  describe "refresh" do
+  describe "reload_page" do
     test "preserves current path", %{conn: conn} do
       conn
       |> visit("/page/index")
-      |> refresh()
+      |> reload_page()
       |> assert_path("/page/index")
     end
   end

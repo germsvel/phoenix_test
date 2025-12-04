@@ -1178,11 +1178,11 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
-  describe "refresh" do
+  describe "reload_page" do
     test "preserves current path", %{conn: conn} do
       conn
       |> visit("/live/index")
-      |> refresh()
+      |> reload_page()
       |> assert_path("/live/index")
     end
   end

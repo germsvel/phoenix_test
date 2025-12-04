@@ -25,7 +25,7 @@ defprotocol PhoenixTest.Driver do
   def open_browser(session)
   def open_browser(session, open_fun)
   def current_path(session)
-  def refresh(session)
+  def reload_page(session)
 
   def assert_has(session, selector)
   def assert_has(session, selector, opts)

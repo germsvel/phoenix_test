@@ -343,7 +343,7 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Static do
     ConnHandler.visit(session.conn, path)
   end
 
-  def refresh(session) do
+  def reload_page(session) do
     ConnHandler.visit(session.conn, current_path(session))
   end
 

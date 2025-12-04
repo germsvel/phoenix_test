@@ -1530,5 +1530,5 @@ defmodule PhoenixTest do
   @doc """
   Reloads the current page, similar to pressing F5 or Cmd+r in the browser.
   """
-  defdelegate refresh(session), to: Driver
+  defdelegate reload_page(session), to: Driver
 end
