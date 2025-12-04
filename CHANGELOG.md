@@ -7,6 +7,11 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## Next
+
+- feat: Make `assert_has/3` and `refute_has/3` accept a text string as the third argument, 
+  with an optional fourth argument of keyword list options.
+
 ## 0.9.1
 
 - fix: Go back to excluding fields in `element_text`. Remove HTML.text (#273) [bb3380f]

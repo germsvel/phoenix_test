@@ -19,7 +19,7 @@ defmodule PhoenixTest do
     |> click_link("Users")
     |> fill_in("Name", with: "Aragorn")
     |> choose("Ranger")
-    |> assert_has(".user", text: "Aragorn")
+    |> assert_has(".user", "Aragorn")
   end
   ```
 
@@ -130,7 +130,7 @@ defmodule PhoenixTest do
       |> fill_in("Name", with: "Aragorn")
       |> fill_in("Email", with: "aragorn@dunedain.com")
       |> click_button("Create")
-      |> assert_has(".user", text: "Aragorn")
+      |> assert_has(".user", "Aragorn")
     end
   end
   ```
@@ -149,7 +149,7 @@ defmodule PhoenixTest do
     |> choose("Human") # <- choose a radio option
     |> check("Ranger") # <- check a checkbox
     |> click_button("Create")
-    |> assert_has(".user", text: "Aragorn")
+    |> assert_has(".user", "Aragorn")
   end
   ```
 
@@ -1336,7 +1336,7 @@ defmodule PhoenixTest do
 
   ```elixir
   # assert there's an element with ID "user" and text "Aragorn"
-  assert_has(session, "#user", text: "Aragorn")
+  assert_has(session, "#user", "Aragorn")
     # ^ succeeds if text found is "Aragorn" or "Aragorn, Son of Arathorn"
 
   # assert there's an element with ID "user" and text "Aragorn"
@@ -1364,7 +1364,37 @@ defmodule PhoenixTest do
   ```
   """
   @doc group: "Assertions"
-  defdelegate assert_has(session, selector, opts), to: Driver
+  def assert_has(session, selector, opts_or_text)
+
+  def assert_has(session, selector, text) when is_binary(text) do
+    Driver.assert_has(session, selector, text: text)
+  end
+
+  def assert_has(session, selector, opts) when is_list(opts) do
+    Driver.assert_has(session, selector, opts)
+  end
+
+  @doc """
+  Assertion helper to find element with CSS selector, text content, and additional options.
+
+  This is a convenience wrapper to allow passing text as a positional argument along with additional options.
+
+  ## Examples
+
+  ```elixir
+  # assert there's an h1 with text "Hello" appearing exactly twice
+  assert_has(session, "h1", "Hello", count: 2)
+
+  # assert there's an element with exact text match
+  assert_has(session, "#user", "Aragorn", exact: true)
+  ```
+  """
+  @doc group: "Assertions"
+  def assert_has(session, selector, text, opts) when is_binary(text) and is_list(opts) do
+    validate_no_duplicate_text_opt!(opts, "assert_has", selector, text)
+
+    Driver.assert_has(session, selector, Keyword.put(opts, :text, text))
+  end
 
   @doc """
   Opposite of `assert_has/2` helper. Verifies that element with
@@ -1424,7 +1454,7 @@ defmodule PhoenixTest do
 
   ```elixir
   # refute there's an element with ID "user" and text "Aragorn"
-  refute_has(session, "#user", text: "Aragorn")
+  refute_has(session, "#user", "Aragorn")
 
   # refute there's an element with ID "user" and exact text "Aragorn"
   refute_has(session, "#user", text: "Aragorn", exact: true)
@@ -1450,7 +1480,37 @@ defmodule PhoenixTest do
   ```
   """
   @doc group: "Assertions"
-  defdelegate refute_has(session, selector, opts), to: Driver
+  def refute_has(session, selector, text) when is_binary(text) do
+    Driver.refute_has(session, selector, text: text)
+  end
+
+  def refute_has(session, selector, opts) when is_list(opts) do
+    Driver.refute_has(session, selector, opts)
+  end
+
+  @doc """
+  Opposite of `assert_has/4` helper. Verifies that element with
+  given CSS selector and text content is _not_ present.
+
+  This is a convenience wrapper that allows passing text as a positional argument
+  along with additional options.
+
+  ## Examples
+
+  ```elixir
+  # refute there are two h1s with text "Hello"
+  refute_has(session, "h1", "Hello", count: 2)
+
+  # refute there's an element with exact text match
+  refute_has(session, "#user", "Aragorn", exact: true)
+  ```
+  """
+  @doc group: "Assertions"
+  def refute_has(session, selector, text, opts) when is_binary(text) and is_list(opts) do
+    validate_no_duplicate_text_opt!(opts, "refute_has", selector, text)
+
+    Driver.refute_has(session, selector, Keyword.put(opts, :text, text))
+  end
 
   @doc """
   Assert helper to verify current request path. Takes an optional `query_params`
@@ -1526,4 +1586,21 @@ defmodule PhoenixTest do
   """
   @doc group: "Assertions"
   defdelegate refute_path(session, path, opts), to: Driver
+
+  defp validate_no_duplicate_text_opt!(opts, function_name, selector, text) do
+    if opts[:text] do
+      opts_without_text = Keyword.drop(opts, [:text])
+      opts_message = Enum.map_join(opts_without_text, ", ", fn {k, v} -> "#{k}: #{v}" end)
+
+      message = """
+      Cannot specify `text` as the third argument and `:text` as an option.
+
+      You might want to change it to:
+
+      #{function_name}(session, "#{selector}", "#{text}", #{opts_message})
+      """
+
+      raise ArgumentError, message: message
+    end
+  end
 end

@@ -52,18 +52,26 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> assert_has("h1", text: "Main page")
+      |> assert_has("h1", "Main page")
       |> assert_has("#title", text: "Main page")
+      |> assert_has("#title", "Main page")
       |> assert_has(".title", text: "Main page")
+      |> assert_has(".title", "Main page")
       |> assert_has("[data-role='title']", text: "Main page")
+      |> assert_has("[data-role='title']", "Main page")
     end
 
     test "succeeds if single element is found with CSS selector and text (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> assert_has("h1", text: "LiveView main page")
+      |> assert_has("h1", "LiveView main page")
       |> assert_has("#title", text: "LiveView main page")
+      |> assert_has("#title", "LiveView main page")
       |> assert_has(".title", text: "LiveView main page")
+      |> assert_has(".title", "LiveView main page")
       |> assert_has("[data-role='title']", text: "LiveView main page")
+      |> assert_has("[data-role='title']", "LiveView main page")
     end
 
     test "succeeds if more than one element matches selector but text narrows it down", %{
@@ -72,12 +80,18 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> assert_has("li", text: "Aragorn")
+      |> assert_has("li", "Aragorn")
+      |> assert_has("li", "Aragorn", exact: false)
+      |> assert_has("li", "Aragorn", exact: true)
     end
 
     test "succeeds if more than one element matches selector and text", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> assert_has(".multiple_links", text: "Multiple links")
+      |> assert_has(".multiple_links", text: "Multiple links", count: 2)
+      |> assert_has(".multiple_links", "Multiple links")
+      |> assert_has(".multiple_links", "Multiple links", count: 2)
     end
 
     test "succeeds if text difference is only a matter of truncation", %{conn: conn} do
@@ -358,6 +372,19 @@ defmodule PhoenixTest.AssertionsTest do
         |> assert_has("#multiple-items li", at: 2, text: "Aragorn")
       end
     end
+
+    test "provides a clear error when trying to specify both text string arg and :text keyword arg", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      msg =
+        "Cannot specify `text` as the third argument and `:text` as an option.\n\n" <>
+          "You might want to change it to:\n\n" <>
+          "assert_has(session, \"h1\", \"Main page\", exact: true, count: 1)\n"
+
+      assert_raise ArgumentError, msg, fn ->
+        assert_has(session, "h1", "Main page", text: "Other text", exact: true, count: 1)
+      end
+    end
   end
 
   describe "refute_has/2" do
@@ -379,6 +406,7 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> refute_has("title", text: "Not the title")
+      |> refute_has("title", "Not the title")
       |> refute_has("#something-else-to-test-pipe")
     end
 
@@ -387,8 +415,10 @@ defmodule PhoenixTest.AssertionsTest do
       |> visit("/page/index")
       |> refute_has("h1", count: 2)
       |> refute_has("h1", text: "Main page", count: 2)
+      |> refute_has("h1", "Main page", count: 2)
       |> refute_has(".multiple_links", count: 1)
       |> refute_has(".multiple_links", text: "Multiple links", count: 1)
+      |> refute_has(".multiple_links", "Multiple links", count: 1)
     end
 
     test "raises if element is found", %{conn: conn} do
@@ -470,20 +500,25 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/index")
       |> refute_has("title", text: "Not the title")
+      |> refute_has("title", "Not the title")
       |> refute_has("title", text: "Not this title either")
+      |> refute_has("title", "Not this title either")
     end
 
     test "can be used to refute on page title (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> refute_has("title", text: "Not the title")
+      |> refute_has("title", "Not the title")
       |> refute_has("title", text: "Not this title either")
+      |> refute_has("title", "Not this title either")
     end
 
     test "can be used to refute page title's exactness", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> refute_has("title", text: "PhoenixTest is the", exact: true)
+      |> refute_has("title", "PhoenixTest is the", exact: true)
     end
 
     test "raises if title matches value (Static)", %{conn: conn} do
@@ -496,6 +531,12 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/index")
         |> refute_has("title", text: "PhoenixTest is the best!")
+      end
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/page/index")
+        |> refute_has("title", "PhoenixTest is the best!")
       end
     end
 
@@ -510,24 +551,38 @@ defmodule PhoenixTest.AssertionsTest do
         |> visit("/live/index")
         |> refute_has("title", text: "PhoenixTest is the best!")
       end
+
+      assert_raise AssertionError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> refute_has("title", "PhoenixTest is the best!")
+      end
     end
 
     test "succeeds if no element is found with CSS selector and text (Static)", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> refute_has("h1", text: "Not main page")
+      |> refute_has("h1", "Not main page")
       |> refute_has("h2", text: "Main page")
+      |> refute_has("h2", "Main page")
       |> refute_has("#incorrect-id", text: "Main page")
+      |> refute_has("#incorrect-id", "Main page")
       |> refute_has("#title", text: "Not main page")
+      |> refute_has("#title", "Not main page")
     end
 
     test "succeeds if no element is found with CSS selector and text (Live)", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> refute_has("h1", text: "Not main page")
+      |> refute_has("h1", "Not main page")
       |> refute_has("h2", text: "Main page")
+      |> refute_has("h2", "Main page")
       |> refute_has("#incorrect-id", text: "Main page")
+      |> refute_has("#incorrect-id", "Main page")
       |> refute_has("#title", text: "Not main page")
+      |> refute_has("#title", "Not main page")
     end
 
     test "raises an error if one element is found", %{conn: conn} do
@@ -544,6 +599,10 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise AssertionError, msg, fn ->
         refute_has(conn, "#title", text: "Main page")
+      end
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(conn, "#title", "Main page")
       end
     end
 
@@ -563,12 +622,17 @@ defmodule PhoenixTest.AssertionsTest do
       assert_raise AssertionError, msg, fn ->
         refute_has(conn, ".multiple_links", text: "Multiple links")
       end
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(conn, ".multiple_links", "Multiple links")
+      end
     end
 
     test "accepts an `exact` option to match text exactly", %{conn: conn} do
       conn
       |> visit("/page/index")
       |> refute_has("h1", text: "Main", exact: true)
+      |> refute_has("h1", "Main", exact: true)
     end
 
     test "raises if `exact` text makes refutation false", %{conn: conn} do
@@ -667,11 +731,16 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
-    test "raises if user provides :text and :value options", %{conn: conn} do
+    test "provides a clear error when trying to specify both text string arg and :text keyword arg", %{conn: conn} do
       session = visit(conn, "/page/index")
 
-      assert_raise ArgumentError, ~r/Cannot provide both :text and :value/, fn ->
-        refute_has(session, "div", text: "some text", value: "some value")
+      msg =
+        "Cannot specify `text` as the third argument and `:text` as an option.\n\n" <>
+          "You might want to change it to:\n\n" <>
+          "refute_has(session, \"h1\", \"Main page\", exact: true, count: 1)\n"
+
+      assert_raise ArgumentError, msg, fn ->
+        refute_has(session, "h1", "Main page", text: "Other text", exact: true, count: 1)
       end
     end
   end
