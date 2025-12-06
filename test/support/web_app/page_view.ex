@@ -394,6 +394,59 @@ defmodule PhoenixTest.WebApp.PageView do
       <label>
         Kingdoms <input type="text" name="kingdom" value="Gondor" />
       </label>
+
+      <label for="race">
+        Race
+      </label>
+      <select id="race" name="race">
+        <option value="human">Human</option>
+        <option value="elf" selected>Elf</option>
+        <option value="dwarf">Dwarf</option>
+      </select>
+
+      <label>
+        Weapon
+        <select name="weapon">
+          <option value="sword">Sword</option>
+          <option value="bow">Bow</option>
+          <option value="axe">Axe</option>
+        </select>
+      </label>
+
+      <label for="location">
+        Location
+      </label>
+      <select id="location" name="location">
+        <option value="shire">Shire</option>
+        <option value="rivendell">Rivendell</option>
+      </select>
+
+      <label for="fellowship">
+        Fellowship
+      </label>
+      <select id="fellowship" name="fellowship">
+        <option value="gandalf">Gandalf</option>
+        <option value="gandalf">Gandalf</option>
+      </select>
+
+      <label for="skills">
+        Skills
+      </label>
+      <select multiple id="skills" name="skills[]">
+        <option value="archery" selected>Archery</option>
+        <option value="swordsmanship" selected>Swordsmanship</option>
+        <option value="magic">Magic</option>
+        <option value="stealth">Stealth</option>
+      </select>
+
+      <label for="languages">
+        Languages
+      </label>
+      <select multiple id="languages" name="languages[]">
+        <option value="common">Common</option>
+        <option value="elvish">Elvish</option>
+        <option value="dwarvish">Dwarvish</option>
+      </select>
     </form>
     """
   end

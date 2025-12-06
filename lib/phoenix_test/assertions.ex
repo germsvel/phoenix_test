@@ -440,14 +440,118 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp value_finder_fun(value, selector, %Opts{} = opts) do
-    selector = selector <> "[value=#{inspect(value)}]"
+    if select_selector?(selector) do
+      select_value_finder_fun(value, selector, opts)
+    else
+      selector = selector <> "[value=#{inspect(value)}]"
 
-    case opts.label do
-      :no_label ->
-        &Query.find(&1, selector, Opts.to_list(opts))
+      case opts.label do
+        :no_label ->
+          &Query.find(&1, selector, Opts.to_list(opts))
 
-      label when is_binary(label) ->
-        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
+        label when is_binary(label) ->
+          &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
+      end
+    end
+  end
+
+  defp select_selector?(selector) do
+    selector
+    |> String.trim()
+    |> String.downcase()
+    |> String.starts_with?("select")
+  end
+
+  defp select_value_finder_fun(value, selector, %Opts{} = opts) do
+    fn html ->
+      find_result =
+        case opts.label do
+          :no_label ->
+            Query.find(html, selector, Opts.to_list(opts))
+
+          label when is_binary(label) ->
+            Query.find_by_label(html, selector, label, Opts.to_list(opts))
+        end
+
+      filter_select_by_value(find_result, value, selector)
+    end
+  end
+
+  defp filter_select_by_value(:not_found, _value, _selector), do: :not_found
+
+  defp filter_select_by_value({:not_found, potential_matches}, _value, _selector) do
+    {:not_found, potential_matches}
+  end
+
+  defp filter_select_by_value({:not_found, failure, data}, _value, _selector) do
+    {:not_found, failure, data}
+  end
+
+  defp filter_select_by_value({:not_found, failure, data1, data2}, _value, _selector) do
+    {:not_found, failure, data1, data2}
+  end
+
+  defp filter_select_by_value({:found, element}, value, selector) do
+    if select_has_value?(element, value) do
+      {:found, element}
+    else
+      {:not_found, filter_selects_with_value([element], value, selector)}
+    end
+  end
+
+  defp filter_select_by_value({:found_many, elements}, value, selector) do
+    matching = Enum.filter(elements, &select_has_value?(&1, value))
+
+    case matching do
+      [] -> {:not_found, filter_selects_with_value(elements, value, selector)}
+      [found] -> {:found, found}
+      found_many -> {:found_many, found_many}
+    end
+  end
+
+  defp filter_selects_with_value(elements, value, _selector) do
+    # Return elements that have an option with the requested value
+    # (even if not selected), to help with error messages
+    values = List.wrap(value)
+
+    Enum.filter(elements, fn element ->
+      Enum.all?(values, fn v ->
+        case Query.find(element, "option[value=#{inspect(v)}]") do
+          {:found, _} -> true
+          {:found_many, _} -> true
+          _ -> false
+        end
+      end)
+    end)
+  end
+
+  defp select_has_value?(select, value) when is_list(value) do
+    selected_values = get_select_values(select)
+    Enum.sort(selected_values) == Enum.sort(value)
+  end
+
+  defp select_has_value?(select, value) do
+    selected_values = get_select_values(select)
+    selected_values == [value]
+  end
+
+  defp get_select_values(select) do
+    selected_options = Html.all(select, "option[selected]")
+
+    case Enum.count(selected_options) do
+      0 ->
+        # No option has selected attribute, first option is the default
+        first_option = select |> Html.all("option") |> Enum.at(0)
+
+        if first_option do
+          [Html.attribute(first_option, "value")]
+        else
+          []
+        end
+
+      _ ->
+        # Return all selected option values
+        Enum.map(selected_options, &Html.attribute(&1, "value"))
     end
   end
 
