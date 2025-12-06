@@ -124,6 +124,72 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has("input", label: "Wizard", value: "Gandalf")
     end
 
+    test "succeeds when asserting select's selected value", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", value: "elf")
+    end
+
+    test "succeeds when asserting select's default (first option) value", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Weapon", value: "sword")
+    end
+
+    test "succeeds when searching select by value and explicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Race", value: "elf")
+    end
+
+    test "succeeds when searching select by value and implicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Weapon", value: "sword")
+    end
+
+    test "raises an error if select's selected value does not match", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/Could not find any elements with selector "select" and value "human"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", label: "Race", value: "human")
+      end
+    end
+
+    test "raises an error if select value cannot be found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/Could not find any elements with selector "select" and value "orc"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", value: "orc")
+      end
+    end
+
+    test "succeeds when asserting multiple selected values", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Skills", value: ["archery", "swordsmanship"])
+    end
+
+    test "succeeds when asserting multiple selected values in any order", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Skills", value: ["swordsmanship", "archery"])
+    end
+
+    test "raises an error if multiple select values don't match", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/Could not find any elements with selector "select" and value/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", label: "Skills", value: ["archery", "magic"])
+      end
+    end
+
     test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -699,6 +765,52 @@ defmodule PhoenixTest.AssertionsTest do
       |> visit("/page/by_value")
       |> refute_has("input", label: "Istari", value: "Gandalf")
       |> refute_has("input", label: "Wizard", value: "Saruman")
+    end
+
+    test "can refute select by value (not selected)", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("select", value: "human")
+      |> refute_has("select", label: "Race", value: "dwarf")
+    end
+
+    test "can refute select by value and implicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("select", label: "Weapon", value: "bow")
+    end
+
+    test "can refute select by value and explicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("select", label: "Race", value: "human")
+    end
+
+    test "raises an error if select's selected value is found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/not to find any elements with selector "select" and value "elf"/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, "select", label: "Race", value: "elf")
+      end
+    end
+
+    test "can refute multiple select values (not all selected)", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("select", label: "Skills", value: ["archery", "magic"])
+      |> refute_has("select", label: "Skills", value: ["stealth"])
+    end
+
+    test "raises an error if multiple select values are all selected", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/not to find any elements with selector "select" and value/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, "select", label: "Skills", value: ["archery", "swordsmanship"])
+      end
     end
 
     test "raises an error if value is found", %{conn: conn} do
