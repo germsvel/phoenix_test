@@ -114,6 +114,12 @@ defmodule PhoenixTest.Live do
     html = session.current_operation.html
 
     cond do
+      Button.disabled?(button) ->
+        raise ArgumentError, """
+        Expected element with selector #{inspect(button.selector)} and text
+          #{inspect(button.text)} to be enabled.
+        """
+
       Button.phx_click?(button) ->
         session.view
         |> element(scope_selector(button.selector, session.within), button.text)

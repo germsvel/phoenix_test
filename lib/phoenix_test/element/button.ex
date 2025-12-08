@@ -71,6 +71,17 @@ defmodule PhoenixTest.Element.Button do
 
   def phx_click?(%__MODULE__{} = button), do: LiveViewBindings.phx_click?(button.parsed)
 
+  def disabled?(%__MODULE__{} = button) do
+    attr = Html.attribute(button.parsed, "disabled")
+
+    # As a boolean attribute, something like `disabled="false"` *still* disables the button.
+    # Only the complete absence of the `disabled` attribute means it is enabled.
+    #
+    # If you specify just `<button disabled>`, that's equivalent to `<button disabled="">`,
+    # and we get the empty string as the attribute value.
+    not is_nil(attr)
+  end
+
   def has_data_method?(%__MODULE__{} = button) do
     button.parsed
     |> Html.attribute("data-method")
