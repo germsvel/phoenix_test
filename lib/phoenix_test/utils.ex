@@ -6,6 +6,9 @@ defmodule PhoenixTest.Utils do
 
   def stringify_keys_and_values(map) when is_map(map) do
     Map.new(map, fn
+      {k, v} when is_struct(v) ->
+        {to_string(k), Phoenix.Param.to_param(v)}
+
       {k, v} when is_map(v) ->
         {to_string(k), stringify_keys_and_values(v)}
 

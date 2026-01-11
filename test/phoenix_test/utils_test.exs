@@ -3,6 +3,11 @@ defmodule PhoenixTest.UtilsTest do
 
   alias PhoenixTest.Utils
 
+  defmodule ExampleStruct do
+    @moduledoc false
+    defstruct [:id, :name]
+  end
+
   describe "stringify_keys_and_values" do
     test "turns atom keys into string keys" do
       original = %{hello: "world"}
@@ -34,6 +39,14 @@ defmodule PhoenixTest.UtilsTest do
       result = Utils.stringify_keys_and_values(original)
 
       assert %{"foo" => %{"bar" => "baz"}} = result
+    end
+
+    test "uses to_param to convert struct values into params" do
+      original = %{example: %ExampleStruct{id: 42, name: "Gandalf"}}
+
+      result = Utils.stringify_keys_and_values(original)
+
+      assert %{"example" => "42"} = result
     end
   end
 end
