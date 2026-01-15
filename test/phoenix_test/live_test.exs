@@ -273,7 +273,7 @@ defmodule PhoenixTest.LiveTest do
     end
 
     test "raises an error if button is disabled", %{conn: conn} do
-      msg = ~r/to be enabled./
+      msg = ~r/because it is disabled./
 
       assert_raise ArgumentError, msg, fn ->
         conn
