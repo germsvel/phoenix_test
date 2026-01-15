@@ -272,6 +272,16 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
+    test "raises an error if button is disabled", %{conn: conn} do
+      msg = ~r/because it is disabled./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_button("Disabled button 1")
+      end
+    end
+
     test "raises an error if form doesn't have a `phx-submit` or `action`", %{conn: conn} do
       msg = ~r/to have a `phx-submit` or `action` defined/
 

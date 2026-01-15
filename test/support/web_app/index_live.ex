@@ -147,6 +147,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
       Save Owner Form
     </button>
 
+    <button type="button" phx-click={JS.toggle()} disabled>Disabled button 1</button>
+
     <form id="nested-form" phx-submit="save-form">
       <label for="user-name">User Name</label>
       <input id="user-name" name="user[name]" />
