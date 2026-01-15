@@ -116,8 +116,8 @@ defmodule PhoenixTest.Live do
     cond do
       Button.disabled?(button) ->
         raise ArgumentError, """
-        Expected element with selector #{inspect(button.selector)} and text
-          #{inspect(button.text)} to be enabled.
+        Cannot click element with selector #{inspect(button.selector)} and text
+          #{inspect(button.text)} because it is disabled.
         """
 
       Button.phx_click?(button) ->
