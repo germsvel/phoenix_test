@@ -5,6 +5,7 @@ defmodule PhoenixTest.AssertionsTest do
   import PhoenixTest.TestHelpers
 
   alias ExUnit.AssertionError
+  alias PhoenixTest.Character
   alias PhoenixTest.Live
 
   setup do
@@ -100,6 +101,19 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has(".has_extra_space", text: "Has extra space")
     end
 
+    test "succeeds for non-binary text with Phoenix.HTML.Safe implementation", %{
+      conn: conn
+    } do
+      aragorn = %Character{name: "Aragorn"}
+
+      conn
+      |> visit("/page/index")
+      |> assert_has("li", text: aragorn)
+      |> assert_has("li", aragorn)
+      |> assert_has("li", aragorn, exact: false)
+      |> assert_has("li", aragorn, exact: true)
+    end
+
     test "succeeds when a non-200 status code is returned", %{conn: conn} do
       conn
       |> visit("/page/unauthorized")
@@ -110,6 +124,12 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/by_value")
       |> assert_has("input", value: "Frodo")
+    end
+
+    test "succeeds when asserting by non-binary value with Phoenix.HTML.Safe implementation", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", value: %Character{name: "Frodo"})
     end
 
     test "succeeds when searching by value and implicit label", %{conn: conn} do
@@ -652,6 +672,13 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "accepts non-binary text with Phoenix.HTML.Safe implementation", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> refute_has("h1", text: :Main, exact: true)
+      |> refute_has("h1", :Main, exact: true)
+    end
+
     test "accepts an `at` option (without text) to refute on a specific element", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -685,6 +712,12 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/by_value")
       |> refute_has("input", value: "not-frodo")
+    end
+
+    test "can refute by non-binary value with Phoenix.HTML.Safe implementation", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("input", value: %Character{name: "not-frodo"})
     end
 
     test "can refute by value and implicit label", %{conn: conn} do

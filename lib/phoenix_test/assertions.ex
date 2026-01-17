@@ -4,6 +4,7 @@ defmodule PhoenixTest.Assertions do
   import ExUnit.Assertions
 
   alias ExUnit.AssertionError
+  alias Phoenix.HTML.Safe
   alias PhoenixTest.Html
   alias PhoenixTest.Operation
   alias PhoenixTest.Query
@@ -429,10 +430,10 @@ defmodule PhoenixTest.Assertions do
         &Query.find(&1, selector, Opts.to_list(opts))
 
       {:no_text, value} ->
-        value_finder_fun(value, selector, opts)
+        value_finder_fun(ensure_binary(value), selector, opts)
 
       {text, :no_value} ->
-        &Query.find(&1, selector, text, Opts.to_list(opts))
+        &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
 
       {_text, _value} ->
         raise ArgumentError, "Cannot provide both :text and :value to assertions"
@@ -449,6 +450,12 @@ defmodule PhoenixTest.Assertions do
       label when is_binary(label) ->
         &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
     end
+  end
+
+  defp ensure_binary(value) when is_binary(value), do: value
+
+  defp ensure_binary(value) do
+    value |> Safe.to_iodata() |> IO.iodata_to_binary()
   end
 
   defp format_found_elements(elements) when is_list(elements) do
