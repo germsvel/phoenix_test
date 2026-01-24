@@ -415,6 +415,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "wrapped-notes: Some description")
     end
 
+    test "fill_in triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Input with change", with: "a test value")
+      |> assert_has("#input-with-change-result", text: "_target: input-with-change")
+      |> assert_has("#input-with-change-result", text: "value: a test value")
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -541,6 +549,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
+    test "select triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Select with change", option: "Option 1")
+      |> assert_has("#input-with-change-result", text: "_target: select-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Option 1")
+    end
+
     test "works for multiple select", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -638,6 +654,14 @@ defmodule PhoenixTest.LiveTest do
       |> check("Checkbox group 2")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "checkbox_group: [1, 2]")
+    end
+
+    test "check triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Checkbox 1")
+      |> assert_has("#input-with-change-result", text: "_target: checkbox-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Checkbox 1")
     end
 
     test "handle checkbox name with '?'", %{conn: conn} do
@@ -802,6 +826,14 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
+    end
+
+    test "choose triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> choose("Option 1")
+      |> assert_has("#input-with-change-result", text: "_target: radio-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Option 1")
     end
 
     test "works with a phx-click outside of a form", %{conn: conn} do
@@ -1410,38 +1442,6 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/async_page")
       |> click_button("Async redirect!")
       |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
-    end
-
-    test "check triggers phx-change on the input if it is defined", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> check("Checkbox 1")
-      |> assert_has("#input-with-change-result", text: "_target: checkbox-with-change")
-      |> assert_has("#input-with-change-result", text: "value: Checkbox 1")
-    end
-
-    test "choose triggers phx-change on the input if it is defined", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> choose("Option 1")
-      |> assert_has("#input-with-change-result", text: "_target: radio-with-change")
-      |> assert_has("#input-with-change-result", text: "value: Option 1")
-    end
-
-    test "fill_in triggers phx-change on the input if it is defined", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> fill_in("Input with change", with: "a test value")
-      |> assert_has("#input-with-change-result", text: "_target: input-with-change")
-      |> assert_has("#input-with-change-result", text: "value: a test value")
-    end
-
-    test "select triggers phx-change on the input if it is defined", %{conn: conn} do
-      conn
-      |> visit("/live/index")
-      |> select("Select with change", option: "Option 1")
-      |> assert_has("#input-with-change-result", text: "_target: select-with-change")
-      |> assert_has("#input-with-change-result", text: "value: Option 1")
     end
   end
 end
