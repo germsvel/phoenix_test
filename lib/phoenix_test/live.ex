@@ -39,13 +39,13 @@ defmodule PhoenixTest.Live do
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
   end
 
-  def build_live_child(session, selector) do
+  def build_live_child(%__MODULE__{} = session, selector) do
     "#" <> child_id = selector
 
     child_view = find_live_child(session.view, child_id)
 
     {:ok, watcher} = start_watcher(child_view)
-    %__MODULE__{session | view: child_view, watcher: watcher}
+    %{session | view: child_view, watcher: watcher}
   end
 
   defp start_watcher(view) do
