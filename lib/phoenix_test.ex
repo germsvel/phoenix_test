@@ -1591,6 +1591,11 @@ defmodule PhoenixTest do
   @doc group: "Assertions"
   defdelegate refute_path(session, path, opts), to: Driver
 
+  @doc """
+  Reloads the current page, similar to pressing F5 or Cmd+r in the browser.
+  """
+  defdelegate reload_page(session), to: Driver
+
   defp validate_no_duplicate_text_opt!(opts, function_name, selector, text) do
     if opts[:text] do
       opts_without_text = Keyword.drop(opts, [:text])

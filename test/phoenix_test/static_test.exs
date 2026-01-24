@@ -914,6 +914,15 @@ defmodule PhoenixTest.StaticTest do
     end
   end
 
+  describe "reload_page" do
+    test "preserves current path", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> reload_page()
+      |> assert_path("/page/index")
+    end
+  end
+
   describe "shared form helpers behavior" do
     test "raises an error if field doesn't have a `name` attribute", %{conn: conn} do
       assert_raise ArgumentError, ~r/Field is missing a `name` attribute/, fn ->
