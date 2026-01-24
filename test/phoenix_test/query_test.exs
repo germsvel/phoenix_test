@@ -338,12 +338,15 @@ defmodule PhoenixTest.QueryTest do
       html = """
       <h1 id="title">Hello</h1>
       <h2 id="subtitle">Hi</h2>
+      <h2 id="another">Hi again</h2>
       """
 
-      {:found_many, [elem1, elem2]} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
+      {:found_many, [elem1, elem2, elem3]} =
+        Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
 
       assert {"h1", _, ["Hello"]} = Html.element(elem1)
       assert {"h2", _, ["Hi"]} = Html.element(elem2)
+      assert {"h2", _, ["Hi again"]} = Html.element(elem3)
     end
 
     test "returns :not_found when no selector matches" do

@@ -73,12 +73,21 @@ defmodule PhoenixTest.Live do
   end
 
   def click_link(session, selector \\ "a", text) do
-    session = set_operation(session, :click_link, "")
+    session = set_operation(session, :click_link)
+    selector = scope_selector(selector, session.within)
 
-    session.view
-    |> element(scope_selector(selector, session.within), text)
-    |> render_click()
-    |> maybe_redirect(session)
+    with {:found, link} <- PhoenixTest.Element.Link.find(session.current_operation.html, selector, text),
+         true <- PhoenixTest.Element.Link.has_data_method?(link) do
+      %{session.conn | resp_body: session.current_operation.html}
+      |> PhoenixTest.Static.build()
+      |> PhoenixTest.Static.click_with_data_method(link)
+    else
+      _ ->
+        session.view
+        |> element(selector, text)
+        |> render_click()
+        |> maybe_redirect(session)
+    end
   end
 
   def click_button(session, text) do
@@ -105,6 +114,12 @@ defmodule PhoenixTest.Live do
     html = session.current_operation.html
 
     cond do
+      Button.disabled?(button) ->
+        raise ArgumentError, """
+        Cannot click element with selector #{inspect(button.selector)} and text
+          #{inspect(button.text)} because it is disabled.
+        """
+
       Button.phx_click?(button) ->
         session.view
         |> element(scope_selector(button.selector, session.within), button.text)
@@ -126,6 +141,11 @@ defmodule PhoenixTest.Live do
         session
         |> Map.put(:active_form, ActiveForm.new())
         |> submit_form(form.selector, form_data, additional_data)
+
+      Button.has_data_method?(button) ->
+        %{session.conn | resp_body: html}
+        |> PhoenixTest.Static.build()
+        |> PhoenixTest.Static.click_with_data_method(button)
 
       true ->
         raise ArgumentError, """
@@ -390,7 +410,7 @@ defmodule PhoenixTest.Live do
     session =
       Map.update!(session, :active_form, fn active_form ->
         if active_form.selector == form.selector do
-          ActiveForm.add_form_data(session.active_form, field)
+          ActiveForm.add_form_data(active_form, field)
         else
           [id: form.id, selector: form.selector]
           |> ActiveForm.new()
@@ -398,18 +418,51 @@ defmodule PhoenixTest.Live do
         end
       end)
 
-    if Form.phx_change?(form) do
-      active_form = session.active_form
-      data_to_submit = FormData.merge(form.form_data, active_form.form_data)
-      additional_data = %{"_target" => field.name}
+    maybe_trigger_phx_change(session, form, field)
+  end
 
-      session.view
-      |> form(form.selector, FormPayload.new(data_to_submit))
-      |> render_change(additional_data)
-      |> maybe_redirect(session)
-    else
-      session
+  defp maybe_trigger_phx_change(session, form, field) do
+    cond do
+      Field.phx_change?(field) ->
+        trigger_input_phx_change(session, form, field)
+
+      Form.phx_change?(form) ->
+        trigger_form_phx_change(session, form, field)
+
+      true ->
+        session
     end
+  end
+
+  defp trigger_input_phx_change(session, form, field) do
+    data_to_submit =
+      session
+      |> merged_form_data(form)
+      |> FormData.filter(&(&1.name == field.name))
+
+    payload =
+      data_to_submit
+      |> FormPayload.new()
+      |> Map.put("_target", field.name)
+
+    session.view
+    |> element(scope_selector(field.selector, session.within))
+    |> render_change(payload)
+    |> maybe_redirect(session)
+  end
+
+  defp trigger_form_phx_change(session, form, field) do
+    data_to_submit = merged_form_data(session, form)
+    additional_data = %{"_target" => field.name}
+
+    session.view
+    |> form(form.selector, FormPayload.new(data_to_submit))
+    |> render_change(additional_data)
+    |> maybe_redirect(session)
+  end
+
+  defp merged_form_data(session, form) do
+    FormData.merge(form.form_data, session.active_form.form_data)
   end
 
   def submit(session) do

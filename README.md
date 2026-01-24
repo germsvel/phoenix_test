@@ -23,7 +23,7 @@ test "admin can create a user", %{conn: conn} do
   |> click_link("Users")
   |> fill_in("Name", with: "Aragorn")
   |> click_button("Create")
-  |> assert_has(".user", text: "Aragorn")
+  |> assert_has(".user", "Aragorn")
 end
 ```
 

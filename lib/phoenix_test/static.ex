@@ -57,12 +57,7 @@ defmodule PhoenixTest.Static do
     link = Link.find!(session.current_operation.html, selector, text)
 
     if Link.has_data_method?(link) do
-      form =
-        link.parsed
-        |> DataAttributeForm.build()
-        |> DataAttributeForm.validate!(selector, text)
-
-      perform_submit(session, form, form.data)
+      click_with_data_method(session, link)
     else
       conn = session.conn
 
@@ -96,12 +91,7 @@ defmodule PhoenixTest.Static do
     html = session.current_operation.html
 
     if Button.has_data_method?(button) do
-      form =
-        button.parsed
-        |> DataAttributeForm.build()
-        |> DataAttributeForm.validate!(button.selector, button.text)
-
-      perform_submit(session, form, form.data)
+      click_with_data_method(session, button)
     else
       form =
         button
@@ -114,6 +104,15 @@ defmodule PhoenixTest.Static do
         perform_submit(session, form, build_payload(form))
       end
     end
+  end
+
+  def click_with_data_method(session, el) when is_struct(el, Link) or is_struct(el, Button) do
+    form =
+      el.parsed
+      |> DataAttributeForm.build()
+      |> DataAttributeForm.validate!(el.selector, el.text)
+
+    perform_submit(session, form, form.data)
   end
 
   def fill_in(session, label, opts) do

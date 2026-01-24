@@ -102,6 +102,13 @@ defmodule PhoenixTest.LiveTest do
       end)
     end
 
+    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Data-method Delete")
+      |> assert_has("h1", text: "Record deleted")
+    end
+
     test "raises error when there are multiple links with same text", %{conn: conn} do
       assert_raise ArgumentError, ~r/2 of them matched the text filter/, fn ->
         conn
@@ -248,6 +255,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "name: Aragorn")
     end
 
+    test "handles form submission via `data-method` & `data-to` attributes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Data-method Delete")
+      |> assert_has("h1", text: "Record deleted")
+    end
+
     test "Raises an error if button with type 'button' inside form doesn't have valid phx-click", %{conn: conn} do
       msg = ~r/to have a valid `phx-click` attribute or belong to a `form`/
 
@@ -255,6 +269,16 @@ defmodule PhoenixTest.LiveTest do
         conn
         |> visit("/live/index")
         |> within("#should-not-submit-form", &click_button(&1, "Non submit button"))
+      end
+    end
+
+    test "raises an error if button is disabled", %{conn: conn} do
+      msg = ~r/because it is disabled./
+
+      assert_raise ArgumentError, msg, fn ->
+        conn
+        |> visit("/live/index")
+        |> click_button("Disabled button 1")
       end
     end
 
@@ -391,6 +415,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "wrapped-notes: Some description")
     end
 
+    test "fill_in triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Input with change", with: "a test value")
+      |> assert_has("#input-with-change-result", text: "_target: input-with-change")
+      |> assert_has("#input-with-change-result", text: "value: a test value")
+    end
+
     test "can fill-in complex form fields", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -517,6 +549,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "race: elf")
     end
 
+    test "select triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Select with change", option: "Option 1")
+      |> assert_has("#input-with-change-result", text: "_target: select-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Option 1")
+    end
+
     test "works for multiple select", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -614,6 +654,14 @@ defmodule PhoenixTest.LiveTest do
       |> check("Checkbox group 2")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "checkbox_group: [1, 2]")
+    end
+
+    test "check triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Checkbox 1")
+      |> assert_has("#input-with-change-result", text: "_target: checkbox-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Checkbox 1")
     end
 
     test "handle checkbox name with '?'", %{conn: conn} do
@@ -778,6 +826,14 @@ defmodule PhoenixTest.LiveTest do
       |> visit("/live/index")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "contact: mail")
+    end
+
+    test "choose triggers phx-change on the input if it is defined", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> choose("Option 1")
+      |> assert_has("#input-with-change-result", text: "_target: radio-with-change")
+      |> assert_has("#input-with-change-result", text: "value: Option 1")
     end
 
     test "works with a phx-click outside of a form", %{conn: conn} do
