@@ -27,9 +27,9 @@ defmodule PhoenixTest.Element.Button do
     end
   end
 
-  def find_first(html) do
+  def find_first_submit(html) do
     html
-    |> Query.find("button")
+    |> Query.find("button:not([type='button'])")
     |> case do
       {:found, element} -> build(element)
       {:found_many, elements} -> elements |> Enum.at(0) |> build()

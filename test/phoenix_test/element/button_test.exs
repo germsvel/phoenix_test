@@ -33,6 +33,23 @@ defmodule PhoenixTest.Element.ButtonTest do
     end
   end
 
+  describe "find_first_submit" do
+    test "does not find button type buttons" do
+      html = """
+      <button type="button">
+        Add Field
+      </button>
+      <button type="submit">
+        Save
+      </button>
+      """
+
+      button = Button.find_first_submit(html)
+
+      assert button.type == "submit"
+    end
+  end
+
   describe "button.selector" do
     test "returns a dom id if an id is found" do
       html = """
