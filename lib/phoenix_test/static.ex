@@ -20,7 +20,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.Operation
   alias PhoenixTest.Query
 
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  @endpoint Application.compile_env!(:phoenix_test, :endpoint)
 
   defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: "", current_operation: nil
 

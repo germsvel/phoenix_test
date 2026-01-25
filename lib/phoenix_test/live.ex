@@ -22,7 +22,7 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Query
   alias PhoenixTest.SessionHelpers
 
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  @endpoint Application.compile_env!(:phoenix_test, :endpoint)
 
   defstruct view: nil,
             watcher: nil,

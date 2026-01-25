@@ -2,7 +2,7 @@ defmodule PhoenixTest.ConnHandler do
   @moduledoc false
   import Phoenix.ConnTest
 
-  @endpoint Application.compile_env(:phoenix_test, :endpoint)
+  @endpoint Application.compile_env!(:phoenix_test, :endpoint)
 
   def visit(conn, path) do
     conn
