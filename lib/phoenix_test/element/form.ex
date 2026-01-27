@@ -44,7 +44,7 @@ defmodule PhoenixTest.Element.Form do
       method: operative_method(form),
       parsed: form,
       selector: selector,
-      submit_button: Button.find_first(form)
+      submit_button: Button.find_first_submit(form)
     }
   end
 
