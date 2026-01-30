@@ -15,10 +15,20 @@ defmodule PhoenixTest.WebApp.ConditionalFormLive do
       </select>
 
       <label :if={@version == "a"} for="version_a_text">Version A Text</label>
-      <input :if={@version == "a"} id="version_a_text" name="version_a_text" value={@form_data["version_a_text"]} />
+      <input
+        :if={@version == "a"}
+        id="version_a_text"
+        name="version_a_text"
+        value={@form_data["version_a_text"]}
+      />
 
       <label :if={@version == "b"} for="version_b_text">Version B Text</label>
-      <input :if={@version == "b"} id="version_b_text" name="version_b_text" value={@form_data["version_b_text"]} />
+      <input
+        :if={@version == "b"}
+        id="version_b_text"
+        name="version_b_text"
+        value={@form_data["version_b_text"]}
+      />
 
       <button type="submit">Save</button>
     </form>
