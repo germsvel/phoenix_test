@@ -461,8 +461,10 @@ defmodule PhoenixTest.Live do
     |> maybe_redirect(session)
   end
 
-  defp merged_form_data(session, form) do
-    FormData.merge(form.form_data, session.active_form.form_data)
+  defp merged_form_data(session, %Form{} = form) do
+    form.form_data
+    |> FormData.merge(session.active_form.form_data)
+    |> FormData.filter(fn %{name: name} -> name in Form.form_element_names(form) end)
   end
 
   def submit(session) do

@@ -43,6 +43,7 @@ defmodule PhoenixTest.WebApp.Router do
       live "/live/dynamic_form", DynamicFormLive
       live "/live/simple_ordinal_inputs", SimpleOrdinalInputsLive
       live "/live/nested", NestedLive
+      live "/live/conditional_form", ConditionalFormLive
     end
 
     scope "/auth" do

@@ -1453,4 +1453,18 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("h2", text: "Where we test LiveView's async behavior", timeout: 250)
     end
   end
+
+  describe "conditionally rendered form fields" do
+    test "submitting after switching versions only includes the visible field", %{conn: conn} do
+      conn
+      |> visit("/live/conditional_form")
+      |> fill_in("Version A Text", with: "some value for A")
+      |> select("Version", option: "Version B")
+      |> fill_in("Version B Text", with: "some value for B")
+      |> click_button("Save")
+      |> assert_has("#form-data", text: "version_b_text: some value for B")
+      |> assert_has("#form-data", text: "version: b")
+      |> refute_has("#form-data", text: "version_a_text")
+    end
+  end
 end
