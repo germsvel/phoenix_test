@@ -1307,6 +1307,11 @@ defmodule PhoenixTest do
 
   NOTE that you cannot specify both `:text` and `:value` as options.
 
+  The `:text` or `:value` option can be a binary or anything for which
+  there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
+  uses that protocol to convert the argument to a binary then looks for the
+  converted value.
+
   ## Options
 
   - `text`: the text contents to look for.
@@ -1424,6 +1429,11 @@ defmodule PhoenixTest do
   It'll raise an error if any elements that match selector and options.
 
   NOTE that you cannot specify both `:text` and `:value` as options.
+
+  The `:text` or `:value` option can be a binary or anything for which
+  there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
+  uses that protocol to convert the argument to a binary, then looks for the
+  converted value.
 
   ## Options
 
