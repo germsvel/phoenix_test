@@ -535,7 +535,11 @@ defmodule PhoenixTest.Query do
         &(Html.element_text(&1) =~ text)
       end
 
-    Enum.filter(elements, filter_fun)
+    if opts[:count] == :any and opts[:operation] == :assert_has do
+      elements |> Enum.find(filter_fun) |> List.wrap()
+    else
+      Enum.filter(elements, filter_fun)
+    end
   end
 
   defp filter_by_position(elements, opts) do

@@ -18,10 +18,11 @@ defmodule PhoenixTest.Assertions do
       :exact,
       :label,
       :text,
-      :value
+      :value,
+      :operation
     ]
 
-    def parse(opts) when is_list(opts) do
+    def parse(opts, operation) when is_list(opts) do
       at = Keyword.get(opts, :at, :any)
       count = Keyword.get(opts, :count, :any)
       exact = Keyword.get(opts, :exact, false)
@@ -35,7 +36,8 @@ defmodule PhoenixTest.Assertions do
         exact: exact,
         label: label,
         text: text,
-        value: value
+        value: value,
+        operation: operation
       }
     end
 
@@ -46,7 +48,8 @@ defmodule PhoenixTest.Assertions do
         exact: opts.exact,
         label: opts.label,
         text: opts.text,
-        value: opts.value
+        value: opts.value,
+        operation: opts.operation
       ]
     end
   end
@@ -106,7 +109,7 @@ defmodule PhoenixTest.Assertions do
 
   @label_related_failures [:no_label, :missing_for, :missing_input]
   def assert_has(session, selector, opts) when is_list(opts) do
-    opts = Opts.parse(opts)
+    opts = Opts.parse(opts, :assert_has)
     finder = finder_fun(selector, opts)
     session = set_operation(session, :assert_has)
 
@@ -207,7 +210,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_has(session, selector, opts) when is_list(opts) do
-    opts = Opts.parse(opts)
+    opts = Opts.parse(opts, :refute_has)
     finder = finder_fun(selector, opts)
     session = set_operation(session, :refute_has)
 
