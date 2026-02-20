@@ -43,7 +43,7 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
     setup do
       {:ok, view_pid} = start_supervised(DummyLiveView)
       view = %{pid: view_pid}
-      conn = Phoenix.ConnTest.build_conn()
+      conn = PhoenixTest.put_endpoint(Phoenix.ConnTest.build_conn(), PhoenixTest.WebApp.Endpoint)
       {:ok, watcher} = start_supervised({LiveViewWatcher, %{caller: self(), view: view}})
       session = %Live{conn: conn, view: view, watcher: watcher}
 

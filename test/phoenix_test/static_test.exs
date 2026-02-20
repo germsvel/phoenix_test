@@ -5,7 +5,7 @@ defmodule PhoenixTest.StaticTest do
   import PhoenixTest.TestHelpers
 
   setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
+    %{conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(PhoenixTest.WebApp.Endpoint)}
   end
 
   describe "render_page_title/1" do
@@ -859,7 +859,7 @@ defmodule PhoenixTest.StaticTest do
   describe "unwrap" do
     require Phoenix.ConnTest
 
-    @endpoint Application.compile_env(:phoenix_test, :endpoint)
+    @endpoint PhoenixTest.WebApp.Endpoint
 
     test "provides an escape hatch that gives access to the underlying conn", %{conn: conn} do
       conn

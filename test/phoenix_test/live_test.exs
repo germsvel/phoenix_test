@@ -8,7 +8,7 @@ defmodule PhoenixTest.LiveTest do
   alias PhoenixTest.Html
 
   setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
+    %{conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(PhoenixTest.WebApp.Endpoint)}
   end
 
   describe "render_page_title/1" do

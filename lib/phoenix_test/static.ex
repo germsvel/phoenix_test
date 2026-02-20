@@ -11,6 +11,7 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.Element.Form
   alias PhoenixTest.Element.Link
   alias PhoenixTest.Element.Select
+  alias PhoenixTest.EndpointHelpers
   alias PhoenixTest.FileUpload
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
@@ -19,8 +20,6 @@ defmodule PhoenixTest.Static do
   alias PhoenixTest.OpenBrowser
   alias PhoenixTest.Operation
   alias PhoenixTest.Query
-
-  @endpoint Application.compile_env!(:phoenix_test, :endpoint)
 
   defstruct conn: nil, active_form: ActiveForm.new(), within: :none, current_path: "", current_operation: nil
 
@@ -244,7 +243,7 @@ defmodule PhoenixTest.Static do
     html =
       session.conn.resp_body
       |> Html.parse_document()
-      |> Html.postwalk(&OpenBrowser.prefix_static_paths(&1, @endpoint))
+      |> Html.postwalk(&OpenBrowser.prefix_static_paths(&1, EndpointHelpers.endpoint_from!(session.conn)))
       |> Html.raw()
 
     File.write!(path, html)
@@ -288,7 +287,7 @@ defmodule PhoenixTest.Static do
 
     conn
     |> ConnHandler.recycle_all_headers()
-    |> dispatch(@endpoint, form.method, form.action, payload)
+    |> dispatch(EndpointHelpers.endpoint_from!(session.conn), form.method, form.action, payload)
     |> maybe_redirect(session)
   end
 
