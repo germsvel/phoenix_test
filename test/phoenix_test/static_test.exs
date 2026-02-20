@@ -5,7 +5,7 @@ defmodule PhoenixTest.StaticTest do
   import PhoenixTest.TestHelpers
 
   setup do
-    %{conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(PhoenixTest.WebApp.Endpoint)}
+    %{conn: PhoenixTest.put_endpoint(Phoenix.ConnTest.build_conn(), PhoenixTest.WebApp.Endpoint)}
   end
 
   describe "render_page_title/1" do

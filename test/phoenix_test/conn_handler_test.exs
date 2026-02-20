@@ -6,7 +6,7 @@ defmodule PhoenixTest.ConnHandlerTest do
   alias PhoenixTest.ConnHandler
 
   setup do
-    %{conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(PhoenixTest.WebApp.Endpoint)}
+    %{conn: PhoenixTest.put_endpoint(Phoenix.ConnTest.build_conn(), PhoenixTest.WebApp.Endpoint)}
   end
 
   describe "visit/2" do
