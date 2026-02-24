@@ -18,11 +18,10 @@ defmodule PhoenixTest.Assertions do
       :exact,
       :label,
       :text,
-      :value,
-      :operation
+      :value
     ]
 
-    def parse(opts, operation) when is_list(opts) do
+    def parse(opts) when is_list(opts) do
       at = Keyword.get(opts, :at, :any)
       count = Keyword.get(opts, :count, :any)
       exact = Keyword.get(opts, :exact, false)
@@ -36,8 +35,7 @@ defmodule PhoenixTest.Assertions do
         exact: exact,
         label: label,
         text: text,
-        value: value,
-        operation: operation
+        value: value
       }
     end
 
@@ -48,8 +46,7 @@ defmodule PhoenixTest.Assertions do
         exact: opts.exact,
         label: opts.label,
         text: opts.text,
-        value: opts.value,
-        operation: opts.operation
+        value: opts.value
       ]
     end
   end
@@ -109,8 +106,8 @@ defmodule PhoenixTest.Assertions do
 
   @label_related_failures [:no_label, :missing_for, :missing_input]
   def assert_has(session, selector, opts) when is_list(opts) do
-    opts = Opts.parse(opts, :assert_has)
-    finder = finder_fun(selector, opts)
+    opts = Opts.parse(opts)
+    finder = finder_fun(selector, opts, :assert_has)
     session = set_operation(session, :assert_has)
 
     case finder.(session.current_operation.html) do
@@ -210,8 +207,8 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_has(session, selector, opts) when is_list(opts) do
-    opts = Opts.parse(opts, :refute_has)
-    finder = finder_fun(selector, opts)
+    opts = Opts.parse(opts)
+    finder = finder_fun(selector, opts, :refute_has)
     session = set_operation(session, :refute_has)
 
     case finder.(session.current_operation.html) do
@@ -427,20 +424,24 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
-  defp finder_fun(selector, %Opts{} = opts) do
-    case {opts.text, opts.value} do
-      {:no_text, :no_value} ->
-        &Query.find(&1, selector, Opts.to_list(opts))
+  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value} = opts, _operation) do
+    &Query.find(&1, selector, Opts.to_list(opts))
+  end
 
-      {:no_text, value} ->
-        value_finder_fun(ensure_binary(value), selector, opts)
+  defp finder_fun(selector, %Opts{text: :no_text, value: value} = opts, _operation) do
+    value_finder_fun(ensure_binary(value), selector, opts)
+  end
 
-      {text, :no_value} ->
-        &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
+  defp finder_fun(selector, %Opts{text: text, value: :no_value, count: :any, at: :any} = opts, :assert_has) do
+    &Query.find_first(&1, selector, ensure_binary(text), Opts.to_list(opts))
+  end
 
-      {_text, _value} ->
-        raise ArgumentError, "Cannot provide both :text and :value to assertions"
-    end
+  defp finder_fun(selector, %Opts{text: text, value: :no_value} = opts, _operation) do
+    &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
+  end
+
+  defp finder_fun(_selector, %Opts{}, _operation) do
+    raise ArgumentError, "Cannot provide both :text and :value to assertions"
   end
 
   defp value_finder_fun(value, selector, %Opts{} = opts) do

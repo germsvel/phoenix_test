@@ -89,6 +89,21 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  # Like `find/4`, but short-circuits after finding the first matching element.
+  #
+  # This is a performance improvement when you only need to confirm that at least one match exists.
+  def find_first(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
+    elements_matched_selector =
+      html
+      |> Html.parse_fragment()
+      |> Html.all(selector)
+
+    case find_first_by_element_text(elements_matched_selector, text, opts) do
+      nil -> {:not_found, elements_matched_selector}
+      found -> {:found, found}
+    end
+  end
+
   def find_by_role!(html, locator) do
     selectors = Locators.role_selectors(locator)
 
@@ -535,10 +550,16 @@ defmodule PhoenixTest.Query do
         &(Html.element_text(&1) =~ text)
       end
 
-    if opts[:count] == :any and opts[:operation] == :assert_has do
-      elements |> Enum.find(filter_fun) |> List.wrap()
+    Enum.filter(elements, filter_fun)
+  end
+
+  defp find_first_by_element_text(elements, text, opts) do
+    exact_match = Keyword.get(opts, :exact, false)
+
+    if exact_match do
+      Enum.find(elements, &(Html.element_text(&1) == text))
     else
-      Enum.filter(elements, filter_fun)
+      Enum.find(elements, &(Html.element_text(&1) =~ text))
     end
   end
 
