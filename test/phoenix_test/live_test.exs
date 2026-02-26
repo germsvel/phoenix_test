@@ -1139,7 +1139,7 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#mailing_list_emails_0_email")
       |> click_button("add more")
       |> assert_has("#mailing_list_emails_1_email")
-      |> click_button("button[name='mailing_list[emails_drop][]'][value='1']", "delete")
+      |> click_button("delete 1")
       |> refute_has("#mailing_list_emails_1_email")
     end
   end

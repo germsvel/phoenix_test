@@ -325,117 +325,49 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_ancestor!(html, ancestor, descendant) when is_map(descendant) do
-    find_ancestor!(html, ancestor, descendant_selector(descendant))
-  end
+  def find_ancestor!(html, ancestor, descendant) do
+    descendant = descendant_selector(descendant)
 
-  def find_ancestor!(html, ancestor, {descendant_selector, descendant_text} = desc) do
-    case find_ancestor(html, ancestor, desc) do
+    case find_ancestor(html, ancestor, descendant) do
       {:found, element} ->
         element
 
       {:found_many, potential_matches} ->
-        msg = """
-        Found too many #{inspect(ancestor)} elements with nested element with
-        selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}
-
-        Potential matches:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
+        raise ArgumentError, find_ancestor_found_many_msg(ancestor, descendant, potential_matches)
 
       :not_found ->
-        msg = """
+        raise ArgumentError, """
         Could not find any #{inspect(ancestor)} elements.
         """
 
-        raise ArgumentError, msg
-
       {:not_found, potential_matches} ->
-        msg = """
-        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}.
-
-        Found other potential #{inspect(ancestor)}:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
+        raise ArgumentError, find_ancestor_not_found_msg(ancestor, descendant, potential_matches)
     end
   end
 
-  def find_ancestor!(html, ancestor, descendant_selector) do
-    case find_ancestor(html, ancestor, descendant_selector) do
-      {:found, element} ->
-        element
+  def find_ancestor(html, ancestor_selector, descendant) do
+    descendant = descendant_selector(descendant)
 
-      {:found_many, ancestors} ->
-        msg = """
-        Found too many #{inspect(ancestor)} matches for element with selector #{inspect(descendant_selector)}
-
-        Please make the selector more specific (e.g. using an id)
-
-        The following #{inspect(ancestor)} elements were found:
-
-        #{Enum.map_join(ancestors, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
-
-      :not_found ->
-        msg = """
-        Could not find any #{inspect(ancestor)} elements.
-        """
-
-        raise ArgumentError, msg
-
-      {:not_found, potential_matches} ->
-        msg = """
-        Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
-
-        Found other potential #{inspect(ancestor)}:
-
-        #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-        """
-
-        raise ArgumentError, msg
-    end
-  end
-
-  def find_ancestor(html, ancestor_selector, {descendant_selector, descendant_text}) do
-    case find(html, ancestor_selector) do
-      :not_found ->
+    case {descendant, find(html, ancestor_selector)} do
+      {_, :not_found} ->
         :not_found
 
-      {:found, element} ->
+      {{descendant_selector, descendant_text}, {:found, element}} ->
         filter_ancestor_with_descendant([element], descendant_selector, descendant_text)
 
-      {:found_many, elements} ->
+      {{descendant_selector, descendant_text}, {:found_many, elements}} ->
         filter_ancestor_with_descendant(elements, descendant_selector, descendant_text)
-    end
-  end
 
-  def find_ancestor(html, ancestor_selector, descendant) when is_map(descendant) do
-    find_ancestor(html, ancestor_selector, descendant_selector(descendant))
-  end
-
-  def find_ancestor(html, ancestor_selector, descendant_selector) do
-    case find(html, ancestor_selector) do
-      :not_found ->
-        :not_found
-
-      {:found, element} ->
+      {descendant_selector, {:found, element}} ->
         filter_ancestor_with_descendant([element], descendant_selector)
 
-      {:found_many, elements} ->
+      {descendant_selector, {:found_many, elements}} ->
         filter_ancestor_with_descendant(elements, descendant_selector)
     end
   end
 
   def has_ancestor?(html, ancestor_selector, descendant) do
-    case find_ancestor(html, ancestor_selector, descendant_selector(descendant)) do
+    case find_ancestor(html, ancestor_selector, descendant) do
       {:found, _} -> true
       _ -> false
     end
@@ -446,6 +378,49 @@ defmodule PhoenixTest.Query do
   defp descendant_selector(%{id: id}) when is_binary(id), do: "[id=#{inspect(id)}]"
   defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
   defp descendant_selector(%{selector: selector}), do: selector
+
+  defp find_ancestor_found_many_msg(ancestor, {descendant_selector, descendant_text}, potential_matches) do
+    """
+    Found too many #{inspect(ancestor)} elements with nested element with
+    selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}
+
+    Potential matches:
+
+    #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+    """
+  end
+
+  defp find_ancestor_found_many_msg(ancestor, descendant_selector, ancestors) do
+    """
+    Found too many #{inspect(ancestor)} matches for element with selector #{inspect(descendant_selector)}
+
+    Please make the selector more specific (e.g. using an id)
+
+    The following #{inspect(ancestor)} elements were found:
+
+    #{Enum.map_join(ancestors, "\n", &Html.raw/1)}
+    """
+  end
+
+  defp find_ancestor_not_found_msg(ancestor, {descendant_selector, descendant_text}, potential_matches) do
+    """
+    Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}.
+
+    Found other potential #{inspect(ancestor)}:
+
+    #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+    """
+  end
+
+  defp find_ancestor_not_found_msg(ancestor, descendant_selector, potential_matches) do
+    """
+    Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
+
+    Found other potential #{inspect(ancestor)}:
+
+    #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
+    """
+  end
 
   defp filter_ancestor_with_descendant(ancestors, descendant_selector, descendant_text) do
     ancestors

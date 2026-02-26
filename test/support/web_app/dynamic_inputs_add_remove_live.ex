@@ -60,7 +60,7 @@ defmodule PhoenixTest.WebApp.DynamicInputsAddRemoveLive do
           value={ef.index}
           phx-click={JS.dispatch("change")}
         >
-          delete
+          delete <span class="sr-only">{ef.index}</span>
         </button>
       </.inputs_for>
 
