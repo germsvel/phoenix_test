@@ -43,6 +43,14 @@ defmodule PhoenixTest.ConnHandlerTest do
       |> assert_has("#flash-group", text: "Redirected!")
     end
 
+    for status <- [301, 303, 307, 308] do
+      test "follows #{status} redirects", %{conn: conn} do
+        conn
+        |> ConnHandler.visit("/page/redirect_with_status?status=#{unquote(status)}&to=/page/index")
+        |> assert_has("h1", text: "Main page")
+      end
+    end
+
     test "preserves headers across redirects", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")

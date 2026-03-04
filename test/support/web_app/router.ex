@@ -28,6 +28,7 @@ defmodule PhoenixTest.WebApp.Router do
     post "/page/create_record", PageController, :create
     put "/page/update_record", PageController, :update
     delete "/page/delete_record", PageController, :delete
+    get "/page/redirect_with_status", PageController, :redirect_with_status
     get "/page/unauthorized", PageController, :unauthorized
     get "/page/redirect_to_static", PageController, :redirect_to_static
     post "/page/redirect_to_liveview", PageController, :redirect_to_liveview
