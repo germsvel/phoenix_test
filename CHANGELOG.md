@@ -7,10 +7,51 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
-## Next
+## 0.10.0
 
-- feat: Make `assert_has/3` and `refute_has/3` accept a text string as the third argument, 
-  with an optional fourth argument of keyword list options.
+### Added
+
+- Allow setting endpoint dynamically in setup block (#299) [cc3800d], [8ec1b73]
+- Support dynamic inputs add/remove without form attribute (#300) [07da6d5]
+- Support conditionally rendered form inputs (#297) [4f95624]
+- Add PhoenixTest.reload_page/1 helper (#275) [0818b12]
+
+### Improvements
+
+- feat: add support for phx-change event on input (#280) [7fda723]
+- feat: Raise an explicit error if target of `button_click` is disabled (#290) [0d96c1c]
+- Make `assert_has/3` and `refute_has/3` accept a text string as the third argument (#284) [3a7fa84]
+- Improve performance of `assert_has` with text filters (#298) [88240fc]
+- Supporting redirections with 301, 303, 307 and 308 statuses (#301) [bc2d806]
+- Allow text/value arguments to be non-binaries (#294) [2ed0788]
+- Use Phoenix.Param.to_param for structs (#293) [22d7bd7]
+
+### Fixes
+
+- Ignore button type buttons when building form (#296) [fcd1f98]
+- ensure `find_one_of` returns a flat list of matches when multiple matches occur (#277) [af5aa51]
+- Fix: Live click_link/button with data-method (#282) [c2ce484]
+
+[8ec1b73]: https://github.com/germsvel/phoenix_test/commit/8ec1b73
+[cc3800d]: https://github.com/germsvel/phoenix_test/commit/cc3800d
+[bc2d806]: https://github.com/germsvel/phoenix_test/commit/bc2d806
+[4f95624]: https://github.com/germsvel/phoenix_test/commit/4f95624
+[07da6d5]: https://github.com/germsvel/phoenix_test/commit/07da6d5
+[88240fc]: https://github.com/germsvel/phoenix_test/commit/88240fc
+[2ed0788]: https://github.com/germsvel/phoenix_test/commit/2ed0788
+[fcd1f98]: https://github.com/germsvel/phoenix_test/commit/fcd1f98
+[0563e05]: https://github.com/germsvel/phoenix_test/commit/0563e05
+[166e25e]: https://github.com/germsvel/phoenix_test/commit/166e25e
+[0818b12]: https://github.com/germsvel/phoenix_test/commit/0818b12
+[d086240]: https://github.com/germsvel/phoenix_test/commit/d086240
+[7fda723]: https://github.com/germsvel/phoenix_test/commit/7fda723
+[0d96c1c]: https://github.com/germsvel/phoenix_test/commit/0d96c1c
+[22d7bd7]: https://github.com/germsvel/phoenix_test/commit/22d7bd7
+[3a7fa84]: https://github.com/germsvel/phoenix_test/commit/3a7fa84
+[af5aa51]: https://github.com/germsvel/phoenix_test/commit/af5aa51
+[4df0bb5]: https://github.com/germsvel/phoenix_test/commit/4df0bb5
+[c2ce484]: https://github.com/germsvel/phoenix_test/commit/c2ce484
+
 
 ## 0.9.1
 
