@@ -1,5 +1,7 @@
 import Config
 
+config :phoenix_test, :endpoint, PhoenixTest.WebApp.Endpoint
+
 config :phoenix_test, PhoenixTest.WebApp.Endpoint,
   server: true,
   http: [port: 4000],

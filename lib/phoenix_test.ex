@@ -45,6 +45,31 @@ defmodule PhoenixTest do
   end
   ```
 
+  ### Configuration
+
+  PhoenixTest needs to know which endpoint to use for routing requests.
+
+  There are two ways of doing this:
+
+  1. You can specify the endpoint at runtime in your `ConnCase` (or equivalent)
+  setup block:
+
+  ```elixir
+  setup tags do
+    # existing setup...
+
+    {:ok, conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)}
+  end
+  ```
+
+  NOTE that this opens the option for umbrella apps to have different endpoints.
+
+  2. You can set it at compile time in `config/test.exs`:
+
+  ```elixir
+  config :phoenix_test, :endpoint, MyAppWeb.Endpoint
+  ```
+
   ### Getting `PhoenixTest` helpers
 
   `PhoenixTest` helpers can be included via `import PhoenixTest`.
@@ -68,12 +93,6 @@ defmodule PhoenixTest do
 
       # doing other setup for ConnCase
     end
-  end
-
-  setup tags do
-    # existing ConnCase setup...
-
-    {:ok, conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)}
   end
   ```
 

@@ -7,10 +7,19 @@ defmodule PhoenixTest.EndpointHelpers do
 
   def endpoint_from!(conn) do
     conn.private[:phoenix_endpoint] ||
+      Application.get_env(:phoenix_test, :endpoint) ||
       raise ArgumentError, """
       No endpoint set on conn. Use PhoenixTest.put_endpoint/2 in your test setup:
 
-          conn = Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)
+        ```elixir
+        conn =
+          Phoenix.ConnTest.build_conn()
+          |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)
+        ```
+
+      Or configure the endpoint in your test config:
+
+          config :phoenix_test, :endpoint, MyAppWeb.Endpoint
       """
   end
 
