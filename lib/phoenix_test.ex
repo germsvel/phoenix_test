@@ -45,14 +45,6 @@ defmodule PhoenixTest do
   end
   ```
 
-  ### Configuration
-
-  In `config/test.exs` specify the endpoint to be used for routing requests:
-
-  ```elixir
-  config :phoenix_test, :endpoint, MyAppWeb.Endpoint
-  ```
-
   ### Getting `PhoenixTest` helpers
 
   `PhoenixTest` helpers can be included via `import PhoenixTest`.
@@ -65,7 +57,7 @@ defmodule PhoenixTest do
   ### With `ConnCase`
 
   If you plan to use `ConnCase` solely for `PhoenixTest`, then you can import
-  the helpers there:
+  the helpers there and update the `setup` block to set the endpoint on the conn:
 
   ```elixir
   using do
@@ -76,6 +68,12 @@ defmodule PhoenixTest do
 
       # doing other setup for ConnCase
     end
+  end
+
+  setup tags do
+    # existing ConnCase setup...
+
+    {:ok, conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)}
   end
   ```
 
@@ -96,6 +94,8 @@ defmodule PhoenixTest do
         import MyAppWeb.FeatureCase
 
         import PhoenixTest
+
+        @endpoint MyAppWeb.Endpoint
       end
     end
 
@@ -103,7 +103,7 @@ defmodule PhoenixTest do
       pid = Ecto.Adapters.SQL.Sandbox.start_owner!(MyApp.Repo, shared: not tags[:async])
       on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
 
-      {:ok, conn: Phoenix.ConnTest.build_conn()}
+      {:ok, conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)}
     end
   end
   ```
@@ -202,6 +202,23 @@ defmodule PhoenixTest do
 
   alias PhoenixTest.ConnHandler
   alias PhoenixTest.Driver
+
+  @doc """
+  Sets the endpoint on the conn so PhoenixTest knows which endpoint to use.
+
+  Call this in your test setup with your app's endpoint module.
+
+  ## Examples
+
+  ```elixir
+  setup tags do
+    {:ok, conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)}
+  end
+  ```
+  """
+  def put_endpoint(conn, endpoint) do
+    Plug.Conn.put_private(conn, :phoenix_endpoint, endpoint)
+  end
 
   @doc """
   Entrypoint to create a session.

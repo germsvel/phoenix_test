@@ -9,7 +9,7 @@ defmodule PhoenixTest.AssertionsTest do
   alias PhoenixTest.Live
 
   setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
+    %{conn: PhoenixTest.put_endpoint(Phoenix.ConnTest.build_conn(), PhoenixTest.WebApp.Endpoint)}
   end
 
   describe "assert_has/2" do

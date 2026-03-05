@@ -2,11 +2,11 @@ defmodule PhoenixTest.ConnHandler do
   @moduledoc false
   import Phoenix.ConnTest
 
-  @endpoint Application.compile_env!(:phoenix_test, :endpoint)
+  alias PhoenixTest.EndpointHelpers
 
   def visit(conn, path) do
     conn
-    |> get(path)
+    |> Phoenix.ConnTest.dispatch(EndpointHelpers.endpoint_from!(conn), :get, path, nil)
     |> visit()
   end
 
@@ -35,7 +35,9 @@ defmodule PhoenixTest.ConnHandler do
   defp append_query_string(path, query), do: path <> "?" <> query
 
   def recycle_all_headers(conn) do
-    recycle(conn, all_headers(conn))
+    conn
+    |> recycle(all_headers(conn))
+    |> EndpointHelpers.copy_endpoint(conn)
   end
 
   defp all_headers(conn) do
@@ -50,12 +52,7 @@ defmodule PhoenixTest.ConnHandler do
 
   @plug_adapters_test_conn_default_host "www.example.com"
   defp local_path?(conn) do
-    conn.host == @plug_adapters_test_conn_default_host or conn.host == endpoint_host()
-  end
-
-  defp endpoint_host do
-    endpoint_at_runtime_to_avoid_warning = Application.get_env(:phoenix_test, :endpoint)
-    endpoint_at_runtime_to_avoid_warning.host()
+    conn.host == @plug_adapters_test_conn_default_host or conn.host == EndpointHelpers.endpoint_from!(conn).host()
   end
 
   defp route_exists?(conn) do

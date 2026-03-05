@@ -1,6 +1,5 @@
 defmodule PhoenixTest.Live do
   @moduledoc false
-  import Phoenix.ConnTest
   import Phoenix.LiveViewTest
   import PhoenixTest.SessionHelpers, only: [scope_selector: 2]
 
@@ -11,6 +10,7 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Form
   alias PhoenixTest.Element.Select
+  alias PhoenixTest.EndpointHelpers
   alias PhoenixTest.FileUpload
   alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
@@ -22,8 +22,6 @@ defmodule PhoenixTest.Live do
   alias PhoenixTest.Query
   alias PhoenixTest.SessionHelpers
 
-  @endpoint Application.compile_env!(:phoenix_test, :endpoint)
-
   defstruct view: nil,
             watcher: nil,
             conn: nil,
@@ -33,7 +31,7 @@ defmodule PhoenixTest.Live do
             current_operation: nil
 
   def build(conn) do
-    {:ok, view, _html} = live(conn)
+    {:ok, view, _html} = EndpointHelpers.live(conn)
     current_path = ConnHandler.build_current_path(conn)
     {:ok, watcher} = start_watcher(view)
     %__MODULE__{view: view, watcher: watcher, conn: conn, current_path: current_path}
@@ -369,7 +367,7 @@ defmodule PhoenixTest.Live do
 
     upload_progress_result =
       session.view
-      |> file_input(form.selector, live_upload_name, [entry])
+      |> EndpointHelpers.file_input(session.conn, form.selector, live_upload_name, [entry])
       |> render_upload(file_name)
       |> maybe_throw_upload_errors(session, file_name, live_upload_name)
 
@@ -593,11 +591,20 @@ defmodule PhoenixTest.Live do
 
   defp maybe_redirect({:error, {kind, %{to: path}}} = result, session) when kind in [:redirect, :live_redirect] do
     session = %{session | current_path: path}
-    conn = session.conn
 
-    result
-    |> follow_redirect(ConnHandler.recycle_all_headers(conn))
-    |> maybe_redirect(session)
+    case result do
+      {:error, {:live_redirect, opts}} ->
+        session.conn
+        |> ConnHandler.recycle_all_headers()
+        |> EndpointHelpers.follow_live_redirect(opts)
+        |> maybe_redirect(session)
+
+      {:error, {:redirect, opts}} ->
+        session.conn
+        |> ConnHandler.recycle_all_headers()
+        |> EndpointHelpers.follow_redirect(opts)
+        |> ConnHandler.visit()
+    end
   end
 
   defp maybe_redirect({:ok, view, _}, session) do

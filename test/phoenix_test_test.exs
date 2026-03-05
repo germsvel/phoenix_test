@@ -4,7 +4,7 @@ defmodule PhoenixTestTest do
   import PhoenixTest
 
   setup do
-    %{conn: Phoenix.ConnTest.build_conn()}
+    %{conn: PhoenixTest.put_endpoint(Phoenix.ConnTest.build_conn(), PhoenixTest.WebApp.Endpoint)}
   end
 
   describe "select/3" do
@@ -30,6 +30,19 @@ defmodule PhoenixTestTest do
         end)
 
       assert message =~ "select/4 with :from is deprecated"
+    end
+  end
+
+  describe "put_endpoint/2" do
+    test "can visit a page on a different endpoint", %{conn: conn} do
+      Phoenix.ConnTest.build_conn()
+      |> PhoenixTest.put_endpoint(PhoenixTest.AnotherWebApp.Endpoint)
+      |> visit("/page")
+      |> assert_has("h1", text: "AnotherWebApp page")
+
+      conn
+      |> visit("/live/index")
+      |> assert_has("h1", text: "LiveView main page")
     end
   end
 end

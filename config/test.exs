@@ -1,7 +1,5 @@
 import Config
 
-config :phoenix_test, :endpoint, PhoenixTest.WebApp.Endpoint
-
 config :phoenix_test, PhoenixTest.WebApp.Endpoint,
   server: true,
   http: [port: 4000],
@@ -12,6 +10,13 @@ config :phoenix_test, PhoenixTest.WebApp.Endpoint,
     formats: [html: PhoenixTest.WebApp.ErrorView],
     layout: false
   ]
+
+config :phoenix_test, PhoenixTest.AnotherWebApp.Endpoint,
+  server: true,
+  http: [port: 4001],
+  live_view: [signing_salt: "112345678212345678312345678412"],
+  secret_key_base: String.duplicate("57689", 50),
+  pubsub_server: PhoenixTest.PubSub
 
 config :logger, level: :error
 
