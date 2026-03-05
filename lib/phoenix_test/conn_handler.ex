@@ -17,8 +17,8 @@ defmodule PhoenixTest.ConnHandler do
       %{assigns: %{live_module: _}} = conn ->
         PhoenixTest.Live.build(conn)
 
-      %{status: 302} = conn ->
-        path = redirected_to(conn)
+      %{status: status} = conn when status in [301, 302, 303, 307, 308] ->
+        path = redirected_to(conn, status)
 
         conn
         |> recycle_all_headers()

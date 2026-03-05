@@ -880,6 +880,20 @@ defmodule PhoenixTest.StaticTest do
       end)
       |> assert_has("h1", text: "Main page")
     end
+
+    for status <- [301, 303, 307, 308] do
+      test "follows #{status} redirects after unwrap action", %{conn: conn} do
+        conn
+        |> visit("/page/page_2")
+        |> unwrap(fn conn ->
+          Phoenix.ConnTest.get(conn, "/page/redirect_with_status", %{
+            status: unquote(status),
+            to: "/page/index"
+          })
+        end)
+        |> assert_has("h1", text: "Main page")
+      end
+    end
   end
 
   describe "current_path" do

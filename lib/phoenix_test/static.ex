@@ -307,8 +307,8 @@ defmodule PhoenixTest.Static do
 
   defp maybe_redirect(conn, session) do
     case conn do
-      %{status: 302} ->
-        path = redirected_to(conn)
+      %{status: status} = conn when status in [301, 302, 303, 307, 308] ->
+        path = redirected_to(conn, status)
 
         conn
         |> ConnHandler.recycle_all_headers()

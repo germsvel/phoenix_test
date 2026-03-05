@@ -41,6 +41,12 @@ defmodule PhoenixTest.WebApp.PageController do
     |> redirect(to: "/page/index")
   end
 
+  def redirect_with_status(conn, %{"status" => status, "to" => path}) do
+    conn
+    |> put_resp_header("location", path)
+    |> send_resp(String.to_integer(status), "")
+  end
+
   def unauthorized(conn, _) do
     conn
     |> put_status(:unauthorized)
