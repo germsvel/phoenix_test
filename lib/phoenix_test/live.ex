@@ -112,6 +112,7 @@ defmodule PhoenixTest.Live do
 
   defp handle_click_button(session, button) do
     html = session.current_operation.html
+    click_action = Button.phx_click_action(button)
 
     cond do
       Button.disabled?(button) ->
@@ -120,13 +121,16 @@ defmodule PhoenixTest.Live do
           #{inspect(button.text)} because it is disabled.
         """
 
-      Button.phx_click?(button) ->
+      click_action == :dispatch_change and Button.belongs_to_form?(button, html) ->
+        trigger_button_dispatch_change(session, button)
+
+      click_action == :render_click ->
         session.view
         |> element(scope_selector(button.selector, session.within), button.text)
         |> render_click()
         |> maybe_redirect(session)
 
-      Button.belongs_to_form?(button, html) ->
+      Button.submits_form?(button, html) ->
         active_form = session.active_form
         additional_data = FormData.add_data(FormData.new(), button)
         form = Button.parent_form!(button, html)
@@ -153,6 +157,36 @@ defmodule PhoenixTest.Live do
           #{inspect(button.text)} to have a valid `phx-click` attribute or belong to a `form` element.
         """
     end
+  end
+
+  defp trigger_button_dispatch_change(session, button) do
+    html = session.current_operation.html
+    form = Button.parent_form!(button, html)
+
+    existing_form_data =
+      if session.active_form.selector == form.selector do
+        FormData.merge(form.form_data, session.active_form.form_data)
+      else
+        form.form_data
+      end
+
+    form_data =
+      FormData.add_data(existing_form_data, button)
+
+    payload =
+      form_data
+      |> FormPayload.new()
+      |> Map.merge(
+        case button.name do
+          nil -> %{}
+          name -> %{"_target" => name}
+        end
+      )
+
+    session.view
+    |> element(scope_selector(form.selector, session.within))
+    |> render_change(payload)
+    |> maybe_redirect(session)
   end
 
   def within(session, selector, fun) when is_binary(selector) and is_function(fun, 1) do

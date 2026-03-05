@@ -28,7 +28,7 @@ defmodule PhoenixTest.Element.Form do
 
   def find_by_descendant!(html, descendant) do
     html
-    |> Query.find_ancestor!("form", descendant_selector(descendant))
+    |> Query.find_ancestor!("form", descendant)
     |> build()
   end
 
@@ -68,10 +68,6 @@ defmodule PhoenixTest.Element.Form do
   end
 
   def has_action?(form), do: Utils.present?(form.action)
-
-  defp descendant_selector(%{id: id}) when is_binary(id), do: "[id=#{inspect(id)}]"
-  defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
-  defp descendant_selector(%{selector: selector}), do: selector
 
   @simple_value_types ~w(
     date

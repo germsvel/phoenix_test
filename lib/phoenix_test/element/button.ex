@@ -59,16 +59,14 @@ defmodule PhoenixTest.Element.Button do
   end
 
   def belongs_to_form?(%__MODULE__{} = button, html) do
-    !!button.form_id || (button.type == "submit" && belongs_to_ancestor_form?(button, html))
+    not is_nil(button.form_id) or Query.has_ancestor?(html, "form", button)
   end
 
-  defp belongs_to_ancestor_form?(button, html) do
-    case Query.find_ancestor(html, "form", {button.selector, button.text}) do
-      {:found, _} -> true
-      _ -> false
-    end
+  def submits_form?(%__MODULE__{} = button, html) do
+    button.type == "submit" && belongs_to_form?(button, html)
   end
 
+  def phx_click_action(%__MODULE__{} = button), do: LiveViewBindings.phx_click_action(button.parsed)
   def phx_click?(%__MODULE__{} = button), do: LiveViewBindings.phx_click?(button.parsed)
 
   def disabled?(%__MODULE__{} = button) do

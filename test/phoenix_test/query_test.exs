@@ -757,6 +757,18 @@ defmodule PhoenixTest.QueryTest do
       assert {"form", [{"id", "super-form"}], _} = Html.element(element)
     end
 
+    test "accepts descendant maps with selector metadata" do
+      html = """
+      <form id="super-form">
+        <input id="greeting" />
+      </form>
+      """
+
+      element = Query.find_ancestor!(html, "form", %{selector: "#greeting"})
+
+      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+    end
+
     test "raises error if it finds too many ancestor element that match selector" do
       html = """
       <form id="form-1">
@@ -975,6 +987,43 @@ defmodule PhoenixTest.QueryTest do
 
       {:not_found, [element]} = Query.find_ancestor(html, "form", {"button", "Save"})
       assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+    end
+  end
+
+  describe "has_ancestor?/3" do
+    test "returns true when descendant has matching ancestor" do
+      html = """
+      <form id="super-form">
+        <input id="greeting" />
+      </form>
+      """
+
+      assert Query.has_ancestor?(html, "form", "#greeting")
+    end
+
+    test "returns false when descendant has no matching ancestor" do
+      html = """
+      <form id="super-form">
+      </form>
+      <input id="greeting" />
+      """
+
+      refute Query.has_ancestor?(html, "form", "#greeting")
+    end
+
+    test "works with {selector, text} descendant" do
+      html = """
+      <form id="super-form">
+        <button>Save</button>
+      </form>
+
+      <form id="other-form">
+        <button>Reset</button>
+      </form>
+      """
+
+      assert Query.has_ancestor?(html, "form", {"button", "Save"})
+      refute Query.has_ancestor?(html, "form", {"button", "Delete"})
     end
   end
 end

@@ -4,10 +4,17 @@ defmodule PhoenixTest.LiveViewBindings do
   alias PhoenixTest.Html
   alias PhoenixTest.Utils
 
-  def phx_click?(parsed_element) do
+  @type phx_click_action :: :render_click | :dispatch_change | :none
+
+  @spec phx_click_action(LazyHTML.t()) :: phx_click_action()
+  def phx_click_action(parsed_element) do
     parsed_element
     |> Html.attribute("phx-click")
-    |> valid_event_or_js_command?()
+    |> phx_click_action_from_attr()
+  end
+
+  def phx_click?(parsed_element) do
+    phx_click_action(parsed_element) == :render_click
   end
 
   def phx_change?(parsed_element) do
@@ -33,19 +40,38 @@ defmodule PhoenixTest.LiveViewBindings do
   defp valid_event_or_js_command?("[" <> _ = js_command) do
     js_command
     |> Jason.decode!()
-    |> any_valid_js_command?()
+    |> any_render_click_compatible_js_command?()
   end
 
   defp valid_event_or_js_command?(value), do: Utils.present?(value)
 
-  defp any_valid_js_command?(js_commands) do
-    Enum.any?(js_commands, &valid_js_command?/1)
+  defp phx_click_action_from_attr("[" <> _ = js_command) do
+    js_commands = Jason.decode!(js_command)
+
+    cond do
+      any_render_click_compatible_js_command?(js_commands) -> :render_click
+      any_dispatch_change_js_command?(js_commands) -> :dispatch_change
+      true -> :none
+    end
   end
 
-  defp valid_js_command?(["navigate", _opts]), do: true
-  defp valid_js_command?(["patch", _opts]), do: true
-  defp valid_js_command?(["push", _opts]), do: true
-  defp valid_js_command?([_command, _opts]), do: false
+  defp phx_click_action_from_attr(value), do: if(Utils.present?(value), do: :render_click, else: :none)
+
+  defp any_render_click_compatible_js_command?(js_commands) do
+    Enum.any?(js_commands, &render_click_compatible_js_command?/1)
+  end
+
+  defp render_click_compatible_js_command?(["navigate", _opts]), do: true
+  defp render_click_compatible_js_command?(["patch", _opts]), do: true
+  defp render_click_compatible_js_command?(["push", _opts]), do: true
+  defp render_click_compatible_js_command?([_command, _opts]), do: false
+
+  defp any_dispatch_change_js_command?(js_commands) do
+    Enum.any?(js_commands, &dispatch_change_js_command?/1)
+  end
+
+  defp dispatch_change_js_command?(["dispatch", %{"event" => "change"}]), do: true
+  defp dispatch_change_js_command?([_command, _opts]), do: false
 
   defp any_phx_value_attributes?(%LazyHTML{} = element) do
     element

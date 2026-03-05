@@ -196,7 +196,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       assert Button.belongs_to_form?(button, html)
     end
 
-    test "returns false if button has type='button'" do
+    test "returns true if button has type='button'" do
       html = """
       <form>
         <button type="button">
@@ -207,7 +207,7 @@ defmodule PhoenixTest.Element.ButtonTest do
 
       button = Button.find!(html, "button", "Save")
 
-      refute Button.belongs_to_form?(button, html)
+      assert Button.belongs_to_form?(button, html)
     end
 
     test "returns true if button has a form attribute" do
@@ -232,6 +232,60 @@ defmodule PhoenixTest.Element.ButtonTest do
       button = Button.find!(html, "button", "Save")
 
       refute Button.belongs_to_form?(button, html)
+    end
+  end
+
+  describe "submits_form?" do
+    test "returns true if associated and type is submit" do
+      html = """
+      <form>
+        <button>
+          Save
+        </button>
+      </form>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert Button.submits_form?(button, html)
+    end
+
+    test "returns true for external submit button with form attribute" do
+      html = """
+      <button form="form-id">
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      assert Button.submits_form?(button, html)
+    end
+
+    test "returns false if associated but type='button'" do
+      html = """
+      <form>
+        <button type="button">
+          Save
+        </button>
+      </form>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      refute Button.submits_form?(button, html)
+    end
+
+    test "returns false if button stands alone" do
+      html = """
+      <button>
+        Save
+      </button>
+      """
+
+      button = Button.find!(html, "button", "Save")
+
+      refute Button.submits_form?(button, html)
     end
   end
 

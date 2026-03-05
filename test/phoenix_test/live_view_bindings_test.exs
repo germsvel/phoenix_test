@@ -100,4 +100,58 @@ defmodule PhoenixTest.LiveViewBindingsTest do
       assert LiveViewBindings.phx_click?(element)
     end
   end
+
+  describe "phx_click_action/1" do
+    test "returns :render_click for plain phx-click event names" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <button phx-click="save">Save</button>
+        """)
+
+      element = html |> Html.parse_fragment() |> Html.all("button")
+
+      assert LiveViewBindings.phx_click_action(element) == :render_click
+    end
+
+    test "returns :dispatch_change for JS.dispatch(change) only" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <button phx-click={JS.dispatch("change")}>Add</button>
+        """)
+
+      element = html |> Html.parse_fragment() |> Html.all("button")
+
+      assert LiveViewBindings.phx_click_action(element) == :dispatch_change
+    end
+
+    test "returns :render_click when JS includes push and dispatch(change)" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <button phx-click={JS.push("save") |> JS.dispatch("change")}>Save</button>
+        """)
+
+      element = html |> Html.parse_fragment() |> Html.all("button")
+
+      assert LiveViewBindings.phx_click_action(element) == :render_click
+    end
+
+    test "returns :none when phx-click is absent" do
+      assigns = %{}
+
+      html =
+        rendered_to_string(~H"""
+        <button>No action</button>
+        """)
+
+      element = html |> Html.parse_fragment() |> Html.all("button")
+
+      assert LiveViewBindings.phx_click_action(element) == :none
+    end
+  end
 end

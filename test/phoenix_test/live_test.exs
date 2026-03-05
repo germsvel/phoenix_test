@@ -1132,6 +1132,16 @@ defmodule PhoenixTest.LiveTest do
       |> submit()
       |> assert_has("[data-role=email]", text: "Bow")
     end
+
+    test "handles dynamic add/remove buttons without a `form` attribute", %{conn: conn} do
+      conn
+      |> visit("/live/dynamic_inputs_add_remove")
+      |> assert_has("#mailing_list_emails_0_email")
+      |> click_button("add more")
+      |> assert_has("#mailing_list_emails_1_email")
+      |> click_button("delete 1")
+      |> refute_has("#mailing_list_emails_1_email")
+    end
   end
 
   describe "open_browser" do
