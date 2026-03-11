@@ -91,6 +91,13 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    test "handles <.link navigate={..}> to a dead view", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate with navigate to dead view")
+      |> assert_has("h1", text: "Main page")
+    end
+
     test "preserves headers across navigation", %{conn: conn} do
       conn
       |> Plug.Conn.put_req_header("x-custom-header", "Some-Value")
