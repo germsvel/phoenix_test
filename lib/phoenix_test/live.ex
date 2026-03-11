@@ -594,10 +594,12 @@ defmodule PhoenixTest.Live do
 
     case result do
       {:error, {:live_redirect, opts}} ->
-        session.conn
-        |> ConnHandler.recycle_all_headers()
-        |> EndpointHelpers.follow_live_redirect(opts)
-        |> maybe_redirect(session)
+        conn = ConnHandler.recycle_all_headers(session.conn)
+
+        case EndpointHelpers.follow_live_redirect(conn, opts) do
+          {:error, :nosession} -> ConnHandler.visit(conn, path)
+          other -> maybe_redirect(other, session)
+        end
 
       {:error, {:redirect, opts}} ->
         session.conn

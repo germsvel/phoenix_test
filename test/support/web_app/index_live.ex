@@ -12,6 +12,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <.link navigate="/live/page_2?details=true&foo=bar">Navigate link</.link>
     <.link patch="/live/index?details=true&foo=bar">Patch link</.link>
     <.link href="/page/index?details=true&foo=bar">Navigate to non-liveview</.link>
+    <.link navigate="/page/index">Navigate with navigate to dead view</.link>
 
     <.link class="multiple_links" href="/live/page_3">Multiple links</.link>
     <.link class="multiple_links" href="/live/page_4">Multiple links</.link>
