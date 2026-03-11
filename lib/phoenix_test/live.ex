@@ -452,9 +452,10 @@ defmodule PhoenixTest.Live do
     session = %{session | current_path: path}
     conn = session.conn
 
-    result
-    |> follow_redirect(ConnHandler.recycle_all_headers(conn))
-    |> maybe_redirect(session)
+    case follow_redirect(result, ConnHandler.recycle_all_headers(conn)) do
+      {:error, :nosession} -> conn |> get(path) |> ConnHandler.visit()
+      other -> maybe_redirect(other, session)
+    end
   end
 
   defp maybe_redirect({:ok, view, _}, session) do
