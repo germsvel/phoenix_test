@@ -14,12 +14,34 @@ defmodule PhoenixTest.Html do
   end
 
   def element_text(%LazyHTML{} = element) do
-    element
-    |> LazyHTML.to_tree(skip_whitespace_nodes: true)
-    |> text_from_text_nodes()
-    |> String.trim()
-    |> normalize_whitespace()
+    # Check for aria-label if the element supports it
+    case aria_label_text(element) do
+      nil ->
+        # No aria-label: check if element itself has alt attribute (for input[type="image"])
+        case alt_text_for_element(element) do
+          nil ->
+            # No alt on element: extract content text (including alt from child images)
+            element
+            |> LazyHTML.to_tree(skip_whitespace_nodes: true)
+            |> text_from_text_nodes()
+            |> String.trim()
+            |> normalize_whitespace()
+
+          alt_text ->
+            # Element has alt attribute (e.g., input[type="image"])
+            alt_text
+        end
+
+      aria_text ->
+        # Use aria-label (replaces content like screen readers do)
+        aria_text
+    end
   end
+
+  # Tags where aria-label is NOT supported (per MDN/ARIA spec)
+  @aria_label_unsupported_tags ~w[
+    caption code del em ins mark p strong sub sup time
+  ]
 
   @dont_include_children_tags ~w[select textarea]
   defp text_from_text_nodes(tree, acc \\ "")
@@ -29,6 +51,14 @@ defmodule PhoenixTest.Html do
   defp text_from_text_nodes([node | rest], acc) do
     acc =
       case node do
+        {"img", attrs, _} ->
+          # Extract alt attribute from img tags
+          case get_attr_value(attrs, "alt") do
+            nil -> acc
+            "" -> acc
+            alt_text -> acc <> " " <> alt_text
+          end
+
         text when is_binary(text) ->
           acc <> text
 
@@ -51,6 +81,36 @@ defmodule PhoenixTest.Html do
 
   defp top_level_tag?("" = _previous_text), do: true
   defp top_level_tag?(_previous_text), do: false
+
+  # Check if element has aria-label and if the tag supports it
+  defp aria_label_text(%LazyHTML{} = element) do
+    with label when is_binary(label) and label != "" <- attribute(element, "aria-label"),
+         trimmed = String.trim(label),
+         true <- trimmed != "",
+         tree when is_tuple(tree) <- element(element),
+         {tag, _, _} <- tree,
+         false <- tag in @aria_label_unsupported_tags do
+      trimmed
+    else
+      _ -> nil
+    end
+  end
+
+  # Check if element itself has an alt attribute (for elements like input[type="image"])
+  defp alt_text_for_element(%LazyHTML{} = element) do
+    case attribute(element, "alt") do
+      alt when is_binary(alt) and alt != "" -> String.trim(alt)
+      _ -> nil
+    end
+  end
+
+  # Helper to extract attribute value from attrs list in tree nodes
+  defp get_attr_value(attrs, attr_name) when is_list(attrs) do
+    Enum.find_value(attrs, fn
+      {^attr_name, value} -> value
+      _ -> nil
+    end)
+  end
 
   def attribute(%LazyHTML{} = element, attr) when is_binary(attr) do
     element

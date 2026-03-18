@@ -19,6 +19,14 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <.link navigate="/live/page_2?redirect_to=/live/index">Navigate (and redirect back) link</.link>
 
+    <.link navigate="/live/page_2?from=profile">
+      <img src="/images/profile.png" alt="View profile" /> User Profile
+    </.link>
+
+    <.link navigate="/live/page_2?from=settings" aria-label="Go to settings">
+      ⚙️
+    </.link>
+
     <h2 :if={@details}>LiveView main page details</h2>
 
     <h3>{@h3}</h3>
@@ -40,6 +48,15 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <button phx-click="change-page-title">Change page title</button>
 
     <button phx-click="show-tab">Show tab</button>
+
+    <button phx-click="change-h3" aria-label="Delete item">
+      🗑️
+    </button>
+
+    <form id="image-button-form" phx-submit="save-form" phx-change="change-form">
+      <label>Name <input name="name" /></label>
+      <input type="image" src="/images/submit.png" alt="Submit form" />
+    </form>
 
     <a
       href="/page/delete_record"

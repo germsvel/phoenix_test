@@ -74,13 +74,24 @@ defmodule PhoenixTest.Live do
     session = set_operation(session, :click_link)
     selector = scope_selector(selector, session.within)
 
-    with {:found, link} <- PhoenixTest.Element.Link.find(session.current_operation.html, selector, text),
-         true <- PhoenixTest.Element.Link.has_data_method?(link) do
-      %{session.conn | resp_body: session.current_operation.html}
-      |> PhoenixTest.Static.build()
-      |> PhoenixTest.Static.click_with_data_method(link)
-    else
+    case PhoenixTest.Element.Link.find(session.current_operation.html, selector, text) do
+      {:found, link} ->
+        if PhoenixTest.Element.Link.has_data_method?(link) do
+          %{session.conn | resp_body: session.current_operation.html}
+          |> PhoenixTest.Static.build()
+          |> PhoenixTest.Static.click_with_data_method(link)
+        else
+          # Use Element.build_selector to create a unique selector for LiveView's element/2
+          link_selector = PhoenixTest.Element.build_selector(link.parsed)
+
+          session.view
+          |> element(link_selector)
+          |> render_click()
+          |> maybe_redirect(session)
+        end
+
       _ ->
+        # Fallback to LiveView's text matching if our Query didn't find it
         session.view
         |> element(selector, text)
         |> render_click()
@@ -123,10 +134,27 @@ defmodule PhoenixTest.Live do
         trigger_button_dispatch_change(session, button)
 
       click_action == :render_click ->
-        session.view
-        |> element(scope_selector(button.selector, session.within), button.text)
-        |> render_click()
-        |> maybe_redirect(session)
+        # Check if button uses aria-label or is input[type="image"] with alt
+        # In those cases, LiveView's element/2 won't find it by text
+        uses_aria_or_alt =
+          Html.attribute(button.parsed, "aria-label") != nil or
+            (button.type == "image" and Html.attribute(button.parsed, "alt") != nil)
+
+        if uses_aria_or_alt do
+          # Use build_selector without text (LiveView doesn't understand aria-label/alt)
+          button_selector = PhoenixTest.Element.build_selector(button.parsed)
+
+          session.view
+          |> element(scope_selector(button_selector, session.within))
+          |> render_click()
+          |> maybe_redirect(session)
+        else
+          # Use text matching as before
+          session.view
+          |> element(scope_selector(button.selector, session.within), button.text)
+          |> render_click()
+          |> maybe_redirect(session)
+        end
 
       Button.submits_form?(button, html) ->
         active_form = session.active_form

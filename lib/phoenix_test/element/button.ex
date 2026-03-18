@@ -63,7 +63,7 @@ defmodule PhoenixTest.Element.Button do
   end
 
   def submits_form?(%__MODULE__{} = button, html) do
-    button.type == "submit" && belongs_to_form?(button, html)
+    button.type in ["submit", "image"] && belongs_to_form?(button, html)
   end
 
   def phx_click_action(%__MODULE__{} = button), do: LiveViewBindings.phx_click_action(button.parsed)

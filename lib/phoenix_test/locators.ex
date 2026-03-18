@@ -19,9 +19,19 @@ defmodule PhoenixTest.Locators do
     %Button{text: text, selectors: selectors} = button
 
     Enum.map(selectors, fn
-      "button" -> {"button", text}
-      ~s|[role="button"]| -> {~s|[role="button"]|, text}
-      role -> role <> "[value=#{inspect(text)}]"
+      "button" ->
+        {"button", text}
+
+      ~s|[role="button"]| ->
+        {~s|[role="button"]|, text}
+
+      ~s|input[type="image"]| ->
+        # For image inputs, check both value and alt attributes
+        # We return the base selector and let element_text matching handle alt
+        {~s|input[type="image"]|, text}
+
+      role ->
+        role <> "[value=#{inspect(text)}]"
     end)
   end
 end

@@ -139,6 +139,27 @@ defmodule PhoenixTest.LiveTest do
         |> click_link("No link")
       end
     end
+
+    test "finds link by image alt attribute", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("View profile")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "finds link by both alt text and visible text", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("User Profile")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "finds link by aria-label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Go to settings")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
   end
 
   describe "click_button" do
@@ -342,6 +363,20 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> click_button("#button-with-id-1 button", "Duplicate button with wrapped id")
+    end
+
+    test "finds button by aria-label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Delete item")
+      |> assert_has("h3", text: "I've been changed!")
+    end
+
+    test "finds input type=image by alt attribute", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Submit form")
+      |> assert_has("#form-data")
     end
   end
 
