@@ -216,7 +216,6 @@ defmodule PhoenixTest.HtmlTest do
         |> Html.parse_fragment()
         |> Html.element_text()
 
-      # Trimmed aria-label becomes empty, so falls back to content
       assert result == "Click me"
     end
 
