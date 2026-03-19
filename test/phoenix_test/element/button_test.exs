@@ -276,6 +276,18 @@ defmodule PhoenixTest.Element.ButtonTest do
       refute Button.submits_form?(button, html)
     end
 
+    test "returns true if it's an input with type=image" do
+      html = """
+      <form>
+        <input type="image" alt="Save" src="/some/image/png" />
+      </form>
+      """
+
+      button = Button.find!(html, "input", "Save")
+
+      assert Button.submits_form?(button, html)
+    end
+
     test "returns false if button stands alone" do
       html = """
       <button>
