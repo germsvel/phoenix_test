@@ -210,6 +210,8 @@ defmodule PhoenixTest.HtmlTest do
       assert result =~ "Yes"
       assert result =~ "Some text"
       assert result =~ "No"
+      refute result =~ "✅"
+      refute result =~ "❌"
     end
 
     test "ignores empty aria-label" do
