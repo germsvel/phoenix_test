@@ -52,10 +52,8 @@ defmodule PhoenixTest.Html do
     acc =
       case node do
         {"img", attrs, _} ->
-          # Extract alt attribute from img tags
-          case get_attr_value(attrs, "alt") do
-            nil -> acc
-            "" -> acc
+          case get_image_alt(attrs) do
+            :no_alt -> acc
             alt_text -> acc <> " " <> alt_text
           end
 
@@ -82,7 +80,14 @@ defmodule PhoenixTest.Html do
   defp top_level_tag?("" = _previous_text), do: true
   defp top_level_tag?(_previous_text), do: false
 
-  # Helper to extract attribute value from attrs list in tree nodes
+  defp get_image_alt(attrs) do
+    case get_attr_value(attrs, "alt") do
+      nil -> :no_alt
+      "" -> :no_alt
+      alt_text -> alt_text
+    end
+  end
+
   defp get_attr_value(attrs, attr_name) when is_list(attrs) do
     Enum.find_value(attrs, fn
       {^attr_name, value} -> value
