@@ -13,35 +13,17 @@ defmodule PhoenixTest.Html do
     LazyHTML.from_fragment(html)
   end
 
-  # Tags where aria-label is NOT supported (per MDN/ARIA spec)
+  def element_text(%LazyHTML{} = element) do
+    element
+    |> LazyHTML.to_tree(skip_whitespace_nodes: true)
+    |> text_from_text_nodes()
+    |> String.trim()
+    |> normalize_whitespace()
+  end
+
   @aria_label_unsupported_tags ~w[
     caption code del em ins mark p strong sub sup time
   ]
-
-  def element_text(%LazyHTML{} = element) do
-    aria_label = attribute(element, "aria-label")
-    alt_text = attribute(element, "alt")
-    tag_name = tag_name(element)
-
-    cond do
-      tag_name not in @aria_label_unsupported_tags and is_binary(aria_label) and String.trim(aria_label) != "" ->
-        aria_label
-
-      image_type?(element) and is_binary(alt_text) and String.trim(alt_text) != "" ->
-        alt_text
-
-      true ->
-        element
-        |> LazyHTML.to_tree(skip_whitespace_nodes: true)
-        |> text_from_text_nodes()
-        |> String.trim()
-        |> normalize_whitespace()
-    end
-  end
-
-  defp image_type?(element) do
-    tag_name(element) == "img" or attribute(element, "type") == "image"
-  end
 
   @dont_include_children_tags ~w[select textarea]
   defp text_from_text_nodes(tree, acc \\ "")
@@ -55,6 +37,28 @@ defmodule PhoenixTest.Html do
           case get_image_alt(attrs) do
             :no_alt -> acc
             alt_text -> acc <> " " <> alt_text
+          end
+
+        {"input", attrs, children} ->
+          case get_attr_value(attrs, "type") do
+            "image" ->
+              case get_image_alt(attrs) do
+                :no_alt -> acc
+                alt_text -> acc <> " " <> alt_text
+              end
+
+            _ ->
+              acc <> " " <> text_from_text_nodes(children)
+          end
+
+        {tag_name, attrs, children} ->
+          aria_label = get_attr_value(attrs, "aria-label")
+
+          if tag_name not in @aria_label_unsupported_tags and is_binary(aria_label) and
+               String.trim(aria_label) != "" do
+            acc <> " " <> aria_label
+          else
+            acc <> " " <> text_from_text_nodes(children)
           end
 
         text when is_binary(text) ->
