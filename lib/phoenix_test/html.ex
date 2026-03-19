@@ -51,27 +51,22 @@ defmodule PhoenixTest.Html do
               acc <> " " <> text_from_text_nodes(children)
           end
 
-        {tag_name, attrs, children} ->
+        text when is_binary(text) ->
+          acc <> " " <> text
+
+        {tag, attrs, children} ->
           aria_label = get_attr_value(attrs, "aria-label")
 
-          if tag_name not in @aria_label_unsupported_tags and is_binary(aria_label) and
-               String.trim(aria_label) != "" do
-            acc <> " " <> aria_label
-          else
-            acc <> " " <> text_from_text_nodes(children)
-          end
+          cond do
+            tag not in @aria_label_unsupported_tags and is_binary(aria_label) and
+                String.trim(aria_label) != "" ->
+              acc <> " " <> aria_label
 
-        text when is_binary(text) ->
-          acc <> text
+            top_level_tag?(acc) or tag not in @dont_include_children_tags ->
+              acc <> text_from_text_nodes(children)
 
-        {tag, _, children} when tag not in @dont_include_children_tags ->
-          acc <> " " <> text_from_text_nodes(children)
-
-        {_tag, _, children} ->
-          if top_level_tag?(acc) do
-            acc <> " " <> text_from_text_nodes(children)
-          else
-            acc
+            true ->
+              acc
           end
 
         _ ->
