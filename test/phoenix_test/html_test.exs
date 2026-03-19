@@ -193,6 +193,25 @@ defmodule PhoenixTest.HtmlTest do
       refute result =~ "×"
     end
 
+    test "includes aria-label if elements are nested" do
+      html = """
+      <div>
+        <button aria-label="Yes">✅</button>
+        Some text
+        <button aria-label="No">❌</button>
+      </div>
+      """
+
+      result =
+        html
+        |> Html.parse_fragment()
+        |> Html.element_text()
+
+      assert result =~ "Yes"
+      assert result =~ "Some text"
+      assert result =~ "No"
+    end
+
     test "ignores empty aria-label" do
       html = """
       <button aria-label="">Click me</button>
