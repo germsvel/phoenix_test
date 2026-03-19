@@ -32,18 +32,9 @@ defmodule PhoenixTest.Html do
 
   defp text_from_text_nodes([node | rest], acc) do
     acc =
-      case node_text(node) do
+      case node_text(node, top_level_tag?(acc)) do
         :none ->
-          if top_level_tag?(acc) do
-            if match?({_, _, _}, node) do
-              {_, _, children} = node
-              acc <> text_from_text_nodes(children)
-            else
-              acc
-            end
-          else
-            acc
-          end
+          acc
 
         text when is_binary(text) ->
           acc <> " " <> text
@@ -52,14 +43,14 @@ defmodule PhoenixTest.Html do
     text_from_text_nodes(rest, acc)
   end
 
-  defp node_text({"img", attrs, _}) do
+  defp node_text({"img", attrs, _}, _top_level?) do
     case get_image_alt(attrs) do
       :no_alt -> :none
       alt_text -> alt_text
     end
   end
 
-  defp node_text({"input", attrs, children}) do
+  defp node_text({"input", attrs, children}, _top_level?) do
     case get_attr_value(attrs, "type") do
       "image" ->
         case get_image_alt(attrs) do
@@ -72,24 +63,27 @@ defmodule PhoenixTest.Html do
     end
   end
 
-  defp node_text({tag, attrs, children}) do
-    aria_label = get_attr_value(attrs, "aria-label")
-
-    cond do
-      tag not in @aria_label_unsupported_tags and is_binary(aria_label) and
-          String.trim(aria_label) != "" ->
-        aria_label
-
-      tag not in @dont_include_children_tags ->
-        text_from_text_nodes(children)
-
-      true ->
-        :none
+  defp node_text({tag, _attrs, children}, top_level?) when tag in @dont_include_children_tags do
+    if top_level? do
+      text_from_text_nodes(children)
+    else
+      :none
     end
   end
 
-  defp node_text(text) when is_binary(text), do: text
-  defp node_text(_other), do: :none
+  defp node_text({tag, attrs, children}, _top_level?) do
+    aria_label = get_attr_value(attrs, "aria-label")
+
+    if tag not in @aria_label_unsupported_tags and is_binary(aria_label) and
+         String.trim(aria_label) != "" do
+      aria_label
+    else
+      text_from_text_nodes(children)
+    end
+  end
+
+  defp node_text(text, _top_level?) when is_binary(text), do: text
+  defp node_text(_other, _top_level?), do: :none
 
   defp top_level_tag?("" = _previous_text), do: true
   defp top_level_tag?(_previous_text), do: false
