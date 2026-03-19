@@ -32,40 +32,21 @@ defmodule PhoenixTest.Html do
 
   defp text_from_text_nodes([node | rest], acc) do
     acc =
-      case node do
-        {"img", _attrs, _} = node ->
-          case node_text(node) do
-            :none -> acc
-            text when is_binary(text) -> acc <> " " <> text
-          end
-
-        {"input", _attrs, _children} = node ->
-          case node_text(node) do
-            :none -> acc
-            text when is_binary(text) -> acc <> " " <> text
+      case node_text(node) do
+        :none ->
+          if top_level_tag?(acc) do
+            if match?({_, _, _}, node) do
+              {_, _, children} = node
+              acc <> text_from_text_nodes(children)
+            else
+              acc
+            end
+          else
+            acc
           end
 
         text when is_binary(text) ->
-          case node_text(text) do
-            :none -> acc
-            text when is_binary(text) -> acc <> " " <> text
-          end
-
-        {_tag, _attrs, children} = node ->
-          case node_text(node) do
-            :none ->
-              if top_level_tag?(acc) do
-                acc <> text_from_text_nodes(children)
-              else
-                acc
-              end
-
-            text when is_binary(text) ->
-              acc <> " " <> text
-          end
-
-        _ ->
-          acc
+          acc <> " " <> text
       end
 
     text_from_text_nodes(rest, acc)
@@ -108,6 +89,7 @@ defmodule PhoenixTest.Html do
   end
 
   defp node_text(text) when is_binary(text), do: text
+  defp node_text(_other), do: :none
 
   defp top_level_tag?("" = _previous_text), do: true
   defp top_level_tag?(_previous_text), do: false
