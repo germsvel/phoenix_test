@@ -33,40 +33,35 @@ defmodule PhoenixTest.Html do
   defp text_from_text_nodes([node | rest], acc) do
     acc =
       case node do
-        {"img", attrs, _} ->
-          case get_image_alt(attrs) do
-            :no_alt -> acc
-            alt_text -> acc <> " " <> alt_text
+        {"img", _attrs, _} = node ->
+          case node_text(node) do
+            :none -> acc
+            text when is_binary(text) -> acc <> " " <> text
           end
 
-        {"input", attrs, children} ->
-          case get_attr_value(attrs, "type") do
-            "image" ->
-              case get_image_alt(attrs) do
-                :no_alt -> acc
-                alt_text -> acc <> " " <> alt_text
-              end
-
-            _ ->
-              acc <> " " <> text_from_text_nodes(children)
+        {"input", _attrs, _children} = node ->
+          case node_text(node) do
+            :none -> acc
+            text when is_binary(text) -> acc <> " " <> text
           end
 
         text when is_binary(text) ->
-          acc <> " " <> text
+          case node_text(text) do
+            :none -> acc
+            text when is_binary(text) -> acc <> " " <> text
+          end
 
-        {tag, attrs, children} ->
-          aria_label = get_attr_value(attrs, "aria-label")
+        {_tag, _attrs, children} = node ->
+          case node_text(node) do
+            :none ->
+              if top_level_tag?(acc) do
+                acc <> text_from_text_nodes(children)
+              else
+                acc
+              end
 
-          cond do
-            tag not in @aria_label_unsupported_tags and is_binary(aria_label) and
-                String.trim(aria_label) != "" ->
-              acc <> " " <> aria_label
-
-            top_level_tag?(acc) or tag not in @dont_include_children_tags ->
-              acc <> text_from_text_nodes(children)
-
-            true ->
-              acc
+            text when is_binary(text) ->
+              acc <> " " <> text
           end
 
         _ ->
@@ -75,6 +70,44 @@ defmodule PhoenixTest.Html do
 
     text_from_text_nodes(rest, acc)
   end
+
+  defp node_text({"img", attrs, _}) do
+    case get_image_alt(attrs) do
+      :no_alt -> :none
+      alt_text -> alt_text
+    end
+  end
+
+  defp node_text({"input", attrs, children}) do
+    case get_attr_value(attrs, "type") do
+      "image" ->
+        case get_image_alt(attrs) do
+          :no_alt -> :none
+          alt_text -> alt_text
+        end
+
+      _ ->
+        text_from_text_nodes(children)
+    end
+  end
+
+  defp node_text({tag, attrs, children}) do
+    aria_label = get_attr_value(attrs, "aria-label")
+
+    cond do
+      tag not in @aria_label_unsupported_tags and is_binary(aria_label) and
+          String.trim(aria_label) != "" ->
+        aria_label
+
+      tag not in @dont_include_children_tags ->
+        text_from_text_nodes(children)
+
+      true ->
+        :none
+    end
+  end
+
+  defp node_text(text) when is_binary(text), do: text
 
   defp top_level_tag?("" = _previous_text), do: true
   defp top_level_tag?(_previous_text), do: false
