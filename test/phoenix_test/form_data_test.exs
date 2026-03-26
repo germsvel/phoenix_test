@@ -176,6 +176,22 @@ defmodule PhoenixTest.FormDataTest do
     end
   end
 
+  describe "override" do
+    test "replaces list values when same key is present" do
+      base =
+        FormData.new()
+        |> FormData.add_data("items[]", "")
+        |> FormData.add_data("items[]", "one")
+
+      override =
+        FormData.put_data(FormData.new(), "items[]", [""])
+
+      form_data = FormData.override(base, override)
+
+      assert FormData.to_list(form_data) == [{"items[]", ""}]
+    end
+  end
+
   describe "filter" do
     test "filters form data based on function provivded" do
       form_data =

@@ -15,8 +15,8 @@ defmodule PhoenixTest.ActiveForm do
     struct!(%__MODULE__{}, opts)
   end
 
-  def add_form_data(%__MODULE__{} = active_form, new_form_data) do
-    Map.update!(active_form, :form_data, &FormData.add_data(&1, new_form_data))
+  def put_form_data(%__MODULE__{} = active_form, name, value) do
+    Map.update!(active_form, :form_data, &FormData.put_data(&1, name, value))
   end
 
   def add_upload(%__MODULE__{} = active_form, new_upload) do

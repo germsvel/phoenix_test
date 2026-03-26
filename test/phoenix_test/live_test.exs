@@ -663,6 +663,17 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "checkbox_group: [1, 2]")
     end
 
+    test "adds checked values for array named checkboxes without replacing existing values", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        check(session, "Three")
+      end)
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+      |> assert_has("#form-data", text: "three")
+    end
+
     test "check triggers phx-change on the input if it is defined", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -784,13 +795,26 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "like-elixir: no")
     end
 
-    test "removes checked values from array named checkboxes", %{conn: conn} do
+    test "removes checked values from array named checkboxes on change", %{conn: conn} do
       conn
       |> visit("/live/index")
       |> within("#array-checkbox-form", fn session ->
         uncheck(session, "One")
       end)
-      |> assert_has("#form-data", text: "items: []")
+      |> refute_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
+    test "removes checked values from array named checkboxes on submit", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> uncheck("One")
+        |> submit()
+      end)
+      |> refute_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
     end
 
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do

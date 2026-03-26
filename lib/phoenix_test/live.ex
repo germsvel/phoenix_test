@@ -1,6 +1,7 @@
 defmodule PhoenixTest.Live do
   @moduledoc false
   import Phoenix.LiveViewTest
+  import PhoenixTest.FieldHelpers
   import PhoenixTest.SessionHelpers, only: [scope_selector: 2]
 
   alias PhoenixTest.ActiveForm
@@ -135,7 +136,7 @@ defmodule PhoenixTest.Live do
 
         form_data =
           if active_form.selector == form.selector do
-            FormData.merge(form.form_data, active_form.form_data)
+            FormData.override(form.form_data, active_form.form_data)
           else
             form.form_data
           end
@@ -163,7 +164,7 @@ defmodule PhoenixTest.Live do
 
     existing_form_data =
       if session.active_form.selector == form.selector do
-        FormData.merge(form.form_data, session.active_form.form_data)
+        FormData.override(form.form_data, session.active_form.form_data)
       else
         form.form_data
       end
@@ -438,16 +439,13 @@ defmodule PhoenixTest.Live do
     Field.validate_name!(field)
 
     form = Field.parent_form!(field, html)
+    field_value = next_field_value(session, form, field)
 
     session =
       Map.update!(session, :active_form, fn active_form ->
-        if active_form.selector == form.selector do
-          ActiveForm.add_form_data(active_form, field)
-        else
-          [id: form.id, selector: form.selector]
-          |> ActiveForm.new()
-          |> ActiveForm.add_form_data(field)
-        end
+        active_form
+        |> active_form_for(form)
+        |> ActiveForm.put_form_data(field.name, field_value)
       end)
 
     maybe_trigger_phx_change(session, form, field)
@@ -495,7 +493,7 @@ defmodule PhoenixTest.Live do
 
   defp merged_form_data(session, %Form{} = form) do
     form.form_data
-    |> FormData.merge(session.active_form.form_data)
+    |> FormData.override(session.active_form.form_data)
     |> FormData.filter(fn %{name: name} -> name in Form.form_element_names(form) end)
   end
 
@@ -521,7 +519,7 @@ defmodule PhoenixTest.Live do
     form = Form.find!(session.current_operation.html, selector)
 
     form_data = remove_data_for_fields_that_have_been_removed(form_data, form)
-    form_data = FormData.merge(form.form_data, form_data)
+    form_data = FormData.override(form.form_data, form_data)
 
     additional_data =
       if form.submit_button do
@@ -625,7 +623,9 @@ defmodule PhoenixTest.Live do
       {:found, form} ->
         active_form = session.active_form
         active_form? = form.selector == active_form.selector
-        form_data = FormData.merge(form.form_data, if(active_form?, do: active_form.form_data, else: FormData.new()))
+
+        form_data =
+          FormData.override(form.form_data, if(active_form?, do: active_form.form_data, else: FormData.new()))
 
         %{session.conn | resp_body: html}
         |> PhoenixTest.Static.build()

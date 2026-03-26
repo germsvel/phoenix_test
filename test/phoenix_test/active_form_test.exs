@@ -4,12 +4,12 @@ defmodule PhoenixTest.ActiveFormTest do
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.FormData
 
-  describe "add_form_data" do
-    test "adds form data passed" do
+  describe "put_form_data" do
+    test "puts form data with given name and value" do
       active_form =
         [id: "user-form", selector: "#user-form"]
         |> ActiveForm.new()
-        |> ActiveForm.add_form_data({"user[name]", "Frodo"})
+        |> ActiveForm.put_form_data("user[name]", "Frodo")
 
       assert FormData.has_data?(active_form.form_data, "user[name]", "Frodo")
     end

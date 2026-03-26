@@ -63,6 +63,20 @@ defmodule PhoenixTest.FormData do
     %__MODULE__{data: data}
   end
 
+  def override(%__MODULE__{data: data1}, %__MODULE__{data: data2}) do
+    %__MODULE__{data: Map.merge(data1, data2)}
+  end
+
+  def get_data(%__MODULE__{data: data}, name) do
+    Map.get(data, name)
+  end
+
+  def put_data(%__MODULE__{} = form_data, name, value) when is_nil(name) or is_nil(value), do: form_data
+
+  def put_data(%__MODULE__{} = form_data, name, value) do
+    %__MODULE__{form_data | data: Map.put(form_data.data, name, value)}
+  end
+
   defp allows_multiple_values?(field_name), do: String.ends_with?(field_name, "[]")
 
   def filter(%__MODULE__{data: data}, fun) do

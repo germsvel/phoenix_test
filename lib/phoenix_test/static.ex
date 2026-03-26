@@ -2,6 +2,7 @@ defmodule PhoenixTest.Static do
   @moduledoc false
 
   import Phoenix.ConnTest
+  import PhoenixTest.FieldHelpers
 
   alias PhoenixTest.ActiveForm
   alias PhoenixTest.ConnHandler
@@ -230,7 +231,7 @@ defmodule PhoenixTest.Static do
         Form.put_button_data(form, form.submit_button)
       end)
 
-    to_submit = FormPayload.new(FormData.merge(form.form_data, form_data))
+    to_submit = FormPayload.new(FormData.override(form.form_data, form_data))
 
     session
     |> Map.put(:active_form, ActiveForm.new())
@@ -262,15 +263,12 @@ defmodule PhoenixTest.Static do
   defp fill_in_field_data(session, field) do
     Field.validate_name!(field)
     form = Field.parent_form!(field, session.current_operation.html)
+    field_value = next_field_value(session, form, field)
 
     Map.update!(session, :active_form, fn active_form ->
-      if active_form.selector == form.selector do
-        ActiveForm.add_form_data(active_form, field)
-      else
-        [id: form.id, selector: form.selector]
-        |> ActiveForm.new()
-        |> ActiveForm.add_form_data(field)
-      end
+      active_form
+      |> active_form_for(form)
+      |> ActiveForm.put_form_data(field.name, field_value)
     end)
   end
 
@@ -299,7 +297,7 @@ defmodule PhoenixTest.Static do
 
   defp build_payload(form, active_form \\ ActiveForm.new()) do
     form.form_data
-    |> FormData.merge(active_form.form_data)
+    |> FormData.override(active_form.form_data)
     |> FormPayload.new()
     |> FormPayload.add_form_data(active_form.uploads)
   end

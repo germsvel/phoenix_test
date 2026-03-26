@@ -277,6 +277,19 @@ defmodule PhoenixTest.WebApp.PageView do
       <button type="submit">Save</button>
     </form>
 
+    <form id="array-checkbox-form" method="post" action="/page/create_record">
+      <input type="hidden" name="items[]" value="" />
+
+      <label for="array-item-one">One</label>
+      <input id="array-item-one" type="checkbox" name="items[]" value="one" checked />
+
+      <label for="array-item-two">Two</label>
+      <input id="array-item-two" type="checkbox" name="items[]" value="two" checked />
+
+      <label for="array-item-three">Three</label>
+      <input id="array-item-three" type="checkbox" name="items[]" value="three" />
+    </form>
+
     <form id="same-labels" action="/page/create_record" method="post">
       <fieldset>
         <legend>Do you like Elixir:</legend>
