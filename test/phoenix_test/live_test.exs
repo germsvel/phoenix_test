@@ -784,6 +784,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "like-elixir: no")
     end
 
+    test "removes checked values from array named checkboxes", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        uncheck(session, "One")
+      end)
+      |> assert_has("#form-data", text: "items: []")
+    end
+
     test "raises error if checkbox doesn't have phx-click or belong to form", %{conn: conn} do
       session = visit(conn, "/live/index")
 

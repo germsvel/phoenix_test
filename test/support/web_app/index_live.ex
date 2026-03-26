@@ -370,6 +370,19 @@ defmodule PhoenixTest.WebApp.IndexLive do
       <button type="submit">Save</button>
     </form>
 
+    <form id="array-checkbox-form" phx-change="change-form">
+      <input type="hidden" name="items[]" value="" />
+
+      <label for="array-item-one">One</label>
+      <input id="array-item-one" type="checkbox" name="items[]" value="one" checked />
+
+      <label for="array-item-two">Two</label>
+      <input id="array-item-two" type="checkbox" name="items[]" value="two" />
+
+      <label for="array-item-three">Three</label>
+      <input id="array-item-three" type="checkbox" name="items[]" value="three" />
+    </form>
+
     <form id="same-labels" phx-submit="save-form" phx-change="change-form">
       <fieldset name="like-elixir">
         <legend>Do you like Elixir:</legend>
