@@ -33,6 +33,7 @@ defmodule PhoenixTest.WebApp.Router do
     get "/page/redirect_to_static", PageController, :redirect_to_static
     post "/page/redirect_to_liveview", PageController, :redirect_to_liveview
     post "/page/redirect_to_static", PageController, :redirect_to_static
+    get "/page/download", PageController, :download
     get "/page/:page", PageController, :show
 
     live_session :live_pages, layout: {PhoenixTest.WebApp.LayoutView, :app} do
