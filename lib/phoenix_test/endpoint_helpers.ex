@@ -2,22 +2,30 @@ defmodule PhoenixTest.EndpointHelpers do
   @moduledoc false
 
   # This module replaces Phoenix test macros that require `@endpoint` to be set
-  # as a compile-time module attribute. Instead, the endpoint is read at runtime
-  # from `conn.private[:phoenix_endpoint]`, set via `PhoenixTest.put_endpoint/2`.
+  # as a compile-time module attribute. Instead, the endpoint is resolved at
+  # runtime through a chain: conn.private -> process dictionary -> Application config.
+  # See `PhoenixTest.Config` for details on the resolution order.
 
   def endpoint_from!(conn) do
     conn.private[:phoenix_endpoint] ||
-      Application.get_env(:phoenix_test, :endpoint) ||
+      PhoenixTest.Config.endpoint() ||
       raise ArgumentError, """
-      No endpoint set on conn. Use PhoenixTest.put_endpoint/2 in your test setup:
+      No endpoint set. Configure it using one of these approaches:
 
-        ```elixir
-        conn =
-          Phoenix.ConnTest.build_conn()
-          |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)
-        ```
+      1. Per-test-process (recommended for umbrella apps / multiple endpoints):
 
-      Or configure the endpoint in your test config:
+          setup do
+            PhoenixTest.Config.put_endpoint(MyAppWeb.Endpoint)
+            :ok
+          end
+
+      2. Per-conn:
+
+          conn =
+            Phoenix.ConnTest.build_conn()
+            |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)
+
+      3. Global fallback in config/test.exs:
 
           config :phoenix_test, :endpoint, MyAppWeb.Endpoint
       """
