@@ -31,7 +31,7 @@ defmodule PhoenixTest do
   ## Setup
 
   PhoenixTest requires Phoenix `1.7+` and LiveView `1.0+`. It may work with
-  earlier versions, but those are "officially" supported.
+  earlier versions, but those aren't "officially" supported.
 
   ### Installation
 
