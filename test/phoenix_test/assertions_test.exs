@@ -158,6 +158,39 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "succeeds when select option was selected by an HTML selected attribute", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", value: "Elf")
+      |> assert_has("select", label: "Race", value: "Elf")
+    end
+
+    test "succeeds when first select option is selected by browser default", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Region", value: "Shire")
+    end
+
+    test "does not match a select by an unselected option value", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "select" and value "Human" with label "Race"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", label: "Race", value: "Human")
+      end
+    end
+
+    test "does not match a select by the selected option value attribute", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "select" and value "elf" with label "Race"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", label: "Race", value: "elf")
+      end
+    end
+
     test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -762,6 +795,12 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "can refute a select by unselected value", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("select", label: "Race", value: "Human")
+    end
+
     test "raises an error if value is found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
@@ -769,6 +808,16 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise AssertionError, msg, fn ->
         refute_has(session, "input", value: "Frodo")
+      end
+    end
+
+    test "raises an error if select value is found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/not to find any elements with selector "select" and value "Elf" with label "Race"/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, "select", label: "Race", value: "Elf")
       end
     end
 

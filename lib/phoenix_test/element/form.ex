@@ -123,26 +123,9 @@ defmodule PhoenixTest.Element.Form do
     form
     |> Html.all("select:not([disabled])")
     |> Enum.flat_map(fn select ->
-      selected_options = Html.all(select, "option[selected]")
-      multiple? = Html.attribute(select, "multiple") != nil
-
-      case {multiple?, Enum.count(selected_options)} do
-        {true, 0} ->
-          []
-
-        {false, 0} ->
-          if option = select |> Html.all("option") |> Enum.at(0) do
-            [to_form_field(select, option)]
-          else
-            []
-          end
-
-        {false, _} ->
-          [to_form_field(select, selected_options)]
-
-        _ ->
-          Enum.map(selected_options, &to_form_field(select, &1))
-      end
+      select
+      |> Html.selected_options()
+      |> Enum.map(&to_form_field(select, &1))
     end)
   end
 

@@ -1343,7 +1343,8 @@ defmodule PhoenixTest do
   than one matching element is found (unless `:count` option is used).
 
   You can assert an element's contents using `:text` or assert a field's value
-  using `:value` (with an optional `:label`).
+  using `:value` (with an optional `:label`). For `select` elements, `:value`
+  refers to the currently selected option's text.
 
   NOTE that you cannot specify both `:text` and `:value` as options.
 
@@ -1356,7 +1357,9 @@ defmodule PhoenixTest do
 
   - `text`: the text contents to look for.
 
-  - `value`: the element's value to look for.
+  - `value`: the element's value to look for. For a `select`, this is the
+  selected option's text, not the option's `value` attribute or any available
+  option.
 
   - `label`: the label associated to the form field with `value`
 
@@ -1393,6 +1396,9 @@ defmodule PhoenixTest do
 
   # assert there's an input with value "Frodo" labeled by "Hobbit"
   assert_has(session, "input", value: "Frodo", label: "Hobbit")
+
+  # assert there's a select labeled by "Race" with the "Elf" option selected
+  assert_has(session, "select", value: "Elf", label: "Race")
 
   # assert there are two elements with class "posts"
   assert_has(session, ".posts", count: 2)
@@ -1479,7 +1485,9 @@ defmodule PhoenixTest do
 
   - `text`: the text filter to look for.
 
-  - `value`: the element's value to look for.
+  - `value`: the element's value to look for. For a `select`, this is the
+  selected option's text, not the option's `value` attribute or any available
+  option.
 
   - `label`: the label associated to the form field with `value`
 
@@ -1514,6 +1522,9 @@ defmodule PhoenixTest do
 
   # refute there's an input with value "Frodo" and label "Hobbit"
   refute_has(session, "input", value: "Frodo", label: "Hobbit")
+
+  # refute there's a select labeled by "Race" with the "Human" option selected
+  refute_has(session, "select", value: "Human", label: "Race")
 
   # refute there are two elements with class "posts" (less or more will not raise)
   refute_has(session, ".posts", count: 2)

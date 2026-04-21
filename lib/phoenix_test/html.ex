@@ -68,6 +68,18 @@ defmodule PhoenixTest.Html do
     LazyHTML.query(html, selector)
   end
 
+  def selected_options(%LazyHTML{} = select) do
+    selected_options = all(select, "option[selected]")
+
+    if attribute(select, "multiple") do
+      selected_options
+    else
+      selected_options
+      |> Stream.concat(all(select, "option"))
+      |> Enum.take(1)
+    end
+  end
+
   def raw(%LazyHTML{} = html), do: LazyHTML.to_html(html)
 
   def postwalk(%LazyHTML{} = html, postwalk_fun) when is_function(postwalk_fun, 1) do

@@ -467,14 +467,12 @@ defmodule PhoenixTest.Assertions do
   end
 
   defp value_finder_fun(value, selector, %Opts{} = opts) do
-    selector = selector <> "[value=#{inspect(value)}]"
-
     case opts.label do
       :no_label ->
-        &Query.find(&1, selector, Opts.to_list(opts))
+        &Query.find_by_value(&1, selector, value, Opts.to_list(opts))
 
       label when is_binary(label) ->
-        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
+        &Query.find_by_label_and_value(&1, selector, label, value, Opts.to_list(opts))
     end
   end
 
