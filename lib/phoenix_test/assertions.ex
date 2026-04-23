@@ -441,8 +441,13 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value} = opts, _operation) do
+  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, label: :no_label} = opts, _operation) do
     &Query.find(&1, selector, Opts.to_list(opts))
+  end
+
+  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, label: label} = opts, _operation)
+       when is_binary(label) do
+    &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
   end
 
   defp finder_fun(selector, %Opts{text: :no_text, value: value} = opts, _operation) do
