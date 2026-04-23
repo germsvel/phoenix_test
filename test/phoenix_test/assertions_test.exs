@@ -158,6 +158,49 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "succeeds when select option was selected by an HTML selected attribute", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", selected: "Elf")
+      |> assert_has("select", label: "Race", selected: "Elf")
+    end
+
+    test "succeeds when first select option is selected by browser default", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Region", selected: "Shire")
+    end
+
+    test "does not match a select by an unselected option", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "select" and selected "Human" with label "Race"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", label: "Race", selected: "Human")
+      end
+    end
+
+    test "assert by label and selected raises an error if selected not found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      assert_has(session, "select", label: "Race")
+
+      assert_raise AssertionError, ~r/selected "Human" with label "Race"/, fn ->
+        assert_has(session, "select", label: "Race", selected: "Human")
+      end
+    end
+
+    test "does not match a select by the selected option value attribute", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "select" and selected "elf" with label "Race"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, "select", label: "Race", selected: "elf")
+      end
+    end
+
     test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -207,11 +250,23 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
-    test "raises if user provides :text and :value options", %{conn: conn} do
+    test "raises if user provides more than one content option", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
-      assert_raise ArgumentError, ~r/Cannot provide both :text and :value/, fn ->
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected to assertions/, fn ->
         assert_has(session, "div", text: "some text", value: "some value")
+      end
+
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected to assertions/, fn ->
+        assert_has(session, "select", selected: "Elf", value: "elf")
+      end
+    end
+
+    test "raises if user provides :label with :text", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert_raise ArgumentError, ~r/Cannot provide :label with :text to assertions/, fn ->
+        assert_has(session, "h1", text: "Main page", label: "Title")
       end
     end
 
@@ -762,6 +817,22 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "can refute a select by unselected option", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("select", label: "Race", selected: "Human")
+    end
+
+    test "refute by label and selected raises an error if selected found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      refute_has(session, "select", label: "Race", selected: "Human")
+
+      assert_raise AssertionError, ~r/selected "Elf" with label "Race"/, fn ->
+        refute_has(session, "select", label: "Race", selected: "Elf")
+      end
+    end
+
     test "raises an error if value is found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
@@ -769,6 +840,16 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise AssertionError, msg, fn ->
         refute_has(session, "input", value: "Frodo")
+      end
+    end
+
+    test "raises an error if selected option is found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/not to find any elements with selector "select" and selected "Elf" with label "Race"/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, "select", label: "Race", selected: "Elf")
       end
     end
 
@@ -802,6 +883,14 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise ArgumentError, msg, fn ->
         refute_has(session, "h1", "Main page", text: "Other text", exact: true, count: 1)
+      end
+    end
+
+    test "raises if user provides :label with :text", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert_raise ArgumentError, ~r/Cannot provide :label with :text to assertions/, fn ->
+        refute_has(session, "h1", "Main page", label: "Title")
       end
     end
   end

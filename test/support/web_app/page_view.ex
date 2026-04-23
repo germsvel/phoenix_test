@@ -407,6 +407,19 @@ defmodule PhoenixTest.WebApp.PageView do
       <label>
         Kingdoms <input type="text" name="kingdom" value="Gondor" />
       </label>
+
+      <label for="race">Race</label>
+      <select id="race" name="race">
+        <option value="human">Human</option>
+        <option value="elf" selected>Elf</option>
+        <option value="dwarf">Dwarf</option>
+      </select>
+
+      <label for="region">Region</label>
+      <select id="region" name="region">
+        <option value="shire">Shire</option>
+        <option value="rivendell">Rivendell</option>
+      </select>
     </form>
     """
   end

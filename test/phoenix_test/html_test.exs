@@ -98,4 +98,75 @@ defmodule PhoenixTest.HtmlTest do
       assert result == "Prefilled notes"
     end
   end
+
+  describe "selected_options" do
+    test "returns explicitly selected options" do
+      html = """
+      <select>
+        <option value="shire">Shire</option>
+        <option value="rivendell" selected>Rivendell</option>
+      </select>
+      """
+
+      result =
+        html
+        |> Html.parse_fragment()
+        |> Html.selected_options()
+        |> Enum.map(&Html.element_text/1)
+
+      assert result == ["Rivendell"]
+    end
+
+    test "falls back to the first option for single selects without an explicit selected option" do
+      html = """
+      <select>
+        <option value="shire">Shire</option>
+        <option value="rivendell">Rivendell</option>
+      </select>
+      """
+
+      result =
+        html
+        |> Html.parse_fragment()
+        |> Html.selected_options()
+        |> Enum.map(&Html.element_text/1)
+
+      assert result == ["Shire"]
+    end
+
+    test "returns all explicitly selected options for multi selects" do
+      html = """
+      <select multiple>
+        <option value="shire" selected>Shire</option>
+        <option value="rivendell">Rivendell</option>
+        <option value="moria" selected>Moria</option>
+      </select>
+      """
+
+      result =
+        html
+        |> Html.parse_fragment()
+        |> Html.selected_options()
+        |> Enum.map(&Html.element_text/1)
+
+      assert result == ["Shire", "Moria"]
+    end
+
+    test "returns no options for multi selects without an explicit selected option" do
+      html = """
+      <select multiple>
+        <option value="shire">Shire</option>
+        <option value="rivendell">Rivendell</option>
+      </select>
+      """
+
+      result =
+        html
+        |> Html.parse_fragment()
+        |> Html.selected_options()
+        |> Enum.map(&Html.element_text/1)
+
+      assert result == []
+    end
+  end
 end
