@@ -270,7 +270,9 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def assert_path(session, path) do
+  def assert_path(session, path, opts \\ [])
+
+  def assert_path(session, path, []) do
     session = set_operation(session, :assert_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
@@ -287,11 +289,9 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def assert_path(session, path, opts) do
-    params = Keyword.get(opts, :query_params)
-
+  def assert_path(session, path, query_params: params) do
     session
-    |> assert_path(path)
+    |> assert_path(path, [])
     |> assert_query_params(params)
   end
 
@@ -343,7 +343,9 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def refute_path(session, path) do
+  def refute_path(session, path, opts \\ [])
+
+  def refute_path(session, path, []) do
     session = set_operation(session, :refute_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
 
@@ -360,11 +362,10 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def refute_path(session, path, opts) do
+  def refute_path(session, path, query_params: params) do
     session = set_operation(session, :refute_path, "")
-    params = Keyword.get(opts, :query_params)
 
-    refute_query_params(session, params) || refute_path(session, path)
+    refute_query_params(session, params) || refute_path(session, path, [])
   end
 
   defp refute_query_params(session, params) do

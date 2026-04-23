@@ -642,6 +642,34 @@ defmodule PhoenixTest.Live do
     end)
   end
 
+  def assert_path(session, path) do
+    assert_path(session, path, [])
+  end
+
+  def assert_path(session, path, opts) when is_list(opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 0)
+
+    LiveViewTimeout.with_timeout(session, timeout, fn session ->
+      session
+      |> maybe_sync_current_path(timeout)
+      |> Assertions.assert_path(path, opts)
+    end)
+  end
+
+  def refute_path(session, path) do
+    refute_path(session, path, [])
+  end
+
+  def refute_path(session, path, opts) when is_list(opts) do
+    {timeout, opts} = Keyword.pop(opts, :timeout, 0)
+
+    LiveViewTimeout.with_timeout(session, timeout, fn session ->
+      session
+      |> maybe_sync_current_path(timeout)
+      |> Assertions.refute_path(path, opts)
+    end)
+  end
+
   def handle_redirect(session, redirect_tuple) do
     maybe_redirect({:error, redirect_tuple}, session)
   end
@@ -705,6 +733,12 @@ defmodule PhoenixTest.Live do
     end
   end
 
+  defp maybe_sync_current_path(%__MODULE__{} = session, timeout) when timeout > 0 do
+    maybe_put_patch_path(session)
+  end
+
+  defp maybe_sync_current_path(session, _timeout), do: session
+
   defp fetch_patch_path(view) do
     assert_patch(view, 0)
   rescue
@@ -760,8 +794,8 @@ defimpl PhoenixTest.Driver, for: PhoenixTest.Live do
   defdelegate refute_has(session, selector), to: Assertions
   defdelegate refute_has(session, selector, opts), to: Live
   defdelegate assert_download(session, file_name), to: Assertions
-  defdelegate assert_path(session, path), to: Assertions
-  defdelegate assert_path(session, path, opts), to: Assertions
-  defdelegate refute_path(session, path), to: Assertions
-  defdelegate refute_path(session, path, opts), to: Assertions
+  defdelegate assert_path(session, path), to: Live
+  defdelegate assert_path(session, path, opts), to: Live
+  defdelegate refute_path(session, path), to: Live
+  defdelegate refute_path(session, path, opts), to: Live
 end
