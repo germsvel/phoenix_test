@@ -518,8 +518,7 @@ defmodule PhoenixTest.Live do
   def submit_form(session, selector, form_data, additional_data \\ FormData.new()) do
     form = Form.find!(session.current_operation.html, selector)
 
-    form_data = remove_data_for_fields_that_have_been_removed(form_data, form)
-    form_data = FormData.override(form.form_data, form_data)
+    form_data = select_form_data_to_submit(form, form_data)
 
     additional_data =
       if form.submit_button do
@@ -548,12 +547,72 @@ defmodule PhoenixTest.Live do
     end
   end
 
-  defp remove_data_for_fields_that_have_been_removed(form_data, form) do
-    element_names = Form.form_element_names(form)
+  defp select_form_data_to_submit(form, form_data) do
+    element_names_present_in_final_form = Form.form_element_names(form)
+    form_data = remove_data_for_fields_that_have_been_removed(form_data, element_names_present_in_final_form)
+
+    FormData.override(form.form_data, form_data)
+  end
+
+  defp remove_data_for_fields_that_have_been_removed(form_data, element_names_present_in_final_form) do
+    element_names_set = MapSet.new(element_names_present_in_final_form)
+
+    removed_index_groups =
+      form_data
+      |> FormData.field_names()
+      |> Enum.filter(&name_index_based_and_not_in_current_form_names?(&1, element_names_set))
+      |> MapSet.new(&index_group_key/1)
 
     FormData.filter(form_data, fn %{name: name} ->
-      name in element_names
+      keep_field?(name, element_names_set, removed_index_groups)
     end)
+  end
+
+  defp keep_field?(name, element_names_set, removed_index_groups) do
+    cond do
+      not MapSet.member?(element_names_set, name) ->
+        false
+
+      not index_based_field?(name) ->
+        true
+
+      true ->
+        not MapSet.member?(removed_index_groups, index_group_key(name))
+    end
+  end
+
+  defp name_index_based_and_not_in_current_form_names?(name, element_names_set) do
+    index_based_field?(name) and not MapSet.member?(element_names_set, name)
+  end
+
+  defp index_based_field?(name) do
+    Regex.match?(~r/\[\d+\]/, name)
+  end
+
+  defp index_group_key(name) do
+    case bracket_segments(name) do
+      [] ->
+        name
+
+      [root | segments] ->
+        normalized_segments = Enum.map(segments, &normalize_segment/1)
+        root <> Enum.join(normalized_segments)
+    end
+  end
+
+  defp normalize_segment(segment) do
+    if numeric_segment?(segment), do: "[]", else: "[#{segment}]"
+  end
+
+  defp bracket_segments(name) do
+    String.split(name, ["[", "]"], trim: true)
+  end
+
+  defp numeric_segment?(segment) do
+    case Integer.parse(segment) do
+      {_integer, ""} -> true
+      _ -> false
+    end
   end
 
   def open_browser(%{view: view} = session, open_fun \\ &Phoenix.LiveViewTest.open_browser/1) do
