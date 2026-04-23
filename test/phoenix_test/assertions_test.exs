@@ -181,6 +181,16 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "assert by label and selected raises an error if selected not found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      assert_has(session, "select", label: "Race")
+
+      assert_raise AssertionError, ~r/selected "Human" with label "Race"/, fn ->
+        assert_has(session, "select", label: "Race", selected: "Human")
+      end
+    end
+
     test "does not match a select by the selected option value attribute", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
@@ -803,6 +813,16 @@ defmodule PhoenixTest.AssertionsTest do
       conn
       |> visit("/page/by_value")
       |> refute_has("select", label: "Race", selected: "Human")
+    end
+
+    test "refute by label and selected raises an error if selected found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      refute_has(session, "select", label: "Race", selected: "Human")
+
+      assert_raise AssertionError, ~r/selected "Elf" with label "Race"/, fn ->
+        refute_has(session, "select", label: "Race", selected: "Elf")
+      end
     end
 
     test "raises an error if value is found", %{conn: conn} do
