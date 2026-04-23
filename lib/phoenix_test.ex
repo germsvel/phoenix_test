@@ -1358,7 +1358,7 @@ defmodule PhoenixTest do
 
   - `text`: the text contents to look for.
 
-  - `value`: the element's `value` attribute to look for.
+  - `value`: the element's value to look for.
 
   - `selected`: the selected option's text to look for on a `select`.
 
@@ -1487,7 +1487,7 @@ defmodule PhoenixTest do
 
   - `text`: the text filter to look for.
 
-  - `value`: the element's `value` attribute to look for.
+  - `value`: the element's value to look for.
 
   - `selected`: the selected option's text to look for on a `select`.
 

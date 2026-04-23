@@ -107,17 +107,17 @@ defmodule PhoenixTest.Query do
 
     elements_matched_selector
     |> filter_by_position(opts)
-    |> find_by_element_selected_result(selected, elements_matched_selector)
+    |> find_by_selected_option_text_result(selected, elements_matched_selector)
   end
 
   def find_by_label_and_selected(html, input_selectors, label, selected, opts \\ [])
       when is_binary(selected) and is_list(opts) do
     case find_by_label(html, input_selectors, label, opts) do
       {:found, element} ->
-        find_by_element_selected_result([element], selected, [element])
+        find_by_selected_option_text_result([element], selected, [element])
 
       {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
-        find_by_element_selected_result(elements, selected, elements)
+        find_by_selected_option_text_result(elements, selected, elements)
 
       other ->
         other
@@ -601,8 +601,8 @@ defmodule PhoenixTest.Query do
     Enum.filter(elements, &(value in element_values(&1)))
   end
 
-  defp filter_by_element_selected(elements, selected) do
-    Enum.filter(elements, &(selected in element_selected_texts(&1)))
+  defp filter_by_selected_option_text(elements, selected) do
+    Enum.filter(elements, &(selected in selected_option_texts(&1)))
   end
 
   defp find_by_element_value_result(elements, value, potential_matches) do
@@ -611,9 +611,9 @@ defmodule PhoenixTest.Query do
     |> find_result(potential_matches)
   end
 
-  defp find_by_element_selected_result(elements, selected, potential_matches) do
+  defp find_by_selected_option_text_result(elements, selected, potential_matches) do
     elements
-    |> filter_by_element_selected(selected)
+    |> filter_by_selected_option_text(selected)
     |> find_result(potential_matches)
   end
 
@@ -629,17 +629,16 @@ defmodule PhoenixTest.Query do
     List.wrap(Html.attribute(element, "value"))
   end
 
-  defp element_selected_texts(element) do
+  defp selected_option_texts(element) do
     case Html.element(element) do
-      {"select", _attrs, _children} -> selected_option_texts(element)
-      _ -> []
-    end
-  end
+      {"select", _attrs, _children} ->
+        element
+        |> Html.selected_options()
+        |> Enum.map(&Html.element_text/1)
 
-  defp selected_option_texts(select) do
-    select
-    |> Html.selected_options()
-    |> Enum.map(&Html.element_text/1)
+      _ ->
+        []
+    end
   end
 
   defp filter_by_position(elements, opts) do
