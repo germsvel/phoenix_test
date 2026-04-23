@@ -468,10 +468,6 @@ defmodule PhoenixTest.Assertions do
     &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
   end
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, selected: :no_selected} = opts, _operation) do
-    &Query.find(&1, selector, Opts.to_list(opts))
-  end
-
   defp finder_fun(selector, %Opts{text: :no_text, value: value, selected: :no_selected} = opts, _operation) do
     value_finder_fun(ensure_binary(value), selector, opts)
   end
