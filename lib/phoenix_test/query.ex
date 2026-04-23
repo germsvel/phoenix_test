@@ -57,7 +57,8 @@ defmodule PhoenixTest.Query do
 
   def find(html, selector, opts) when is_list(opts) do
     html
-    |> all_by_selector(selector)
+    |> Html.parse_fragment()
+    |> Html.all(selector)
     |> filter_by_position(opts)
     |> case do
       [] ->
@@ -73,51 +74,40 @@ defmodule PhoenixTest.Query do
   end
 
   def find(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
-    elements_matched_selector = all_by_selector(html, selector)
+    elements_matched_selector =
+      html
+      |> Html.parse_fragment()
+      |> Html.all(selector)
 
     elements_matched_selector
     |> filter_by_position(opts)
     |> filter_by_element_text(text, opts)
-    |> find_result(elements_matched_selector)
-  end
-
-  def find_by_value(html, selector, value, opts \\ []) when is_binary(value) and is_list(opts) do
-    elements_matched_selector = all_by_selector(html, selector)
-
-    elements_matched_selector
-    |> filter_by_position(opts)
-    |> find_by_element_value_result(value, elements_matched_selector)
-  end
-
-  def find_by_label_and_value(html, input_selectors, label, value, opts \\ []) when is_binary(value) and is_list(opts) do
-    case find_by_label(html, input_selectors, label, opts) do
-      {:found, element} ->
-        find_by_element_value_result([element], value, [element])
-
-      {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
-        find_by_element_value_result(elements, value, elements)
-
-      other ->
-        other
+    |> case do
+      [] -> {:not_found, elements_matched_selector}
+      [found] -> {:found, found}
+      [_ | _] = found_many -> {:found_many, found_many}
     end
   end
 
   def find_by_selected(html, selector, selected, opts \\ []) when is_binary(selected) and is_list(opts) do
-    elements_matched_selector = all_by_selector(html, selector)
+    elements_matched_selector =
+      html
+      |> Html.parse_fragment()
+      |> Html.all(selector)
 
     elements_matched_selector
     |> filter_by_position(opts)
-    |> find_by_selected_option_text_result(selected, elements_matched_selector)
+    |> selected_result(selected, elements_matched_selector)
   end
 
   def find_by_label_and_selected(html, input_selectors, label, selected, opts \\ [])
       when is_binary(selected) and is_list(opts) do
     case find_by_label(html, input_selectors, label, opts) do
       {:found, element} ->
-        find_by_selected_option_text_result([element], selected, [element])
+        selected_result([element], selected, [element])
 
       {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
-        find_by_selected_option_text_result(elements, selected, elements)
+        selected_result(elements, selected, elements)
 
       other ->
         other
@@ -128,7 +118,10 @@ defmodule PhoenixTest.Query do
   #
   # This is a performance improvement when you only need to confirm that at least one match exists.
   def find_first(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
-    elements_matched_selector = all_by_selector(html, selector)
+    elements_matched_selector =
+      html
+      |> Html.parse_fragment()
+      |> Html.all(selector)
 
     case find_first_by_element_text(elements_matched_selector, text, opts) do
       nil -> {:not_found, elements_matched_selector}
@@ -591,42 +584,14 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp all_by_selector(html, selector) do
-    html
-    |> Html.parse_fragment()
-    |> Html.all(selector)
-  end
-
-  defp filter_by_element_value(elements, value) do
-    Enum.filter(elements, &(value in element_values(&1)))
-  end
-
-  defp filter_by_selected_option_text(elements, selected) do
-    Enum.filter(elements, &(selected in selected_option_texts(&1)))
-  end
-
-  defp find_by_element_value_result(elements, value, potential_matches) do
+  defp selected_result(elements, selected, potential_matches) do
     elements
-    |> filter_by_element_value(value)
-    |> find_result(potential_matches)
-  end
-
-  defp find_by_selected_option_text_result(elements, selected, potential_matches) do
-    elements
-    |> filter_by_selected_option_text(selected)
-    |> find_result(potential_matches)
-  end
-
-  defp find_result(elements, potential_matches) do
-    case elements do
+    |> Enum.filter(&(selected in selected_option_texts(&1)))
+    |> case do
       [] -> {:not_found, potential_matches}
       [found] -> {:found, found}
       [_ | _] = found_many -> {:found_many, found_many}
     end
-  end
-
-  defp element_values(element) do
-    List.wrap(Html.attribute(element, "value"))
   end
 
   defp selected_option_texts(element) do

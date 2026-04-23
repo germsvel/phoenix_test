@@ -464,10 +464,12 @@ defmodule PhoenixTest.Assertions do
         &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
 
       {[value: value], %Opts{label: :no_label}, _} ->
-        &Query.find_by_value(&1, selector, ensure_binary(value), Opts.to_list(opts))
+        selector = selector <> "[value=#{value |> ensure_binary() |> inspect()}]"
+        &Query.find(&1, selector, Opts.to_list(opts))
 
       {[value: value], %Opts{label: label}, _} when is_binary(label) ->
-        &Query.find_by_label_and_value(&1, selector, label, ensure_binary(value), Opts.to_list(opts))
+        selector = selector <> "[value=#{value |> ensure_binary() |> inspect()}]"
+        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
 
       {[selected: selected], %Opts{label: :no_label}, _} ->
         &Query.find_by_selected(&1, selector, ensure_binary(selected), Opts.to_list(opts))
