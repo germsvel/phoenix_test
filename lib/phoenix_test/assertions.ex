@@ -17,6 +17,7 @@ defmodule PhoenixTest.Assertions do
       :count,
       :exact,
       :label,
+      :selected,
       :text,
       :value
     ]
@@ -26,6 +27,7 @@ defmodule PhoenixTest.Assertions do
       count = Keyword.get(opts, :count, :any)
       exact = Keyword.get(opts, :exact, false)
       label = Keyword.get(opts, :label, :no_label)
+      selected = Keyword.get(opts, :selected, :no_selected)
       text = Keyword.get(opts, :text, :no_text)
       value = Keyword.get(opts, :value, :no_value)
 
@@ -34,6 +36,7 @@ defmodule PhoenixTest.Assertions do
         count: count,
         exact: exact,
         label: label,
+        selected: selected,
         text: text,
         value: value
       }
@@ -45,6 +48,7 @@ defmodule PhoenixTest.Assertions do
         count: opts.count,
         exact: opts.exact,
         label: opts.label,
+        selected: opts.selected,
         text: opts.text,
         value: opts.value
       ]
@@ -389,6 +393,7 @@ defmodule PhoenixTest.Assertions do
     "Expected #{count_elements(opts.count)} with #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
+    |> maybe_append_selected(opts.selected)
     |> maybe_append_label(opts.label)
     |> append_found(found)
   end
@@ -397,6 +402,7 @@ defmodule PhoenixTest.Assertions do
     "Could not find #{count_elements(opts.count)} with selector #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
+    |> maybe_append_selected(opts.selected)
     |> maybe_append_label(opts.label)
     |> maybe_append_position(opts.at)
     |> append_found_other_matches(selector, other_matches)
@@ -406,6 +412,7 @@ defmodule PhoenixTest.Assertions do
     "Expected not to find #{count_elements(opts.count)} with selector #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
+    |> maybe_append_selected(opts.selected)
     |> maybe_append_label(opts.label)
     |> maybe_append_position(opts.at)
     |> append_found(found)
@@ -435,35 +442,58 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_value(msg, :no_value), do: msg
   defp maybe_append_value(msg, value), do: msg <> " and value #{inspect(value)}"
 
+  defp maybe_append_selected(msg, :no_selected), do: msg
+  defp maybe_append_selected(msg, selected), do: msg <> " and selected #{inspect(selected)}"
+
   defp maybe_append_label(msg, :no_label), do: msg
   defp maybe_append_label(msg, label), do: msg <> " with label #{inspect(label)}"
 
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, label: :no_label} = opts, _operation) do
+  defp finder_fun(
+         selector,
+         %Opts{text: :no_text, value: :no_value, selected: :no_selected, label: :no_label} = opts,
+         _operation
+       ) do
     &Query.find(&1, selector, Opts.to_list(opts))
   end
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, label: label} = opts, _operation)
+  defp finder_fun(
+         selector,
+         %Opts{text: :no_text, value: :no_value, selected: :no_selected, label: label} = opts,
+         _operation
+       )
        when is_binary(label) do
     &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
   end
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: value} = opts, _operation) do
+  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, selected: :no_selected} = opts, _operation) do
+    &Query.find(&1, selector, Opts.to_list(opts))
+  end
+
+  defp finder_fun(selector, %Opts{text: :no_text, value: value, selected: :no_selected} = opts, _operation) do
     value_finder_fun(ensure_binary(value), selector, opts)
   end
 
-  defp finder_fun(selector, %Opts{text: text, value: :no_value, count: :any, at: :any} = opts, :assert_has) do
+  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, selected: selected} = opts, _operation) do
+    selected_finder_fun(ensure_binary(selected), selector, opts)
+  end
+
+  defp finder_fun(
+         selector,
+         %Opts{text: text, value: :no_value, selected: :no_selected, count: :any, at: :any} = opts,
+         :assert_has
+       ) do
     &Query.find_first(&1, selector, ensure_binary(text), Opts.to_list(opts))
   end
 
-  defp finder_fun(selector, %Opts{text: text, value: :no_value} = opts, _operation) do
+  defp finder_fun(selector, %Opts{text: text, value: :no_value, selected: :no_selected} = opts, _operation) do
     &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
   end
 
   defp finder_fun(_selector, %Opts{}, _operation) do
-    raise ArgumentError, "Cannot provide both :text and :value to assertions"
+    raise ArgumentError, "Cannot provide more than one of :text, :value, and :selected to assertions"
   end
 
   defp value_finder_fun(value, selector, %Opts{} = opts) do
@@ -473,6 +503,16 @@ defmodule PhoenixTest.Assertions do
 
       label when is_binary(label) ->
         &Query.find_by_label_and_value(&1, selector, label, value, Opts.to_list(opts))
+    end
+  end
+
+  defp selected_finder_fun(selected, selector, %Opts{} = opts) do
+    case opts.label do
+      :no_label ->
+        &Query.find_by_selected(&1, selector, selected, Opts.to_list(opts))
+
+      label when is_binary(label) ->
+        &Query.find_by_label_and_selected(&1, selector, label, selected, Opts.to_list(opts))
     end
   end
 

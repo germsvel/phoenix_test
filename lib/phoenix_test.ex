@@ -1342,13 +1342,14 @@ defmodule PhoenixTest do
   It'll raise an error if no elements are found, but it will _not_ raise if more
   than one matching element is found (unless `:count` option is used).
 
-  You can assert an element's contents using `:text` or assert a field's value
-  using `:value` (with an optional `:label`). For `select` elements, `:value`
-  refers to the currently selected option's text.
+  You can assert an element's contents using `:text`, assert a field's value
+  using `:value` (with an optional `:label`), or assert a `select` element's
+  selected option text using `:selected`.
 
-  NOTE that you cannot specify both `:text` and `:value` as options.
+  NOTE that you cannot specify more than one of `:text`, `:value`, and
+  `:selected` as options.
 
-  The `:text` or `:value` option can be a binary or anything for which
+  The `:text`, `:value`, or `:selected` option can be a binary or anything for which
   there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
   uses that protocol to convert the argument to a binary then looks for the
   converted value.
@@ -1357,18 +1358,18 @@ defmodule PhoenixTest do
 
   - `text`: the text contents to look for.
 
-  - `value`: the element's value to look for. For a `select`, this is the
-  selected option's text, not the option's `value` attribute or any available
-  option.
+  - `value`: the element's `value` attribute to look for.
 
-  - `label`: the label associated to the form field with `value`
+  - `selected`: the selected option's text to look for on a `select`.
+
+  - `label`: the label associated to the form field with `value` or `selected`
 
   - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to assert text within HTML elements that also
   contain other HTML elements. But sometimes we want to assert the exact text is
-  present. For that, use `exact: true`. Note: when used with `:value`, the
-  exactness applies to the label's text, not the input's value. (defaults to
-  `false`)
+  present. For that, use `exact: true`. Note: when used with `:value` or
+  `:selected`, the exactness applies to the label's text, not the field value
+  or selected option. (defaults to `false`)
 
   - `count`: the number of items you expect to match CSS selector (and `text` or
   `value` if provided)
@@ -1398,7 +1399,7 @@ defmodule PhoenixTest do
   assert_has(session, "input", value: "Frodo", label: "Hobbit")
 
   # assert there's a select labeled by "Race" with the "Elf" option selected
-  assert_has(session, "select", value: "Elf", label: "Race")
+  assert_has(session, "select", selected: "Elf", label: "Race")
 
   # assert there are two elements with class "posts"
   assert_has(session, ".posts", count: 2)
@@ -1474,9 +1475,10 @@ defmodule PhoenixTest do
 
   It'll raise an error if any elements that match selector and options.
 
-  NOTE that you cannot specify both `:text` and `:value` as options.
+  NOTE that you cannot specify more than one of `:text`, `:value`, and
+  `:selected` as options.
 
-  The `:text` or `:value` option can be a binary or anything for which
+  The `:text`, `:value`, or `:selected` option can be a binary or anything for which
   there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
   uses that protocol to convert the argument to a binary, then looks for the
   converted value.
@@ -1485,18 +1487,18 @@ defmodule PhoenixTest do
 
   - `text`: the text filter to look for.
 
-  - `value`: the element's value to look for. For a `select`, this is the
-  selected option's text, not the option's `value` attribute or any available
-  option.
+  - `value`: the element's `value` attribute to look for.
 
-  - `label`: the label associated to the form field with `value`
+  - `selected`: the selected option's text to look for on a `select`.
+
+  - `label`: the label associated to the form field with `value` or `selected`
 
   - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to refute text within HTML elements that also
   contain other HTML elements. But sometimes we want to refute the exact text is
-  absent. For that, use `exact: true`. Note: when used with `:value`, the
-  exactness applies to the label's text, not the input's value. (defaults to
-  `false`)
+  absent. For that, use `exact: true`. Note: when used with `:value` or
+  `:selected`, the exactness applies to the label's text, not the field value
+  or selected option. (defaults to `false`)
 
   - `count`: the number of items you're expecting _should not_ match the CSS
   selector (and `text` or `value` if provided)
@@ -1524,7 +1526,7 @@ defmodule PhoenixTest do
   refute_has(session, "input", value: "Frodo", label: "Hobbit")
 
   # refute there's a select labeled by "Race" with the "Human" option selected
-  refute_has(session, "select", value: "Human", label: "Race")
+  refute_has(session, "select", selected: "Human", label: "Race")
 
   # refute there are two elements with class "posts" (less or more will not raise)
   refute_has(session, ".posts", count: 2)

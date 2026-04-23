@@ -70,13 +70,12 @@ defmodule PhoenixTest.Html do
 
   def selected_options(%LazyHTML{} = select) do
     selected_options = all(select, "option[selected]")
+    all_options = all(select, "option")
 
-    if attribute(select, "multiple") do
-      selected_options
-    else
-      selected_options
-      |> Stream.concat(all(select, "option"))
-      |> Enum.take(1)
+    cond do
+      attribute(select, "multiple") -> selected_options
+      Enum.empty?(selected_options) -> Enum.take(all_options, 1)
+      true -> Enum.take(selected_options, 1)
     end
   end
 

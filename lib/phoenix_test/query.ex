@@ -102,6 +102,28 @@ defmodule PhoenixTest.Query do
     end
   end
 
+  def find_by_selected(html, selector, selected, opts \\ []) when is_binary(selected) and is_list(opts) do
+    elements_matched_selector = all_by_selector(html, selector)
+
+    elements_matched_selector
+    |> filter_by_position(opts)
+    |> find_by_element_selected_result(selected, elements_matched_selector)
+  end
+
+  def find_by_label_and_selected(html, input_selectors, label, selected, opts \\ [])
+      when is_binary(selected) and is_list(opts) do
+    case find_by_label(html, input_selectors, label, opts) do
+      {:found, element} ->
+        find_by_element_selected_result([element], selected, [element])
+
+      {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
+        find_by_element_selected_result(elements, selected, elements)
+
+      other ->
+        other
+    end
+  end
+
   # Like `find/4`, but short-circuits after finding the first matching element.
   #
   # This is a performance improvement when you only need to confirm that at least one match exists.
@@ -579,9 +601,19 @@ defmodule PhoenixTest.Query do
     Enum.filter(elements, &(value in element_values(&1)))
   end
 
+  defp filter_by_element_selected(elements, selected) do
+    Enum.filter(elements, &(selected in element_selected_texts(&1)))
+  end
+
   defp find_by_element_value_result(elements, value, potential_matches) do
     elements
     |> filter_by_element_value(value)
+    |> find_result(potential_matches)
+  end
+
+  defp find_by_element_selected_result(elements, selected, potential_matches) do
+    elements
+    |> filter_by_element_selected(selected)
     |> find_result(potential_matches)
   end
 
@@ -594,9 +626,13 @@ defmodule PhoenixTest.Query do
   end
 
   defp element_values(element) do
+    List.wrap(Html.attribute(element, "value"))
+  end
+
+  defp element_selected_texts(element) do
     case Html.element(element) do
       {"select", _attrs, _children} -> selected_option_texts(element)
-      _ -> List.wrap(Html.attribute(element, "value"))
+      _ -> []
     end
   end
 
