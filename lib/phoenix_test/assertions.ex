@@ -4,7 +4,6 @@ defmodule PhoenixTest.Assertions do
   import ExUnit.Assertions
 
   alias ExUnit.AssertionError
-  alias Phoenix.HTML.Safe
   alias PhoenixTest.Html
   alias PhoenixTest.Operation
   alias PhoenixTest.Query
@@ -451,71 +450,49 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_position(msg, :any), do: msg
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
-  defp finder_fun(
-         selector,
-         %Opts{text: :no_text, value: :no_value, selected: :no_selected, label: :no_label} = opts,
-         _operation
-       ) do
-    &Query.find(&1, selector, Opts.to_list(opts))
-  end
+  defp finder_fun(selector, %Opts{} = opts, operation) do
+    content =
+      opts
+      |> Map.take(~w(text value selected)a)
+      |> Enum.reject(&(&1 in [text: :no_text, value: :no_value, selected: :no_selected]))
 
-  defp finder_fun(
-         selector,
-         %Opts{text: :no_text, value: :no_value, selected: :no_selected, label: label} = opts,
-         _operation
-       )
-       when is_binary(label) do
-    &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
-  end
+    case {content, opts, operation} do
+      {[], %Opts{label: :no_label}, _} ->
+        &Query.find(&1, selector, Opts.to_list(opts))
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: value, selected: :no_selected} = opts, _operation) do
-    value_finder_fun(ensure_binary(value), selector, opts)
-  end
+      {[], %Opts{label: label}, _} when is_binary(label) ->
+        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
 
-  defp finder_fun(selector, %Opts{text: :no_text, value: :no_value, selected: selected} = opts, _operation) do
-    selected_finder_fun(ensure_binary(selected), selector, opts)
-  end
+      {[value: value], %Opts{label: :no_label}, _} ->
+        &Query.find_by_value(&1, selector, ensure_binary(value), Opts.to_list(opts))
 
-  defp finder_fun(
-         selector,
-         %Opts{text: text, value: :no_value, selected: :no_selected, count: :any, at: :any} = opts,
-         :assert_has
-       ) do
-    &Query.find_first(&1, selector, ensure_binary(text), Opts.to_list(opts))
-  end
+      {[value: value], %Opts{label: label}, _} when is_binary(label) ->
+        &Query.find_by_label_and_value(&1, selector, label, ensure_binary(value), Opts.to_list(opts))
 
-  defp finder_fun(selector, %Opts{text: text, value: :no_value, selected: :no_selected} = opts, _operation) do
-    &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
-  end
+      {[selected: selected], %Opts{label: :no_label}, _} ->
+        &Query.find_by_selected(&1, selector, ensure_binary(selected), Opts.to_list(opts))
 
-  defp finder_fun(_selector, %Opts{}, _operation) do
-    raise ArgumentError, "Cannot provide more than one of :text, :value, and :selected to assertions"
-  end
+      {[selected: selected], %Opts{label: label}, _} when is_binary(label) ->
+        &Query.find_by_label_and_selected(&1, selector, label, ensure_binary(selected), Opts.to_list(opts))
 
-  defp value_finder_fun(value, selector, %Opts{} = opts) do
-    case opts.label do
-      :no_label ->
-        &Query.find_by_value(&1, selector, value, Opts.to_list(opts))
+      {[text: text], %Opts{label: :no_label, count: :any, at: :any}, :assert_has} ->
+        &Query.find_first(&1, selector, ensure_binary(text), Opts.to_list(opts))
 
-      label when is_binary(label) ->
-        &Query.find_by_label_and_value(&1, selector, label, value, Opts.to_list(opts))
-    end
-  end
+      {[text: text], %Opts{label: :no_label}, _} ->
+        &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
 
-  defp selected_finder_fun(selected, selector, %Opts{} = opts) do
-    case opts.label do
-      :no_label ->
-        &Query.find_by_selected(&1, selector, selected, Opts.to_list(opts))
+      {[text: _text], %Opts{}, _} ->
+        raise ArgumentError, "Cannot provide :label with :text to assertions"
 
-      label when is_binary(label) ->
-        &Query.find_by_label_and_selected(&1, selector, label, selected, Opts.to_list(opts))
+      _ ->
+        raise ArgumentError, "Cannot pass more than one of options :text, :value, :selected to assertions"
     end
   end
 
   defp ensure_binary(value) when is_binary(value), do: value
 
   defp ensure_binary(value) do
-    value |> Safe.to_iodata() |> IO.iodata_to_binary()
+    value |> Phoenix.HTML.Safe.to_iodata() |> IO.iodata_to_binary()
   end
 
   defp format_found_elements(elements) when is_list(elements) do

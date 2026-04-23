@@ -253,12 +253,20 @@ defmodule PhoenixTest.AssertionsTest do
     test "raises if user provides more than one content option", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
-      assert_raise ArgumentError, ~r/Cannot provide more than one of :text, :value, and :selected/, fn ->
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected to assertions/, fn ->
         assert_has(session, "div", text: "some text", value: "some value")
       end
 
-      assert_raise ArgumentError, ~r/Cannot provide more than one of :text, :value, and :selected/, fn ->
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected to assertions/, fn ->
         assert_has(session, "select", selected: "Elf", value: "elf")
+      end
+    end
+
+    test "raises if user provides :label with :text", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert_raise ArgumentError, ~r/Cannot provide :label with :text to assertions/, fn ->
+        assert_has(session, "h1", text: "Main page", label: "Title")
       end
     end
 
@@ -875,6 +883,14 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise ArgumentError, msg, fn ->
         refute_has(session, "h1", "Main page", text: "Other text", exact: true, count: 1)
+      end
+    end
+
+    test "raises if user provides :label with :text", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert_raise ArgumentError, ~r/Cannot provide :label with :text to assertions/, fn ->
+        refute_has(session, "h1", "Main page", label: "Title")
       end
     end
   end
