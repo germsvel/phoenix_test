@@ -545,6 +545,19 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "admin: on")
     end
 
+    test "adds checked values for array named checkboxes without replacing existing values", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#array-checkbox-form", fn session ->
+        check(session, "Three")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "items: [")
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+      |> assert_has("#form-data", text: "three")
+    end
+
     test "handle checkbox name with '?'", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -615,6 +628,17 @@ defmodule PhoenixTest.StaticTest do
       |> submit()
       |> refute_has("#form-data", text: "like-elixir: yes")
       |> assert_has("#form-data", text: "like-elixir: no")
+    end
+
+    test "removes checked values from array named checkboxes", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#array-checkbox-form", fn session ->
+        uncheck(session, "One")
+      end)
+      |> submit()
+      |> refute_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
     end
   end
 
