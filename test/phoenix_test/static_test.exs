@@ -558,6 +558,19 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "three")
     end
 
+    test "can re-check an array named checkbox after unchecking it", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> uncheck("One")
+        |> check("One")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
     test "handle checkbox name with '?'", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -638,6 +651,20 @@ defmodule PhoenixTest.StaticTest do
       end)
       |> submit()
       |> refute_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
+    test "can uncheck an array named checkbox after checking it", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> check("Three")
+        |> uncheck("Three")
+      end)
+      |> submit()
+      |> refute_has("#form-data", text: "three")
+      |> assert_has("#form-data", text: "one")
       |> assert_has("#form-data", text: "two")
     end
   end

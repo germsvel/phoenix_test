@@ -674,6 +674,31 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "three")
     end
 
+    test "can re-check an array named checkbox after unchecking it on change", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> uncheck("One")
+        |> check("One")
+      end)
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
+    test "can re-check an array named checkbox after unchecking it on submit", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> uncheck("One")
+        |> check("One")
+        |> submit()
+      end)
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
     test "check triggers phx-change on the input if it is defined", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -814,6 +839,33 @@ defmodule PhoenixTest.LiveTest do
         |> submit()
       end)
       |> refute_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
+    test "can uncheck an array named checkbox after checking it on change", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> check("Three")
+        |> uncheck("Three")
+      end)
+      |> refute_has("#form-data", text: "three")
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+    end
+
+    test "can uncheck an array named checkbox after checking it on submit", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#array-checkbox-form", fn session ->
+        session
+        |> check("Three")
+        |> uncheck("Three")
+        |> submit()
+      end)
+      |> refute_has("#form-data", text: "three")
+      |> assert_has("#form-data", text: "one")
       |> assert_has("#form-data", text: "two")
     end
 
