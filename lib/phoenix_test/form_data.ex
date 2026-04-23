@@ -98,6 +98,10 @@ defmodule PhoenixTest.FormData do
     value == field_data or value in List.wrap(field_data)
   end
 
+  def field_names(%__MODULE__{data: data}) do
+    Map.keys(data)
+  end
+
   def to_list(%__MODULE__{data: data}) do
     data
     |> Enum.map(fn

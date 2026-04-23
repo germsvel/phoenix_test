@@ -222,6 +222,24 @@ defmodule PhoenixTest.FormDataTest do
     end
   end
 
+  describe "field_names" do
+    test "returns unique field names from form data" do
+      form_data =
+        FormData.new()
+        |> FormData.add_data("email", "first@example.com")
+        |> FormData.add_data("email", "second@example.com")
+        |> FormData.add_data("items[]", "one")
+        |> FormData.add_data("items[]", "two")
+
+      names =
+        form_data
+        |> FormData.field_names()
+        |> Enum.sort()
+
+      assert names == ["email", "items[]"]
+    end
+  end
+
   describe "to_list" do
     test "transforms FormData into a list" do
       form_data =
