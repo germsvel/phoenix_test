@@ -270,29 +270,33 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  def assert_path(session, path, opts \\ [])
-
-  def assert_path(session, path, []) do
+  def assert_path(session, path, opts \\ []) do
     session = set_operation(session, :assert_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
+    params = opts[:query_params] && Utils.stringify_keys_and_values(opts[:query_params])
 
-    if path_matches?(path, uri.path) do
-      assert true
-    else
-      msg = """
-      Expected path to be #{inspect(path)} but got #{inspect(uri.path)}
-      """
+    cond do
+      not path_matches?(path, uri.path) ->
+        msg = """
+        Expected path to be #{inspect(path)} but got #{inspect(uri.path)}
+        """
 
-      raise AssertionError, msg
+        raise AssertionError, msg
+
+      is_nil(params) or query_params_match?(session, params) ->
+        assert true
+
+      true ->
+        params_string = Plug.Conn.Query.encode(params)
+
+        msg = """
+        Expected query params to be #{inspect(params_string)} but got #{inspect(uri.query)}
+        """
+
+        raise AssertionError, msg
     end
 
     session
-  end
-
-  def assert_path(session, path, query_params: params) do
-    session
-    |> assert_path(path, [])
-    |> assert_query_params(params)
   end
 
   defp path_matches?(path, path), do: true
@@ -317,73 +321,40 @@ defmodule PhoenixTest.Assertions do
   def uri_parts_match?(part, part), do: true
   def uri_parts_match?(_a, _b), do: false
 
-  defp assert_query_params(session, params) do
-    params = Utils.stringify_keys_and_values(params)
-
+  defp query_params_match?(session, expected_params) do
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
-    query_params = uri.query && Plug.Conn.Query.decode(uri.query)
+    params = uri.query && Plug.Conn.Query.decode(uri.query)
+
+    params == expected_params or (is_nil(params) and expected_params == %{})
+  end
+
+  def refute_path(session, path, opts \\ []) do
+    session = set_operation(session, :refute_path, "")
+    uri = URI.parse(PhoenixTest.Driver.current_path(session))
+    params = opts[:query_params] && Utils.stringify_keys_and_values(opts[:query_params])
 
     cond do
-      query_params == params ->
-        assert true
+      not path_matches?(path, uri.path) ->
+        refute false
 
-      is_nil(query_params) && params == %{} ->
-        assert true
-
-      true ->
-        params_string = Plug.Conn.Query.encode(params)
-
+      is_nil(params) ->
         msg = """
-        Expected query params to be #{inspect(params_string)} but got #{inspect(uri.query)}
+        Expected path not to be #{inspect(path)}
         """
 
         raise AssertionError, msg
-    end
 
-    session
-  end
+      query_params_match?(session, params) ->
+        params_string = URI.encode_query(params)
 
-  def refute_path(session, path, opts \\ [])
+        msg = """
+        Expected query params not to be #{inspect(params_string)}
+        """
 
-  def refute_path(session, path, []) do
-    session = set_operation(session, :refute_path, "")
-    uri = URI.parse(PhoenixTest.Driver.current_path(session))
+        raise AssertionError, msg
 
-    if uri.path == path do
-      msg = """
-      Expected path not to be #{inspect(path)}
-      """
-
-      raise AssertionError, msg
-    else
-      refute false
-    end
-
-    session
-  end
-
-  def refute_path(session, path, query_params: params) do
-    session = set_operation(session, :refute_path, "")
-
-    refute_query_params(session, params) || refute_path(session, path, [])
-  end
-
-  defp refute_query_params(session, params) do
-    params = Utils.stringify_keys_and_values(params)
-
-    uri = URI.parse(PhoenixTest.Driver.current_path(session))
-    query_params = uri.query && URI.decode_query(uri.query)
-
-    if query_params == params do
-      params_string = URI.encode_query(params)
-
-      msg = """
-      Expected query params not to be #{inspect(params_string)}
-      """
-
-      raise AssertionError, msg
-    else
-      refute false
+      true ->
+        refute false
     end
 
     session
