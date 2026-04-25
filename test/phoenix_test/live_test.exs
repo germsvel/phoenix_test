@@ -1575,6 +1575,40 @@ defmodule PhoenixTest.LiveTest do
     end
   end
 
+  describe "assert_path/3 with timeout" do
+    test "defaults to timeout 0", %{conn: conn} do
+      assert_raise AssertionError, fn ->
+        conn
+        |> visit("/live/async_page")
+        |> click_button("Async patch!")
+        |> assert_path("/live/async_page", query_params: %{patched: "true"})
+      end
+    end
+
+    test "timeout handles handle_info patches", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async patch!")
+      |> assert_path("/live/async_page", query_params: %{patched: "true"}, timeout: 250)
+    end
+
+    test "timeout handles async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async navigate!")
+      |> assert_path("/live/page_2", timeout: 250)
+    end
+  end
+
+  describe "refute_path/3 with timeout" do
+    test "timeout handles async navigates", %{conn: conn} do
+      conn
+      |> visit("/live/async_page")
+      |> click_button("Async navigate!")
+      |> refute_path("/live/async_page", timeout: 250)
+    end
+  end
+
   describe "conditionally rendered form fields" do
     test "submitting after switching versions only includes the visible field", %{conn: conn} do
       conn

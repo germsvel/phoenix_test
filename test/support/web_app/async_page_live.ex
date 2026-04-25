@@ -12,6 +12,10 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
      end)}
   end
 
+  def handle_params(_params, _uri, socket) do
+    {:noreply, socket}
+  end
+
   def render(assigns) do
     ~H"""
     <.async_result :let={title} assign={@title}>
@@ -30,6 +34,10 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
 
     <button phx-click="async-navigate">
       Async navigate!
+    </button>
+
+    <button phx-click="async-patch">
+      Async patch!
     </button>
 
     <button phx-click="async-navigate-to-async">
@@ -64,6 +72,11 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
        Process.sleep(100)
        :ok
      end)}
+  end
+
+  def handle_event("async-patch", _, socket) do
+    Process.send_after(self(), :async_patch, 100)
+    {:noreply, socket}
   end
 
   def handle_event("async-navigate-to-async", _, socket) do
@@ -101,5 +114,9 @@ defmodule PhoenixTest.WebApp.AsyncPageLive do
 
   def handle_info(:change_h2, socket) do
     {:noreply, assign(socket, :h2, "I've been changed!")}
+  end
+
+  def handle_info(:async_patch, socket) do
+    {:noreply, push_patch(socket, to: "/live/async_page?patched=true")}
   end
 end

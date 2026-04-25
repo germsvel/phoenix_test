@@ -1602,8 +1602,8 @@ defmodule PhoenixTest do
   defdelegate assert_download(session, file_name), to: Driver
 
   @doc """
-  Assert helper to verify current request path. Takes an optional `query_params`
-  map.
+  Assert helper to verify current request path. Takes optional `query_params`
+  and `timeout` options.
 
   > ### Note on Live Patch Implementation {: .info}
   >
@@ -1611,6 +1611,14 @@ defmodule PhoenixTest do
   could, therefore, be subject to intermittent failures. Please open an issue if
   you see intermittent failures when using `assert_path` with live patches so we
   can improve the implementation.
+
+  ## Options
+
+  - `query_params`: map of query params to match exactly
+
+  - `timeout`: currently only works with LiveViews. If you pass a positive
+  `timeout`, PhoenixTest will wait for async navigation and patch updates before
+  asserting on the current path. (defaults to `0`)
 
   ## Examples
 
@@ -1630,13 +1638,20 @@ defmodule PhoenixTest do
   |> visit("/users")
   |> click_link("Any User")
   |> assert_path("/users/*/profile")
+
+  # assert the path after an async patch or navigation
+  conn
+  |> visit("/live/async_page")
+  |> click_button("Async patch!")
+  |> assert_path("/live/async_page", query_params: %{patched: "true"}, timeout: 250)
   ```
   """
   @doc group: "Assertions"
   defdelegate assert_path(session, path), to: Driver
 
   @doc """
-  Same as `assert_path/2` but takes an optional `query_params` map.
+  Same as `assert_path/2` but takes optional `query_params` and `timeout`
+  options.
   """
   @doc group: "Assertions"
   defdelegate assert_path(session, path, opts), to: Driver
@@ -1651,6 +1666,14 @@ defmodule PhoenixTest do
   could, therefore, be subject to intermittent failures. Please open an issue if
   you see intermittent failures when using `refute_path` with live patches so we
   can improve the implementation.
+
+  ## Options
+
+  - `query_params`: map of query params to refute
+
+  - `timeout`: currently only works with LiveViews. If you pass a positive
+  `timeout`, PhoenixTest will wait for async navigation and patch updates before
+  refuting the current path. (defaults to `0`)
 
   ## Examples
 
@@ -1670,8 +1693,8 @@ defmodule PhoenixTest do
   defdelegate refute_path(session, path), to: Driver
 
   @doc """
-  Same as `refute_path/2` but takes an optional `query_params` for more specific
-  refutation.
+  Same as `refute_path/2` but takes optional `query_params` and `timeout`
+  options for more specific refutation.
   """
   @doc group: "Assertions"
   defdelegate refute_path(session, path, opts), to: Driver
