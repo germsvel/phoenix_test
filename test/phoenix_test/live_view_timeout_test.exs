@@ -63,9 +63,13 @@ defmodule PhoenixTest.LiveViewTimeoutTest do
     end
 
     test "retries action at an interval when it fails", %{session: session} do
+      attempts = [:fail, :fail, :pass]
+
       action = fn session ->
-        # Not deterministic, but close enough
-        case Enum.random([:fail, :fail, :pass]) do
+        attempt = Process.get(:live_view_timeout_attempt, 0)
+        Process.put(:live_view_timeout_attempt, attempt + 1)
+
+        case Enum.at(attempts, attempt) do
           :fail ->
             raise ExUnit.AssertionError, message: "Example failure"
 
