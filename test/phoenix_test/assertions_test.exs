@@ -201,6 +201,27 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "succeeds when asserting checked state + count", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has(".user", count: 3)
+      |> assert_has(".user", checked: true, count: 2)
+      |> assert_has(".user", checked: false, count: 1)
+    end
+
+    test "succeeds when searching by checked state and implicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has(".user", checked: true, label: "Frodo")
+      |> assert_has(".user", checked: false, label: "Sam")
+    end
+
+    test "succeeds when searching by checked state and explicit label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has(".user", checked: true, label: "Merry")
+    end
+
     test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -250,15 +271,45 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "raises an error if checked state (with label) cannot be found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "\.user" and checked true with label "Sam"/
+
+      assert_raise AssertionError, msg, fn ->
+        assert_has(session, ".user", checked: true, label: "Sam")
+      end
+    end
+
+    test "raises if user provides :text and :checked options", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected, :checked/, fn ->
+        assert_has(session, ".user", text: "Frodo", checked: true)
+      end
+    end
+
+    test "raises if user provides non-boolean :checked option", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      assert_raise ArgumentError, ~r/Expected :checked to be true or false, got "yes"/, fn ->
+        assert_has(session, ".user", checked: "yes")
+      end
+    end
+
     test "raises if user provides more than one content option", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
-      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected to assertions/, fn ->
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected, :checked/, fn ->
         assert_has(session, "div", text: "some text", value: "some value")
       end
 
-      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected to assertions/, fn ->
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected, :checked/, fn ->
         assert_has(session, "select", selected: "Elf", value: "elf")
+      end
+
+      assert_raise ArgumentError, ~r/Cannot pass more than one of options :text, :value, :selected, :checked/, fn ->
+        assert_has(session, "input", checked: true, text: "Frodo")
       end
     end
 
@@ -833,6 +884,21 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "can refute by checked state + count", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has(".user", checked: true, count: 1)
+      |> refute_has(".user", checked: false, count: 2)
+    end
+
+    test "can refute by checked state and label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has(".user", checked: true, label: "Sam")
+      |> refute_has(".user", checked: false, label: "Frodo")
+      |> refute_has(".user", checked: false, label: "Merry")
+    end
+
     test "raises an error if value is found", %{conn: conn} do
       session = visit(conn, "/page/by_value")
 
@@ -870,6 +936,16 @@ defmodule PhoenixTest.AssertionsTest do
 
       assert_raise AssertionError, msg, fn ->
         refute_has(session, "input", label: "Hobbit", value: "Frodo")
+      end
+    end
+
+    test "raises an error if checked state and label are found", %{conn: conn} do
+      session = visit(conn, "/page/by_value")
+
+      msg = ~r/with selector "\.user" and checked true with label "Frodo"/
+
+      assert_raise AssertionError, msg, fn ->
+        refute_has(session, ".user", checked: true, label: "Frodo")
       end
     end
 
