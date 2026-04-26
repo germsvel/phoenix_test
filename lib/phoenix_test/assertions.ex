@@ -13,6 +13,7 @@ defmodule PhoenixTest.Assertions do
     @moduledoc false
     defstruct [
       :at,
+      :checked,
       :count,
       :exact,
       :label,
@@ -23,6 +24,13 @@ defmodule PhoenixTest.Assertions do
 
     def parse(opts) when is_list(opts) do
       at = Keyword.get(opts, :at, :any)
+
+      checked =
+        case Keyword.get(opts, :checked, :no_checked) do
+          valid when is_boolean(valid) or valid == :no_checked -> valid
+          other -> raise ArgumentError, "Expected :checked to be true or false, got #{inspect(other)}"
+        end
+
       count = Keyword.get(opts, :count, :any)
       exact = Keyword.get(opts, :exact, false)
       label = Keyword.get(opts, :label, :no_label)
@@ -32,6 +40,7 @@ defmodule PhoenixTest.Assertions do
 
       %__MODULE__{
         at: at,
+        checked: checked,
         count: count,
         exact: exact,
         label: label,
@@ -44,6 +53,7 @@ defmodule PhoenixTest.Assertions do
     def to_list(%__MODULE__{} = opts) do
       [
         at: opts.at,
+        checked: opts.checked,
         count: opts.count,
         exact: opts.exact,
         label: opts.label,
@@ -365,6 +375,7 @@ defmodule PhoenixTest.Assertions do
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
     |> maybe_append_selected(opts.selected)
+    |> maybe_append_checked(opts.checked)
     |> maybe_append_label(opts.label)
     |> append_found(found)
   end
@@ -374,6 +385,7 @@ defmodule PhoenixTest.Assertions do
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
     |> maybe_append_selected(opts.selected)
+    |> maybe_append_checked(opts.checked)
     |> maybe_append_label(opts.label)
     |> maybe_append_position(opts.at)
     |> append_found_other_matches(selector, other_matches)
@@ -384,6 +396,7 @@ defmodule PhoenixTest.Assertions do
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)
     |> maybe_append_selected(opts.selected)
+    |> maybe_append_checked(opts.checked)
     |> maybe_append_label(opts.label)
     |> maybe_append_position(opts.at)
     |> append_found(found)
@@ -416,6 +429,9 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_selected(msg, :no_selected), do: msg
   defp maybe_append_selected(msg, selected), do: msg <> " and selected #{inspect(selected)}"
 
+  defp maybe_append_checked(msg, :no_checked), do: msg
+  defp maybe_append_checked(msg, checked), do: msg <> " and checked #{inspect(checked)}"
+
   defp maybe_append_label(msg, :no_label), do: msg
   defp maybe_append_label(msg, label), do: msg <> " with label #{inspect(label)}"
 
@@ -425,8 +441,8 @@ defmodule PhoenixTest.Assertions do
   defp finder_fun(selector, %Opts{} = opts, operation) do
     content =
       opts
-      |> Map.take(~w(text value selected)a)
-      |> Enum.reject(&(&1 in [text: :no_text, value: :no_value, selected: :no_selected]))
+      |> Map.take(~w(text value selected checked)a)
+      |> Enum.reject(&(&1 in [text: :no_text, value: :no_value, selected: :no_selected, checked: :no_checked]))
 
     case {content, opts, operation} do
       {[], %Opts{label: :no_label}, _} ->
@@ -449,6 +465,14 @@ defmodule PhoenixTest.Assertions do
       {[selected: selected], %Opts{label: label}, _} when is_binary(label) ->
         &Query.find_by_label_and_selected(&1, selector, label, ensure_binary(selected), Opts.to_list(opts))
 
+      {[checked: checked], %Opts{label: :no_label}, _} ->
+        selector = maybe_append_checked_selector(selector, checked)
+        &Query.find(&1, selector, Opts.to_list(opts))
+
+      {[checked: checked], %Opts{label: label}, _} when is_binary(label) ->
+        selector = maybe_append_checked_selector(selector, checked)
+        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
+
       {[text: text], %Opts{label: :no_label, count: :any, at: :any}, :assert_has} ->
         &Query.find_first(&1, selector, ensure_binary(text), Opts.to_list(opts))
 
@@ -459,9 +483,12 @@ defmodule PhoenixTest.Assertions do
         raise ArgumentError, "Cannot provide :label with :text to assertions"
 
       _ ->
-        raise ArgumentError, "Cannot pass more than one of options :text, :value, :selected to assertions"
+        raise ArgumentError, "Cannot pass more than one of options :text, :value, :selected, :checked to assertions"
     end
   end
+
+  defp maybe_append_checked_selector(selector, true), do: selector <> ":checked"
+  defp maybe_append_checked_selector(selector, false), do: selector <> ":not(:checked)"
 
   defp ensure_binary(value) when is_binary(value), do: value
 
