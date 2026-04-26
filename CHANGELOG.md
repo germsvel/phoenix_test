@@ -7,6 +7,40 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.11.0
+
+### Added
+
+- Support async navigation in assert/refute_path (#311) [124a152]
+- Support assert_has "selected" finder for select (#309) [e18894b], [0bbadd3]
+- Add assert_download/2 to test file downloads (#305) [115404e]
+
+### Improvements
+
+- Allow deleting fields with ordinal inputs (#312) [0b03316]
+
+### Fixes
+
+- Fix `uncheck` for checkboxes with array name (#306) [dd79690], [4eeca5a]
+- Fix: assert_has/refute_has by 'label' incorrect if no 'value' given (#286) [99ff643]
+- Fix Typo in Documentation Regarding Supported Phoenix Versions (#308) [85e129a]
+- Correctly handle 'navigate' links to deadviews (#304) [adacecf]
+
+[a445542]: https://github.com/germsvel/phoenix_test/commit/a445542
+[124a152]: https://github.com/germsvel/phoenix_test/commit/124a152
+[0b03316]: https://github.com/germsvel/phoenix_test/commit/0b03316
+[0bbadd3]: https://github.com/germsvel/phoenix_test/commit/0bbadd3
+[e18894b]: https://github.com/germsvel/phoenix_test/commit/e18894b
+[4eeca5a]: https://github.com/germsvel/phoenix_test/commit/4eeca5a
+[dd79690]: https://github.com/germsvel/phoenix_test/commit/dd79690
+[99ff643]: https://github.com/germsvel/phoenix_test/commit/99ff643
+[85e129a]: https://github.com/germsvel/phoenix_test/commit/85e129a
+[115404e]: https://github.com/germsvel/phoenix_test/commit/115404e
+[adacecf]: https://github.com/germsvel/phoenix_test/commit/adacecf
+[3a00669]: https://github.com/germsvel/phoenix_test/commit/3a00669
+[03f31fc]: https://github.com/germsvel/phoenix_test/commit/03f31fc
+
+
 ## 0.10.0
 
 ### Added
