@@ -222,6 +222,12 @@ defmodule PhoenixTest.AssertionsTest do
       |> assert_has(".user", checked: true, label: "Merry")
     end
 
+    test "succeeds when searching by checked state and radio button label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> assert_has("input[type='radio']", checked: true, label: "Mail Choice")
+    end
+
     test "succeeds when selector matches either node with text, or any ancestor", %{conn: conn} do
       conn
       |> visit("/live/index")
