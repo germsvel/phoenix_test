@@ -420,6 +420,18 @@ defmodule PhoenixTest.WebApp.PageView do
         <option value="shire">Shire</option>
         <option value="rivendell">Rivendell</option>
       </select>
+
+      <label>
+        Frodo <input class="user" type="checkbox" name="users[]" value="frodo" checked />
+      </label>
+      <label>
+        Sam <input class="user" type="checkbox" name="users[]" value="sam" />
+      </label>
+
+      <label for="merry-checkbox">
+        Merry
+      </label>
+      <input id="merry-checkbox" class="user" type="checkbox" name="users[]" value="merry" checked />
     </form>
     """
   end

@@ -1343,11 +1343,12 @@ defmodule PhoenixTest do
   than one matching element is found (unless `:count` option is used).
 
   You can assert an element's contents using `:text`, assert a field's value
-  using `:value` (with an optional `:label`), or assert a `select` element's
-  selected option text using `:selected`.
+  using `:value` (with an optional `:label`), assert a `select` element's
+  selected option text using `:selected`, or assert a checkbox/radio's checked
+  state using `:checked` (with an optional `:label`).
 
-  NOTE that you cannot specify more than one of `:text`, `:value`, and
-  `:selected` as options.
+  NOTE that you cannot specify more than one of `:text`, `:value`, `:selected`,
+  and `:checked` as options.
 
   The `:text`, `:value`, or `:selected` option can be a binary or anything for which
   there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
@@ -1362,7 +1363,11 @@ defmodule PhoenixTest do
 
   - `selected`: the selected option's text to look for on a `select`.
 
-  - `label`: the label associated to the form field with `value` or `selected`
+  - `checked`: whether the radio or checkbox form field is checked.
+    Pass `true` to look for a checked field, or `false` to look for an
+    unchecked field.
+
+  - `label`: the label associated to the form field with `value`, `selected`, or `checked`
 
   - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to assert text within HTML elements that also
@@ -1400,6 +1405,12 @@ defmodule PhoenixTest do
 
   # assert there's a select labeled by "Race" with the "Elf" option selected
   assert_has(session, "select", selected: "Elf", label: "Race")
+
+  # assert there's a checked checkbox or radio button labeled by "Frodo"
+  assert_has(session, "input", checked: true, label: "Frodo")
+
+  # assert there's an unchecked checkbox or radio button labeled by "Sam"
+  assert_has(session, "input", checked: false, label: "Sam")
 
   # assert there are two elements with class "posts"
   assert_has(session, ".posts", count: 2)
@@ -1475,8 +1486,8 @@ defmodule PhoenixTest do
 
   It'll raise an error if any elements that match selector and options.
 
-  NOTE that you cannot specify more than one of `:text`, `:value`, and
-  `:selected` as options.
+  NOTE that you cannot specify more than one of `:text`, `:value`, `:selected`,
+  and `:checked` as options.
 
   The `:text`, `:value`, or `:selected` option can be a binary or anything for which
   there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
@@ -1491,7 +1502,11 @@ defmodule PhoenixTest do
 
   - `selected`: the selected option's text to look for on a `select`.
 
-  - `label`: the label associated to the form field with `value` or `selected`
+  - `checked`: whether the checkbox or radio button form field is checked.
+    Pass `true` to look for a checked field or `false` to look for an
+    unchecked field.
+
+  - `label`: the label associated to the form field with `value`, `selected`, or `checked`
 
   - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to refute text within HTML elements that also
@@ -1527,6 +1542,12 @@ defmodule PhoenixTest do
 
   # refute there's a select labeled by "Race" with the "Human" option selected
   refute_has(session, "select", selected: "Human", label: "Race")
+
+  # refute there's a checked checkbox or radio button labeled by "Sam"
+  refute_has(session, "input", checked: true, label: "Sam")
+
+  # refute there's an unchecked checkbox or radio button labeled by "Frodo"
+  refute_has(session, "input", checked: false, label: "Frodo")
 
   # refute there are two elements with class "posts" (less or more will not raise)
   refute_has(session, ".posts", count: 2)
