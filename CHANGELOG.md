@@ -1,3 +1,4 @@
+
 Changelog
 =========
 
@@ -6,6 +7,14 @@ history.
 
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
+
+## 0.11.1
+
+### Improvements
+
+- Add :checked option to assert_has/3 and refute_has/3 (#313) [784d167]
+
+[784d167]: https://github.com/germsvel/phoenix_test/commit/784d167
 
 ## 0.11.0
 
