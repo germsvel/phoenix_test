@@ -5,7 +5,7 @@ defmodule PhoenixTest.FormData do
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Select
 
-  defstruct data: %{}, order: []
+  defstruct data: []
 
   def new, do: %__MODULE__{}
 
@@ -35,132 +35,106 @@ defmodule PhoenixTest.FormData do
 
   def add_data(%__MODULE__{} = form_data, name, value) do
     if allows_multiple_values?(name) do
-      new_data =
-        Map.update(form_data.data, name, List.wrap(value), fn existing_value ->
-          if value in existing_value do
-            existing_value
-          else
-            existing_value ++ List.wrap(value)
-          end
-        end)
+      existing_values = values_for_name(form_data.data, name)
 
-      %__MODULE__{form_data | data: new_data, order: append_order(form_data.order, name)}
+      new_entries =
+        value
+        |> List.wrap()
+        |> Enum.reject(&(&1 in existing_values))
+        |> Enum.map(&{name, &1})
+
+      %__MODULE__{form_data | data: form_data.data ++ new_entries}
     else
-      %__MODULE__{
-        form_data
-        | data: Map.put(form_data.data, name, value),
-          order: append_order(form_data.order, name)
-      }
+      put_data(form_data, name, value)
     end
   end
 
-  def merge(%__MODULE__{} = fd1, %__MODULE__{} = fd2) do
-    data =
-      Map.merge(fd1.data, fd2.data, fn k, v1, v2 ->
-        if allows_multiple_values?(k) do
-          Enum.uniq(v1 ++ v2)
-        else
-          v2
-        end
-      end)
-
-    %__MODULE__{data: data, order: merge_orders(fd1, fd2)}
+  def merge(%__MODULE__{} = form_data1, %__MODULE__{} = form_data2) do
+    form_data2
+    |> field_names()
+    |> Enum.reduce(form_data1, fn name, acc ->
+      if allows_multiple_values?(name) do
+        add_data(acc, name, get_data(form_data2, name))
+      else
+        put_data(acc, name, get_data(form_data2, name))
+      end
+    end)
   end
 
-  def override(%__MODULE__{} = fd1, %__MODULE__{} = fd2) do
-    %__MODULE__{
-      data: Map.merge(fd1.data, fd2.data),
-      order: merge_orders(fd1, fd2)
-    }
+  def override(%__MODULE__{} = form_data1, %__MODULE__{} = form_data2) do
+    form_data2
+    |> field_names()
+    |> Enum.reduce(form_data1, fn name, acc ->
+      put_data(acc, name, get_data(form_data2, name))
+    end)
   end
 
   def get_data(%__MODULE__{data: data}, name) do
-    Map.get(data, name)
+    values = values_for_name(data, name)
+
+    cond do
+      values == [] -> nil
+      allows_multiple_values?(name) or length(values) > 1 -> values
+      true -> hd(values)
+    end
   end
 
   def put_data(%__MODULE__{} = form_data, name, value) when is_nil(name) or is_nil(value), do: form_data
 
   def put_data(%__MODULE__{} = form_data, name, value) do
-    %__MODULE__{
-      form_data
-      | data: Map.put(form_data.data, name, value),
-        order: append_order(form_data.order, name)
-    }
+    new_entries =
+      value
+      |> List.wrap()
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&{name, &1})
+
+    %__MODULE__{form_data | data: replace_entries(form_data.data, name, new_entries)}
   end
 
   defp allows_multiple_values?(field_name), do: String.ends_with?(field_name, "[]")
 
-  def filter(%__MODULE__{} = form_data, fun) do
-    data =
-      form_data
-      |> ordered_names()
-      |> Enum.reduce(%{}, fn name, acc ->
-        value = Map.get(form_data.data, name)
-
-        if keep_data?(fun, name, value) do
-          Map.put(acc, name, value)
-        else
-          acc
-        end
-      end)
-
-    order =
-      form_data
-      |> ordered_names()
-      |> Enum.filter(&Map.has_key?(data, &1))
-
-    %__MODULE__{data: data, order: order}
+  def filter(%__MODULE__{data: data}, fun) do
+    %__MODULE__{
+      data:
+        Enum.filter(data, fn {name, value} ->
+          fun.(%{name: name, value: value})
+        end)
+    }
   end
 
   def empty?(%__MODULE__{data: data}) do
     Enum.empty?(data)
   end
 
-  def has_data?(%__MODULE__{data: data}, name, value) do
-    field_data = Map.get(data, name, [])
+  def has_data?(%__MODULE__{} = form_data, name, value) do
+    field_data = get_data(form_data, name)
 
     value == field_data or value in List.wrap(field_data)
   end
 
   def field_names(%__MODULE__{data: data}) do
-    Map.keys(data)
+    data
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.uniq()
   end
 
-  def to_list(%__MODULE__{} = form_data) do
-    form_data
-    |> ordered_names()
-    |> Enum.flat_map(fn name ->
-      case Map.fetch!(form_data.data, name) do
-        values when is_list(values) ->
-          Enum.map(values, &{name, &1})
+  def to_list(%__MODULE__{data: data}), do: data
 
-        value ->
-          [{name, value}]
-      end
-    end)
+  defp replace_entries(data, name, new_entries) do
+    case Enum.find_index(data, fn {n, _} -> n == name end) do
+      nil ->
+        data ++ new_entries
+
+      first_index ->
+        filtered_data = Enum.reject(data, fn {n, _} -> n == name end)
+        {before, after_entries} = Enum.split(filtered_data, first_index)
+        before ++ new_entries ++ after_entries
+    end
   end
 
-  defp append_order(order, name) do
-    if name in order, do: order, else: order ++ [name]
-  end
-
-  defp merge_orders(%__MODULE__{} = fd1, %__MODULE__{} = fd2) do
-    fd1
-    |> ordered_names()
-    |> Enum.concat(Enum.reject(ordered_names(fd2), &Map.has_key?(fd1.data, &1)))
-  end
-
-  defp ordered_names(%__MODULE__{data: data, order: order}) do
-    order ++ Enum.reject(Map.keys(data), &(&1 in order))
-  end
-
-  defp keep_data?(fun, name, values) when is_list(values) do
-    values
-    |> Enum.map(&fun.(%{name: name, value: &1}))
-    |> Enum.any?()
-  end
-
-  defp keep_data?(fun, name, value) do
-    fun.(%{name: name, value: value})
+  defp values_for_name(data, name) do
+    data
+    |> Enum.filter(fn {n, _} -> n == name end)
+    |> Enum.map(fn {_, v} -> v end)
   end
 end

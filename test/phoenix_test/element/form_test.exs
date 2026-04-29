@@ -246,7 +246,7 @@ defmodule PhoenixTest.Element.FormTest do
       assert FormData.has_data?(form.form_data, "checkbox", "checked")
     end
 
-    test "preserves successful control order by field name when submission entries are flattened" do
+    test "preserves successful control DOM order in submission entries" do
       html = """
       <form id="form">
         <input type="hidden" name="mixed_items" value="" />
@@ -261,8 +261,8 @@ defmodule PhoenixTest.Element.FormTest do
       assert FormData.to_list(form.form_data) == [
                {"mixed_items", ""},
                {"mixed_items[]", "one"},
-               {"mixed_items[]", "two"},
-               {"after", "later"}
+               {"after", "later"},
+               {"mixed_items[]", "two"}
              ]
     end
   end
