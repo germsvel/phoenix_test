@@ -95,6 +95,13 @@ defmodule PhoenixTest.Html do
     end
   end
 
+  def tag(%LazyHTML{} = html) do
+    case element(html) do
+      {tag, _, _} -> to_string(tag)
+      _ -> nil
+    end
+  end
+
   defp normalize_whitespace(string) do
     String.replace(string, ~r/[\s]+/, " ")
   end

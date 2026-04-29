@@ -595,8 +595,8 @@ defmodule PhoenixTest.Query do
   end
 
   defp selected_option_texts(element) do
-    case Html.element(element) do
-      {"select", _attrs, _children} ->
+    case Html.tag(element) do
+      "select" ->
         element
         |> Html.selected_options()
         |> Enum.map(&Html.element_text/1)

@@ -190,6 +190,29 @@ defmodule PhoenixTest.FormDataTest do
 
       assert FormData.to_list(form_data) == [{"items[]", ""}]
     end
+
+    test "preserves field order when user input for checkbox group overrides hidden input" do
+      base =
+        FormData.new()
+        |> FormData.add_data("mixed_items", "")
+        |> FormData.add_data("mixed_items[]", ["one", "two"])
+        |> FormData.add_data("name", "default")
+
+      override =
+        FormData.new()
+        |> FormData.put_data("mixed_items[]", ["one", "two", "three"])
+        |> FormData.put_data("name", "Bilbo")
+
+      form_data = FormData.override(base, override)
+
+      assert FormData.to_list(form_data) == [
+               {"mixed_items", ""},
+               {"mixed_items[]", "one"},
+               {"mixed_items[]", "two"},
+               {"mixed_items[]", "three"},
+               {"name", "Bilbo"}
+             ]
+    end
   end
 
   describe "filter" do
@@ -249,7 +272,7 @@ defmodule PhoenixTest.FormDataTest do
 
       list = FormData.to_list(form_data)
 
-      assert list == [{"email", "frodo@fellowship.com"}, {"name", "frodo"}]
+      assert list == [{"name", "frodo"}, {"email", "frodo@fellowship.com"}]
     end
 
     test "preserves select options ordering" do

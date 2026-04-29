@@ -245,6 +245,26 @@ defmodule PhoenixTest.Element.FormTest do
 
       assert FormData.has_data?(form.form_data, "checkbox", "checked")
     end
+
+    test "preserves successful control DOM order in submission entries" do
+      html = """
+      <form id="form">
+        <input type="hidden" name="mixed_items" value="" />
+        <input type="checkbox" name="mixed_items[]" value="one" checked />
+        <input type="text" name="after" value="later" />
+        <input type="checkbox" name="mixed_items[]" value="two" checked />
+      </form>
+      """
+
+      form = Form.find!(html, "form")
+
+      assert FormData.to_list(form.form_data) == [
+               {"mixed_items", ""},
+               {"mixed_items[]", "one"},
+               {"after", "later"},
+               {"mixed_items[]", "two"}
+             ]
+    end
   end
 
   describe "form.submit_button" do

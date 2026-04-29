@@ -558,6 +558,19 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("#form-data", text: "three")
     end
 
+    test "submits checked values for checkbox groups when a hidden input uses the non-array name", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> within("#mixed-array-checkbox-form", fn session ->
+        check(session, "Mixed Three")
+      end)
+      |> submit()
+      |> assert_has("#form-data", text: "mixed_items: [")
+      |> assert_has("#form-data", text: "one")
+      |> assert_has("#form-data", text: "two")
+      |> assert_has("#form-data", text: "three")
+    end
+
     test "can re-check an array named checkbox after unchecking it", %{conn: conn} do
       conn
       |> visit("/page/index")
