@@ -69,7 +69,7 @@ defmodule PhoenixTest.Element.Form do
 
   def has_action?(form), do: Utils.present?(form.action)
 
-  @enabled_controls "input:not([disabled])[name], textarea:not([disabled])[name], select:not([disabled])[name]"
+  @enabled_controls ":is(input, textarea, select):not([disabled])[name]"
 
   defp form_data(form) do
     form
