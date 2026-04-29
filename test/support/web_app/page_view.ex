@@ -290,6 +290,19 @@ defmodule PhoenixTest.WebApp.PageView do
       <input id="array-item-three" type="checkbox" name="items[]" value="three" />
     </form>
 
+    <form id="mixed-array-checkbox-form" method="post" action="/page/create_record">
+      <input type="hidden" name="mixed_items" value="" />
+
+      <label for="mixed-array-item-one">Mixed One</label>
+      <input id="mixed-array-item-one" type="checkbox" name="mixed_items[]" value="one" checked />
+
+      <label for="mixed-array-item-two">Mixed Two</label>
+      <input id="mixed-array-item-two" type="checkbox" name="mixed_items[]" value="two" checked />
+
+      <label for="mixed-array-item-three">Mixed Three</label>
+      <input id="mixed-array-item-three" type="checkbox" name="mixed_items[]" value="three" />
+    </form>
+
     <form id="same-labels" action="/page/create_record" method="post">
       <fieldset>
         <legend>Do you like Elixir:</legend>

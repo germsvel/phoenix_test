@@ -2,6 +2,7 @@ defmodule PhoenixTest.FormPayloadTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Element.Form
+  alias PhoenixTest.FormData
   alias PhoenixTest.FormPayload
 
   describe "new" do
@@ -131,6 +132,28 @@ defmodule PhoenixTest.FormPayloadTest do
       form = Form.find!(html, "form")
 
       assert %{"checkbox" => "unchecked"} = FormPayload.new(form.form_data)
+    end
+
+    test "preserves array values when hidden scalar and array entries for multiple fields are interleaved" do
+      form_data =
+        FormData.new()
+        |> FormData.add_data("preferences[color]", "")
+        |> FormData.add_data("preferences[color][]", "blue")
+        |> FormData.add_data("preferences[size]", "")
+        |> FormData.add_data("preferences[size][]", "medium")
+        |> FormData.add_data("preferences[tag]", "")
+        |> FormData.add_data("preferences[tag][]", [
+          "new",
+          "sale"
+        ])
+
+      assert %{
+               "preferences" => %{
+                 "color" => ["blue"],
+                 "size" => ["medium"],
+                 "tag" => ["new", "sale"]
+               }
+             } = FormPayload.new(form_data)
     end
   end
 

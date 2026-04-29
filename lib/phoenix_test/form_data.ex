@@ -5,7 +5,7 @@ defmodule PhoenixTest.FormData do
   alias PhoenixTest.Element.Field
   alias PhoenixTest.Element.Select
 
-  defstruct data: %{}
+  defstruct data: %{}, order: []
 
   def new, do: %__MODULE__{}
 
@@ -44,15 +44,19 @@ defmodule PhoenixTest.FormData do
           end
         end)
 
-      %__MODULE__{form_data | data: new_data}
+      %__MODULE__{form_data | data: new_data, order: append_order(form_data.order, name)}
     else
-      %__MODULE__{form_data | data: Map.put(form_data.data, name, value)}
+      %__MODULE__{
+        form_data
+        | data: Map.put(form_data.data, name, value),
+          order: append_order(form_data.order, name)
+      }
     end
   end
 
-  def merge(%__MODULE__{data: data1}, %__MODULE__{data: data2}) do
+  def merge(%__MODULE__{} = fd1, %__MODULE__{} = fd2) do
     data =
-      Map.merge(data1, data2, fn k, v1, v2 ->
+      Map.merge(fd1.data, fd2.data, fn k, v1, v2 ->
         if allows_multiple_values?(k) do
           Enum.uniq(v1 ++ v2)
         else
@@ -60,11 +64,14 @@ defmodule PhoenixTest.FormData do
         end
       end)
 
-    %__MODULE__{data: data}
+    %__MODULE__{data: data, order: merge_orders(fd1, fd2)}
   end
 
-  def override(%__MODULE__{data: data1}, %__MODULE__{data: data2}) do
-    %__MODULE__{data: Map.merge(data1, data2)}
+  def override(%__MODULE__{} = fd1, %__MODULE__{} = fd2) do
+    %__MODULE__{
+      data: Map.merge(fd1.data, fd2.data),
+      order: merge_orders(fd1, fd2)
+    }
   end
 
   def get_data(%__MODULE__{data: data}, name) do
@@ -74,18 +81,35 @@ defmodule PhoenixTest.FormData do
   def put_data(%__MODULE__{} = form_data, name, value) when is_nil(name) or is_nil(value), do: form_data
 
   def put_data(%__MODULE__{} = form_data, name, value) do
-    %__MODULE__{form_data | data: Map.put(form_data.data, name, value)}
+    %__MODULE__{
+      form_data
+      | data: Map.put(form_data.data, name, value),
+        order: append_order(form_data.order, name)
+    }
   end
 
   defp allows_multiple_values?(field_name), do: String.ends_with?(field_name, "[]")
 
-  def filter(%__MODULE__{data: data}, fun) do
+  def filter(%__MODULE__{} = form_data, fun) do
     data =
-      data
-      |> Enum.filter(fn {name, value} -> fun.(%{name: name, value: value}) end)
-      |> Map.new()
+      form_data
+      |> ordered_names()
+      |> Enum.reduce(%{}, fn name, acc ->
+        value = Map.get(form_data.data, name)
 
-    %__MODULE__{data: data}
+        if keep_data?(fun, name, value) do
+          Map.put(acc, name, value)
+        else
+          acc
+        end
+      end)
+
+    order =
+      form_data
+      |> ordered_names()
+      |> Enum.filter(&Map.has_key?(data, &1))
+
+    %__MODULE__{data: data, order: order}
   end
 
   def empty?(%__MODULE__{data: data}) do
@@ -102,15 +126,41 @@ defmodule PhoenixTest.FormData do
     Map.keys(data)
   end
 
-  def to_list(%__MODULE__{data: data}) do
-    data
-    |> Enum.map(fn
-      {key, values} when is_list(values) ->
-        Enum.map(values, &{key, &1})
+  def to_list(%__MODULE__{} = form_data) do
+    form_data
+    |> ordered_names()
+    |> Enum.flat_map(fn name ->
+      case Map.fetch!(form_data.data, name) do
+        values when is_list(values) ->
+          Enum.map(values, &{name, &1})
 
-      {_key, _value} = field ->
-        field
+        value ->
+          [{name, value}]
+      end
     end)
-    |> List.flatten()
+  end
+
+  defp append_order(order, name) do
+    if name in order, do: order, else: order ++ [name]
+  end
+
+  defp merge_orders(%__MODULE__{} = fd1, %__MODULE__{} = fd2) do
+    fd1
+    |> ordered_names()
+    |> Enum.concat(Enum.reject(ordered_names(fd2), &Map.has_key?(fd1.data, &1)))
+  end
+
+  defp ordered_names(%__MODULE__{data: data, order: order}) do
+    order ++ Enum.reject(Map.keys(data), &(&1 in order))
+  end
+
+  defp keep_data?(fun, name, values) when is_list(values) do
+    values
+    |> Enum.map(&fun.(%{name: name, value: &1}))
+    |> Enum.any?()
+  end
+
+  defp keep_data?(fun, name, value) do
+    fun.(%{name: name, value: value})
   end
 end
