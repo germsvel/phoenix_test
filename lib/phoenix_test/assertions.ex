@@ -439,48 +439,63 @@ defmodule PhoenixTest.Assertions do
   defp maybe_append_position(msg, position), do: msg <> " at position #{position}"
 
   defp finder_fun(selector, %Opts{} = opts, operation) do
+    filter_strategy = filter_strategy(selector, opts, operation)
+
+    case {filter_strategy, opts.label} do
+      {{:selector, query_selector}, :no_label} ->
+        &Query.find(&1, query_selector, Opts.to_list(opts))
+
+      {{:selector, query_selector}, label} when is_binary(label) ->
+        &Query.find_by_label(&1, query_selector, label, Opts.to_list(opts))
+
+      {{:selected, query_selector, selected}, :no_label} ->
+        &Query.find_by_selected(&1, query_selector, selected, Opts.to_list(opts))
+
+      {{:selected, query_selector, selected}, label} when is_binary(label) ->
+        &Query.find_by_label_and_selected(&1, query_selector, label, selected, Opts.to_list(opts))
+
+      {{:text_first, query_selector, text}, :no_label} ->
+        &Query.find_first(&1, query_selector, text, Opts.to_list(opts))
+
+      {{:text, query_selector, text}, :no_label} ->
+        &Query.find(&1, query_selector, text, Opts.to_list(opts))
+
+      {{:text, _query_selector, _text}, _label} ->
+        raise ArgumentError, "Cannot provide :label with :text to assertions"
+
+      {{:text_first, _query_selector, _text}, _label} ->
+        raise ArgumentError, "Cannot provide :label with :text to assertions"
+    end
+  end
+
+  defp filter_strategy(selector, %Opts{} = opts, operation) do
     content =
       opts
       |> Map.take(~w(text value selected checked)a)
       |> Enum.reject(&(&1 in [text: :no_text, value: :no_value, selected: :no_selected, checked: :no_checked]))
 
-    case {content, opts, operation} do
-      {[], %Opts{label: :no_label}, _} ->
-        &Query.find(&1, selector, Opts.to_list(opts))
+    case content do
+      [] ->
+        {:selector, selector}
 
-      {[], %Opts{label: label}, _} when is_binary(label) ->
-        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
+      [value: value] ->
+        value_selector = selector <> "[value=#{value |> ensure_binary() |> inspect()}]"
+        {:selector, value_selector}
 
-      {[value: value], %Opts{label: :no_label}, _} ->
-        selector = selector <> "[value=#{value |> ensure_binary() |> inspect()}]"
-        &Query.find(&1, selector, Opts.to_list(opts))
+      [selected: selected] ->
+        {:selected, selector, ensure_binary(selected)}
 
-      {[value: value], %Opts{label: label}, _} when is_binary(label) ->
-        selector = selector <> "[value=#{value |> ensure_binary() |> inspect()}]"
-        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
+      [checked: checked] ->
+        {:selector, maybe_append_checked_selector(selector, checked)}
 
-      {[selected: selected], %Opts{label: :no_label}, _} ->
-        &Query.find_by_selected(&1, selector, ensure_binary(selected), Opts.to_list(opts))
+      [text: text] ->
+        binary_text = ensure_binary(text)
 
-      {[selected: selected], %Opts{label: label}, _} when is_binary(label) ->
-        &Query.find_by_label_and_selected(&1, selector, label, ensure_binary(selected), Opts.to_list(opts))
-
-      {[checked: checked], %Opts{label: :no_label}, _} ->
-        selector = maybe_append_checked_selector(selector, checked)
-        &Query.find(&1, selector, Opts.to_list(opts))
-
-      {[checked: checked], %Opts{label: label}, _} when is_binary(label) ->
-        selector = maybe_append_checked_selector(selector, checked)
-        &Query.find_by_label(&1, selector, label, Opts.to_list(opts))
-
-      {[text: text], %Opts{label: :no_label, count: :any, at: :any}, :assert_has} ->
-        &Query.find_first(&1, selector, ensure_binary(text), Opts.to_list(opts))
-
-      {[text: text], %Opts{label: :no_label}, _} ->
-        &Query.find(&1, selector, ensure_binary(text), Opts.to_list(opts))
-
-      {[text: _text], %Opts{}, _} ->
-        raise ArgumentError, "Cannot provide :label with :text to assertions"
+        if operation == :assert_has and opts.count == :any and opts.at == :any do
+          {:text_first, selector, binary_text}
+        else
+          {:text, selector, binary_text}
+        end
 
       _ ->
         raise ArgumentError, "Cannot pass more than one of options :text, :value, :selected, :checked to assertions"
