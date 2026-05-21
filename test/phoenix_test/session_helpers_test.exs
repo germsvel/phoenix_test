@@ -45,6 +45,16 @@ defmodule PhoenixTest.SessionHelpersTest do
       end)
     end
 
+    test "nested within returns the correct scope" do
+      initial = %{within: :none}
+
+      within(initial, "main", fn session ->
+        returned_session = within(session, "#email-form", & &1)
+        assert returned_session == session
+        session
+      end)
+    end
+
     test "selector scopes do not interfere with adjacent withins" do
       initial = %{within: :none}
 
