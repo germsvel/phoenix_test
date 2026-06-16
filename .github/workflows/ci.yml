@@ -69,5 +69,5 @@ jobs:
     - name: Check Formatting
       run: mix format --check-formatted
 
-    - name: Run tests
-      run: mix test
+    - name: Run tests & crap metric
+      run: mix test.crap
