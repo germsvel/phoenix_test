@@ -158,6 +158,37 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "assert by aria-label", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", label: "Sword")
+      |> assert_has("input", label: "Sword", value: "Sting")
+    end
+
+    test "assert by aria-labelledby", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", label: "Steed", value: "Shadowfax")
+    end
+
+    test "assert by aria-labelledby with multiple ids", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("input", label: "Middle Earth", value: "Mordor")
+    end
+
+    test "assert select by aria-label and selected", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has("select", label: "Weapon", selected: "Bow")
+    end
+
+    test "assert checkbox by aria-label and checked", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> assert_has(".ranger", label: "Aragorn", checked: true)
+    end
+
     test "succeeds when select option was selected by an HTML selected attribute", %{conn: conn} do
       conn
       |> visit("/page/by_value")
@@ -871,6 +902,29 @@ defmodule PhoenixTest.AssertionsTest do
         conn
         |> visit("/page/by_value")
         |> refute_has("input", label: "Hobbit")
+      end
+    end
+
+    test "refute by aria label when it doesn't match", %{conn: conn} do
+      conn
+      |> visit("/page/by_value")
+      |> refute_has("input", label: "Sword", value: "Glamdring")
+      |> refute_has("input", label: "Bow of Galadriel")
+    end
+
+    test "refute by aria-label raises an error if found", %{conn: conn} do
+      assert_raise AssertionError, fn ->
+        conn
+        |> visit("/page/by_value")
+        |> refute_has("input", label: "Sword")
+      end
+    end
+
+    test "refute by aria-labelledby raises an error if found", %{conn: conn} do
+      assert_raise AssertionError, fn ->
+        conn
+        |> visit("/page/by_value")
+        |> refute_has("input", label: "Steed")
       end
     end
 

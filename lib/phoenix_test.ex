@@ -588,6 +588,13 @@ defmodule PhoenixTest do
   <label for="search" class="sr-only">Search</label>
   <input id="search" type="text" name="q" />
   ```
+
+  In addition to `<label>` elements, the label can also be the accessible name
+  provided by the input's `aria-label` or `aria-labelledby` attribute:
+
+  ```html
+  <input type="text" name="q" aria-label="Search" />
+  ```
   """
   def fill_in(session, label, opts) when is_binary(label) and is_list(opts) do
     opts = Keyword.validate!(opts, [:with, exact: true])
@@ -1367,7 +1374,11 @@ defmodule PhoenixTest do
     Pass `true` to look for a checked field, or `false` to look for an
     unchecked field.
 
-  - `label`: the label associated to the form field with `value`, `selected`, or `checked`
+  - `label`: the label associated to the form field with `value`, `selected`, or
+  `checked`. The association can be a `<label>` element (wrapping the field or
+  pointing to it via `for`/`id`), or an accessible name provided by the field's
+  `aria-label` or `aria-labelledby` attribute. Note: if a field is reachable by
+  both a `<label>` and an `aria-*` attribute, the `<label>` match takes precedence.
 
   - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to assert text within HTML elements that also
@@ -1506,7 +1517,11 @@ defmodule PhoenixTest do
     Pass `true` to look for a checked field or `false` to look for an
     unchecked field.
 
-  - `label`: the label associated to the form field with `value`, `selected`, or `checked`
+  - `label`: the label associated to the form field with `value`, `selected`, or
+  `checked`. The association can be a `<label>` element (wrapping the field or
+  pointing to it via `for`/`id`), or an accessible name provided by the field's
+  `aria-label` or `aria-labelledby` attribute. Note: if a field is reachable by
+  both a `<label>` and an `aria-*` attribute, the `<label>` match takes precedence.
 
   - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to refute text within HTML elements that also

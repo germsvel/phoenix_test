@@ -432,6 +432,29 @@ defmodule PhoenixTest.WebApp.PageView do
         Merry
       </label>
       <input id="merry-checkbox" class="user" type="checkbox" name="users[]" value="merry" checked />
+
+      <input type="text" name="sword" value="Sting" aria-label="Sword" />
+
+      <span id="steed-label">Steed</span>
+      <input type="text" name="steed" value="Shadowfax" aria-labelledby="steed-label" />
+
+      <span id="realm-label">Middle</span>
+      <span id="realm-label-2">Earth</span>
+      <input type="text" name="realm" value="Mordor" aria-labelledby="realm-label realm-label-2" />
+
+      <select aria-label="Weapon" name="weapon">
+        <option value="axe">Axe</option>
+        <option value="bow" selected>Bow</option>
+      </select>
+
+      <input
+        class="ranger"
+        type="checkbox"
+        name="rangers[]"
+        value="aragorn"
+        aria-label="Aragorn"
+        checked
+      />
     </form>
     """
   end

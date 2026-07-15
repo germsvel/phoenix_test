@@ -217,6 +217,13 @@ defmodule PhoenixTest.Query do
   def find_by_label(html, input_selectors, label, opts \\ [exact: true]) do
     input_selectors = List.wrap(input_selectors)
 
+    case find_by_label_element(html, input_selectors, label, opts) do
+      {:found, _element} = found -> found
+      not_found -> with :not_found <- find_by_aria(html, input_selectors, label, opts), do: not_found
+    end
+  end
+
+  defp find_by_label_element(html, input_selectors, label, opts) do
     case find_labels(html, input_selectors, label, opts) do
       {:implicit_association, _label_element, element} ->
         {:found, element}
@@ -252,6 +259,62 @@ defmodule PhoenixTest.Query do
       {:not_found, potential_matches} ->
         {:not_found, :no_label, potential_matches}
     end
+  end
+
+  # Finds elements whose accessible name (via `aria-label` or `aria-labelledby`)
+  # matches `label`. Referenced `aria-labelledby` ids are resolved document-wide.
+  defp find_by_aria(html, input_selectors, label, opts) do
+    parsed = Html.parse_fragment(html)
+
+    input_selectors
+    |> Enum.flat_map(fn selector ->
+      parsed
+      |> Html.all(selector)
+      |> Enum.filter(&aria_name_match?(parsed, &1, label, opts))
+    end)
+    |> case do
+      [] -> :not_found
+      [element] -> {:found, element}
+      [_first | _rest] = found -> {:not_found, :found_many_labels_with_inputs, [], found}
+    end
+  end
+
+  defp aria_name_match?(parsed, element, label, opts) do
+    aria_label_match?(element, label, opts) or aria_labelledby_match?(parsed, element, label, opts)
+  end
+
+  defp aria_label_match?(element, label, opts) do
+    case Html.attribute(element, "aria-label") do
+      nil -> false
+      value -> text_match?(normalize_whitespace(value), label, opts)
+    end
+  end
+
+  defp aria_labelledby_match?(parsed, element, label, opts) do
+    case Html.attribute(element, "aria-labelledby") do
+      nil ->
+        false
+
+      ids ->
+        text =
+          ids
+          |> String.split()
+          |> Enum.map_join(" ", &labelledby_text(parsed, &1))
+          |> normalize_whitespace()
+
+        text != "" and text_match?(text, label, opts)
+    end
+  end
+
+  defp labelledby_text(parsed, id) do
+    case parsed |> Html.all("[id='#{id}']") |> Enum.at(0) do
+      nil -> ""
+      element -> Html.element_text(element)
+    end
+  end
+
+  defp normalize_whitespace(string) do
+    string |> String.replace(~r/\s+/, " ") |> String.trim()
   end
 
   defp find_labels(html, input_selectors, label, opts) do
@@ -472,25 +535,18 @@ defmodule PhoenixTest.Query do
   end
 
   defp filter_by_element_text(elements, text, opts) do
-    exact_match = Keyword.get(opts, :exact, false)
-
-    filter_fun =
-      if exact_match do
-        &(Html.element_text(&1) == text)
-      else
-        &(Html.element_text(&1) =~ text)
-      end
-
-    Enum.filter(elements, filter_fun)
+    Enum.filter(elements, &text_match?(Html.element_text(&1), text, opts))
   end
 
   defp find_first_by_element_text(elements, text, opts) do
-    exact_match = Keyword.get(opts, :exact, false)
+    Enum.find(elements, &text_match?(Html.element_text(&1), text, opts))
+  end
 
-    if exact_match do
-      Enum.find(elements, &(Html.element_text(&1) == text))
+  defp text_match?(subject, text, opts) do
+    if Keyword.get(opts, :exact, false) do
+      subject == text
     else
-      Enum.find(elements, &(Html.element_text(&1) =~ text))
+      subject =~ text
     end
   end
 
