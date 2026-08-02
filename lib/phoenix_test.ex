@@ -262,6 +262,12 @@ defmodule PhoenixTest do
   Clicks a link with given text (using a substring match) and performs the
   action.
 
+  In addition to targeting the link via its inner text, you can also target it
+  via `aria-label` or `aria-labelledby`. But note that the link's inner text
+  and any associated `<label>` take precedence over its ARIA attributes, and
+  `aria-label` takes precedence over `aria-labelledby`. This differs from the
+  browser's accessible-name calculation.
+
   Here's how it handles different types of `a` tags:
 
   - With `href`: follows it to the next page
@@ -332,6 +338,13 @@ defmodule PhoenixTest do
   @doc """
   Perfoms action defined by button with given text (using a substring match).
   The action is based on attributes present.
+
+  In addition to targeting the button via text or an input's value, you can
+  also target it via `aria-label` or `aria-labelledby`. But note that the
+  button's inner text, input value, or associated `<label>` takes precedence
+  over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
 
   This can be used in a number of ways.
 
@@ -589,8 +602,13 @@ defmodule PhoenixTest do
   <input id="search" type="text" name="q" />
   ```
 
-  In addition to `<label>` elements, the label can also be the accessible name
-  provided by the input's `aria-label` or `aria-labelledby` attribute:
+  In addition to targeting the field via a `<label>`, you can also target it
+  via `aria-label` or `aria-labelledby`. But note that the `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
+
+  For example:
 
   ```html
   <input type="text" name="q" aria-label="Search" />
@@ -642,6 +660,12 @@ defmodule PhoenixTest do
 
   @doc """
   Selects an option from a select dropdown.
+
+  In addition to targeting the select via a `<label>`, you can also target it
+  via `aria-label` or `aria-labelledby`. But note that the `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
 
   ## Options
 
@@ -816,6 +840,12 @@ defmodule PhoenixTest do
   @doc """
   Check a checkbox.
 
+  In addition to targeting the checkbox via a `<label>`, you can also target it
+  via `aria-label` or `aria-labelledby`. But note that the `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
+
   To uncheck a checkbox, see `uncheck/3`.
 
   ## Options
@@ -918,6 +948,12 @@ defmodule PhoenixTest do
 
   @doc """
   Uncheck a checkbox.
+
+  In addition to targeting the checkbox via a `<label>`, you can also target it
+  via `aria-label` or `aria-labelledby`. But note that the `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
 
   To check a checkbox, see `check/3`.
 
@@ -1027,6 +1063,12 @@ defmodule PhoenixTest do
 
   @doc """
   Choose a radio button option.
+
+  In addition to targeting the radio button via a `<label>`, you can also
+  target it via `aria-label` or `aria-labelledby`. But note that the `<label>`
+  takes precedence over its ARIA attributes, and `aria-label` takes precedence
+  over `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
 
   ## Options
 
@@ -1167,6 +1209,12 @@ defmodule PhoenixTest do
 
   @doc """
   Upload a file.
+
+  In addition to targeting the file input via a `<label>`, you can also target
+  it via `aria-label` or `aria-labelledby`. But note that the `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name
+  calculation.
 
   If the form is a LiveView form, this will perform a live file upload and trigger the associated `phx-change` event.
 
@@ -1377,8 +1425,9 @@ defmodule PhoenixTest do
   - `label`: the label associated to the form field with `value`, `selected`, or
   `checked`. The association can be a `<label>` element (wrapping the field or
   pointing to it via `for`/`id`), or an accessible name provided by the field's
-  `aria-label` or `aria-labelledby` attribute. Note: if a field is reachable by
-  both a `<label>` and an `aria-*` attribute, the `<label>` match takes precedence.
+  `aria-label` or `aria-labelledby` attribute. But note that a `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name calculation.
 
   - `exact`: by default `assert_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to assert text within HTML elements that also
@@ -1520,8 +1569,9 @@ defmodule PhoenixTest do
   - `label`: the label associated to the form field with `value`, `selected`, or
   `checked`. The association can be a `<label>` element (wrapping the field or
   pointing to it via `for`/`id`), or an accessible name provided by the field's
-  `aria-label` or `aria-labelledby` attribute. Note: if a field is reachable by
-  both a `<label>` and an `aria-*` attribute, the `<label>` match takes precedence.
+  `aria-label` or `aria-labelledby` attribute. But note that a `<label>` takes
+  precedence over its ARIA attributes, and `aria-label` takes precedence over
+  `aria-labelledby`. This differs from the browser's accessible-name calculation.
 
   - `exact`: by default `refute_has/3` will perform a substring match (e.g. `a
   =~ b`). That makes it easier to refute text within HTML elements that also

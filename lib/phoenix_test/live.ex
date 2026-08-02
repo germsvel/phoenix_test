@@ -75,12 +75,19 @@ defmodule PhoenixTest.Live do
     session = set_operation(session, :click_link)
     selector = scope_selector(selector, session.within)
 
-    with {:found, link} <- PhoenixTest.Element.Link.find(session.current_operation.html, selector, text),
-         true <- PhoenixTest.Element.Link.has_data_method?(link) do
-      %{session.conn | resp_body: session.current_operation.html}
-      |> PhoenixTest.Static.build()
-      |> PhoenixTest.Static.click_with_data_method(link)
-    else
+    case PhoenixTest.Element.Link.find(session.current_operation.html, selector, text) do
+      {:found, link} ->
+        if PhoenixTest.Element.Link.has_data_method?(link) do
+          %{session.conn | resp_body: session.current_operation.html}
+          |> PhoenixTest.Static.build()
+          |> PhoenixTest.Static.click_with_data_method(link)
+        else
+          session.view
+          |> element(scope_selector(link.selector, session.within), link.text)
+          |> render_click()
+          |> maybe_redirect(session)
+        end
+
       _ ->
         session.view
         |> element(selector, text)

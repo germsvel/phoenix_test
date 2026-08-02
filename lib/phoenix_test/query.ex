@@ -130,10 +130,22 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  def find_by_role!(html, locator) do
-    selectors = Locators.role_selectors(locator)
+  def find_by_role!(html, %Locators.Button{text: text, selectors: button_selectors} = locator) do
+    role_selectors = Locators.role_selectors(locator)
 
-    find_one_of!(html, selectors)
+    case find_one_of(html, role_selectors) do
+      {:found, element} ->
+        element
+
+      {:not_found, _potential_matches} ->
+        case find_by_label(html, button_selectors, text, exact: false) do
+          {:found, element} -> element
+          _ -> find_one_of!(html, role_selectors)
+        end
+
+      {:found_many, _elements} ->
+        find_one_of!(html, role_selectors)
+    end
   end
 
   def find_one_of!(html, elements) do

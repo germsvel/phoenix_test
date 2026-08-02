@@ -6,6 +6,9 @@ defmodule PhoenixTest.WebApp.PageView do
     <h1 id="title" class="title" data-role="title">Main page</h1>
 
     <a href="/page/page_2?foo=bar">Page 2</a>
+    <a href="/page/page_2" aria-label="Go-to-page-2-aria">asdfsda</a>
+    <span id="go-to-page-2-labelledby">Go-to-page-2-labelledby</span>
+    <a href="/page/page_2" aria-labelledby="go-to-page-2-labelledby">asdfsda</a>
 
     <a href="/page/no_page?redirect_to=/page/index">Navigate away and redirect back</a>
 
@@ -47,6 +50,15 @@ defmodule PhoenixTest.WebApp.PageView do
 
     <form action="/page/get_record">
       <button>Get record</button>
+    </form>
+
+    <form action="/page/get_record">
+      <button aria-label="get-me-aria">adfad</button>
+    </form>
+
+    <span id="get-me-labelledby">get-me-labelledby</span>
+    <form action="/page/get_record">
+      <button aria-labelledby="get-me-labelledby">adfad</button>
     </form>
 
     <form action="/page/update_record" method="post">
