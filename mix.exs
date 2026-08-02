@@ -43,6 +43,7 @@ defmodule PhoenixTest.MixProject do
     [
       {:ecto, "~> 3.12", only: :test},
       {:esbuild, "~> 0.8", only: :test, runtime: false},
+      {:ex_crap, "~> 0.1.0", only: [:test, :dev], runtime: false},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:jason, "~> 1.4"},
       {:lazy_html, "~> 0.1.7"},
@@ -85,13 +86,14 @@ defmodule PhoenixTest.MixProject do
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["esbuild.install --if-missing"],
       "assets.build": ["esbuild default"],
+      "test.crap": ["test --cover --export-coverage default", "crap"],
       benchmark: ["run bench/assertions.exs"]
     ]
   end
 
   def cli do
     [
-      preferred_envs: [benchmark: :test]
+      preferred_envs: [benchmark: :test, "test.crap": :test]
     ]
   end
 end
