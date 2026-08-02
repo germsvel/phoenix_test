@@ -742,6 +742,82 @@ defmodule PhoenixTest.QueryTest do
 
       assert {"label", [{"for", "wrapped-notes"}], _} = Html.element(element)
     end
+
+    test "returns {:found, element} matching by aria-label" do
+      html = """
+      <input name="search" aria-label="Search" />
+      """
+
+      assert {:found, element} = Query.find_by_label(html, "input", "Search")
+      assert {"input", [{"name", "search"}, {"aria-label", "Search"}], []} = Html.element(element)
+    end
+
+    test "returns {:found, element} matching by aria-labelledby" do
+      html = """
+      <span id="search-label">Search</span>
+      <input name="search" aria-labelledby="search-label" />
+      """
+
+      assert {:found, element} = Query.find_by_label(html, "input", "Search")
+      assert {"input", [{"name", "search"}, {"aria-labelledby", "search-label"}], []} = Html.element(element)
+    end
+
+    test "returns {:found, element} matching by aria-labelledby with multiple ids" do
+      html = """
+      <span id="label-1">Middle</span>
+      <span id="label-2">Earth</span>
+      <input name="realm" aria-labelledby="label-1 label-2" />
+      """
+
+      assert {:found, element} = Query.find_by_label(html, "input", "Middle Earth")
+      assert {"input", [{"name", "realm"}, {"aria-labelledby", "label-1 label-2"}], []} = Html.element(element)
+    end
+
+    test "aria matching honors exact option" do
+      html = """
+      <input name="search" aria-label="Search the archives" />
+      """
+
+      assert {:found, _} = Query.find_by_label(html, "input", "Search", exact: false)
+      assert {:not_found, :no_label, _} = Query.find_by_label(html, "input", "Search", exact: true)
+    end
+
+    test "aria matching normalizes whitespace" do
+      html = """
+      <input name="search" aria-label="  Search   the archives  " />
+      """
+
+      assert {:found, _} = Query.find_by_label(html, "input", "Search the archives", exact: true)
+    end
+
+    test "prefers <label> association over aria-label" do
+      html = """
+      <label for="labelled">Search</label>
+      <input id="labelled" name="labelled" />
+      <input name="aria" aria-label="Search" />
+      """
+
+      assert {:found, element} = Query.find_by_label(html, "input", "Search")
+      assert {"input", [{"id", "labelled"}, {"name", "labelled"}], []} = Html.element(element)
+    end
+
+    test "returns original label failure when aria also misses" do
+      html = """
+      <input name="search" aria-label="Something else" />
+      """
+
+      assert {:not_found, :no_label, _} = Query.find_by_label(html, "input", "Search")
+    end
+
+    test "returns :found_many_labels_with_inputs when multiple elements match via aria" do
+      html = """
+      <input name="one" aria-label="Search" />
+      <input name="two" aria-label="Search" />
+      """
+
+      assert {:not_found, :found_many_labels_with_inputs, [], inputs} = Query.find_by_label(html, "input", "Search")
+      assert length(inputs) == 2
+    end
   end
 
   describe "find_ancestor!/3" do
