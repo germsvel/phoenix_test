@@ -70,6 +70,20 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView main page")
     end
 
+    test "finds link by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate-me-aria")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
+    test "finds link by aria labelledby", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_link("Navigate-me-labelledby")
+      |> assert_has("h1", text: "LiveView page 2")
+    end
+
     test "accepts click_link with selector", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -146,6 +160,20 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/index")
       |> click_button("Show")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
+    test "finds button by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Show-me-aria")
+      |> assert_has("#tab", text: "Tab title")
+    end
+
+    test "finds button by aria labelledby", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Show-me-labelledby")
       |> assert_has("#tab", text: "Tab title")
     end
 

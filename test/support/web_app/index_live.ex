@@ -10,6 +10,9 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <h1 id="title" class="title" data-role="title">LiveView main page</h1>
 
     <.link navigate="/live/page_2?details=true&foo=bar">Navigate link</.link>
+    <.link navigate="/live/page_2" aria-label="Navigate-me-aria">asdfsda</.link>
+    <span id="navigate-me-labelledby">Navigate-me-labelledby</span>
+    <.link navigate="/live/page_2" aria-labelledby="navigate-me-labelledby">asdfsda</.link>
     <.link patch="/live/index?details=true&foo=bar">Patch link</.link>
     <.link href="/page/index?details=true&foo=bar">Navigate to non-liveview</.link>
     <.link navigate="/page/index">Navigate with navigate to dead view</.link>
@@ -40,6 +43,9 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <button phx-click="change-page-title">Change page title</button>
 
     <button phx-click="show-tab">Show tab</button>
+    <button phx-click="show-tab" aria-label="Show-me-aria">asdfsda</button>
+    <span id="show-me-labelledby">Show-me-labelledby</span>
+    <button phx-click="show-tab" aria-labelledby="show-me-labelledby">asdfsda</button>
 
     <a
       href="/page/delete_record"

@@ -59,6 +59,20 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Main page")
     end
 
+    test "finds link by aria label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("Go-to-page-2-aria")
+      |> assert_has("h1", text: "Page 2")
+    end
+
+    test "finds link by aria labelledby", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_link("Go-to-page-2-labelledby")
+      |> assert_has("h1", text: "Page 2")
+    end
+
     test "accepts selector for link", %{conn: conn} do
       conn
       |> visit("/page/index")
@@ -149,6 +163,20 @@ defmodule PhoenixTest.StaticTest do
       conn
       |> visit("/page/index")
       |> click_button("Get")
+      |> assert_has("h1", text: "Record received")
+    end
+
+    test "finds button by aria label", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("get-me-aria")
+      |> assert_has("h1", text: "Record received")
+    end
+
+    test "finds button by aria labelledby", %{conn: conn} do
+      conn
+      |> visit("/page/index")
+      |> click_button("get-me-labelledby")
       |> assert_has("h1", text: "Record received")
     end
 
