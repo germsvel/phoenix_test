@@ -395,6 +395,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("input", label: "Email", value: "someone@example.com")
     end
 
+    test "fills in a field by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Secret Name", with: "Aragorn")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "secret_name: Aragorn")
+    end
+
     test "can fill input with `nil` to override existing value", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -533,6 +541,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#full-form option[value='elf']")
     end
 
+    test "selects an option by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> select("Aria Choice", option: "Elf")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "aria_choice: elf")
+    end
+
     test "allows selecting option if a similar option exists", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -644,6 +660,14 @@ defmodule PhoenixTest.LiveTest do
       |> check("Admin")
       |> click_button("Save Full Form")
       |> assert_has("#form-data", text: "admin: on")
+    end
+
+    test "checks a checkbox by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> check("Aria Enabled")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "aria_enabled: on")
     end
 
     test "can check an unchecked checkbox", %{conn: conn} do
@@ -925,6 +949,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "contact: email")
     end
 
+    test "chooses a radio button by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> choose("Aria Email")
+      |> click_button("Save Full Form")
+      |> assert_has("#form-data", text: "aria_contact: email")
+    end
+
     test "uses the default 'checked' if present", %{conn: conn} do
       conn
       |> visit("/live/index")
@@ -1002,6 +1034,17 @@ defmodule PhoenixTest.LiveTest do
       |> within("#full-form", fn session ->
         session
         |> upload("Avatar", "test/files/elixir.jpg")
+        |> click_button("Save Full Form")
+      end)
+      |> assert_has("#form-data", text: "avatar: elixir.jpg")
+    end
+
+    test "uploads an image by aria label", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#full-form", fn session ->
+        session
+        |> upload("Aria Avatar", "test/files/elixir.jpg")
         |> click_button("Save Full Form")
       end)
       |> assert_has("#form-data", text: "avatar: elixir.jpg")

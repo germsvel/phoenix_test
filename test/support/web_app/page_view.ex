@@ -140,6 +140,18 @@ defmodule PhoenixTest.WebApp.PageView do
       <label for="level">Level (number)</label>
       <input id="level" type="number" name="level" value="7" />
 
+      <input name="secret_name" aria-label="Secret Name" />
+
+      <input type="hidden" name="aria_enabled" value="off" />
+      <input type="checkbox" name="aria_enabled" value="on" aria-label="Aria Enabled" />
+
+      <select name="aria_choice" aria-label="Aria Choice">
+        <option value="human">Human</option>
+        <option value="elf">Elf</option>
+      </select>
+
+      <input type="radio" name="aria_contact" value="email" aria-label="Aria Email" />
+
       <label for="race">Race</label>
       <select id="race" name="race">
         <option value="human">Human</option>
@@ -194,7 +206,7 @@ defmodule PhoenixTest.WebApp.PageView do
       enctype="multipart/form-data"
     >
       <label for="avatar">Avatar</label>
-      <input id="avatar" name="avatar" type="file" />
+      <input id="avatar" name="avatar" type="file" aria-label="Aria Avatar" />
 
       <label for="nested_avatar">Nested Avatar</label>
       <input id="nested_avatar" name="user[avatar]" type="file" />
