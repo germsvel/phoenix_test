@@ -69,70 +69,58 @@ defmodule PhoenixTest.Element.Form do
 
   def has_action?(form), do: Utils.present?(form.action)
 
-  @simple_value_types ~w(
-    date
-    datetime-local
-    email
-    month
-    number
-    password
-    range
-    search
-    tel
-    text
-    time
-    url
-    week
-  )
-
-  @hidden_inputs "input[type='hidden']"
-  @checked_radio_buttons "input:not([disabled])[type='radio'][value]:checked"
-  @checked_checkboxes "input:not([disabled])[type='checkbox'][value]:checked"
-  @pre_filled_default_text_inputs "input:not([disabled]):not([type])[value]"
-
-  @pre_filled_simple_value_inputs Enum.map_join(
-                                    @simple_value_types,
-                                    ",",
-                                    &"input:not([disabled])[type='#{&1}'][value]"
-                                  )
+  @enabled_controls ":is(input, textarea, select):not([disabled])[name]"
 
   defp form_data(form) do
-    FormData.new()
-    |> FormData.add_data(form_data(@hidden_inputs, form))
-    |> FormData.add_data(form_data(@checked_radio_buttons, form))
-    |> FormData.add_data(form_data(@checked_checkboxes, form))
-    |> FormData.add_data(form_data(@pre_filled_simple_value_inputs, form))
-    |> FormData.add_data(form_data(@pre_filled_default_text_inputs, form))
-    |> FormData.add_data(form_data_textarea(form))
-    |> FormData.add_data(form_data_select(form))
-  end
-
-  defp form_data(selector, form) do
     form
-    |> Html.all(selector)
-    |> Enum.map(&to_form_field/1)
-  end
-
-  defp form_data_textarea(form) do
-    form
-    |> Html.all("textarea:not([disabled])")
-    |> Enum.map(&to_form_field/1)
-  end
-
-  defp form_data_select(form) do
-    form
-    |> Html.all("select:not([disabled])")
-    |> Enum.flat_map(fn select ->
-      select
-      |> Html.selected_options()
-      |> Enum.map(&to_form_field(select, &1))
-    end)
+    |> Html.all(@enabled_controls)
+    |> Enum.reduce(FormData.new(), &append_form_field(&2, Html.tag(&1), &1))
   end
 
   def put_button_data(form, nil), do: form
 
   def put_button_data(form, %Button{} = button) do
     Map.update!(form, :form_data, &FormData.add_data(&1, button))
+  end
+
+  defp append_form_field(form_data, "input", element) do
+    name = Html.attribute(element, "name")
+    value = Html.attribute(element, "value")
+    type = Html.attribute(element, "type")
+
+    cond do
+      !value ->
+        form_data
+
+      type == "hidden" ->
+        FormData.add_data(form_data, name, value)
+
+      type in ~w(radio checkbox) and Html.attribute(element, "checked") ->
+        FormData.add_data(form_data, name, value)
+
+      type in ~w(radio checkbox) ->
+        form_data
+
+      true ->
+        FormData.add_data(form_data, name, value)
+    end
+  end
+
+  defp append_form_field(form_data, "textarea", element) do
+    FormData.add_data(form_data, to_form_field(element))
+  end
+
+  defp append_form_field(form_data, "select", select) do
+    values =
+      select
+      |> Html.selected_options()
+      |> Enum.map(&element_value/1)
+
+    case values do
+      [] -> form_data
+      [value] -> FormData.add_data(form_data, Html.attribute(select, "name"), value)
+      many -> FormData.add_data(form_data, Html.attribute(select, "name"), many)
+    end
   end
 
   defp to_form_field(element) do
