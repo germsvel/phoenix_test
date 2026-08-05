@@ -1,6 +1,27 @@
-
 Changelog
 =========
+
+## 0.12.0
+
+### Added
+
+- Support aria-label/aria-labelledby in click_link/click_button (#320) [91a9d30]
+- Support aria-label and aria-labelledby in form actions and assertions (#319) [178404f], [e3ec684]
+- Support nested withins (#317) [50f390c]
+
+### Fixes
+
+- Omit hidden input before checkbox group (#314) [ff122ce]
+
+[91a9d30]: https://github.com/germsvel/phoenix_test/commit/91a9d30
+[e3ec684]: https://github.com/germsvel/phoenix_test/commit/e3ec684
+[178404f]: https://github.com/germsvel/phoenix_test/commit/178404f
+[50f390c]: https://github.com/germsvel/phoenix_test/commit/50f390c
+[ff122ce]: https://github.com/germsvel/phoenix_test/commit/ff122ce
+[49edda3]: https://github.com/germsvel/phoenix_test/commit/49edda3
+[1aaa48c]: https://github.com/germsvel/phoenix_test/commit/1aaa48c
+[52e369a]: https://github.com/germsvel/phoenix_test/commit/52e369a
+[ee87ae5]: https://github.com/germsvel/phoenix_test/commit/ee87ae5
 
 Noteworthy changes are included here. For a full version of changes, see git
 history.
