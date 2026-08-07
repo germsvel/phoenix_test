@@ -91,6 +91,15 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("h1", text: "LiveView page 2")
     end
 
+    test "clicks a link within a scoped selector", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within(".wibble", fn session ->
+        click_link(session, "Scoped link")
+      end)
+      |> assert_path("/live/page_2")
+    end
+
     test "handles patches to current view", %{conn: conn} do
       conn
       |> visit("/live/index")
