@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Noteworthy changes are included here. For a full version of changes, see git
+history.
+
+To see dates a version was published, see the [hex package
+page](https://hex.pm/packages/phoenix_test)
+
 ## 0.12.0
 
 ### Added
@@ -22,12 +28,6 @@ Changelog
 [1aaa48c]: https://github.com/germsvel/phoenix_test/commit/1aaa48c
 [52e369a]: https://github.com/germsvel/phoenix_test/commit/52e369a
 [ee87ae5]: https://github.com/germsvel/phoenix_test/commit/ee87ae5
-
-Noteworthy changes are included here. For a full version of changes, see git
-history.
-
-To see dates a version was published, see the [hex package
-page](https://hex.pm/packages/phoenix_test)
 
 ## 0.11.1
 
