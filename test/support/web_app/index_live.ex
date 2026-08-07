@@ -29,9 +29,11 @@ defmodule PhoenixTest.WebApp.IndexLive do
     <div>
       <div class="wibble">
         <button phx-click="do-it">action</button>
+        <.link navigate="/live/page_2">Scoped link</.link>
       </div>
       <div class="wobble">
         <button phx-click="do-it">action</button>
+        <.link navigate="/live/page_2">Scoped link</.link>
       </div>
     </div>
 

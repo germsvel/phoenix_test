@@ -83,7 +83,7 @@ defmodule PhoenixTest.Live do
           |> PhoenixTest.Static.click_with_data_method(link)
         else
           session.view
-          |> element(scope_selector(link.selector, session.within), link.text)
+          |> element(link.selector, link.text)
           |> render_click()
           |> maybe_redirect(session)
         end
