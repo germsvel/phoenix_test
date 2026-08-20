@@ -141,12 +141,17 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error when link element can't be found with given text", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
-        conn
-        |> visit("/page/index")
-        |> click_link("No link")
-      end
+    test "reports text-filter diagnostics when a link cannot be found", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/page/index")
+          |> click_link("No link")
+        end
+
+      assert error.message =~ "Could not find element with selector \"a\" and text \"No link\"."
+      assert error.message =~ "The following elements matching the selector were found:"
+      assert error.message =~ "<a href=\"/page/page_2?foo=bar\">Page 2</a>"
     end
 
     test "raises an error when there are no links on the page", %{conn: conn} do
@@ -317,25 +322,31 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error if can't find button", %{conn: conn} do
-      msg = ~r/Could not find an element with given selectors/
+    test "reports role selectors and near matches when a button cannot be found", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/page/index")
+          |> click_button("No button")
+        end
 
-      assert_raise ArgumentError, msg, fn ->
-        conn
-        |> visit("/page/index")
-        |> click_button("No button")
-      end
+      assert error.message =~ "Could not find an element with given selectors."
+      assert error.message =~ ~s|- "button" with content "No button"|
+      assert error.message =~ "I found some elements that match the selector but not the content:"
+      assert error.message =~ "<button>Get record</button>"
     end
 
-    test "raises an error if button is not part of form", %{conn: conn} do
-      msg =
-        ~r/Could not find "form" for an element with selector/
+    test "reports ancestor lookup diagnostics when a button has no form", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/page/index")
+          |> click_button("Actionless Button")
+        end
 
-      assert_raise ArgumentError, msg, fn ->
-        conn
-        |> visit("/page/index")
-        |> click_button("Actionless Button")
-      end
+      assert error.message =~ "Could not find \"form\" for an element with selector \"button[type"
+      assert error.message =~ "Found other potential \"form\":"
+      assert error.message =~ "<form"
     end
   end
 
@@ -467,14 +478,18 @@ defmodule PhoenixTest.StaticTest do
       end
     end
 
-    test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
-      msg = ~r/Found label but can't find labeled element whose `id` matches/
+    test "reports label and selector diagnostics when its labeled input is missing", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/page/index")
+          |> fill_in("Email (no input)", with: "some@example.com")
+        end
 
-      assert_raise ArgumentError, msg, fn ->
-        conn
-        |> visit("/page/index")
-        |> fill_in("Email (no input)", with: "some@example.com")
-      end
+      assert error.message =~ "Found label but can't find labeled element whose `id` matches"
+      assert error.message =~ "<label for=\"email-no-input\">Email (no input)</label>"
+      assert error.message =~ "Searched for elements with these selectors:"
+      assert error.message =~ "input:not([type='hidden'])"
     end
   end
 

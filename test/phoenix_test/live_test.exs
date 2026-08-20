@@ -147,12 +147,16 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error when link element can't be found with given text", %{conn: conn} do
-      assert_raise ArgumentError, ~r/elements but none matched the text filter "No link"/, fn ->
-        conn
-        |> visit("/live/index")
-        |> click_link("No link")
-      end
+    test "reports text-filter diagnostics when a link cannot be found", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/live/index")
+          |> click_link("No link")
+        end
+
+      assert error.message =~ "selector \"a\" returned"
+      assert error.message =~ "but none matched the text filter \"No link\""
     end
 
     test "raises an error when there are no links on the page", %{conn: conn} do
@@ -337,12 +341,17 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error when there are no buttons on page", %{conn: conn} do
-      assert_raise ArgumentError, ~r/Could not find an element/, fn ->
-        conn
-        |> visit("/live/page_2")
-        |> click_button("Show tab")
-      end
+    test "reports role selectors when no button can be found", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/live/page_2")
+          |> click_button("Show tab")
+        end
+
+      assert error.message =~ "Could not find an element with given selectors."
+      assert error.message =~ ~s|- "button" with content "Show tab"|
+      assert error.message =~ "input[type=\\\"submit\\\"][value=\\\"Show tab\\\"]"
     end
 
     test "raises an error if button is not part of form and has no phx-submit", %{conn: conn} do
@@ -559,14 +568,18 @@ defmodule PhoenixTest.LiveTest do
       end
     end
 
-    test "raises an error when label is found but no corresponding input is found", %{conn: conn} do
-      msg = ~r/Found label but can't find labeled element whose `id` matches/
+    test "reports label and selector diagnostics when its labeled input is missing", %{conn: conn} do
+      error =
+        assert_raise ArgumentError, fn ->
+          conn
+          |> visit("/live/index")
+          |> fill_in("Email (no input)", with: "some@example.com")
+        end
 
-      assert_raise ArgumentError, msg, fn ->
-        conn
-        |> visit("/live/index")
-        |> fill_in("Email (no input)", with: "some@example.com")
-      end
+      assert error.message =~ "Found label but can't find labeled element whose `id` matches"
+      assert error.message =~ "<label for=\"invalid-form-email\">Email (no input)</label>"
+      assert error.message =~ "Searched for elements with these selectors:"
+      assert error.message =~ "input:not([type='hidden'])"
     end
   end
 

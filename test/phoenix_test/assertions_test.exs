@@ -158,6 +158,20 @@ defmodule PhoenixTest.AssertionsTest do
       end
     end
 
+    test "reports ambiguous labeled controls as an assertion count failure", %{conn: conn} do
+      error =
+        assert_raise AssertionError, fn ->
+          conn
+          |> visit("/page/index")
+          |> within("#same-labels", &assert_has(&1, "input", label: "Character", count: 1))
+        end
+
+      assert error.message =~ "Expected 1 element with \"input\" with label \"Character\""
+      assert error.message =~ "But found 2:"
+      assert error.message =~ "id=\"book-characters\""
+      assert error.message =~ "id=\"movie-characters\""
+    end
+
     test "assert by aria-label", %{conn: conn} do
       conn
       |> visit("/page/by_value")
