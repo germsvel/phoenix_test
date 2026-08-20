@@ -88,6 +88,25 @@ defmodule PhoenixTest.QueryTest do
 
       assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(candidates)
     end
+
+    test "applies position before matching text" do
+      assert {:error, %Failure{kind: :not_found, candidates: candidates}} =
+               Query.find("<p>one</p><p>two</p>", "p", "two", at: 1)
+
+      assert [{"p", _, ["one"]}, {"p", _, ["two"]}] = LazyHTML.to_tree(candidates)
+    end
+
+    test "reports a position beyond the selector matches" do
+      assert {:error, %Failure{kind: :not_found, candidates: candidates}} =
+               Query.find("<p>one</p>", "p", at: 2)
+
+      assert Enum.empty?(candidates)
+    end
+
+    test "uses exact text matching with a selector position" do
+      assert {:ok, element} = Query.find("<p>one</p><p>one!</p>", "p", "one", exact: true, at: 1)
+      assert {"p", _, ["one"]} = Html.element(element)
+    end
   end
 
   describe "find_first and selected" do
@@ -159,7 +178,7 @@ defmodule PhoenixTest.QueryTest do
     end
   end
 
-  describe "one-of and role" do
+  describe "find_one_of" do
     test "finds one selector and text pair" do
       assert {:ok, element} = Query.find_one_of("<h1 id=title>Hello</h1><h2>Other</h2>", [{"h1", "Hello"}, {"h2", "Hi"}])
       assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
@@ -192,6 +211,30 @@ defmodule PhoenixTest.QueryTest do
       assert [{"h2", _, ["Hello"]}, {"h2", _, ["Greetings"]}] = candidates |> hd() |> LazyHTML.to_tree()
     end
 
+    test "reports no candidates when no selector matches" do
+      assert {:error, %Failure{kind: :not_found, candidates: candidates, details: %{results: results}}} =
+               Query.find_one_of("<h1>Hello</h1>", ["h2", {"h3", "Hello"}])
+
+      assert [candidate] = candidates
+      assert Enum.empty?(candidate)
+      assert Enum.all?(results, &match?({:error, %Failure{kind: :not_found}}, &1))
+    end
+
+    test "combines a bare selector with a selector and text pair" do
+      assert {:ok, element} = Query.find_one_of("<h1>Hello</h1><h2>Two</h2>", ["h1", {"h2", "Three"}])
+      assert {"h1", _, ["Hello"]} = Html.element(element)
+    end
+
+    test "reports matches from duplicate selector entries" do
+      assert {:error, %Failure{kind: :multiple_matches, candidates: [one, two]}} =
+               Query.find_one_of("<h1>Hello</h1>", ["h1", "h1"])
+
+      assert {"h1", _, ["Hello"]} = Html.element(one)
+      assert {"h1", _, ["Hello"]} = Html.element(two)
+    end
+  end
+
+  describe "find_by_role" do
     test "role lookup finds a button" do
       locator = Locators.button(text: "Hello")
       assert {:ok, element} = Query.find_by_role("<button id=title>Hello</button>", locator)
@@ -225,7 +268,7 @@ defmodule PhoenixTest.QueryTest do
     end
   end
 
-  describe "labels" do
+  describe "find_by_label" do
     test "reports no label" do
       assert {:error,
               %Failure{
@@ -379,6 +422,33 @@ defmodule PhoenixTest.QueryTest do
 
       assert {:error, %Failure{kind: :multiple_matches, labels: [], inputs: [_, _]}} =
                Query.find_by_label(html, "input", "Search")
+    end
+
+    test "accepts multiple input selectors" do
+      html = "<label for=message>Message</label><textarea id=message></textarea>"
+      assert {:ok, element} = Query.find_by_label(html, ["input", "textarea"], "Message")
+      assert {"textarea", [{"id", "message"}], []} = Html.element(element)
+    end
+
+    test "uses exact matching for html labels by default" do
+      assert {:error, %Failure{kind: :no_label}} =
+               Query.find_by_label("<label for=name>Full name</label><input id=name>", "input", "name")
+    end
+
+    test "can use substring matching for html labels" do
+      assert {:ok, element} =
+               Query.find_by_label("<label for=name>Full name</label><input id=name>", "input", "name", exact: false)
+
+      assert {"input", [{"id", "name"}], []} = Html.element(element)
+    end
+
+    test "reports duplicate explicitly associated inputs" do
+      html = "<label for=name>Name</label><input id=name><input id=name>"
+
+      assert {:error, %Failure{kind: :missing_labeled_input, labels: [_], candidates: candidates}} =
+               Query.find_by_label(html, "input", "Name")
+
+      assert [{"input", [{"id", "name"}], []}, {"input", [{"id", "name"}], []}] = Enum.map(candidates, &Html.element/1)
     end
   end
 
