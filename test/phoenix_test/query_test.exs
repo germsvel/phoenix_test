@@ -1,1103 +1,462 @@
 defmodule PhoenixTest.QueryTest do
   use ExUnit.Case, async: true
 
-  import PhoenixTest.TestHelpers
-
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
   alias PhoenixTest.Query
+  alias PhoenixTest.Query.Failure
 
-  describe "find!/2" do
-    test "finds element with selector (like find/2)" do
-      html = """
-      <h1>Hello</h1>
-      """
-
-      %LazyHTML{} = element = Query.find!(html, "h1")
-
+  describe "find" do
+    test "finds an element by tag" do
+      assert {:ok, element} = Query.find("<h1>Hello</h1>", "h1")
       assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
-    test "raises error if no element is found" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
-
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
-        Query.find!(html, ".no-value")
-      end
-    end
-
-    test "raises an error if more than one element is found" do
-      html = """
-      <div class="greeting">Hello</div>
-      <div class="greeting">Hi</div>
-      """
-
-      assert_raise ArgumentError, ~r/Found more than one element with selector/, fn ->
-        Query.find!(html, ".greeting")
-      end
-    end
-  end
-
-  describe "find!/3" do
-    test "finds element with selector (like find/3)" do
-      html = """
-      <h1>Hello</h1>
-      """
-
-      %LazyHTML{} = element = Query.find!(html, "h1", "Hello")
-
-      assert {"h1", _, ["Hello"]} = Html.element(element)
-    end
-
-    test "raises error if no element is found" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
-
-      assert_raise ArgumentError, ~r/Could not find element with selector/, fn ->
-        Query.find!(html, ".no-value", "Hello")
-      end
-    end
-
-    test "raises an error if more than one element is found" do
-      html = """
-      <div class="greeting">Hello</div>
-      <div class="greeting">Hello</div>
-      """
-
-      assert_raise ArgumentError, ~r/Found more than one element with selector/, fn ->
-        Query.find!(html, ".greeting", "Hello")
-      end
-    end
-  end
-
-  describe "find/2" do
-    test "finds element with tag" do
-      html = """
-      <h1>Hello</h1>
-      """
-
-      {:found, element} = Query.find(html, "h1")
-
-      assert {"h1", _, ["Hello"]} = Html.element(element)
-    end
-
-    test "finds element with an attribute selector" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
-
-      {:found, element} = Query.find(html, "#title")
-
+    test "finds an element by attribute selector" do
+      assert {:ok, element} = Query.find("<h1 id=\"title\">Hello</h1>", "#title")
       assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
     end
 
-    test "finds elements if multiple match selector" do
-      html = """
-      <div class="greeting">Hello</div>
-      <div class="greeting">Hi</div>
-      """
+    test "reports all selector matches" do
+      assert {:error, %Failure{kind: :multiple_matches, candidates: elements}} =
+               Query.find("<div class=greeting>Hello</div><div class=greeting>Hi</div>", ".greeting")
 
-      {:found_many, %LazyHTML{} = elements} = Query.find(html, ".greeting")
-
-      assert [
-               {"div", [{"class", "greeting"}], ["Hello"]},
-               {"div", [{"class", "greeting"}], ["Hi"]}
-             ] = LazyHTML.to_tree(elements)
+      assert [{"div", _, ["Hello"]}, {"div", _, ["Hi"]}] = Enum.map(elements, &Html.element/1)
     end
 
-    test "returns :not_found if selector doesn't match an element" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
-
-      assert :not_found = Query.find(html, ".no-value")
+    test "reports a missing selector" do
+      assert {:error, %Failure{kind: :not_found, operation: :find, request: %{selector: ".missing"}, candidates: []}} =
+               Query.find("<h1>Hello</h1>", ".missing")
     end
-  end
 
-  describe "find/3" do
-    test "finds element with tag and text" do
-      html = """
-      <h1>Hello</h1>
-      """
-
-      {:found, element} = Query.find(html, "h1", "Hello")
-
+    test "finds text" do
+      assert {:ok, element} = Query.find("<h1>Hello</h1>", "h1", "Hello")
       assert {"h1", _, ["Hello"]} = Html.element(element)
     end
 
-    test "ignores element's extra whitespace" do
-      html = """
-      <h1>Hello       </h1>
-      """
-
-      {:found, element} = Query.find(html, "h1", "Hello")
-
+    test "matches text with trailing whitespace" do
+      assert {:ok, element} = Query.find("<h1>Hello       </h1>", "h1", "Hello")
       assert {"h1", _, ["Hello       "]} = Html.element(element)
     end
 
-    test "matches on exact text if required" do
-      html = """
-      <h1>Hello world</h1>
-      """
-
-      assert {:found, _} = Query.find(html, "h1", "Hello")
-      assert {:not_found, _} = Query.find(html, "h1", "Hello", exact: true)
+    test "uses substring matching unless exact is requested" do
+      assert {:ok, _} = Query.find("<h1>Hello world</h1>", "h1", "Hello")
+      assert {:error, %Failure{kind: :not_found}} = Query.find("<h1>Hello world</h1>", "h1", "Hello", exact: true)
     end
 
-    test "finds an element with attribute selector and text" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
-
-      {:found, element} = Query.find(html, "#title", "Hello")
-
+    test "finds attribute selector and text" do
+      assert {:ok, element} = Query.find("<h1 id=\"title\">Hello</h1>", "#title", "Hello")
       assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
     end
 
-    test "finds elements if multiple match selector AND text" do
-      html = """
-      <div class="greeting">Hello</div>
-      <div class="greeting">Hello</div>
-      """
+    test "reports multiple text matches" do
+      assert {:error, %Failure{kind: :multiple_matches, candidates: [one, two]}} =
+               Query.find("<div class=greeting>Hello</div><div class=greeting>Hello</div>", ".greeting", "Hello")
 
-      {:found_many, [el1, el2]} = Query.find(html, ".greeting", "Hello")
-
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = Html.element(el1)
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = Html.element(el2)
+      assert {"div", _, ["Hello"]} = Html.element(one)
+      assert {"div", _, ["Hello"]} = Html.element(two)
     end
 
-    test "only returns element `at` (1-based index) if requested" do
-      html = """
-      <div id="1" class="greeting">Hello</div>
-      <div id="2" class="greeting">Hello</div>
-      """
-
-      {:found, element} = Query.find(html, ".greeting", "Hello", at: 2)
-
-      assert {"div", [{"id", "2"}, _], ["Hello"]} = Html.element(element)
+    test "uses one-based position" do
+      html = "<div id=\"1\" class=greeting>Hello</div><div id=\"2\" class=greeting>Hello</div>"
+      assert {:ok, element} = Query.find(html, ".greeting", "Hello", at: 2)
+      assert {"div", [{"id", "2"} | _], ["Hello"]} = Html.element(element)
     end
 
-    test "finds element with text if multiple match CSS selector" do
-      html = """
-      <div class="greeting">Hello</div>
-      <div class="greeting">Hi</div>
-      """
-
-      {:found, element} = Query.find(html, ".greeting", "Hello")
-
-      assert {"div", [{"class", "greeting"}], ["Hello"]} = Html.element(element)
+    test "position can make a multiple selector match unique" do
+      assert {:ok, element} = Query.find("<p>one</p><p>two</p>", "p", at: 1)
+      assert {"p", _, ["one"]} = Html.element(element)
     end
 
-    test "returns :not_found if selector and text don't match an element" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
+    test "selects text from several CSS candidates" do
+      assert {:ok, element} =
+               Query.find("<div class=greeting>Hello</div><div class=greeting>Hi</div>", ".greeting", "Hello")
 
-      assert {:not_found, %LazyHTML{} = elements} = Query.find(html, ".no-value", "no value")
-      assert Enum.empty?(elements)
+      assert {"div", _, ["Hello"]} = Html.element(element)
     end
 
-    test "returns :not_found with elements that matched selector but not text (if any)" do
-      html = """
-      <h1 id="title">Hello</h1>
-      """
+    test "retains no candidates when selector and text both miss" do
+      assert {:error, %Failure{kind: :not_found, candidates: candidates}} =
+               Query.find("<h1>Hello</h1>", ".missing", "no value")
 
-      assert {:not_found, %LazyHTML{} = element} = Query.find(html, "h1", "no value")
-      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
+      assert Enum.empty?(candidates)
+    end
+
+    test "retains selector candidates when text misses" do
+      assert {:error, %Failure{kind: :not_found, request: %{selector: "h1", text: "no value"}, candidates: candidates}} =
+               Query.find("<h1 id=title>Hello</h1>", "h1", "no value")
+
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(candidates)
     end
   end
 
-  describe "find_by_role!/2" do
-    test "finds an element based on locator's roles" do
-      html = """
-      <button id="title">Hello</button>
-      """
+  describe "find_first and selected" do
+    test "find_first returns the first selector match" do
+      assert {:ok, element} = Query.find_first("<p>one</p><p>two</p>", "p")
+      assert {"p", _, ["one"]} = Html.element(element)
+    end
 
+    test "find_first reports a missing selector" do
+      assert {:error, %Failure{kind: :not_found, operation: :find, request: %{selector: "p"}}} =
+               Query.find_first("<div></div>", "p")
+    end
+
+    test "find_first filters by text" do
+      assert {:ok, element} = Query.find_first("<p>one</p><p>two</p>", "p", "two")
+      assert {"p", _, ["two"]} = Html.element(element)
+    end
+
+    test "find_first retains candidates when text misses" do
+      assert {:error, %Failure{kind: :not_found, operation: :find_first, candidates: candidates}} =
+               Query.find_first("<p>one</p>", "p", "two")
+
+      assert [{"p", _, ["one"]}] = LazyHTML.to_tree(candidates)
+    end
+
+    test "finds select by selected option text" do
+      assert {:ok, element} = Query.find_by_selected("<select><option selected>One</option></select>", "select", "One")
+      assert {"select", _, _} = Html.element(element)
+    end
+
+    test "reports selected candidates that do not match" do
+      assert {:error, %Failure{kind: :not_found, operation: :find_by_selected, candidates: candidates}} =
+               Query.find_by_selected("<select><option selected>One</option></select>", "select", "Two")
+
+      assert {"select", _, _} = Html.element(candidates)
+    end
+
+    test "uses position when finding selected options" do
+      html = "<select><option selected>One</option></select><select><option selected>Two</option></select>"
+      assert {:ok, element} = Query.find_by_selected(html, "select", "Two", at: 2)
+      assert {"select", _, _} = Html.element(element)
+    end
+
+    test "reports multiple selected matches" do
+      html = "<select><option selected>One</option></select><select><option selected>One</option></select>"
+
+      assert {:error, %Failure{kind: :multiple_matches, candidates: [_, _]}} =
+               Query.find_by_selected(html, "select", "One")
+    end
+
+    test "does not treat a non-default option as selected" do
+      assert {:error, %Failure{kind: :not_found}} =
+               Query.find_by_selected("<select><option>One</option><option>Two</option></select>", "select", "Two")
+    end
+
+    test "finds a labelled select by selected option" do
+      html = "<label for=role>Role</label><select id=role><option selected>Admin</option></select>"
+      assert {:ok, _} = Query.find_by_label_and_selected(html, "select", "Role", "Admin")
+    end
+
+    test "labelled selected lookup preserves label failures" do
+      assert {:error,
+              %Failure{
+                kind: :no_label,
+                operation: :find_by_label_and_selected,
+                request: %{label: "Role", selected: "Admin"}
+              }} =
+               Query.find_by_label_and_selected("<select></select>", "select", "Role", "Admin")
+    end
+  end
+
+  describe "one-of and role" do
+    test "finds one selector and text pair" do
+      assert {:ok, element} = Query.find_one_of("<h1 id=title>Hello</h1><h2>Other</h2>", [{"h1", "Hello"}, {"h2", "Hi"}])
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
+    end
+
+    test "accepts bare selectors" do
+      assert {:ok, element} = Query.find_one_of("<h1 id=title>Hello</h1>", ["h1"])
+      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
+    end
+
+    test "reports all matches across selectors" do
+      assert {:error, %Failure{kind: :multiple_matches, candidates: [one, two, three]}} =
+               Query.find_one_of("<h1>Hello</h1><h2>Hi</h2><h2>Hi again</h2>", [{"h1", "Hello"}, {"h2", "Hi"}])
+
+      assert {"h1", _, _} = Html.element(one)
+      assert {"h2", _, _} = Html.element(two)
+      assert {"h2", _, _} = Html.element(three)
+    end
+
+    test "retains potential text candidates" do
+      assert {:error,
+              %Failure{
+                kind: :not_found,
+                request: %{selectors: [{"h2", "Hi"}]},
+                candidates: candidates,
+                details: %{results: _}
+              }} =
+               Query.find_one_of("<h2>Hello</h2><h2>Greetings</h2>", [{"h2", "Hi"}])
+
+      assert [{"h2", _, ["Hello"]}, {"h2", _, ["Greetings"]}] = candidates |> hd() |> LazyHTML.to_tree()
+    end
+
+    test "role lookup finds a button" do
       locator = Locators.button(text: "Hello")
-
-      element = Query.find_by_role!(html, locator)
-
+      assert {:ok, element} = Query.find_by_role("<button id=title>Hello</button>", locator)
       assert {"button", _, ["Hello"]} = Html.element(element)
     end
 
-    test "raises an error if there's no match" do
-      html = """
-      <button id="title">Hello</button>
-      """
-
+    test "role lookup reports no match as structured failure" do
       locator = Locators.button(text: "Hi")
 
-      assert_raise ArgumentError, ~r/Could not find an element/, fn ->
-        Query.find_by_role!(html, locator)
-      end
+      assert {:error,
+              %Failure{
+                kind: :not_found,
+                operation: :find_by_role,
+                request: %{locator: ^locator, role_selectors: _},
+                details: %{label_failure: %Failure{}}
+              }} =
+               Query.find_by_role("<button>Hello</button>", locator)
     end
 
-    test "raises an error if there's more than one match" do
-      html = """
-      <button id="title">Hello</button>
-      <input type="submit" value="Hello" />
-      """
-
+    test "role lookup reports multiple matches" do
       locator = Locators.button(text: "Hello")
 
-      assert_raise ArgumentError, ~r/too many matches/, fn ->
-        Query.find_by_role!(html, locator)
-      end
+      assert {:error, %Failure{kind: :multiple_matches, operation: :find_by_role, candidates: [_, _]}} =
+               Query.find_by_role("<button>Hello</button><input type=submit value=Hello>", locator)
+    end
+
+    test "role lookup falls back to an associated label" do
+      locator = Locators.button(text: "Save")
+      assert {:ok, element} = Query.find_by_role("<label for=save>Save</label><input id=save type=submit>", locator)
+      assert {"input", _, []} = Html.element(element)
     end
   end
 
-  describe "find_one_of!/2" do
-    test "returns element when one matches" do
-      html = """
-      <h1 id="title">Hello</h1>
-      <h2 id="subtitle">Not found</h2>
-      """
+  describe "labels" do
+    test "reports no label" do
+      assert {:error,
+              %Failure{
+                kind: :no_label,
+                labels: [],
+                candidates: candidates,
+                request: %{label: "Name", input_selectors: ["input"]}
+              }} =
+               Query.find_by_label("<input id=name>", "input", "Name")
 
-      element = Query.find_one_of!(html, [{"h1", "Hello"}, {"h2", "Hi"}])
-
-      assert {"h1", _, ["Hello"]} = Html.element(element)
+      assert Enum.empty?(candidates)
     end
 
-    test "raises error if multiple match" do
-      html = """
-      <h2>Hello</h2>
-      <h2>Greetings</h2>
-      """
+    test "retains other labels when requested label is absent" do
+      assert {:error, %Failure{kind: :no_label, candidates: candidates}} =
+               Query.find_by_label("<label for=name>Names</label>", "input", "Email")
 
-      assert_raise ArgumentError, ~r/too many matches/, fn ->
-        Query.find_one_of!(html, ["h2"])
-      end
+      assert {"label", [{"for", "name"}], ["Names"]} = Html.element(candidates)
     end
 
-    test "raises an error when element could not be found" do
-      html = """
-      <h1>Hello</h1>
-      """
+    test "reports a label without for" do
+      assert {:error, %Failure{kind: :missing_label_for, labels: [label]}} =
+               Query.find_by_label("<label>Name</label>", "input", "Name")
 
-      msg = ~r/Could not find an element with given selectors./
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
-      end
-    end
-
-    test "raises error including potential matches when there are some" do
-      html = """
-      <h2>Hello</h2>
-      <h2>Greetings</h2>
-      """
-
-      msg =
-        ignore_whitespace("""
-        Could not find an element with given selectors.
-
-        I was looking for an element with one of these selectors:
-
-        - "h2" with content "Hi"
-        - "h3"
-
-        I found some elements that match the selector but not the content:
-
-        <h2>Hello</h2>
-        <h2>Greetings</h2>
-        """)
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_one_of!(html, [{"h2", "Hi"}, "h3"])
-      end
-    end
-  end
-
-  describe "find_one_of/2" do
-    test "finds one of elements that match passed selectors" do
-      html = """
-      <h1 id="title">Hello</h1>
-      <h2 id="subtitle">Not found</h2>
-      """
-
-      {:found, element} = Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
-
-      assert {"h1", _, ["Hello"]} = Html.element(element)
-    end
-
-    test "finds elements with selector or selector and text" do
-      html = """
-      <h1 id="title">Hello</h1>
-      <h2 id="subtitle">Hi</h2>
-      """
-
-      assert {:found, _element} = Query.find_one_of(html, [{"h1", "Hello"}])
-      assert {:found, element} = Query.find_one_of(html, ["h1"])
-      assert {"h1", [{"id", "title"}], ["Hello"]} = Html.element(element)
-    end
-
-    test "returns {:found_many, found} when several match" do
-      html = """
-      <h1 id="title">Hello</h1>
-      <h2 id="subtitle">Hi</h2>
-      <h2 id="another">Hi again</h2>
-      """
-
-      {:found_many, [elem1, elem2, elem3]} =
-        Query.find_one_of(html, [{"h1", "Hello"}, {"h2", "Hi"}])
-
-      assert {"h1", _, ["Hello"]} = Html.element(elem1)
-      assert {"h2", _, ["Hi"]} = Html.element(elem2)
-      assert {"h2", _, ["Hi again"]} = Html.element(elem3)
-    end
-
-    test "returns :not_found when no selector matches" do
-      html = """
-      <h2>Hello</h2>
-      <h2>Greetings</h2>
-      """
-
-      assert {:not_found, []} = Query.find_one_of(html, ["h1"])
-
-      assert {:not_found, matched_selector_but_not_text} =
-               Query.find_one_of(html, [{"h2", "Hi"}])
-
-      [a, b] = LazyHTML.to_tree(matched_selector_but_not_text)
-      assert {"h2", _, ["Hello"]} = a
-      assert {"h2", _, ["Greetings"]} = b
-    end
-  end
-
-  describe "find_by_label!/3" do
-    test "raises error if no label is found" do
-      html = """
-      <input id="name"/>
-      """
-
-      msg = """
-      Could not find element with label "Name"
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input", "Name")
-      end
-    end
-
-    test "raises if label isn't found (but other labels are present)" do
-      html = """
-      <label for="name">Names</label>
-      """
-
-      assert_raise ArgumentError, ~r/Could not find element with label "Email"/, fn ->
-        Query.find_by_label!(html, "input", "Email")
-      end
-    end
-
-    test "raises error if label doesn't have a `for` attribute" do
-      html = """
-      <label>Name</label>
-      """
-
-      assert_raise ArgumentError, ~r/Found label, but it doesn't have `for` attribute/, fn ->
-        Query.find_by_label!(html, "input", "Name")
-      end
-    end
-
-    test "raises error if label's `for` doesn't have corresponding `id`" do
-      html = """
-      <label for="name">Name</label>
-      <input type="text" name="name" />
-      """
-
-      assert_raise ArgumentError, ~r/but can't find labeled element whose `id` matches label's `for` attribute/, fn ->
-        Query.find_by_label!(html, "input", "Name")
-      end
-    end
-
-    test "raises error if multiple labels match" do
-      html = """
-      <label for="greeting">Hello</label>
-      <label for="second_greeting">Hello</label>
-      """
-
-      msg = ~r/Found many labels with text "Hello"/
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input", "Hello")
-      end
-    end
-
-    test "raises error if multiple labels and inputs match" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input id="greeting" />
-      <label for="second_greeting">Hello</label>
-      <input id="second_greeting" />
-      """
-
-      msg = ~r/Found many elements with label "Hello" and matching the provided selectors/
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input", "Hello")
-      end
-    end
-
-    test "raises error if multiple labels and inputs match (one explicit, one implicit)" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input id="greeting" />
-
-      <label>Hello <input id="second_greeting" /></label>
-      """
-
-      msg = ~r/Found many elements with label "Hello" and matching the provided selectors/
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input", "Hello")
-      end
-    end
-
-    test "raises error if label has for attribute and nested input" do
-      html = """
-      <label for="other_greeting">Hello <input /></label>
-      <input id="other_greeting" />
-      """
-
-      msg = ~r/Found a label which references two different inputs/
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label!(html, "input", "Hello")
-      end
-    end
-
-    test "returns found element" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input id="greeting"/>
-      """
-
-      element = Query.find_by_label!(html, "input", "Hello")
-
-      assert {"input", [{"id", "greeting"}], []} = Html.element(element)
-    end
-
-    test "returns found element label points to (even if id has ? character)" do
-      html = """
-      <label for="greeting?">Hello</label>
-      <input id="greeting?"/>
-      """
-
-      element = Query.find_by_label!(html, "input", "Hello")
-
-      assert {"input", [{"id", "greeting?"}], []} = Html.element(element)
-    end
-
-    test "returns found element when association is implicit" do
-      html = """
-      <label>
-        Hello
-        <input name="greeting" />
-      </label>
-      """
-
-      element = Query.find_by_label!(html, "input", "Hello")
-
-      assert {"input", [{"name", "greeting"}], []} = Html.element(element)
-    end
-
-    test "can filter labels based on associated input's selector" do
-      html = """
-      <input id="greeting" value="greeting" name="greeting" />
-      <label for="greeting">Hello</label>
-
-      <input id="second_greeting" value="second_greeting" name="second_greeting"/>
-      <label for="second_greeting">Hello</label>
-      """
-
-      element = Query.find_by_label!(html, "#greeting", "Hello")
-
-      assert {"input", [{"id", "greeting"} | _], []} = Html.element(element)
-    end
-
-    test "raises error if label's for doesn't have matching element with id" do
-      html = """
-      <label for="name">Name</label>
-      <input id="not-name" type="text" name="name" />
-      """
-
-      assert_raise ArgumentError,
-                   ~r/Found label but can't find labeled element whose `id` matches label's `for` attribute./,
-                   fn ->
-                     Query.find_by_label!(html, "#not-name", "Name")
-                   end
-    end
-
-    test "raises error if label matches element with id but not the provided selector" do
-      html = """
-      <label for="name">Name</label>
-      <input id="not-name" type="text" name="name" />
-      """
-
-      assert_raise ArgumentError,
-                   ~r/Found label but can't find labeled element whose `id` matches label's `for` attribute/,
-                   fn ->
-                     Query.find_by_label!(html, "input[id='not-name']", "Name")
-                   end
-    end
-
-    test "raises error if label matches element with provided selector but input doesn't have matching id" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input name="greeting"/>
-      """
-
-      assert_raise ArgumentError, ~r/can't find labeled element whose `id` matches/, fn ->
-        Query.find_by_label!(html, "input[name='greeting']", "Hello")
-      end
-    end
-
-    test "raises error if label with element and implicit association but input selector doesn't match" do
-      html = """
-      <label>
-        Hello
-        <input name="greeting" />
-      </label>
-      """
-
-      assert_raise ArgumentError, ~r/Found label, but it doesn't have `for` attribute/, fn ->
-        Query.find_by_label!(html, "input[name='not-greeting']", "Hello")
-      end
-    end
-  end
-
-  describe "find_by_label/3" do
-    test "returns :no_label error if label isn't found" do
-      html = """
-      <input id="name"/>
-      """
-
-      assert {:not_found, :no_label, %LazyHTML{} = element} = Query.find_by_label(html, "input", "Name")
-
-      assert Enum.empty?(element)
-    end
-
-    test "returns :no_label error with other labels present if some are found" do
-      html = """
-      <label for="name">Names</label>
-      """
-
-      assert {:not_found, :no_label, labels} = Query.find_by_label(html, "input", "Email")
-      assert {"label", [{"for", "name"}], ["Names"]} = Html.element(labels)
-    end
-
-    test "returns :missing_for error if label doesn't have a `for` attribute" do
-      html = """
-      <label>Name</label>
-      """
-
-      assert {:not_found, :missing_for, label} = Query.find_by_label(html, "input", "Name")
       assert {"label", [], ["Name"]} = Html.element(label)
     end
 
-    test "raises :missing_for error if label with element and implicit association but input selector doesn't match" do
-      html = """
-      <label>
-        Hello
-        <input name="greeting" />
-      </label>
-      """
+    test "reports an implicit label whose input misses selector" do
+      html = "<label>Hello <input name=greeting></label>"
 
-      assert {:not_found, :missing_for, label} = Query.find_by_label(html, "input[name='not-greeting']", "Hello")
-      assert {"label", [], _} = Html.element(label)
+      assert {:error, %Failure{kind: :missing_label_for, labels: [_]}} =
+               Query.find_by_label(html, "input[name='not-greeting']", "Hello")
     end
 
-    test "returns :missing_input error if label's `for` doesn't have corresponding `id`" do
-      html = """
-      <label for="name">Name</label>
-      <input type="text" name="name" />
-      """
+    test "reports missing explicitly labelled input" do
+      html = "<label for=name>Name</label><input name=name>"
 
-      assert {:not_found, :missing_input, label} = Query.find_by_label(html, "input", "Name")
-      assert {"label", [{"for", "name"}], ["Name"]} = Html.element(label)
+      assert {:error, %Failure{kind: :missing_labeled_input, labels: [label], details: %{for: "name"}}} =
+               Query.find_by_label(html, "input", "Name")
+
+      assert {"label", _, _} = Html.element(label)
     end
 
-    test "returns :missing_input error if label's `for` doesn't have matching element with same id" do
-      html = """
-      <label for="name">Name</label>
-      <input id="not-name" type="text" name="name" />
-      """
+    test "reports mismatched selector result for explicit label" do
+      html = "<label for=name>Name</label><input id=not-name name=name>"
 
-      assert {:not_found, :missing_input, label} = Query.find_by_label(html, "#not-name", "Name")
-      assert {"label", _, ["Name"]} = Html.element(label)
+      assert {:error, %Failure{kind: :missing_labeled_input, labels: [_], details: %{for: "name"}}} =
+               Query.find_by_label(html, "#not-name", "Name")
     end
 
-    test "returns :found_many_labels error if multiple labels match" do
-      html = """
-      <label for="greeting">Hello</label>
-      <label for="second_greeting">Hello</label>
-      """
-
-      assert {:not_found, :found_many_labels, labels} = Query.find_by_label(html, "input", "Hello")
-      assert length(labels) == 2
-      assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
+    test "reports many matching labels without inputs" do
+      html = "<label for=one>Hello</label><label for=two>Hello</label>"
+      assert {:error, %Failure{kind: :multiple_labels, labels: [_, _]}} = Query.find_by_label(html, "input", "Hello")
     end
 
-    test "returns :found_many_labels_with_inputs error if multiple labels and inputs match" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input id="greeting" />
-      <label for="second_greeting">Hello</label>
-      <input id="second_greeting" />
-      """
+    test "reports many labels and inputs" do
+      html = "<label for=one>Hello</label><input id=one><label for=two>Hello</label><input id=two>"
 
-      assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
-      assert length(labels) == 2
-      assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
-      assert length(inputs) == 2
-      assert {"input", _, []} = inputs |> hd() |> Html.element()
+      assert {:error, %Failure{kind: :multiple_matches, labels: [_, _], inputs: [_, _]}} =
+               Query.find_by_label(html, "input", "Hello")
     end
 
-    test "returns :found_many_labels_with_inputs error if multiple labels and inputs match (one explicit, one implicit)" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input id="greeting" />
+    test "reports explicit and implicit multiple label associations" do
+      html = "<label for=one>Hello</label><input id=one><label>Hello <input id=two></label>"
 
-      <label>Hello <input id="second_greeting" /></label>
-      """
-
-      assert {:not_found, :found_many_labels_with_inputs, labels, inputs} = Query.find_by_label(html, "input", "Hello")
-      assert length(labels) == 2
-      assert {"label", _, ["Hello"]} = labels |> hd() |> Html.element()
-      assert length(inputs) == 2
-      assert {"input", _, []} = inputs |> hd() |> Html.element()
+      assert {:error, %Failure{kind: :multiple_matches, labels: [_, _], inputs: [_, _]}} =
+               Query.find_by_label(html, "input", "Hello")
     end
 
-    test "raises error if label has for attribute and nested input" do
-      html = """
-      <label for="other_greeting">Hello <input /></label>
-      <input id="other_greeting" />
-      """
+    test "reports conflicting explicit and implicit associations" do
+      html = "<label for=other>Hello <input id=nested></label><input id=other>"
 
-      msg = ~r/Found a label which references two different inputs/
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_by_label(html, "input", "Hello")
-      end
+      assert {:error, %Failure{kind: :conflicting_label_associations, labels: [_], inputs: [_, _]}} =
+               Query.find_by_label(html, "input", "Hello")
     end
 
-    test "returns {:found, element} when input is found" do
-      html = """
-      <label for="greeting">Hello</label>
-      <input id="greeting"/>
-      """
+    test "finds an explicitly associated input" do
+      assert {:ok, element} =
+               Query.find_by_label("<label for=greeting>Hello</label><input id=greeting>", "input", "Hello")
 
-      assert {:found, element} = Query.find_by_label(html, "input", "Hello")
       assert {"input", [{"id", "greeting"}], []} = Html.element(element)
     end
 
-    test "returns {:found, element} even if id has ? character" do
-      html = """
-      <label for="greeting?">Hello</label>
-      <input id="greeting?"/>
-      """
+    test "finds an id containing question mark" do
+      assert {:ok, element} =
+               Query.find_by_label("<label for=\"greeting?\">Hello</label><input id=\"greeting?\">", "input", "Hello")
 
-      assert {:found, element} = Query.find_by_label(html, "input", "Hello")
       assert {"input", [{"id", "greeting?"}], []} = Html.element(element)
     end
 
-    test "returns {:found, element} when association is implicit" do
-      html = """
-      <label>
-        Hello
-        <input name="greeting" />
-      </label>
-      """
-
-      assert {:found, element} = Query.find_by_label(html, "input", "Hello")
+    test "finds an implicitly associated input" do
+      assert {:ok, element} = Query.find_by_label("<label>Hello <input name=greeting></label>", "input", "Hello")
       assert {"input", [{"name", "greeting"}], []} = Html.element(element)
     end
 
-    test "can filter labels based on associated input's selector" do
-      html = """
-      <input id="greeting" value="greeting" name="greeting" />
-      <label for="greeting">Hello</label>
-
-      <input id="second_greeting" value="second_greeting" name="second_greeting"/>
-      <label for="second_greeting">Hello</label>
-      """
-
-      {:found, element} = Query.find_by_label(html, "#greeting", "Hello")
-
-      assert {"input", [{"id", "greeting"} | _], []} = Html.element(element)
+    test "filters labels by the associated input selector" do
+      html = "<input id=greeting><label for=greeting>Hello</label><input id=second><label for=second>Hello</label>"
+      assert {:ok, element} = Query.find_by_label(html, "#greeting", "Hello")
+      assert {"input", [{"id", "greeting"}], []} = Html.element(element)
     end
 
-    test "can filter labels wrapping a pre-filled textarea" do
-      html = """
-      <label for="wrapped-notes">
-        Wrapped notes <textarea name="wrapped-notes" rows="5" cols="33">
-          Prefilled wrapped notes
-        </textarea>
-      </label>
-      """
-
-      {:found, element} = Query.find_by_label(html, "label", "Wrapped notes")
-
-      assert {"label", [{"for", "wrapped-notes"}], _} = Html.element(element)
+    test "can find a label wrapping a prefilled textarea" do
+      html = "<label for=notes>Wrapped notes <textarea name=notes>Prefilled wrapped notes</textarea></label>"
+      assert {:ok, element} = Query.find_by_label(html, "label", "Wrapped notes")
+      assert {"label", [{"for", "notes"}], _} = Html.element(element)
     end
 
-    test "returns {:found, element} matching by aria-label" do
-      html = """
-      <input name="search" aria-label="Search" />
-      """
-
-      assert {:found, element} = Query.find_by_label(html, "input", "Search")
+    test "finds aria-label" do
+      assert {:ok, element} = Query.find_by_label("<input name=search aria-label=Search>", "input", "Search")
       assert {"input", [{"name", "search"}, {"aria-label", "Search"}], []} = Html.element(element)
     end
 
-    test "returns {:found, element} matching by aria-labelledby" do
-      html = """
-      <span id="search-label">Search</span>
-      <input name="search" aria-labelledby="search-label" />
-      """
-
-      assert {:found, element} = Query.find_by_label(html, "input", "Search")
+    test "finds aria-labelledby" do
+      html = "<span id=search-label>Search</span><input name=search aria-labelledby=search-label>"
+      assert {:ok, element} = Query.find_by_label(html, "input", "Search")
       assert {"input", [{"name", "search"}, {"aria-labelledby", "search-label"}], []} = Html.element(element)
     end
 
-    test "returns {:found, element} matching by aria-labelledby with multiple ids" do
-      html = """
-      <span id="label-1">Middle</span>
-      <span id="label-2">Earth</span>
-      <input name="realm" aria-labelledby="label-1 label-2" />
-      """
-
-      assert {:found, element} = Query.find_by_label(html, "input", "Middle Earth")
-      assert {"input", [{"name", "realm"}, {"aria-labelledby", "label-1 label-2"}], []} = Html.element(element)
+    test "finds aria-labelledby composed from multiple ids" do
+      html = "<span id=one>Middle</span><span id=two>Earth</span><input name=realm aria-labelledby=\"one two\">"
+      assert {:ok, element} = Query.find_by_label(html, "input", "Middle Earth")
+      assert {"input", [{"name", "realm"}, {"aria-labelledby", "one two"}], []} = Html.element(element)
     end
 
-    test "aria matching honors exact option" do
-      html = """
-      <input name="search" aria-label="Search the archives" />
-      """
-
-      assert {:found, _} = Query.find_by_label(html, "input", "Search", exact: false)
-      assert {:not_found, :no_label, _} = Query.find_by_label(html, "input", "Search", exact: true)
+    test "aria matching honors exact" do
+      html = "<input aria-label=\"Search the archives\">"
+      assert {:ok, _} = Query.find_by_label(html, "input", "Search", exact: false)
+      assert {:error, %Failure{kind: :no_label}} = Query.find_by_label(html, "input", "Search", exact: true)
     end
 
     test "aria matching normalizes whitespace" do
-      html = """
-      <input name="search" aria-label="  Search   the archives  " />
-      """
-
-      assert {:found, _} = Query.find_by_label(html, "input", "Search the archives", exact: true)
+      assert {:ok, _} =
+               Query.find_by_label("<input aria-label=\"  Search   the archives  \">", "input", "Search the archives",
+                 exact: true
+               )
     end
 
-    test "prefers <label> association over aria-label" do
-      html = """
-      <label for="labelled">Search</label>
-      <input id="labelled" name="labelled" />
-      <input name="aria" aria-label="Search" />
-      """
-
-      assert {:found, element} = Query.find_by_label(html, "input", "Search")
+    test "prefers html label association over aria label" do
+      html = "<label for=labelled>Search</label><input id=labelled name=labelled><input name=aria aria-label=Search>"
+      assert {:ok, element} = Query.find_by_label(html, "input", "Search")
       assert {"input", [{"id", "labelled"}, {"name", "labelled"}], []} = Html.element(element)
     end
 
-    test "returns original label failure when aria also misses" do
-      html = """
-      <input name="search" aria-label="Something else" />
-      """
-
-      assert {:not_found, :no_label, _} = Query.find_by_label(html, "input", "Search")
+    test "preserves the label failure when aria misses" do
+      assert {:error, %Failure{kind: :no_label}} =
+               Query.find_by_label("<input aria-label=\"Something else\">", "input", "Search")
     end
 
-    test "returns :found_many_labels_with_inputs when multiple elements match via aria" do
-      html = """
-      <input name="one" aria-label="Search" />
-      <input name="two" aria-label="Search" />
-      """
+    test "reports multiple aria matches as inputs" do
+      html = "<input name=one aria-label=Search><input name=two aria-label=Search>"
 
-      assert {:not_found, :found_many_labels_with_inputs, [], inputs} = Query.find_by_label(html, "input", "Search")
-      assert length(inputs) == 2
+      assert {:error, %Failure{kind: :multiple_matches, labels: [], inputs: [_, _]}} =
+               Query.find_by_label(html, "input", "Search")
     end
   end
 
-  describe "find_ancestor!/3" do
-    test "returns specified ancestor element of given selector" do
-      html = """
-      <form id="super-form">
-        <input id="greeting" />
-      </form>
-      """
-
-      element = Query.find_ancestor!(html, "form", "#greeting")
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+  describe "ancestors" do
+    test "finds ancestor by descendant selector" do
+      assert {:ok, element} = Query.find_ancestor("<form id=super><input id=greeting></form>", "form", "#greeting")
+      assert {"form", [{"id", "super"}], _} = Html.element(element)
     end
 
-    test "accepts descendant maps with selector metadata" do
-      html = """
-      <form id="super-form">
-        <input id="greeting" />
-      </form>
-      """
+    test "accepts descendant selector map" do
+      assert {:ok, element} =
+               Query.find_ancestor("<form id=super><input id=greeting></form>", "form", %{selector: "#greeting"})
 
-      element = Query.find_ancestor!(html, "form", %{selector: "#greeting"})
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+      assert {"form", [{"id", "super"}], _} = Html.element(element)
     end
 
-    test "raises error if it finds too many ancestor element that match selector" do
-      html = """
-      <form id="form-1">
-        <input type="text" name="email" />
-      </form>
-      <form id="form-2">
-        <input type="text" name="email" />
-      </form>
-      """
-
-      msg = """
-      Found too many "form" matches for element with selector "input[type='text'][name='email']"
-
-      Please make the selector more specific (e.g. using an id)
-
-      The following "form" elements were found:
-
-      <form id="form-1">
-        <input type="text" name="email"/>
-      </form>
-      <form id="form-2">
-        <input type="text" name="email"/>
-      </form>
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", "input[type='text'][name='email']")
-      end
+    test "accepts descendant id map" do
+      assert {:ok, _} = Query.find_ancestor("<form><input id=greeting></form>", "form", %{id: "greeting"})
     end
 
-    test "raises error if cannot find ancestor element (but there are matches)" do
-      html = """
-      <form id="super-form">
-      </form>
-      <input id="greeting" />
-      """
+    test "reports multiple matching ancestors" do
+      html = "<form id=one><input name=email></form><form id=two><input name=email></form>"
 
-      msg = """
-      Could not find "form" for an element with selector "#greeting".
-
-      Found other potential "form":
-
-      <form id="super-form">
-      </form>
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", "#greeting")
-      end
+      assert {:error,
+              %Failure{
+                kind: :multiple_matches,
+                request: %{ancestor_selector: "form", descendant: "input[name='email']"},
+                candidates: [_, _]
+              }} =
+               Query.find_ancestor(html, "form", "input[name='email']")
     end
 
-    test "raises error if cannot find any elements like ancestor" do
-      html = """
-      <input id="greeting" />
-      """
-
-      msg = """
-      Could not find any "form" elements.
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", "#greeting")
-      end
-    end
-  end
-
-  describe "find_ancestor!/3 with complex selector + text filter" do
-    test "returns specified ancestor element of given selector and text filter" do
-      html = """
-      <form id="super-form">
-        <button>Save</button>
-      </form>
-
-      <form id="other-form">
-        <button>Reset</button>
-      </form>
-      """
-
-      element = Query.find_ancestor!(html, "form", {"button", "Save"})
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+    test "retains potential ancestors when descendant is absent" do
+      html = "<form id=super></form><input id=greeting>"
+      assert {:error, %Failure{kind: :not_found, candidates: candidates}} = Query.find_ancestor(html, "form", "#greeting")
+      assert {"form", [{"id", "super"}], []} = Html.element(candidates)
     end
 
-    test "raises if there are multiple possible matches for given selector and text filter" do
-      html = """
-      <form id="super-form">
-        <button>Save</button>
-      </form>
-
-      <form id="other-form">
-        <button>Save</button>
-      </form>
-      """
-
-      msg =
-        """
-        Found too many "form" elements with nested element with
-        selector "button" and text "Save"
-
-        Potential matches:
-
-        <form id="super-form">
-          <button>Save</button>
-        </form>
-        <form id="other-form">
-          <button>Save</button>
-        </form>
-        """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", {"button", "Save"})
-      end
+    test "reports missing ancestor selector" do
+      assert {:error, %Failure{kind: :not_found, candidates: [], request: %{ancestor_selector: "form"}}} =
+               Query.find_ancestor("<input id=greeting>", "form", "#greeting")
     end
 
-    test "raises error if cannot find ancestor element (but there are matches)" do
-      html = """
-      <form id="super-form">
-      </form>
-      <button>Save</button>
-      """
-
-      msg = """
-      Could not find "form" for an element with selector "button" and text "Save".
-
-      Found other potential "form":
-
-      <form id="super-form">
-      </form>
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", {"button", "Save"})
-      end
+    test "finds ancestor with descendant text" do
+      html = "<form id=super><button>Save</button></form><form id=other><button>Reset</button></form>"
+      assert {:ok, element} = Query.find_ancestor(html, "form", {"button", "Save"})
+      assert {"form", [{"id", "super"}], _} = Html.element(element)
     end
 
-    test "raises error if cannot find ancestor element" do
-      html = """
-      <button>Save</button>
-      """
-
-      msg = """
-      Could not find any "form" elements.
-      """
-
-      assert_raise ArgumentError, msg, fn ->
-        Query.find_ancestor!(html, "form", {"button", "Save"})
-      end
-    end
-  end
-
-  describe "find_ancestor/3" do
-    test "finds specified ancestor element of given selector" do
-      html = """
-      <form id="super-form">
-        <input id="greeting" />
-      </form>
-      """
-
-      {:found, element} = Query.find_ancestor(html, "form", "#greeting")
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+    test "accepts descendant selector and text map" do
+      assert {:ok, _} =
+               Query.find_ancestor("<form><button>Save</button></form>", "form", %{selector: "button", text: "Save"})
     end
 
-    test "returns error if cannot find ancestor element" do
-      html = """
-      <form id="super-form">
-      </form>
-      <input id="greeting" />
-      """
+    test "reports multiple ancestors matching descendant text" do
+      html = "<form id=one><button>Save</button></form><form id=two><button>Save</button></form>"
 
-      {:not_found, [element]} = Query.find_ancestor(html, "form", "#greeting")
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
-    end
-  end
-
-  describe "find_ancestor/3 with complex selector + text filter" do
-    test "finds specified ancestor element of given selector and text filter" do
-      html = """
-      <form id="super-form">
-        <button>Save</button>
-      </form>
-
-      <form id="other-form">
-        <button>Reset</button>
-      </form>
-      """
-
-      {:found, element} = Query.find_ancestor(html, "form", {"button", "Save"})
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
+      assert {:error, %Failure{kind: :multiple_matches, candidates: [_, _], request: %{descendant: {"button", "Save"}}}} =
+               Query.find_ancestor(html, "form", {"button", "Save"})
     end
 
-    test "returns multiple ancestors if many are found (given selector and text filter)" do
-      html = """
-      <form id="super-form">
-        <button>Save</button>
-      </form>
+    test "retains ancestors that do not contain text descendant" do
+      assert {:error, %Failure{kind: :not_found, candidates: candidates}} =
+               Query.find_ancestor("<form></form><button>Save</button>", "form", {"button", "Save"})
 
-      <form id="other-form">
-        <button>Save</button>
-      </form>
-      """
-
-      {:found_many, [el1, el2]} = Query.find_ancestor(html, "form", {"button", "Save"})
-
-      assert {"form", [{"id", "super-form"}], _} = Html.element(el1)
-      assert {"form", [{"id", "other-form"}], _} = Html.element(el2)
+      assert {"form", _, []} = Html.element(candidates)
     end
 
-    test "returns error if cannot find ancestor element" do
-      html = """
-      <form id="super-form">
-      </form>
-      """
-
-      {:not_found, [element]} = Query.find_ancestor(html, "form", {"button", "Save"})
-      assert {"form", [{"id", "super-form"}], _} = Html.element(element)
-    end
-  end
-
-  describe "has_ancestor?/3" do
-    test "returns true when descendant has matching ancestor" do
-      html = """
-      <form id="super-form">
-        <input id="greeting" />
-      </form>
-      """
-
-      assert Query.has_ancestor?(html, "form", "#greeting")
+    test "has_ancestor is true for selector" do
+      assert Query.has_ancestor?("<form><input id=greeting></form>", "form", "#greeting")
     end
 
-    test "returns false when descendant has no matching ancestor" do
-      html = """
-      <form id="super-form">
-      </form>
-      <input id="greeting" />
-      """
-
-      refute Query.has_ancestor?(html, "form", "#greeting")
+    test "has_ancestor is false for selector" do
+      refute Query.has_ancestor?("<form></form><input id=greeting>", "form", "#greeting")
     end
 
-    test "works with {selector, text} descendant" do
-      html = """
-      <form id="super-form">
-        <button>Save</button>
-      </form>
-
-      <form id="other-form">
-        <button>Reset</button>
-      </form>
-      """
-
+    test "has_ancestor supports descendant text" do
+      html = "<form><button>Save</button></form><form><button>Reset</button></form>"
       assert Query.has_ancestor?(html, "form", {"button", "Save"})
       refute Query.has_ancestor?(html, "form", {"button", "Delete"})
     end

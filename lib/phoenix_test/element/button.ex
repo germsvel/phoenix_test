@@ -10,12 +10,13 @@ defmodule PhoenixTest.Element.Button do
 
   defstruct ~w[parsed id selector text type name value form_id]a
 
-  def find!(html, selector, text) do
-    html
-    |> Query.find!(selector, text)
-    |> build()
-    |> keep_best_selector(selector)
+  def find(html, selector, text) do
+    with {:ok, button} <- Query.find(html, selector, text) do
+      {:ok, button |> build() |> keep_best_selector(selector)}
+    end
   end
+
+  def find!(html, selector, text), do: html |> find(selector, text) |> Element.unwrap_query!()
 
   defp keep_best_selector(button, provided_selector) do
     case provided_selector do
@@ -28,12 +29,9 @@ defmodule PhoenixTest.Element.Button do
   end
 
   def find_first_submit(html) do
-    html
-    |> Query.find("button:not([type='button'])")
-    |> case do
-      {:found, element} -> build(element)
-      {:found_many, elements} -> elements |> Enum.at(0) |> build()
-      :not_found -> nil
+    case Query.find_first(html, "button:not([type='button'])") do
+      {:ok, element} -> build(element)
+      {:error, _failure} -> nil
     end
   end
 
@@ -86,11 +84,13 @@ defmodule PhoenixTest.Element.Button do
     |> Utils.present?()
   end
 
-  def parent_form!(%__MODULE__{} = button, html) do
+  def parent_form(%__MODULE__{} = button, html) do
     if button.form_id do
-      Form.find!(html, "[id=#{inspect(button.form_id)}]")
+      Form.find(html, "[id=#{inspect(button.form_id)}]")
     else
-      Form.find_by_descendant!(html, button)
+      Form.find_by_descendant(html, button)
     end
   end
+
+  def parent_form!(%__MODULE__{} = button, html), do: button |> parent_form(html) |> Element.unwrap_query!()
 end

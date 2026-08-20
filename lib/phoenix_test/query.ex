@@ -4,183 +4,86 @@ defmodule PhoenixTest.Query do
   alias PhoenixTest.Element
   alias PhoenixTest.Html
   alias PhoenixTest.Locators
-  alias PhoenixTest.Query.LabelError
+  alias PhoenixTest.Query.Failure
 
-  def find!(html, selector) do
-    case find(html, selector) do
-      :not_found ->
-        raise ArgumentError, "Could not find element with selector #{inspect(selector)}"
+  # Query is internal. All lookup functions return {:ok, value} or {:error, failure}.
+  # LazyHTML parsing and selector errors intentionally propagate.
 
-      {:found, element} ->
-        element
-
-      {:found_many, _elements} ->
-        raise ArgumentError, "Found more than one element with selector #{inspect(selector)}"
-    end
-  end
-
-  def find!(html, selector, text, opts \\ []) do
-    case find(html, selector, text, opts) do
-      {:not_found, elements} ->
-        msg =
-          if Enum.any?(elements) do
-            """
-            Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
-
-            The following elements matching the selector were found:
-
-            #{Enum.map_join(elements, "\n", &Html.raw/1)}
-            """
-          else
-            """
-              Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
-            """
-          end
-
-        raise ArgumentError, msg
-
-      {:found, element} ->
-        element
-
-      {:found_many, _elements} ->
-        msg =
-          """
-          Found more than one element with selector #{inspect(selector)} and text #{inspect(text)}.
-          """
-
-        raise ArgumentError, msg
-    end
-  end
-
-  def find(html, selector) do
-    find(html, selector, [])
-  end
+  def find(html, selector), do: find(html, selector, [])
 
   def find(html, selector, opts) when is_list(opts) do
-    html
-    |> Html.parse_fragment()
-    |> Html.all(selector)
-    |> filter_by_position(opts)
-    |> case do
-      [] ->
-        :not_found
-
-      %LazyHTML{} = query ->
-        case Enum.count(query) do
-          0 -> :not_found
-          1 -> {:found, query}
-          _ -> {:found_many, query}
-        end
-    end
+    candidates = html |> Html.parse_fragment() |> Html.all(selector) |> filter_by_position(opts)
+    one_result(:find, %{selector: selector, opts: opts}, candidates)
   end
 
   def find(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
-    elements_matched_selector =
-      html
-      |> Html.parse_fragment()
-      |> Html.all(selector)
+    candidates = html |> Html.parse_fragment() |> Html.all(selector)
+    matches = candidates |> filter_by_position(opts) |> filter_by_element_text(text, opts)
 
-    elements_matched_selector
-    |> filter_by_position(opts)
-    |> filter_by_element_text(text, opts)
-    |> case do
-      [] -> {:not_found, elements_matched_selector}
-      [found] -> {:found, found}
-      [_ | _] = found_many -> {:found_many, found_many}
+    one_result(:find, %{selector: selector, text: text, opts: opts}, matches, candidates: candidates)
+  end
+
+  # Data-only lookup for callers that intentionally need the first match (for
+  # example, a form's default submit button), rather than Query.find/2's
+  # exactly-one matching semantics.
+  def find_first(html, selector) do
+    candidates = html |> Html.parse_fragment() |> Html.all(selector)
+
+    case Enum.to_list(candidates) do
+      [element | _] -> {:ok, element}
+      [] -> error(:not_found, :find, %{selector: selector})
+    end
+  end
+
+  def find_first(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
+    candidates = html |> Html.parse_fragment() |> Html.all(selector)
+
+    case find_first_by_element_text(candidates, text, opts) do
+      nil -> error(:not_found, :find_first, %{selector: selector, text: text, opts: opts}, candidates: candidates)
+      element -> {:ok, element}
     end
   end
 
   def find_by_selected(html, selector, selected, opts \\ []) when is_binary(selected) and is_list(opts) do
-    elements_matched_selector =
-      html
-      |> Html.parse_fragment()
-      |> Html.all(selector)
-
-    elements_matched_selector
-    |> filter_by_position(opts)
-    |> selected_result(selected, elements_matched_selector)
+    candidates = html |> Html.parse_fragment() |> Html.all(selector)
+    matches = candidates |> filter_by_position(opts) |> Enum.filter(&(selected in selected_option_texts(&1)))
+    one_result(:find_by_selected, %{selector: selector, selected: selected, opts: opts}, matches, candidates: candidates)
   end
 
   def find_by_label_and_selected(html, input_selectors, label, selected, opts \\ [])
       when is_binary(selected) and is_list(opts) do
+    request = %{input_selectors: List.wrap(input_selectors), label: label, selected: selected, opts: opts}
+
     case find_by_label(html, input_selectors, label, opts) do
-      {:found, element} ->
-        selected_result([element], selected, [element])
-
-      {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
-        selected_result(elements, selected, elements)
-
-      other ->
-        other
+      {:ok, element} -> selected_result([element], selected, request)
+      {:error, failure} -> {:error, %{failure | operation: :find_by_label_and_selected, request: request}}
     end
   end
 
-  # Like `find/4`, but short-circuits after finding the first matching element.
-  #
-  # This is a performance improvement when you only need to confirm that at least one match exists.
-  def find_first(html, selector, text, opts \\ []) when is_binary(text) and is_list(opts) do
-    elements_matched_selector =
-      html
-      |> Html.parse_fragment()
-      |> Html.all(selector)
+  def find_by_role(html, %Locators.Button{text: text, selectors: selectors} = locator) do
+    request = %{locator: locator, role_selectors: Locators.role_selectors(locator), label: text}
 
-    case find_first_by_element_text(elements_matched_selector, text, opts) do
-      nil -> {:not_found, elements_matched_selector}
-      found -> {:found, found}
-    end
-  end
+    case find_one_of(html, request.role_selectors) do
+      {:ok, element} ->
+        {:ok, element}
 
-  def find_by_role!(html, %Locators.Button{text: text, selectors: button_selectors} = locator) do
-    role_selectors = Locators.role_selectors(locator)
+      {:error, %Failure{kind: :not_found} = failure} ->
+        case find_by_label(html, selectors, text, exact: false) do
+          {:ok, element} ->
+            {:ok, element}
 
-    case find_one_of(html, role_selectors) do
-      {:found, element} ->
-        element
-
-      {:not_found, _potential_matches} ->
-        case find_by_label(html, button_selectors, text, exact: false) do
-          {:found, element} -> element
-          _ -> find_one_of!(html, role_selectors)
+          {:error, label_failure} ->
+            {:error,
+             %{
+               failure
+               | operation: :find_by_role,
+                 request: request,
+                 details: Map.put(failure.details, :label_failure, label_failure)
+             }}
         end
 
-      {:found_many, _elements} ->
-        find_one_of!(html, role_selectors)
-    end
-  end
-
-  def find_one_of!(html, elements) do
-    html
-    |> find_one_of(elements)
-    |> case do
-      {:not_found, []} ->
-        raise ArgumentError, """
-        Could not find an element with given selectors.
-
-        I was looking for an element with one of these selectors: #{format_selectors_for_error_msg(elements)}
-        """
-
-      {:not_found, potential_matches} ->
-        raise ArgumentError, """
-        Could not find an element with given selectors.
-
-        I was looking for an element with one of these selectors: #{format_selectors_for_error_msg(elements)}
-
-        I found some elements that match the selector but not the content:
-
-        #{format_potential_matches(potential_matches)}
-        """
-
-      {:found, found_element} ->
-        found_element
-
-      {:found_many, found_elements} ->
-        raise ArgumentError, """
-        Found too many matches for given selectors: #{format_selectors_for_error_msg(elements)}
-
-        Here's what I found:
-
-        #{format_potential_matches(found_elements)}
-        """
+      {:error, failure} ->
+        {:error, %{failure | operation: :find_by_role, request: request}}
     end
   end
 
@@ -191,109 +94,232 @@ defmodule PhoenixTest.Query do
         selector -> find(html, selector)
       end)
 
-    results
-    |> Enum.flat_map(fn
-      :not_found -> []
-      {:not_found, _} -> []
-      {:found, el} -> [el]
-      {:found_many, els} -> els
-    end)
-    |> case do
-      [] ->
-        {:not_found, potential_matches(results)}
+    found =
+      Enum.flat_map(results, fn
+        {:ok, element} -> [element]
+        {:error, %Failure{kind: :multiple_matches, candidates: elements}} -> List.wrap(elements)
+        {:error, _} -> []
+      end)
 
-      [found] ->
-        {:found, found}
+    request = %{selectors: elements}
 
-      [_ | _] = found_many ->
-        {:found_many, found_many}
-    end
-  end
-
-  def find_by_label!(html, input_selectors, label, opts \\ [exact: true]) do
-    input_selectors = List.wrap(input_selectors)
-
-    case find_by_label(html, input_selectors, label, opts) do
-      {:found, element} ->
-        element
-
-      error ->
-        raise ArgumentError,
-              LabelError.message(error, label,
-                input_selectors: input_selectors,
-                formatted_selectors: format_selectors_for_error_msg(input_selectors)
-              )
+    case found do
+      [] -> error(:not_found, :find_one_of, request, candidates: potential_matches(results), details: %{results: results})
+      [element] -> {:ok, element}
+      elements -> error(:multiple_matches, :find_one_of, request, candidates: elements, details: %{results: results})
     end
   end
 
   def find_by_label(html, input_selectors, label, opts \\ [exact: true]) do
     input_selectors = List.wrap(input_selectors)
+    request = %{input_selectors: input_selectors, label: label, opts: opts}
 
-    case find_by_label_element(html, input_selectors, label, opts) do
-      {:found, _element} = found -> found
-      not_found -> with :not_found <- find_by_aria(html, input_selectors, label, opts), do: not_found
+    case find_by_label_element(html, input_selectors, label, opts, request) do
+      {:ok, _} = found ->
+        found
+
+      {:error, failure} ->
+        case find_by_aria(html, input_selectors, label, opts, request) do
+          {:error, %Failure{kind: :not_found}} -> {:error, failure}
+          result -> result
+        end
     end
   end
 
-  defp find_by_label_element(html, input_selectors, label, opts) do
-    case find_labels(html, input_selectors, label, opts) do
-      {:implicit_association, _label_element, element} ->
-        {:found, element}
+  def find_ancestor(html, ancestor_selector, descendant) do
+    descendant = descendant_selector(descendant)
+    request = %{ancestor_selector: ancestor_selector, descendant: descendant}
 
-      {:explicit_association, label_element} ->
-        find_explicit_label_input(html, input_selectors, label_element)
+    with {:ok, ancestors} <- all(html, ancestor_selector, request) do
+      matches = filter_ancestors(ancestors, descendant)
+      one_result(:find_ancestor, request, matches, candidates: ancestors)
+    end
+  end
 
-      {:found_many, associations} ->
-        maybe_field_elements =
+  def has_ancestor?(html, ancestor_selector, descendant),
+    do: match?({:ok, _}, find_ancestor(html, ancestor_selector, descendant))
+
+  defp find_by_label_element(html, selectors, label, opts, request) do
+    case find_labels(html, selectors, label, opts, request) do
+      {:ok, [{:implicit, _label, element}]} ->
+        {:ok, element}
+
+      {:ok, [{:explicit, label_element}]} ->
+        find_explicit_label_input(html, selectors, label_element, request)
+
+      {:ok, associations} ->
+        labels =
           Enum.map(associations, fn
-            {:implicit_association, _label_element, element} -> {:found, element}
-            {:explicit_association, label_element} -> find_explicit_label_input(html, input_selectors, label_element)
+            {_, label_element, _} -> label_element
+            {_, label_element} -> label_element
           end)
 
-        label_elements =
+        results =
           Enum.map(associations, fn
-            {:implicit_association, label_element, _element} -> label_element
-            {:explicit_association, label_element} -> label_element
+            {:implicit, _, element} -> {:ok, element}
+            {:explicit, label_element} -> find_explicit_label_input(html, selectors, label_element, request)
           end)
 
-        maybe_field_elements
-        |> Enum.filter(fn
-          {:found, _} -> true
-          _ -> false
-        end)
-        |> Enum.map(fn {:found, element} -> element end)
-        |> case do
-          [] -> {:not_found, :found_many_labels, label_elements}
-          [element] -> {:found, element}
-          [_ | _] = found -> {:not_found, :found_many_labels_with_inputs, label_elements, found}
+        inputs = for {:ok, element} <- results, do: element
+
+        case inputs do
+          [] ->
+            error(:multiple_labels, :find_by_label, request, labels: labels, details: %{associations: associations})
+
+          [element] ->
+            {:ok, element}
+
+          _ ->
+            error(:multiple_matches, :find_by_label, request,
+              labels: labels,
+              inputs: inputs,
+              details: %{associations: associations}
+            )
         end
 
-      {:not_found, potential_matches} ->
-        {:not_found, :no_label, potential_matches}
+      {:error, failure} ->
+        {:error, failure}
     end
   end
 
-  # Finds elements whose accessible name (via `aria-label` or `aria-labelledby`)
-  # matches `label`. Referenced `aria-labelledby` ids are resolved document-wide.
-  defp find_by_aria(html, input_selectors, label, opts) do
+  defp find_labels(html, selectors, label, opts, request) do
+    case find(html, "label", label, opts) do
+      {:ok, element} ->
+        case association(html, element, selectors, request) do
+          {:ok, value} -> {:ok, [value]}
+          {:error, failure} -> {:error, failure}
+        end
+
+      {:error, %Failure{kind: :multiple_matches, candidates: labels}} ->
+        associations = Enum.map(labels, &association(html, &1, selectors, request))
+        conflicts = for {:error, failure} <- associations, do: failure
+        if conflicts == [], do: {:ok, Enum.map(associations, fn {:ok, value} -> value end)}, else: {:error, hd(conflicts)}
+
+      {:error, failure} ->
+        error(:no_label, :find_by_label, %{input_selectors: selectors, label: label, opts: opts},
+          candidates: failure.candidates
+        )
+    end
+  end
+
+  defp association(html, label, selectors, request) do
+    explicit = find_explicit_label_input(html, selectors, label, request)
+    implicit = find_one_of(label, selectors)
+
+    case {explicit, implicit} do
+      {{:ok, explicit}, {:ok, implicit}} ->
+        if Html.element(explicit) == Html.element(implicit) do
+          {:ok, {:implicit, label, implicit}}
+        else
+          error(:conflicting_label_associations, :find_by_label, request, labels: [label], inputs: [explicit, implicit])
+        end
+
+      {_, {:ok, implicit}} ->
+        {:ok, {:implicit, label, implicit}}
+
+      _ ->
+        {:ok, {:explicit, label}}
+    end
+  end
+
+  defp find_explicit_label_input(html, selectors, label, request) do
+    case Html.attribute(label, "for") do
+      nil ->
+        error(:missing_label_for, :find_by_label, request, labels: [label])
+
+      label_for ->
+        case find_one_of(html, combine_selectors(selectors, label_for)) do
+          {:ok, element} ->
+            if Html.attribute(element, "id") == label_for do
+              {:ok, element}
+            else
+              error(:mismatched_label_for, :find_by_label, request,
+                labels: [label],
+                inputs: [element],
+                details: %{for: label_for}
+              )
+            end
+
+          {:error, failure} ->
+            error(:missing_labeled_input, :find_by_label, request,
+              labels: [label],
+              candidates: failure.candidates,
+              details: %{for: label_for}
+            )
+        end
+    end
+  end
+
+  defp find_by_aria(html, selectors, label, opts, request) do
     parsed = Html.parse_fragment(html)
 
-    input_selectors
-    |> Enum.flat_map(fn selector ->
-      parsed
-      |> Html.all(selector)
-      |> Enum.filter(&aria_name_match?(parsed, &1, label, opts))
-    end)
-    |> case do
-      [] -> :not_found
-      [element] -> {:found, element}
-      [_first | _rest] = found -> {:not_found, :found_many_labels_with_inputs, [], found}
+    matches =
+      Enum.flat_map(selectors, fn selector ->
+        parsed |> Html.all(selector) |> Enum.filter(&aria_name_match?(parsed, &1, label, opts))
+      end)
+
+    one_result(:find_by_label, request, matches, inputs: matches)
+  end
+
+  defp all(html, selector, request) do
+    candidates = html |> Html.parse_fragment() |> Html.all(selector)
+    if Enum.empty?(candidates), do: error(:not_found, :find_ancestor, request), else: {:ok, candidates}
+  end
+
+  defp filter_ancestors(ancestors, {selector, text}),
+    do: Enum.filter(ancestors, &match?({:ok, _}, find(&1, selector, text)))
+
+  defp filter_ancestors(ancestors, selector), do: Enum.filter(ancestors, &match?({:ok, _}, find(&1, selector)))
+
+  defp one_result(operation, request, matches, opts \\ []) do
+    case Enum.to_list(matches) do
+      [] -> error(:not_found, operation, request, opts)
+      [element] -> {:ok, element}
+      elements -> error(:multiple_matches, operation, request, Keyword.put(opts, :candidates, elements))
     end
   end
 
-  defp aria_name_match?(parsed, element, label, opts) do
-    aria_label_match?(element, label, opts) or aria_labelledby_match?(parsed, element, label, opts)
+  defp selected_result(elements, selected, request) do
+    matches = Enum.filter(elements, &(selected in selected_option_texts(&1)))
+    one_result(:find_by_label_and_selected, Map.put(request, :selected, selected), matches, candidates: elements)
   end
+
+  defp error(kind, operation, request, opts \\ []), do: {:error, Failure.new(kind, operation, request, opts)}
+
+  defp combine_selectors(selectors, label_for),
+    do: Enum.map(selectors, &if(Element.selector_has_id?(&1, label_for), do: &1, else: &1 <> "[id='#{label_for}']"))
+
+  defp filter_by_element_text(elements, text, opts),
+    do: Enum.filter(elements, &text_match?(Html.element_text(&1), text, opts))
+
+  defp find_first_by_element_text(elements, text, opts),
+    do: Enum.find(elements, &text_match?(Html.element_text(&1), text, opts))
+
+  defp text_match?(subject, text, opts),
+    do: if(Keyword.get(opts, :exact, false), do: subject == text, else: subject =~ text)
+
+  defp selected_option_texts(element),
+    do:
+      if(Html.tag(element) == "select",
+        do: element |> Html.selected_options() |> Enum.map(&Html.element_text/1),
+        else: []
+      )
+
+  defp filter_by_position(elements, opts) do
+    case Keyword.get(opts, :at, :any) do
+      :any -> elements
+      at when is_number(at) -> elements |> Enum.at(at - 1) |> List.wrap()
+    end
+  end
+
+  defp descendant_selector(selector) when is_binary(selector), do: selector
+  defp descendant_selector({selector, text}) when is_binary(selector) and is_binary(text), do: {selector, text}
+  defp descendant_selector(%{id: id}) when is_binary(id), do: "[id=#{inspect(id)}]"
+  defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
+  defp descendant_selector(%{selector: selector}), do: selector
+
+  defp aria_name_match?(parsed, element, label, opts),
+    do: aria_label_match?(element, label, opts) or aria_labelledby_match?(parsed, element, label, opts)
 
   defp aria_label_match?(element, label, opts) do
     case Html.attribute(element, "aria-label") do
@@ -308,13 +334,8 @@ defmodule PhoenixTest.Query do
         false
 
       ids ->
-        text =
-          ids
-          |> String.split()
-          |> Enum.map_join(" ", &labelledby_text(parsed, &1))
-          |> normalize_whitespace()
-
-        text != "" and text_match?(text, label, opts)
+        (text = ids |> String.split() |> Enum.map_join(" ", &labelledby_text(parsed, &1)) |> normalize_whitespace()) != "" and
+          text_match?(text, label, opts)
     end
   end
 
@@ -325,312 +346,12 @@ defmodule PhoenixTest.Query do
     end
   end
 
-  defp normalize_whitespace(string) do
-    string |> String.replace(~r/\s+/, " ") |> String.trim()
-  end
+  defp normalize_whitespace(string), do: string |> String.replace(~r/\s+/, " ") |> String.trim()
 
-  defp find_labels(html, input_selectors, label, opts) do
-    html
-    |> find("label", label, opts)
-    |> case do
-      {:not_found, potential_matches} ->
-        {:not_found, potential_matches}
-
-      {:found, element} ->
-        determine_implicit_or_explicit_label(html, element, input_selectors)
-
-      {:found_many, elements} ->
-        {:found_many, Enum.map(elements, &determine_implicit_or_explicit_label(html, &1, input_selectors))}
-    end
-  end
-
-  defp find_explicit_label_input(html, input_selectors, label_element) do
-    with {:ok, label_for} <- label_for(label_element) do
-      find_associated_input(html, input_selectors, label_for, label_element)
-    end
-  end
-
-  def find_ancestor!(html, ancestor, descendant) do
-    descendant = descendant_selector(descendant)
-
-    case find_ancestor(html, ancestor, descendant) do
-      {:found, element} ->
-        element
-
-      {:found_many, potential_matches} ->
-        raise ArgumentError, find_ancestor_found_many_msg(ancestor, descendant, potential_matches)
-
-      :not_found ->
-        raise ArgumentError, """
-        Could not find any #{inspect(ancestor)} elements.
-        """
-
-      {:not_found, potential_matches} ->
-        raise ArgumentError, find_ancestor_not_found_msg(ancestor, descendant, potential_matches)
-    end
-  end
-
-  def find_ancestor(html, ancestor_selector, descendant) do
-    descendant = descendant_selector(descendant)
-
-    case {descendant, find(html, ancestor_selector)} do
-      {_, :not_found} ->
-        :not_found
-
-      {{descendant_selector, descendant_text}, {:found, element}} ->
-        filter_ancestor_with_descendant([element], descendant_selector, descendant_text)
-
-      {{descendant_selector, descendant_text}, {:found_many, elements}} ->
-        filter_ancestor_with_descendant(elements, descendant_selector, descendant_text)
-
-      {descendant_selector, {:found, element}} ->
-        filter_ancestor_with_descendant([element], descendant_selector)
-
-      {descendant_selector, {:found_many, elements}} ->
-        filter_ancestor_with_descendant(elements, descendant_selector)
-    end
-  end
-
-  def has_ancestor?(html, ancestor_selector, descendant) do
-    case find_ancestor(html, ancestor_selector, descendant) do
-      {:found, _} -> true
-      _ -> false
-    end
-  end
-
-  defp descendant_selector(selector) when is_binary(selector), do: selector
-  defp descendant_selector({selector, text}) when is_binary(selector) and is_binary(text), do: {selector, text}
-  defp descendant_selector(%{id: id}) when is_binary(id), do: "[id=#{inspect(id)}]"
-  defp descendant_selector(%{selector: selector, text: text}), do: {selector, text}
-  defp descendant_selector(%{selector: selector}), do: selector
-
-  defp find_ancestor_found_many_msg(ancestor, {descendant_selector, descendant_text}, potential_matches) do
-    """
-    Found too many #{inspect(ancestor)} elements with nested element with
-    selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}
-
-    Potential matches:
-
-    #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-    """
-  end
-
-  defp find_ancestor_found_many_msg(ancestor, descendant_selector, ancestors) do
-    """
-    Found too many #{inspect(ancestor)} matches for element with selector #{inspect(descendant_selector)}
-
-    Please make the selector more specific (e.g. using an id)
-
-    The following #{inspect(ancestor)} elements were found:
-
-    #{Enum.map_join(ancestors, "\n", &Html.raw/1)}
-    """
-  end
-
-  defp find_ancestor_not_found_msg(ancestor, {descendant_selector, descendant_text}, potential_matches) do
-    """
-    Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)} and text #{inspect(descendant_text)}.
-
-    Found other potential #{inspect(ancestor)}:
-
-    #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-    """
-  end
-
-  defp find_ancestor_not_found_msg(ancestor, descendant_selector, potential_matches) do
-    """
-    Could not find #{inspect(ancestor)} for an element with selector #{inspect(descendant_selector)}.
-
-    Found other potential #{inspect(ancestor)}:
-
-    #{Enum.map_join(potential_matches, "\n", &Html.raw/1)}
-    """
-  end
-
-  defp filter_ancestor_with_descendant(ancestors, descendant_selector, descendant_text) do
-    ancestors
-    |> Enum.filter(fn ancestor ->
-      case find(ancestor, descendant_selector, descendant_text) do
-        {:not_found, _} -> false
-        {:found, _element} -> true
-        {:found_many, _elements} -> true
-      end
-    end)
-    |> case do
-      [] -> {:not_found, ancestors}
-      [ancestor] -> {:found, ancestor}
-      [_ | _] = ancestors -> {:found_many, ancestors}
-    end
-  end
-
-  defp filter_ancestor_with_descendant(ancestors, descendant_selector) do
-    ancestors
-    |> Enum.filter(fn ancestor ->
-      case find(ancestor, descendant_selector) do
-        :not_found -> false
-        {:found, _element} -> true
-        {:found_many, _elements} -> true
-      end
-    end)
-    |> case do
-      [] -> {:not_found, ancestors}
-      [ancestor] -> {:found, ancestor}
-      [_ | _] = ancestors -> {:found_many, ancestors}
-    end
-  end
-
-  defp determine_implicit_or_explicit_label(html, label, input_selectors) do
-    explicit = find_explicit_label_input(html, input_selectors, label)
-    implicit = find_one_of(label, input_selectors)
-
-    case {explicit, implicit} do
-      {{:found, explicit_el}, {:found, implicit_el}} ->
-        if Html.element(explicit_el) == Html.element(implicit_el) do
-          {:implicit_association, label, implicit_el}
-        else
-          msg = """
-          Found a label which references two different inputs.
-
-          Please remove either the 'for' attribute or the nested input
-
-          to ensure the correct input can be targeted:
-
-          #{Html.raw(label)}
-          """
-
-          raise ArgumentError, msg
-        end
-
-      {_, {:found, implicit_el}} ->
-        {:implicit_association, label, implicit_el}
-
-      _ ->
-        {:explicit_association, label}
-    end
-  end
-
-  defp label_for(label) do
-    case Html.attribute(label, "for") do
-      nil ->
-        {:not_found, :missing_for, label}
-
-      for_attr ->
-        {:ok, for_attr}
-    end
-  end
-
-  defp find_associated_input(html, input_selectors, label_for, label) do
-    selectors = combine_selectors(input_selectors, label_for)
-
-    case find_one_of(html, selectors) do
-      {:not_found, _} ->
-        {:not_found, :missing_input, label}
-
-      {:found, element} = found ->
-        case Html.attribute(element, "id") do
-          ^label_for -> found
-          _ -> {:not_found, :mismatched_id, label, element}
-        end
-    end
-  end
-
-  defp combine_selectors(input_selectors, label_for) when is_list(input_selectors) do
-    Enum.map(input_selectors, &combine_selector(&1, label_for))
-  end
-
-  defp combine_selector(input_selector, label_for) do
-    if Element.selector_has_id?(input_selector, label_for) do
-      input_selector
-    else
-      input_selector <> "[id='#{label_for}']"
-    end
-  end
-
-  defp filter_by_element_text(elements, text, opts) do
-    Enum.filter(elements, &text_match?(Html.element_text(&1), text, opts))
-  end
-
-  defp find_first_by_element_text(elements, text, opts) do
-    Enum.find(elements, &text_match?(Html.element_text(&1), text, opts))
-  end
-
-  defp text_match?(subject, text, opts) do
-    if Keyword.get(opts, :exact, false) do
-      subject == text
-    else
-      subject =~ text
-    end
-  end
-
-  defp selected_result(elements, selected, potential_matches) do
-    elements
-    |> Enum.filter(&(selected in selected_option_texts(&1)))
-    |> case do
-      [] -> {:not_found, potential_matches}
-      [found] -> {:found, found}
-      [_ | _] = found_many -> {:found_many, found_many}
-    end
-  end
-
-  defp selected_option_texts(element) do
-    case Html.tag(element) do
-      "select" ->
-        element
-        |> Html.selected_options()
-        |> Enum.map(&Html.element_text/1)
-
-      _ ->
-        []
-    end
-  end
-
-  defp filter_by_position(elements, opts) do
-    at = Keyword.get(opts, :at, :any)
-
-    case at do
-      :any ->
-        elements
-
-      at when is_number(at) ->
-        elements |> Enum.at(at - 1) |> List.wrap()
-    end
-  end
-
-  defp potential_matches(results) do
-    results
-    |> Enum.filter(fn
-      {:not_found, elements} -> !Enum.empty?(elements)
-      _ -> false
-    end)
-    |> Enum.map(fn {:not_found, values} -> values end)
-    |> then(fn
-      [element] -> element
-      elements -> elements
-    end)
-  end
-
-  defp format_potential_matches(elements) do
-    Enum.map_join(elements, "\n", &Html.raw/1)
-  end
-
-  defp format_selectors_for_error_msg([selector_and_text]) do
-    case selector_and_text do
-      {selector, text} ->
-        "#{inspect(selector)} with content #{inspect(text)}"
-
-      selector ->
-        inspect(selector)
-    end
-  end
-
-  defp format_selectors_for_error_msg(selectors_and_text) do
-    "\n\n" <>
-      Enum.map_join(selectors_and_text, "\n", fn
-        {selector, text} ->
-          "- #{inspect(selector)} with content #{inspect(text)}"
-
-        selector ->
-          "- #{inspect(selector)}"
+  defp potential_matches(results),
+    do:
+      Enum.flat_map(results, fn
+        {:error, %Failure{kind: :not_found, candidates: candidates}} -> List.wrap(candidates)
+        _ -> []
       end)
-  end
 end

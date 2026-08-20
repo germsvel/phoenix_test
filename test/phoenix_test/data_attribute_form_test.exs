@@ -96,6 +96,7 @@ defmodule PhoenixTest.DataAttributeFormTest do
   end
 
   defp to_element(html) do
-    Query.find!(html, "a")
+    {:ok, element} = Query.find(html, "a")
+    element
   end
 end

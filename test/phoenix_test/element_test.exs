@@ -6,8 +6,8 @@ defmodule PhoenixTest.ElementTest do
 
   describe "build_selector/2" do
     test "builds a selector based on id if id is present" do
-      data =
-        Query.find!(
+      {:ok, data} =
+        Query.find(
           """
           <input id="name" type="text" name="name" value="Hello world"/>
           """,
@@ -20,8 +20,8 @@ defmodule PhoenixTest.ElementTest do
     end
 
     test "builds a composite selector if id isn't present" do
-      data =
-        Query.find!(
+      {:ok, data} =
+        Query.find(
           """
           <input type="text" name="name" />
           """,
@@ -34,8 +34,8 @@ defmodule PhoenixTest.ElementTest do
     end
 
     test "includes simple phx-* attributes when id isn't present" do
-      data =
-        Query.find!(
+      {:ok, data} =
+        Query.find(
           """
           <input phx-click="save-user" type="text" name="name" />
           """,
@@ -51,8 +51,8 @@ defmodule PhoenixTest.ElementTest do
       %{ops: data} = Phoenix.LiveView.JS.navigate("/live/page_2")
       {:ok, encoded_action} = Jason.encode(data)
 
-      data =
-        Query.find!(
+      {:ok, data} =
+        Query.find(
           """
           <input phx-click=#{encoded_action} type="text" name="name" />
           """,

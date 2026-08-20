@@ -7,6 +7,7 @@ defmodule PhoenixTest.Assertions do
   alias PhoenixTest.Html
   alias PhoenixTest.Operation
   alias PhoenixTest.Query
+  alias PhoenixTest.Query.Failure
   alias PhoenixTest.Utils
 
   defmodule Opts do
@@ -117,51 +118,21 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
-  @label_related_failures [:no_label, :missing_for, :missing_input]
   def assert_has(session, selector, opts) when is_list(opts) do
     opts = Opts.parse(opts)
     finder = finder_fun(selector, opts, :assert_has)
     session = set_operation(session, :assert_has)
 
     case finder.(session.current_operation.html) do
-      :not_found ->
-        raise AssertionError, assert_not_found_error_msg(selector, opts)
+      {:ok, found} ->
+        assert_count(selector, opts, [found])
 
-      {:not_found, potential_matches} ->
+      {:error, %Failure{kind: :multiple_matches} = failure} ->
+        assert_count(selector, opts, failure_matches(failure))
+
+      {:error, %Failure{} = failure} ->
         raise AssertionError,
-          message: assert_not_found_error_msg(selector, opts, potential_matches)
-
-      {:not_found, failure, potential_matches} when failure in @label_related_failures ->
-        raise AssertionError,
-          message: assert_not_found_error_msg(selector, opts, potential_matches)
-
-      {:not_found, :found_many_labels_with_inputs, _label_elements, found} ->
-        found_count = Enum.count(found)
-
-        if opts.count in [:any, found_count] do
-          assert true
-        else
-          raise AssertionError,
-            message: assert_incorrect_count_error_msg(selector, opts, found)
-        end
-
-      {:found, found} ->
-        if opts.count in [:any, 1] do
-          assert true
-        else
-          raise AssertionError,
-            message: assert_incorrect_count_error_msg(selector, opts, [found])
-        end
-
-      {:found_many, found} ->
-        found_count = Enum.count(found)
-
-        if opts.count in [:any, found_count] do
-          assert true
-        else
-          raise AssertionError,
-            message: assert_incorrect_count_error_msg(selector, opts, found)
-        end
+          message: assert_not_found_error_msg(selector, opts, failure_potential_matches(failure))
     end
 
     session
@@ -225,39 +196,14 @@ defmodule PhoenixTest.Assertions do
     session = set_operation(session, :refute_has)
 
     case finder.(session.current_operation.html) do
-      :not_found ->
+      {:ok, found} ->
+        refute_count(selector, opts, [found])
+
+      {:error, %Failure{kind: :multiple_matches} = failure} ->
+        refute_count(selector, opts, failure_matches(failure))
+
+      {:error, %Failure{}} ->
         refute false
-
-      {:not_found, _} ->
-        refute false
-
-      {:not_found, failure, _} when failure in @label_related_failures ->
-        refute false
-
-      {:not_found, :found_many_labels_with_inputs, _labels, elements} ->
-        found_count = Enum.count(elements)
-
-        if opts.count in [:any, found_count] do
-          raise AssertionError, message: refute_found_error_msg(selector, opts, elements)
-        else
-          refute false
-        end
-
-      {:found, element} ->
-        if opts.count in [:any, 1] do
-          raise AssertionError, message: refute_found_error_msg(selector, opts, [element])
-        else
-          refute false
-        end
-
-      {:found_many, elements} ->
-        found_count = Enum.count(elements)
-
-        if opts.count in [:any, found_count] do
-          raise AssertionError, message: refute_found_error_msg(selector, opts, elements)
-        else
-          refute false
-        end
     end
 
     session
@@ -370,6 +316,32 @@ defmodule PhoenixTest.Assertions do
     session
   end
 
+  defp assert_count(selector, opts, found) do
+    if opts.count in [:any, Enum.count(found)] do
+      assert true
+    else
+      raise AssertionError, message: assert_incorrect_count_error_msg(selector, opts, found)
+    end
+  end
+
+  defp refute_count(selector, opts, found) do
+    if opts.count in [:any, Enum.count(found)] do
+      raise AssertionError, message: refute_found_error_msg(selector, opts, found)
+    else
+      refute false
+    end
+  end
+
+  defp failure_matches(%Failure{inputs: inputs}) when inputs not in [nil, []], do: inputs
+  defp failure_matches(%Failure{candidates: candidates}), do: List.wrap(candidates)
+
+  defp failure_potential_matches(%Failure{candidates: candidates, labels: labels}) do
+    case List.wrap(candidates) do
+      [] -> List.wrap(labels)
+      matches -> matches
+    end
+  end
+
   defp assert_incorrect_count_error_msg(selector, opts, found) do
     "Expected #{count_elements(opts.count)} with #{inspect(selector)}"
     |> maybe_append_text(opts.text)
@@ -380,7 +352,7 @@ defmodule PhoenixTest.Assertions do
     |> append_found(found)
   end
 
-  defp assert_not_found_error_msg(selector, opts, other_matches \\ []) do
+  defp assert_not_found_error_msg(selector, opts, other_matches) do
     "Could not find #{count_elements(opts.count)} with selector #{inspect(selector)}"
     |> maybe_append_text(opts.text)
     |> maybe_append_value(opts.value)

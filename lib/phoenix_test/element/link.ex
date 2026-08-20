@@ -10,26 +10,21 @@ defmodule PhoenixTest.Element.Link do
 
   def find(html, selector, text) do
     case Query.find(html, selector, text) do
-      {:found, link} ->
-        {:found, build(link, selector, text)}
+      {:ok, link} ->
+        {:ok, build(link, selector, text)}
 
-      {:not_found, _potential_matches} = not_found ->
+      {:error, %{kind: :not_found} = failure} ->
         case Query.find_by_label(html, selector, text, exact: false) do
-          {:found, link} -> {:found, build(link, Element.build_selector(link), Html.element_text(link))}
-          _ -> not_found
+          {:ok, link} -> {:ok, build(link, Element.build_selector(link), Html.element_text(link))}
+          {:error, _label_failure} -> {:error, failure}
         end
 
-      other ->
-        other
+      {:error, _failure} = error ->
+        error
     end
   end
 
-  def find!(html, selector, text) do
-    case find(html, selector, text) do
-      {:found, link} -> link
-      _ -> html |> Query.find!(selector, text) |> build(selector, text)
-    end
-  end
+  def find!(html, selector, text), do: html |> find(selector, text) |> Element.unwrap_query!()
 
   defp build(link, selector, text) do
     id = Html.attribute(link, "id")

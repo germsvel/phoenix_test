@@ -10,27 +10,21 @@ defmodule PhoenixTest.Element.Form do
 
   defstruct ~w[selector parsed id action method form_data submit_button]a
 
-  def find!(html, selector) do
-    html
-    |> Query.find!(selector)
-    |> build()
-  end
-
   def find(html, selector) do
-    html
-    |> Query.find(selector)
-    |> case do
-      {:found, element} -> {:found, build(element)}
-      {:found_many, elements} -> {:found_many, Enum.map(elements, &build/1)}
-      :not_found -> :not_found
+    with {:ok, form} <- Query.find(html, selector) do
+      {:ok, build(form)}
     end
   end
 
-  def find_by_descendant!(html, descendant) do
-    html
-    |> Query.find_ancestor!("form", descendant)
-    |> build()
+  def find!(html, selector), do: html |> find(selector) |> Element.unwrap_query!()
+
+  def find_by_descendant(html, descendant) do
+    with {:ok, form} <- Query.find_ancestor(html, "form", descendant) do
+      {:ok, build(form)}
+    end
   end
+
+  def find_by_descendant!(html, descendant), do: html |> find_by_descendant(descendant) |> Element.unwrap_query!()
 
   defp build(%LazyHTML{} = form) do
     id = Html.attribute(form, "id")

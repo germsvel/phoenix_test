@@ -2,6 +2,12 @@ defmodule PhoenixTest.Element do
   @moduledoc false
 
   alias PhoenixTest.Html
+  alias PhoenixTest.QueryFailure
+
+  # Element's legacy bang APIs are the boundary where lookup failure data is
+  # rendered for callers that still expect an exception.
+  def unwrap_query!({:ok, value}), do: value
+  def unwrap_query!({:error, failure}), do: QueryFailure.raise_argument_error!(failure)
 
   def build_selector(%LazyHTML{} = html) do
     {tag, attributes, _} = Html.element(html)
