@@ -42,7 +42,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{
                "method" => "delete",
@@ -65,7 +65,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{"checkbox" => ["some_value", "another_value"]} = FormPayload.new(form.form_data)
     end
@@ -78,7 +78,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{"checkbox" => ["some_value"]} = FormPayload.new(form.form_data)
     end
@@ -91,7 +91,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{"hidden" => ["some_value", "another_value"]} = FormPayload.new(form.form_data)
     end
@@ -103,7 +103,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{"hidden" => ["some_value"]} = FormPayload.new(form.form_data)
     end
@@ -116,7 +116,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{"checkbox" => "checked"} = FormPayload.new(form.form_data)
     end
@@ -129,7 +129,7 @@ defmodule PhoenixTest.FormPayloadTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %{"checkbox" => "unchecked"} = FormPayload.new(form.form_data)
     end

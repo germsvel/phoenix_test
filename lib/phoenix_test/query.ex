@@ -55,8 +55,14 @@ defmodule PhoenixTest.Query do
     request = %{input_selectors: List.wrap(input_selectors), label: label, selected: selected, opts: opts}
 
     case find_by_label(html, input_selectors, label, opts) do
-      {:ok, element} -> selected_result([element], selected, request)
-      {:error, failure} -> {:error, %{failure | operation: :find_by_label_and_selected, request: request}}
+      {:ok, element} ->
+        selected_result([element], selected, request)
+
+      {:error, %Failure{kind: :multiple_matches, inputs: inputs}} ->
+        selected_result(inputs, selected, request)
+
+      {:error, failure} ->
+        {:error, %{failure | operation: :find_by_label_and_selected, request: request}}
     end
   end
 
@@ -147,34 +153,26 @@ defmodule PhoenixTest.Query do
       {:ok, [{:explicit, label_element}]} ->
         find_explicit_label_input(html, selectors, label_element, request)
 
-      {:ok, associations} ->
-        labels =
-          Enum.map(associations, fn
-            {_, label_element, _} -> label_element
-            {_, label_element} -> label_element
-          end)
-
+      {:ok, labels, associations} ->
         results =
           Enum.map(associations, fn
-            {:implicit, _, element} -> {:ok, element}
-            {:explicit, label_element} -> find_explicit_label_input(html, selectors, label_element, request)
+            {:ok, {:implicit, _, element}} -> {:ok, element}
+            {:ok, {:explicit, label_element}} -> find_explicit_label_input(html, selectors, label_element, request)
+            {:error, failure} -> {:error, failure}
           end)
 
         inputs = for {:ok, element} <- results, do: element
+        details = %{associations: associations, results: results}
 
         case inputs do
           [] ->
-            error(:multiple_labels, :find_by_label, request, labels: labels, details: %{associations: associations})
+            error(:multiple_labels, :find_by_label, request, labels: labels, details: details)
 
           [element] ->
             {:ok, element}
 
           _ ->
-            error(:multiple_matches, :find_by_label, request,
-              labels: labels,
-              inputs: inputs,
-              details: %{associations: associations}
-            )
+            error(:multiple_matches, :find_by_label, request, labels: labels, inputs: inputs, details: details)
         end
 
       {:error, failure} ->
@@ -191,9 +189,7 @@ defmodule PhoenixTest.Query do
         end
 
       {:error, %Failure{kind: :multiple_matches, candidates: labels}} ->
-        associations = Enum.map(labels, &association(html, &1, selectors, request))
-        conflicts = for {:error, failure} <- associations, do: failure
-        if conflicts == [], do: {:ok, Enum.map(associations, fn {:ok, value} -> value end)}, else: {:error, hd(conflicts)}
+        {:ok, labels, Enum.map(labels, &association(html, &1, selectors, request))}
 
       {:error, failure} ->
         error(:no_label, :find_by_label, %{input_selectors: selectors, label: label, opts: opts},
@@ -266,10 +262,17 @@ defmodule PhoenixTest.Query do
     if Enum.empty?(candidates), do: error(:not_found, :find_ancestor, request), else: {:ok, candidates}
   end
 
-  defp filter_ancestors(ancestors, {selector, text}),
-    do: Enum.filter(ancestors, &match?({:ok, _}, find(&1, selector, text)))
+  defp filter_ancestors(ancestors, {selector, text}), do: Enum.filter(ancestors, &descendant_matches?(&1, selector, text))
 
-  defp filter_ancestors(ancestors, selector), do: Enum.filter(ancestors, &match?({:ok, _}, find(&1, selector)))
+  defp filter_ancestors(ancestors, selector), do: Enum.filter(ancestors, &descendant_matches?(&1, selector))
+
+  defp descendant_matches?(html, selector), do: descendant_query_matches?(find(html, selector))
+
+  defp descendant_matches?(html, selector, text), do: descendant_query_matches?(find(html, selector, text))
+
+  defp descendant_query_matches?({:ok, _}), do: true
+  defp descendant_query_matches?({:error, %Failure{kind: :multiple_matches}}), do: true
+  defp descendant_query_matches?({:error, _}), do: false
 
   defp one_result(operation, request, matches, opts \\ []) do
     case Enum.to_list(matches) do

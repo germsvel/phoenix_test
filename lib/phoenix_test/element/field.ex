@@ -16,17 +16,11 @@ defmodule PhoenixTest.Element.Field do
     end
   end
 
-  def find_input!(html, input_selectors, label, opts),
-    do: html |> find_input(input_selectors, label, opts) |> Element.unwrap_query!()
-
   def find_checkbox(html, input_selector, label, opts) do
     with {:ok, field} <- Query.find_by_label(html, input_selector, label, opts) do
       {:ok, build(field, label, Html.attribute(field, "value") || "on")}
     end
   end
-
-  def find_checkbox!(html, input_selector, label, opts),
-    do: html |> find_checkbox(input_selector, label, opts) |> Element.unwrap_query!()
 
   def find_hidden_uncheckbox(html, input_selector, label, opts) do
     with {:ok, field} <- Query.find_by_label(html, input_selector, label, opts),
@@ -36,12 +30,7 @@ defmodule PhoenixTest.Element.Field do
     end
   end
 
-  def find_hidden_uncheckbox!(html, input_selector, label, opts),
-    do: html |> find_hidden_uncheckbox(input_selector, label, opts) |> Element.unwrap_query!()
-
   def parent_form(field, html), do: Form.find_by_descendant(html, field)
-  def parent_form!(field, html), do: field |> parent_form(html) |> Element.unwrap_query!()
-
   def phx_click?(field), do: LiveViewBindings.phx_click?(field.parsed)
   def phx_value?(field), do: LiveViewBindings.phx_value?(field.parsed)
   def phx_change?(field), do: LiveViewBindings.phx_change?(field.parsed)

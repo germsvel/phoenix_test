@@ -2,15 +2,16 @@ defmodule PhoenixTest.Element.FieldTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Element.Field
+  alias PhoenixTest.Query.Failure
 
-  describe "find_input!" do
+  describe "find_input/4" do
     test "finds text field" do
       html = """
       <label for="name">Name</label>
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert %{id: "name", label: "Name", name: "name", value: "Hello world"} = field
     end
@@ -27,7 +28,7 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="orc" type="radio" name="race" value="orc"/>
       """
 
-      field = Field.find_input!(html, "input", "Elf", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Elf", exact: true)
 
       assert %{id: "elf", label: "Elf", name: "race", value: "elf"} = field
     end
@@ -40,7 +41,7 @@ defmodule PhoenixTest.Element.FieldTest do
       </label>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert %{label: "Name", name: "name", value: "Hello world"} = field
     end
@@ -51,7 +52,7 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert %{selector: ~s|[id="name"]|} = field
     end
@@ -64,20 +65,20 @@ defmodule PhoenixTest.Element.FieldTest do
       </label>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert ~s(input[type="text"][name="name"]) = field.selector
     end
   end
 
-  describe "find_checkbox!" do
+  describe "find_checkbox/4" do
     test "finds a checkbox and defaults value to 'on'" do
       html = """
       <label for="yes">Yes</label>
       <input id="yes" type="checkbox" name="yes" />
       """
 
-      field = Field.find_checkbox!(html, "input", "Yes", exact: true)
+      {:ok, field} = Field.find_checkbox(html, "input", "Yes", exact: true)
 
       assert %{id: "yes", label: "Yes", name: "yes", value: "on"} = field
     end
@@ -88,13 +89,13 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="yes" type="checkbox" name="yes" value="yes"/>
       """
 
-      field = Field.find_checkbox!(html, "input", "Yes", exact: true)
+      {:ok, field} = Field.find_checkbox(html, "input", "Yes", exact: true)
 
       assert %{value: "yes"} = field
     end
   end
 
-  describe "find_hidden_uncheckbox!" do
+  describe "find_hidden_uncheckbox/4" do
     test "finds and uses hidden input's value that is associated to the checkbox" do
       html = """
       <label for="yes">Yes</label>
@@ -102,33 +103,31 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="yes" type="checkbox" name="yes" value="yes" />
       """
 
-      field = Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
+      {:ok, field} = Field.find_hidden_uncheckbox(html, "input", "Yes", exact: true)
 
       assert %{id: "yes", label: "Yes", name: "yes", value: "no"} = field
     end
 
-    test "raises an error if checkbox input doesn't have a `name` (needed to find hidden input)" do
+    test "returns an error if checkbox input doesn't have a `name` (needed to find hidden input)" do
       html = """
       <label for="yes">Yes</label>
       <input type="hidden" name="yes" value="no" />
       <input id="yes" type="checkbox" value="yes" />
       """
 
-      assert_raise ArgumentError, ~r/Could not find element/, fn ->
-        Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
-      end
+      assert {:error, %Failure{kind: :not_found}} =
+               Field.find_hidden_uncheckbox(html, "input", "Yes", exact: true)
     end
 
-    test "raises an error if hidden input doesn't have a `name`" do
+    test "returns an error if hidden input doesn't have a `name`" do
       html = """
       <label for="yes">Yes</label>
       <input type="hidden" value="no" />
       <input id="yes" type="checkbox" name="yes" value="yes" />
       """
 
-      assert_raise ArgumentError, ~r/Could not find element/, fn ->
-        Field.find_hidden_uncheckbox!(html, "input", "Yes", exact: true)
-      end
+      assert {:error, %Failure{kind: :not_found}} =
+               Field.find_hidden_uncheckbox(html, "input", "Yes", exact: true)
     end
   end
 
@@ -139,7 +138,7 @@ defmodule PhoenixTest.Element.FieldTest do
       <input phx-click="save" id="name" type="radio" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert Field.phx_click?(field)
     end
@@ -150,7 +149,7 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="name" type="radio" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       refute Field.phx_click?(field)
     end
@@ -165,7 +164,7 @@ defmodule PhoenixTest.Element.FieldTest do
       </form>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert Field.belongs_to_form?(field, html)
     end
@@ -176,7 +175,7 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       refute Field.belongs_to_form?(field, html)
     end
@@ -189,7 +188,7 @@ defmodule PhoenixTest.Element.FieldTest do
       <input id="name" type="text" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       assert_raise ArgumentError, ~r/missing a `name`/, fn ->
         Field.validate_name!(field)

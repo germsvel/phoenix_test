@@ -167,6 +167,28 @@ defmodule PhoenixTest.QueryTest do
       assert {:ok, _} = Query.find_by_label_and_selected(html, "select", "Role", "Admin")
     end
 
+    test "filters duplicate labelled selects by selected option before determining the result" do
+      html = """
+      <label for=first>Role</label><select id=first><option selected>Member</option></select>
+      <label for=second>Role</label><select id=second><option selected>Admin</option></select>
+      """
+
+      assert {:ok, element} = Query.find_by_label_and_selected(html, "select", "Role", "Admin")
+      assert {"select", [{"id", "second"}], _} = Html.element(element)
+
+      assert {:error, %Failure{kind: :not_found, candidates: [_, _]}} =
+               Query.find_by_label_and_selected(html, "select", "Role", "Owner")
+
+      multiple_selected =
+        """
+        <label for=first>Role</label><select id=first><option selected>Admin</option></select>
+        <label for=second>Role</label><select id=second><option selected>Admin</option></select>
+        """
+
+      assert {:error, %Failure{kind: :multiple_matches, candidates: [_, _]}} =
+               Query.find_by_label_and_selected(multiple_selected, "select", "Role", "Admin")
+    end
+
     test "labelled selected lookup preserves label failures" do
       assert {:error,
               %Failure{
@@ -345,6 +367,16 @@ defmodule PhoenixTest.QueryTest do
                Query.find_by_label(html, "input", "Hello")
     end
 
+    test "finds a valid control when another matching label has conflicting associations" do
+      html = """
+      <label for=other>Hello <input id=nested></label><input id=other>
+      <label for=valid>Hello</label><input id=valid>
+      """
+
+      assert {:ok, element} = Query.find_by_label(html, "input", "Hello")
+      assert {"input", [{"id", "valid"}], []} = Html.element(element)
+    end
+
     test "finds an explicitly associated input" do
       assert {:ok, element} =
                Query.find_by_label("<label for=greeting>Hello</label><input id=greeting>", "input", "Hello")
@@ -494,6 +526,12 @@ defmodule PhoenixTest.QueryTest do
 
     test "finds ancestor with descendant text" do
       html = "<form id=super><button>Save</button></form><form id=other><button>Reset</button></form>"
+      assert {:ok, element} = Query.find_ancestor(html, "form", {"button", "Save"})
+      assert {"form", [{"id", "super"}], _} = Html.element(element)
+    end
+
+    test "finds an ancestor with multiple matching descendants" do
+      html = "<form id=super><button>Save</button><button>Save</button></form>"
       assert {:ok, element} = Query.find_ancestor(html, "form", {"button", "Save"})
       assert {"form", [{"id", "super"}], _} = Html.element(element)
     end

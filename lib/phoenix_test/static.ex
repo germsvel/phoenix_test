@@ -342,8 +342,7 @@ defmodule PhoenixTest.Static do
     end
   end
 
-  defp unwrap_query!({:ok, value}), do: value
-  defp unwrap_query!({:error, failure}), do: QueryFailure.raise_argument_error!(failure)
+  defp unwrap_query!(result), do: QueryFailure.unwrap!(result)
 
   defp set_operation(session, name, rendered_html \\ nil) do
     html = rendered_html || render_html(session)

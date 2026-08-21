@@ -25,9 +25,6 @@ defmodule PhoenixTest.Element.Select do
     end
   end
 
-  def find_select_option!(html, input_selector, label, option, opts),
-    do: html |> find_select_option(input_selector, label, option, opts) |> Element.unwrap_query!()
-
   def phx_click_options?(field), do: Enum.all?(field.selected_options, &LiveViewBindings.phx_click?/1)
   def select_option_selector(field, value), do: field.selector <> " option[value=#{inspect(value)}]"
   def belongs_to_form?(field, html), do: Query.has_ancestor?(html, "form", field)

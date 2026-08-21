@@ -16,15 +16,11 @@ defmodule PhoenixTest.Element.Form do
     end
   end
 
-  def find!(html, selector), do: html |> find(selector) |> Element.unwrap_query!()
-
   def find_by_descendant(html, descendant) do
     with {:ok, form} <- Query.find_ancestor(html, "form", descendant) do
       {:ok, build(form)}
     end
   end
-
-  def find_by_descendant!(html, descendant), do: html |> find_by_descendant(descendant) |> Element.unwrap_query!()
 
   defp build(%LazyHTML{} = form) do
     id = Html.attribute(form, "id")

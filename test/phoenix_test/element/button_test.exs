@@ -2,8 +2,9 @@ defmodule PhoenixTest.Element.ButtonTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Element.Button
+  alias PhoenixTest.Query.Failure
 
-  describe "find!" do
+  describe "find/3" do
     test "finds button by selector and text" do
       html = """
       <button id="save">
@@ -15,21 +16,19 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.id == "save"
     end
 
-    test "raises an error if no button is found" do
+    test "returns an error if no button is found" do
       html = """
       <button id="save">
         Save
       </button>
       """
 
-      assert_raise ArgumentError, fn ->
-        Button.find!(html, "button", "Delete")
-      end
+      assert {:error, %Failure{kind: :not_found}} = Button.find(html, "button", "Delete")
     end
   end
 
@@ -58,7 +57,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.selector == ~s|[id="save"]|
     end
@@ -70,7 +69,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.selector == ~s(button[name="super"][value="button"])
     end
@@ -82,7 +81,7 @@ defmodule PhoenixTest.Element.ButtonTest do
         </div>
       """
 
-      button = Button.find!(html, "#button-id button", "Save")
+      {:ok, button} = Button.find(html, "#button-id button", "Save")
 
       assert button.selector == ~s(#button-id button)
     end
@@ -96,7 +95,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.form_id == "form-id"
     end
@@ -108,7 +107,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.form_id == nil
     end
@@ -122,7 +121,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.name == "super"
       assert button.value == "save"
@@ -135,7 +134,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert is_nil(button.name)
       assert is_nil(button.value)
@@ -148,7 +147,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.name == "generate"
       assert button.value == ""
@@ -163,7 +162,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.type == "button"
     end
@@ -175,7 +174,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert button.type == "submit"
     end
@@ -191,7 +190,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </form>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.belongs_to_form?(button, html)
     end
@@ -205,7 +204,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </form>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.belongs_to_form?(button, html)
     end
@@ -217,7 +216,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.belongs_to_form?(button, html)
     end
@@ -229,7 +228,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       refute Button.belongs_to_form?(button, html)
     end
@@ -245,7 +244,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </form>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.submits_form?(button, html)
     end
@@ -257,7 +256,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.submits_form?(button, html)
     end
@@ -271,7 +270,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </form>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       refute Button.submits_form?(button, html)
     end
@@ -283,7 +282,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       refute Button.submits_form?(button, html)
     end
@@ -297,7 +296,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.phx_click?(button)
     end
@@ -309,7 +308,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       refute Button.phx_click?(button)
     end
@@ -323,7 +322,7 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       assert Button.has_data_method?(button)
     end
@@ -335,13 +334,13 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      button = Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
       refute Button.has_data_method?(button)
     end
   end
 
-  describe "parent_form!" do
+  describe "parent_form/2" do
     test "returns the ancestor form from html" do
       html = """
       <form id="form">
@@ -351,10 +350,8 @@ defmodule PhoenixTest.Element.ButtonTest do
       </form>
       """
 
-      form =
-        html
-        |> Button.find!("button", "Save")
-        |> Button.parent_form!(html)
+      {:ok, button} = Button.find(html, "button", "Save")
+      {:ok, form} = Button.parent_form(button, html)
 
       assert form.id == "form"
     end
@@ -368,10 +365,8 @@ defmodule PhoenixTest.Element.ButtonTest do
       </button>
       """
 
-      form =
-        html
-        |> Button.find!("button", "Save")
-        |> Button.parent_form!(html)
+      {:ok, button} = Button.find(html, "button", "Save")
+      {:ok, form} = Button.parent_form(button, html)
 
       assert form.id == "form"
     end
@@ -383,12 +378,9 @@ defmodule PhoenixTest.Element.ButtonTest do
         </button>
       """
 
-      button =
-        Button.find!(html, "button", "Save")
+      {:ok, button} = Button.find(html, "button", "Save")
 
-      assert_raise ArgumentError, fn ->
-        Button.parent_form!(button, html)
-      end
+      assert {:error, %Failure{kind: :not_found}} = Button.parent_form(button, html)
     end
   end
 end

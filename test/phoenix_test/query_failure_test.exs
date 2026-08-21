@@ -2,7 +2,17 @@ defmodule PhoenixTest.QueryFailureTest do
   use ExUnit.Case, async: true
 
   alias PhoenixTest.Query
+  alias PhoenixTest.Query.Failure
   alias PhoenixTest.QueryFailure
+
+  test "unwraps query results for action callers" do
+    assert :value = QueryFailure.unwrap!({:ok, :value})
+    assert {:error, failure} = Query.find("<p>Other</p>", "p", "Expected")
+
+    assert_raise ArgumentError, ~r/Could not find element/, fn ->
+      QueryFailure.unwrap!({:error, failure})
+    end
+  end
 
   test "formats selector and text failures for action callers" do
     assert {:error, failure} = Query.find("<h1>Hello</h1>", "h1", "Goodbye")
@@ -57,18 +67,57 @@ defmodule PhoenixTest.QueryFailureTest do
     assert QueryFailure.argument_error_message(many) =~ "Found too many \"form\" elements with nested element"
   end
 
-  test "formats assertion failures using the existing assertion wording" do
-    assert {:error, failure} = Query.find("<p>Other</p>", "p", "Expected")
+  test "formats selected and first-text action failures" do
+    assert {:error, first_text} = Query.find_first("<button>Save</button>", "button", "Publish")
 
-    assert QueryFailure.assertion_message(failure, "p",
-             count: :any,
-             text: "Expected",
-             value: :no_value,
-             selected: :no_selected,
-             checked: :no_checked,
-             label: :no_label,
-             at: :any
-           ) ==
-             "Could not find any elements with selector \"p\" and text \"Expected\"\n\nFound these elements matching the selector \"p\":\n\n<p>Other</p>"
+    assert {:error, selected_missing} =
+             Query.find_by_selected("<select><option selected>One</option></select>", "select", "Two")
+
+    assert {:error, selected_many} =
+             Query.find_by_selected(
+               "<select><option selected>One</option></select><select><option selected>One</option></select>",
+               "select",
+               "One"
+             )
+
+    labelled =
+      "<label for=one>Role</label><select id=one><option selected>Member</option></select>" <>
+        "<label for=two>Role</label><select id=two><option selected>Admin</option></select>"
+
+    assert {:error, labelled_missing} = Query.find_by_label_and_selected(labelled, "select", "Role", "Owner")
+
+    assert {:error, labelled_many} =
+             Query.find_by_label_and_selected(
+               String.replace(labelled, "Member", "Admin"),
+               "select",
+               "Role",
+               "Admin"
+             )
+
+    assert {:error, missing_label} = Query.find_by_label_and_selected("<select></select>", "select", "Role", "Admin")
+
+    for {failure, expected} <- [
+          {first_text, ~s(selector "button" and text "Publish")},
+          {selected_missing, ~s(selector "select" and selected option "Two")},
+          {selected_many, ~s(selector "select" and selected option "One")},
+          {labelled_missing, ~s(label "Role" and selected option "Owner")},
+          {labelled_many, ~s(label "Role" and selected option "Admin")},
+          {missing_label, ~s(Could not find element with label "Role")}
+        ] do
+      assert QueryFailure.argument_error_message(failure) =~ expected
+
+      assert_raise ArgumentError, fn ->
+        QueryFailure.raise_argument_error!(failure)
+      end
+    end
+  end
+
+  test "has a diagnostic fallback for future query failures" do
+    failure = Failure.new(:unexpected, :future_operation, %{selector: "p"})
+
+    assert QueryFailure.argument_error_message(failure) =~
+             "Could not complete query operation :future_operation (:unexpected)."
+
+    assert_raise ArgumentError, fn -> QueryFailure.raise_argument_error!(failure) end
   end
 end

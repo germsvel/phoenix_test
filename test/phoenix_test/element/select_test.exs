@@ -3,7 +3,7 @@ defmodule PhoenixTest.Element.SelectTest do
 
   alias PhoenixTest.Element.Select
 
-  describe "find_select_option!" do
+  describe "find_select_option/5" do
     test "returns the selected option value" do
       html = """
       <label for="name">Name</label>
@@ -13,7 +13,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "Select 2", exact: true)
 
       assert ~s|[id="name"]| = field.selector
       assert ["select_2"] = field.value
@@ -30,7 +30,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </label>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "Select 2", exact: true)
 
       assert ~s|[id="name"]| = field.selector
       assert ["select_2"] = field.value
@@ -46,7 +46,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
 
       assert ~s|[id="name"]| = field.selector
       assert ["select_2", "select_3"] = field.value
@@ -61,7 +61,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "On", exact_option: false)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "On", exact_option: false)
 
       assert ~s|[id="name"]| = field.selector
       assert ["one"] = field.value
@@ -78,7 +78,7 @@ defmodule PhoenixTest.Element.SelectTest do
       """
 
       assert_raise ArgumentError, ~r/Could not find a select with a "multiple" attribute set/, fn ->
-        Select.find_select_option!(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
+        Select.find_select_option(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
       end
     end
   end
@@ -94,7 +94,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </form>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 1", exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "Select 1", exact: true)
 
       assert Select.belongs_to_form?(field, html)
     end
@@ -107,7 +107,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 1", exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "Select 1", exact: true)
 
       refute Select.belongs_to_form?(field, html)
     end
@@ -123,7 +123,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "Select 2", exact: true)
 
       assert Select.phx_click_options?(field)
     end
@@ -137,7 +137,7 @@ defmodule PhoenixTest.Element.SelectTest do
       </select>
       """
 
-      field = Select.find_select_option!(html, "select", "Name", "Select 2", exact: true)
+      {:ok, field} = Select.find_select_option(html, "select", "Name", "Select 2", exact: true)
 
       refute Select.phx_click_options?(field)
     end

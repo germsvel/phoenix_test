@@ -7,14 +7,18 @@ defmodule PhoenixTest.QueryFailure do
   # This module is intentionally outside PhoenixTest.Query: lookup failures are
   # data, while callers decide whether and how to present them.
 
+  def unwrap!({:ok, value}), do: value
+  def unwrap!({:error, %Failure{} = failure}), do: raise_argument_error!(failure)
+
   def raise_argument_error!(%Failure{} = failure), do: raise(ArgumentError, argument_error_message(failure))
 
   def argument_error_message(%Failure{
-        operation: :find,
+        operation: operation,
         kind: :not_found,
         request: %{selector: selector, text: text},
         candidates: candidates
-      }) do
+      })
+      when operation in [:find, :find_first] do
     if Enum.any?(candidates) do
       """
       Could not find element with selector #{inspect(selector)} and text #{inspect(text)}.
@@ -34,10 +38,12 @@ defmodule PhoenixTest.QueryFailure do
     do: "Could not find element with selector #{inspect(selector)}"
 
   def argument_error_message(%Failure{
-        operation: :find,
+        operation: operation,
         kind: :multiple_matches,
         request: %{selector: selector, text: text}
-      }), do: "Found more than one element with selector #{inspect(selector)} and text #{inspect(text)}."
+      })
+      when operation in [:find, :find_first],
+      do: "Found more than one element with selector #{inspect(selector)} and text #{inspect(text)}."
 
   def argument_error_message(%Failure{operation: :find, kind: :multiple_matches, request: %{selector: selector}}),
     do: "Found more than one element with selector #{inspect(selector)}"
@@ -48,6 +54,12 @@ defmodule PhoenixTest.QueryFailure do
 
   def argument_error_message(%Failure{operation: :find_one_of} = failure), do: one_of_message(failure)
   def argument_error_message(%Failure{operation: :find_by_label} = failure), do: label_message(failure)
+  def argument_error_message(%Failure{operation: :find_by_selected} = failure), do: selected_message(failure)
+
+  def argument_error_message(%Failure{operation: :find_by_label_and_selected, kind: kind} = failure)
+      when kind in [:not_found, :multiple_matches], do: label_and_selected_message(failure)
+
+  def argument_error_message(%Failure{operation: :find_by_label_and_selected} = failure), do: label_message(failure)
 
   def argument_error_message(%Failure{
         operation: :find_ancestor,
@@ -104,16 +116,9 @@ defmodule PhoenixTest.QueryFailure do
       #{format_elements(candidates)}
       """
 
-  def assertion_message(%Failure{} = failure, selector, opts) do
-    "Could not find #{count_elements(opts[:count])} with selector #{inspect(selector)}"
-    |> maybe_append(:text, opts[:text], :no_text)
-    |> maybe_append(:value, opts[:value], :no_value)
-    |> maybe_append(:selected, opts[:selected], :no_selected)
-    |> maybe_append(:checked, opts[:checked], :no_checked)
-    |> maybe_append_label(opts[:label])
-    |> maybe_append_position(opts[:at])
-    |> append_other_matches(selector, failure.candidates)
-  end
+  # Keep exception conversion reliable if a future Query failure is introduced
+  # before this formatter gains an operation-specific clause.
+  def argument_error_message(%Failure{} = failure), do: fallback_message(failure)
 
   defp one_of_message(%Failure{kind: :not_found, request: %{selectors: selectors}, candidates: candidates}) do
     message = """
@@ -137,6 +142,8 @@ defmodule PhoenixTest.QueryFailure do
 
     #{format_elements(candidates)}
     """
+
+  defp one_of_message(%Failure{} = failure), do: fallback_message(failure)
 
   defp label_message(%Failure{kind: :no_label, request: %{label: label}, candidates: []}),
     do: """
@@ -215,6 +222,54 @@ defmodule PhoenixTest.QueryFailure do
     #{Html.raw(label)}
     """
 
+  defp label_message(%Failure{} = failure), do: fallback_message(failure)
+
+  defp selected_message(%Failure{
+         kind: :not_found,
+         request: %{selector: selector, selected: selected},
+         candidates: candidates
+       }) do
+    message = "Could not find element with selector #{inspect(selector)} and selected option #{inspect(selected)}."
+
+    if Enum.any?(candidates),
+      do: message <> "\n\nThe following elements matching the selector were found:\n\n#{format_elements(candidates)}",
+      else: message
+  end
+
+  defp selected_message(%Failure{kind: :multiple_matches, request: %{selector: selector, selected: selected}}),
+    do: "Found more than one element with selector #{inspect(selector)} and selected option #{inspect(selected)}."
+
+  defp selected_message(%Failure{} = failure), do: fallback_message(failure)
+
+  defp label_and_selected_message(%Failure{
+         kind: :not_found,
+         request: %{label: label, selected: selected},
+         candidates: candidates
+       }) do
+    message = "Could not find element with label #{inspect(label)} and selected option #{inspect(selected)}."
+
+    if Enum.any?(candidates),
+      do: message <> "\n\nThe following labeled elements were found:\n\n#{format_elements(candidates)}",
+      else: message
+  end
+
+  defp label_and_selected_message(%Failure{
+         kind: :multiple_matches,
+         request: %{label: label, selected: selected},
+         candidates: candidates
+       }),
+       do:
+         "Found more than one element with label #{inspect(label)} and selected option #{inspect(selected)}.\n\nPotential matches:\n\n#{format_elements(candidates)}"
+
+  defp label_and_selected_message(%Failure{} = failure), do: fallback_message(failure)
+
+  defp fallback_message(%Failure{operation: operation, kind: kind, request: request, candidates: candidates}) do
+    message =
+      "Could not complete query operation #{inspect(operation)} (#{inspect(kind)}).\n\nRequest: #{inspect(request)}"
+
+    if Enum.any?(candidates), do: message <> "\n\nCandidates:\n\n#{format_elements(candidates)}", else: message
+  end
+
   defp descendant_description({selector, text}), do: "selector #{inspect(selector)} and text #{inspect(text)}"
   defp descendant_description(selector), do: "selector #{inspect(selector)}"
 
@@ -224,18 +279,4 @@ defmodule PhoenixTest.QueryFailure do
   defp format_selectors(selectors), do: "\n\n" <> Enum.map_join(selectors, "\n", &"- #{format_selector(&1)}")
   defp format_selector({selector, text}), do: "#{inspect(selector)} with content #{inspect(text)}"
   defp format_selector(selector), do: inspect(selector)
-
-  defp count_elements(1), do: "1 element"
-  defp count_elements(count), do: "#{count} elements"
-  defp maybe_append(message, _name, value, sentinel) when value == sentinel, do: message
-  defp maybe_append(message, name, value, _sentinel), do: message <> " and #{name} #{inspect(value)}"
-  defp maybe_append_label(message, :no_label), do: message
-  defp maybe_append_label(message, label), do: message <> " with label #{inspect(label)}"
-  defp maybe_append_position(message, :any), do: message
-  defp maybe_append_position(message, position), do: message <> " at position #{position}"
-
-  defp append_other_matches(message, _selector, []), do: message
-
-  defp append_other_matches(message, selector, matches),
-    do: message <> "\n\nFound these elements matching the selector #{inspect(selector)}:\n\n" <> format_elements(matches)
 end

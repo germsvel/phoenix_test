@@ -16,8 +16,6 @@ defmodule PhoenixTest.Element.Button do
     end
   end
 
-  def find!(html, selector, text), do: html |> find(selector, text) |> Element.unwrap_query!()
-
   defp keep_best_selector(button, provided_selector) do
     case provided_selector do
       "button" ->
@@ -91,6 +89,4 @@ defmodule PhoenixTest.Element.Button do
       Form.find_by_descendant(html, button)
     end
   end
-
-  def parent_form!(%__MODULE__{} = button, html), do: button |> parent_form(html) |> Element.unwrap_query!()
 end

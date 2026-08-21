@@ -36,7 +36,7 @@ defmodule PhoenixTest.FormDataTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
 
       form_data = FormData.add_data(FormData.new(), field)
 
@@ -69,7 +69,7 @@ defmodule PhoenixTest.FormDataTest do
       </select>
       """
 
-      select = Select.find_select_option!(html, "select", "Name", "Select 1", exact: true)
+      {:ok, select} = Select.find_select_option(html, "select", "Name", "Select 1", exact: true)
 
       form_data = FormData.add_data(FormData.new(), select)
 
@@ -86,7 +86,7 @@ defmodule PhoenixTest.FormDataTest do
       </select>
       """
 
-      select = Select.find_select_option!(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
+      {:ok, select} = Select.find_select_option(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
       form_data = FormData.add_data(FormData.new(), select)
 
       assert FormData.has_data?(form_data, "name", "select_2")
@@ -99,7 +99,7 @@ defmodule PhoenixTest.FormDataTest do
       <input id="name" type="text" name="name" value="Hello world"/>
       """
 
-      field = Field.find_input!(html, "input", "Name", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Name", exact: true)
       form_data = FormData.add_data(FormData.new(), field)
 
       assert FormData.has_data?(form_data, "name", "Hello world")
@@ -285,7 +285,7 @@ defmodule PhoenixTest.FormDataTest do
       </select>
       """
 
-      select = Select.find_select_option!(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
+      {:ok, select} = Select.find_select_option(html, "select", "Name", ["Select 2", "Select 3"], exact: true)
       form_data = FormData.add_data(FormData.new(), select)
 
       assert FormData.to_list(form_data) == [

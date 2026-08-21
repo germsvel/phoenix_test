@@ -6,7 +6,7 @@ defmodule PhoenixTest.Element.FormTest do
   alias PhoenixTest.Element.Form
   alias PhoenixTest.Html
 
-  describe "find!" do
+  describe "find/2" do
     test "finds a form by selector" do
       html = """
       <form id="user-form">
@@ -16,13 +16,13 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "#user-form")
+      {:ok, form} = Form.find(html, "#user-form")
 
       assert form.id == "user-form"
     end
   end
 
-  describe "find_by_descendant!" do
+  describe "find_by_descendant/2" do
     test "finds parent form for button (if form id is present)" do
       html = """
       <form id="user-form">
@@ -32,7 +32,7 @@ defmodule PhoenixTest.Element.FormTest do
 
       button = %Button{selector: "button", text: "Save"}
 
-      form = Form.find_by_descendant!(html, button)
+      {:ok, form} = Form.find_by_descendant(html, button)
 
       assert form.selector == ~s|[id="user-form"]|
     end
@@ -47,14 +47,14 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      field = Field.find_input!(html, "input", "Email", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Email", exact: true)
 
-      form = Form.find_by_descendant!(html, field)
+      {:ok, form} = Form.find_by_descendant(html, field)
 
       assert form.selector == ~s|[id="user-form"]|
     end
 
-    test "creates same form as `find!`" do
+    test "creates same form as `find/2`" do
       html = """
       <form id="user-form">
         <label>
@@ -64,10 +64,10 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      field = Field.find_input!(html, "input", "Email", exact: true)
+      {:ok, field} = Field.find_input(html, "input", "Email", exact: true)
 
-      input_form = Form.find_by_descendant!(html, field)
-      find_form = Form.find!(html, "#user-form")
+      {:ok, input_form} = Form.find_by_descendant(html, field)
+      {:ok, find_form} = Form.find(html, "#user-form")
 
       assert %{input_form | parsed: nil} == %{find_form | parsed: nil}
 
@@ -82,7 +82,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "#user-form")
+      {:ok, form} = Form.find(html, "#user-form")
 
       assert form.selector == ~s|[id="user-form"]|
     end
@@ -93,7 +93,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert form.selector == ~s(form[action="/"][method="post"])
     end
@@ -149,7 +149,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
       form_data = form.form_data
 
       assert FormData.has_data?(form_data, "method", "delete")
@@ -185,7 +185,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       refute FormData.has_data?(form.form_data, "input", "value")
     end
@@ -199,7 +199,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert FormData.empty?(form.form_data)
     end
@@ -217,7 +217,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert FormData.empty?(form.form_data)
     end
@@ -229,7 +229,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert FormData.has_data?(form.form_data, "checkbox", "unchecked")
     end
@@ -241,7 +241,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert FormData.has_data?(form.form_data, "checkbox", "checked")
     end
@@ -256,7 +256,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert FormData.to_list(form.form_data) == [
                {"mixed_items", ""},
@@ -275,7 +275,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %Button{text: "Save"} = form.submit_button
     end
@@ -288,7 +288,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert %Button{text: "Save"} = form.submit_button
     end
@@ -299,7 +299,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert is_nil(form.submit_button)
     end
@@ -312,7 +312,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert form.action == "/"
     end
@@ -323,7 +323,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert is_nil(form.action)
     end
@@ -336,7 +336,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert form.method == "get"
     end
@@ -347,7 +347,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert form.method == "post"
     end
@@ -360,7 +360,7 @@ defmodule PhoenixTest.Element.FormTest do
         </form>
         """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
 
       assert form.method == "put"
     end
@@ -395,7 +395,7 @@ defmodule PhoenixTest.Element.FormTest do
       </form>
       """
 
-      form = Form.find!(html, "form")
+      {:ok, form} = Form.find(html, "form")
       names = Form.form_element_names(form)
 
       assert "method" in names

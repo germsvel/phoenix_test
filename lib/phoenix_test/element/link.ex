@@ -24,8 +24,6 @@ defmodule PhoenixTest.Element.Link do
     end
   end
 
-  def find!(html, selector, text), do: html |> find(selector, text) |> Element.unwrap_query!()
-
   defp build(link, selector, text) do
     id = Html.attribute(link, "id")
     href = Html.attribute(link, "href")

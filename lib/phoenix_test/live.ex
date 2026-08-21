@@ -102,13 +102,7 @@ defmodule PhoenixTest.Live do
         end
 
       {:error, failure} ->
-        raise_query_failure!(failure)
-
-      _ ->
-        session.view
-        |> element(selector, text)
-        |> render_click()
-        |> maybe_redirect(session)
+        QueryFailure.raise_argument_error!(failure)
     end
   end
 
@@ -776,9 +770,7 @@ defmodule PhoenixTest.Live do
     ArgumentError -> :no_path
   end
 
-  defp unwrap_query!({:ok, value}), do: value
-  defp unwrap_query!({:error, failure}), do: raise_query_failure!(failure)
-  defp raise_query_failure!(failure), do: QueryFailure.raise_argument_error!(failure)
+  defp unwrap_query!(result), do: QueryFailure.unwrap!(result)
 
   defp set_operation(session, name, rendered_html \\ nil) do
     html = rendered_html || render_html(session)
