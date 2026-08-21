@@ -31,7 +31,7 @@ defmodule PhoenixTest.Query do
 
     case Enum.to_list(candidates) do
       [element | _] -> {:ok, element}
-      [] -> error(:not_found, :find, %{selector: selector})
+      [] -> error(:not_found, :find_first, %{selector: selector})
     end
   end
 
@@ -58,8 +58,8 @@ defmodule PhoenixTest.Query do
       {:ok, element} ->
         selected_result([element], selected, request)
 
-      {:error, %Failure{kind: :multiple_matches, inputs: inputs}} ->
-        selected_result(inputs, selected, request)
+      {:error, %Failure{kind: :multiple_matches, candidates: candidates}} ->
+        selected_result(candidates, selected, request)
 
       {:error, failure} ->
         {:error, %{failure | operation: :find_by_label_and_selected, request: request}}
@@ -78,14 +78,8 @@ defmodule PhoenixTest.Query do
           {:ok, element} ->
             {:ok, element}
 
-          {:error, label_failure} ->
-            {:error,
-             %{
-               failure
-               | operation: :find_by_role,
-                 request: request,
-                 details: Map.put(failure.details, :label_failure, label_failure)
-             }}
+          {:error, _} ->
+            {:error, %{failure | operation: :find_by_role, request: request}}
         end
 
       {:error, failure} ->
@@ -110,9 +104,14 @@ defmodule PhoenixTest.Query do
     request = %{selectors: elements}
 
     case found do
-      [] -> error(:not_found, :find_one_of, request, candidates: potential_matches(results), details: %{results: results})
-      [element] -> {:ok, element}
-      elements -> error(:multiple_matches, :find_one_of, request, candidates: elements, details: %{results: results})
+      [] ->
+        error(:not_found, :find_one_of, request, candidates: potential_matches(results))
+
+      [element] ->
+        {:ok, element}
+
+      elements ->
+        error(:multiple_matches, :find_one_of, request, candidates: elements)
     end
   end
 
@@ -124,11 +123,14 @@ defmodule PhoenixTest.Query do
       {:ok, _} = found ->
         found
 
-      {:error, failure} ->
+      {:error, %Failure{kind: :no_label} = failure} ->
         case find_by_aria(html, input_selectors, label, opts, request) do
           {:error, %Failure{kind: :not_found}} -> {:error, failure}
           result -> result
         end
+
+      {:error, failure} ->
+        {:error, failure}
     end
   end
 
@@ -161,18 +163,23 @@ defmodule PhoenixTest.Query do
             {:error, failure} -> {:error, failure}
           end)
 
-        inputs = for {:ok, element} <- results, do: element
-        details = %{associations: associations, results: results}
+        candidates = for {:ok, element} <- results, do: element
 
-        case inputs do
-          [] ->
-            error(:multiple_labels, :find_by_label, request, labels: labels, details: details)
+        case Enum.find(results, &match?({:error, %Failure{kind: :conflicting_label_associations}}, &1)) do
+          {:error, failure} ->
+            {:error, failure}
 
-          [element] ->
-            {:ok, element}
+          nil ->
+            case candidates do
+              [] ->
+                error(:multiple_labels, :find_by_label, request, labels: labels)
 
-          _ ->
-            error(:multiple_matches, :find_by_label, request, labels: labels, inputs: inputs, details: details)
+              [element] ->
+                {:ok, element}
+
+              _ ->
+                error(:multiple_matches, :find_by_label, request, labels: labels, candidates: candidates)
+            end
         end
 
       {:error, failure} ->
@@ -193,7 +200,7 @@ defmodule PhoenixTest.Query do
 
       {:error, failure} ->
         error(:no_label, :find_by_label, %{input_selectors: selectors, label: label, opts: opts},
-          candidates: failure.candidates
+          labels: Enum.to_list(failure.candidates)
         )
     end
   end
@@ -207,7 +214,10 @@ defmodule PhoenixTest.Query do
         if Html.element(explicit) == Html.element(implicit) do
           {:ok, {:implicit, label, implicit}}
         else
-          error(:conflicting_label_associations, :find_by_label, request, labels: [label], inputs: [explicit, implicit])
+          error(:conflicting_label_associations, :find_by_label, request,
+            labels: [label],
+            candidates: [explicit, implicit]
+          )
         end
 
       {_, {:ok, implicit}} ->
@@ -229,18 +239,13 @@ defmodule PhoenixTest.Query do
             if Html.attribute(element, "id") == label_for do
               {:ok, element}
             else
-              error(:mismatched_label_for, :find_by_label, request,
-                labels: [label],
-                inputs: [element],
-                details: %{for: label_for}
-              )
+              error(:mismatched_label_for, :find_by_label, request, labels: [label], candidates: [element])
             end
 
           {:error, failure} ->
             error(:missing_labeled_input, :find_by_label, request,
               labels: [label],
-              candidates: failure.candidates,
-              details: %{for: label_for}
+              candidates: failure.candidates
             )
         end
     end
@@ -254,7 +259,7 @@ defmodule PhoenixTest.Query do
         parsed |> Html.all(selector) |> Enum.filter(&aria_name_match?(parsed, &1, label, opts))
       end)
 
-    one_result(:find_by_label, request, matches, inputs: matches)
+    one_result(:find_by_label, request, matches)
   end
 
   defp all(html, selector, request) do
@@ -354,7 +359,7 @@ defmodule PhoenixTest.Query do
   defp potential_matches(results),
     do:
       Enum.flat_map(results, fn
-        {:error, %Failure{kind: :not_found, candidates: candidates}} -> List.wrap(candidates)
+        {:error, %Failure{kind: :not_found, candidates: candidates}} -> Enum.to_list(candidates)
         _ -> []
       end)
 end

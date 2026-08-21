@@ -38,7 +38,18 @@ defmodule PhoenixTest.QueryFailureTest do
 
     locator = PhoenixTest.Locators.button(text: "Save")
     assert {:error, role_failure} = Query.find_by_role("<p>Nothing</p>", locator)
-    assert QueryFailure.argument_error_message(role_failure) =~ "Could not find an element with given selectors."
+    role_message = QueryFailure.argument_error_message(role_failure)
+
+    assert role_message =~ "Could not find an element with given selectors."
+    refute role_message =~ "I found some elements that match the selector but not the content"
+  end
+
+  test "one-of miss without selector candidates omits potential-match diagnostics" do
+    assert {:error, failure} = Query.find_one_of("<h1>Hello</h1>", ["h2", {"h3", "Hello"}])
+    message = QueryFailure.argument_error_message(failure)
+
+    refute message =~ "I found some elements that match the selector but not the content"
+    refute message =~ "Potential matches"
   end
 
   test "formats label diagnostics" do

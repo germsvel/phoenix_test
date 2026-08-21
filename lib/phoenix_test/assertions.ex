@@ -127,8 +127,8 @@ defmodule PhoenixTest.Assertions do
       {:ok, found} ->
         assert_count(selector, opts, [found])
 
-      {:error, %Failure{kind: :multiple_matches} = failure} ->
-        assert_count(selector, opts, failure_matches(failure))
+      {:error, %Failure{kind: :multiple_matches, candidates: candidates}} ->
+        assert_count(selector, opts, candidates)
 
       {:error, %Failure{} = failure} ->
         raise AssertionError,
@@ -199,8 +199,8 @@ defmodule PhoenixTest.Assertions do
       {:ok, found} ->
         refute_count(selector, opts, [found])
 
-      {:error, %Failure{kind: :multiple_matches} = failure} ->
-        refute_count(selector, opts, failure_matches(failure))
+      {:error, %Failure{kind: :multiple_matches, candidates: candidates}} ->
+        refute_count(selector, opts, candidates)
 
       {:error, %Failure{}} ->
         refute false
@@ -331,9 +331,6 @@ defmodule PhoenixTest.Assertions do
       refute false
     end
   end
-
-  defp failure_matches(%Failure{inputs: inputs}) when inputs not in [nil, []], do: inputs
-  defp failure_matches(%Failure{candidates: candidates}), do: List.wrap(candidates)
 
   defp failure_potential_matches(%Failure{candidates: candidates, labels: labels}) do
     case List.wrap(candidates) do

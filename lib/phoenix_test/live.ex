@@ -113,7 +113,7 @@ defmodule PhoenixTest.Live do
     button =
       session.current_operation.html
       |> Query.find_by_role(locator)
-      |> unwrap_query!()
+      |> QueryFailure.unwrap!()
       |> Button.build()
 
     handle_click_button(session, button)
@@ -122,7 +122,7 @@ defmodule PhoenixTest.Live do
   def click_button(session, selector, text) do
     session = set_operation(session, :click_button)
     html = session.current_operation.html
-    button = html |> Button.find(selector, text) |> unwrap_query!()
+    button = html |> Button.find(selector, text) |> QueryFailure.unwrap!()
 
     handle_click_button(session, button)
   end
@@ -150,7 +150,7 @@ defmodule PhoenixTest.Live do
       Button.submits_form?(button, html) ->
         active_form = session.active_form
         additional_data = FormData.add_data(FormData.new(), button)
-        form = button |> Button.parent_form(html) |> unwrap_query!()
+        form = button |> Button.parent_form(html) |> QueryFailure.unwrap!()
 
         form_data =
           if active_form.selector == form.selector do
@@ -178,7 +178,7 @@ defmodule PhoenixTest.Live do
 
   defp trigger_button_dispatch_change(session, button) do
     html = session.current_operation.html
-    form = button |> Button.parent_form(html) |> unwrap_query!()
+    form = button |> Button.parent_form(html) |> QueryFailure.unwrap!()
 
     existing_form_data =
       if session.active_form.selector == form.selector do
@@ -227,7 +227,7 @@ defmodule PhoenixTest.Live do
     session
     |> render_html()
     |> Query.find(selector)
-    |> unwrap_query!()
+    |> QueryFailure.unwrap!()
     |> LiveViewBindings.phx_session?()
   end
 
@@ -242,7 +242,7 @@ defmodule PhoenixTest.Live do
 
     session.current_operation.html
     |> Field.find_input(input_selector, label, opts)
-    |> unwrap_query!()
+    |> QueryFailure.unwrap!()
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end
@@ -259,7 +259,7 @@ defmodule PhoenixTest.Live do
     field =
       session.current_operation.html
       |> Select.find_select_option(input_selector, label, option, opts)
-      |> unwrap_query!()
+      |> QueryFailure.unwrap!()
 
     cond do
       Select.belongs_to_form?(field, html) ->
@@ -287,7 +287,7 @@ defmodule PhoenixTest.Live do
   def check(session, input_selector, label, opts) do
     session = set_operation(session, :check)
     html = session.current_operation.html
-    field = html |> Field.find_checkbox(input_selector, label, opts) |> unwrap_query!()
+    field = html |> Field.find_checkbox(input_selector, label, opts) |> QueryFailure.unwrap!()
 
     cond do
       Field.phx_click?(field) ->
@@ -313,7 +313,7 @@ defmodule PhoenixTest.Live do
   def uncheck(session, input_selector, label, opts) do
     session = set_operation(session, :uncheck)
     html = session.current_operation.html
-    field = html |> Field.find_checkbox(input_selector, label, opts) |> unwrap_query!()
+    field = html |> Field.find_checkbox(input_selector, label, opts) |> QueryFailure.unwrap!()
 
     cond do
       Field.phx_click?(field) and Field.phx_value?(field) ->
@@ -332,7 +332,7 @@ defmodule PhoenixTest.Live do
       Field.belongs_to_form?(field, html) ->
         html
         |> Field.find_hidden_uncheckbox(input_selector, label, opts)
-        |> unwrap_query!()
+        |> QueryFailure.unwrap!()
         |> then(&fill_in_field_data(session, &1))
 
       true ->
@@ -349,7 +349,7 @@ defmodule PhoenixTest.Live do
   def choose(session, input_selector, label, opts) do
     session = set_operation(session, :choose)
     html = session.current_operation.html
-    field = html |> Field.find_input(input_selector, label, opts) |> unwrap_query!()
+    field = html |> Field.find_input(input_selector, label, opts) |> QueryFailure.unwrap!()
 
     cond do
       Field.phx_click?(field) ->
@@ -375,11 +375,11 @@ defmodule PhoenixTest.Live do
   def upload(session, input_selector, label, path, opts) do
     session = set_operation(session, :upload)
     html = session.current_operation.html
-    field = html |> Field.find_input(input_selector, label, opts) |> unwrap_query!()
+    field = html |> Field.find_input(input_selector, label, opts) |> QueryFailure.unwrap!()
 
     file_stat = File.stat!(path)
     file_name = Path.basename(path)
-    form = field |> Field.parent_form(html) |> unwrap_query!()
+    form = field |> Field.parent_form(html) |> QueryFailure.unwrap!()
     live_upload_name = String.to_existing_atom(field.name)
     mime_type = FileUpload.mime_type(path)
 
@@ -463,7 +463,7 @@ defmodule PhoenixTest.Live do
     html = session.current_operation.html
     Field.validate_name!(field)
 
-    form = field |> Field.parent_form(html) |> unwrap_query!()
+    form = field |> Field.parent_form(html) |> QueryFailure.unwrap!()
     field_value = next_field_value(session, form, field)
 
     session =
@@ -541,7 +541,7 @@ defmodule PhoenixTest.Live do
   end
 
   def submit_form(session, selector, form_data, additional_data \\ FormData.new()) do
-    form = session.current_operation.html |> Form.find(selector) |> unwrap_query!()
+    form = session.current_operation.html |> Form.find(selector) |> QueryFailure.unwrap!()
 
     form_data = select_form_data_to_submit(form, form_data)
 
@@ -769,8 +769,6 @@ defmodule PhoenixTest.Live do
   rescue
     ArgumentError -> :no_path
   end
-
-  defp unwrap_query!(result), do: QueryFailure.unwrap!(result)
 
   defp set_operation(session, name, rendered_html \\ nil) do
     html = rendered_html || render_html(session)

@@ -116,7 +116,7 @@ defmodule PhoenixTest.QueryTest do
     end
 
     test "find_first reports a missing selector" do
-      assert {:error, %Failure{kind: :not_found, operation: :find, request: %{selector: "p"}}} =
+      assert {:error, %Failure{kind: :not_found, operation: :find_first, request: %{selector: "p"}}} =
                Query.find_first("<div></div>", "p")
     end
 
@@ -225,21 +225,16 @@ defmodule PhoenixTest.QueryTest do
               %Failure{
                 kind: :not_found,
                 request: %{selectors: [{"h2", "Hi"}]},
-                candidates: candidates,
-                details: %{results: _}
+                candidates: candidates
               }} =
                Query.find_one_of("<h2>Hello</h2><h2>Greetings</h2>", [{"h2", "Hi"}])
 
-      assert [{"h2", _, ["Hello"]}, {"h2", _, ["Greetings"]}] = candidates |> hd() |> LazyHTML.to_tree()
+      assert [{"h2", _, ["Hello"]}, {"h2", _, ["Greetings"]}] = Enum.map(candidates, &Html.element/1)
     end
 
     test "reports no candidates when no selector matches" do
-      assert {:error, %Failure{kind: :not_found, candidates: candidates, details: %{results: results}}} =
+      assert {:error, %Failure{kind: :not_found, candidates: []}} =
                Query.find_one_of("<h1>Hello</h1>", ["h2", {"h3", "Hello"}])
-
-      assert [candidate] = candidates
-      assert Enum.empty?(candidate)
-      assert Enum.all?(results, &match?({:error, %Failure{kind: :not_found}}, &1))
     end
 
     test "combines a bare selector with a selector and text pair" do
@@ -270,8 +265,7 @@ defmodule PhoenixTest.QueryTest do
               %Failure{
                 kind: :not_found,
                 operation: :find_by_role,
-                request: %{locator: ^locator, role_selectors: _},
-                details: %{label_failure: %Failure{}}
+                request: %{locator: ^locator, role_selectors: _}
               }} =
                Query.find_by_role("<button>Hello</button>", locator)
     end
@@ -296,19 +290,17 @@ defmodule PhoenixTest.QueryTest do
               %Failure{
                 kind: :no_label,
                 labels: [],
-                candidates: candidates,
+                candidates: [],
                 request: %{label: "Name", input_selectors: ["input"]}
               }} =
                Query.find_by_label("<input id=name>", "input", "Name")
-
-      assert Enum.empty?(candidates)
     end
 
     test "retains other labels when requested label is absent" do
-      assert {:error, %Failure{kind: :no_label, candidates: candidates}} =
+      assert {:error, %Failure{kind: :no_label, labels: [label]}} =
                Query.find_by_label("<label for=name>Names</label>", "input", "Email")
 
-      assert {"label", [{"for", "name"}], ["Names"]} = Html.element(candidates)
+      assert {"label", [{"for", "name"}], ["Names"]} = Html.element(label)
     end
 
     test "reports a label without for" do
@@ -328,7 +320,7 @@ defmodule PhoenixTest.QueryTest do
     test "reports missing explicitly labelled input" do
       html = "<label for=name>Name</label><input name=name>"
 
-      assert {:error, %Failure{kind: :missing_labeled_input, labels: [label], details: %{for: "name"}}} =
+      assert {:error, %Failure{kind: :missing_labeled_input, labels: [label]}} =
                Query.find_by_label(html, "input", "Name")
 
       assert {"label", _, _} = Html.element(label)
@@ -337,7 +329,7 @@ defmodule PhoenixTest.QueryTest do
     test "reports mismatched selector result for explicit label" do
       html = "<label for=name>Name</label><input id=not-name name=name>"
 
-      assert {:error, %Failure{kind: :missing_labeled_input, labels: [_], details: %{for: "name"}}} =
+      assert {:error, %Failure{kind: :missing_labeled_input, labels: [_]}} =
                Query.find_by_label(html, "#not-name", "Name")
     end
 
@@ -349,32 +341,32 @@ defmodule PhoenixTest.QueryTest do
     test "reports many labels and inputs" do
       html = "<label for=one>Hello</label><input id=one><label for=two>Hello</label><input id=two>"
 
-      assert {:error, %Failure{kind: :multiple_matches, labels: [_, _], inputs: [_, _]}} =
+      assert {:error, %Failure{kind: :multiple_matches, labels: [_, _], candidates: [_, _]}} =
                Query.find_by_label(html, "input", "Hello")
     end
 
     test "reports explicit and implicit multiple label associations" do
       html = "<label for=one>Hello</label><input id=one><label>Hello <input id=two></label>"
 
-      assert {:error, %Failure{kind: :multiple_matches, labels: [_, _], inputs: [_, _]}} =
+      assert {:error, %Failure{kind: :multiple_matches, labels: [_, _], candidates: [_, _]}} =
                Query.find_by_label(html, "input", "Hello")
     end
 
     test "reports conflicting explicit and implicit associations" do
       html = "<label for=other>Hello <input id=nested></label><input id=other>"
 
-      assert {:error, %Failure{kind: :conflicting_label_associations, labels: [_], inputs: [_, _]}} =
+      assert {:error, %Failure{kind: :conflicting_label_associations, labels: [_], candidates: [_, _]}} =
                Query.find_by_label(html, "input", "Hello")
     end
 
-    test "finds a valid control when another matching label has conflicting associations" do
+    test "reports a conflicting association even when another matching label is valid" do
       html = """
       <label for=other>Hello <input id=nested></label><input id=other>
       <label for=valid>Hello</label><input id=valid>
       """
 
-      assert {:ok, element} = Query.find_by_label(html, "input", "Hello")
-      assert {"input", [{"id", "valid"}], []} = Html.element(element)
+      assert {:error, %Failure{kind: :conflicting_label_associations, labels: [_], candidates: [_, _]}} =
+               Query.find_by_label(html, "input", "Hello")
     end
 
     test "finds an explicitly associated input" do
@@ -449,10 +441,27 @@ defmodule PhoenixTest.QueryTest do
                Query.find_by_label("<input aria-label=\"Something else\">", "input", "Search")
     end
 
-    test "reports multiple aria matches as inputs" do
+    test "does not use aria fallback for a malformed visible label" do
+      html = "<label>Search</label><input aria-label=Search>"
+
+      assert {:error, %Failure{kind: :missing_label_for}} = Query.find_by_label(html, "input", "Search")
+    end
+
+    test "does not use aria fallback for conflicting visible label associations" do
+      html = """
+      <label for=explicit>Search <input id=implicit></label>
+      <input id=explicit>
+      <input id=aria aria-label=Search>
+      """
+
+      assert {:error, %Failure{kind: :conflicting_label_associations}} =
+               Query.find_by_label(html, "input", "Search")
+    end
+
+    test "reports multiple aria matches as candidates" do
       html = "<input name=one aria-label=Search><input name=two aria-label=Search>"
 
-      assert {:error, %Failure{kind: :multiple_matches, labels: [], inputs: [_, _]}} =
+      assert {:error, %Failure{kind: :multiple_matches, labels: [], candidates: [_, _]}} =
                Query.find_by_label(html, "input", "Search")
     end
 

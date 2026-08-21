@@ -145,12 +145,12 @@ defmodule PhoenixTest.QueryFailure do
 
   defp one_of_message(%Failure{} = failure), do: fallback_message(failure)
 
-  defp label_message(%Failure{kind: :no_label, request: %{label: label}, candidates: []}),
+  defp label_message(%Failure{kind: :no_label, request: %{label: label}, labels: []}),
     do: """
     Could not find element with label #{inspect(label)}
     """
 
-  defp label_message(%Failure{kind: :no_label, request: %{label: label, input_selectors: selectors}, candidates: labels}),
+  defp label_message(%Failure{kind: :no_label, request: %{label: label, input_selectors: selectors}, labels: labels}),
     do: """
     Could not find element with label #{inspect(label)} and provided selectors #{inspect(selectors)}.
 
@@ -196,7 +196,7 @@ defmodule PhoenixTest.QueryFailure do
     #{format_elements(labels)}
     """
 
-  defp label_message(%Failure{kind: :multiple_matches, request: %{label: label}, labels: labels, inputs: inputs}),
+  defp label_message(%Failure{kind: :multiple_matches, request: %{label: label}, labels: labels, candidates: candidates}),
     do: """
     Found many elements with label #{inspect(label)} and matching the provided selectors.
 
@@ -208,7 +208,7 @@ defmodule PhoenixTest.QueryFailure do
     Elements found
     ==============
 
-    #{format_elements(inputs)}
+    #{format_elements(candidates)}
     """
 
   defp label_message(%Failure{kind: :conflicting_label_associations, labels: [label | _]}),
