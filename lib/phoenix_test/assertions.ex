@@ -311,6 +311,8 @@ defmodule PhoenixTest.Assertions do
 
   defp path_matches?(path, path), do: true
 
+  defp path_matches?(%Regex{} = expected, is), do: Regex.match?(expected, is)
+
   defp path_matches?(expected, is) do
     parts_expected = String.split(expected, "/")
     parts_is = String.split(is, "/")
