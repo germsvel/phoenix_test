@@ -59,6 +59,43 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "nested, repeated, and indexed names match the browser in LiveView" do
+    compare_nested("live")
+  end
+
+  test "nested, repeated, and indexed names match the browser in Static" do
+    compare_nested("static")
+  end
+
+  defp compare_nested(kind) do
+    browser = browser_observation(kind, "nested")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/#{kind}")
+    |> click_button("Save Nested Data")
+
+    expected_params = %{
+      "profile" => %{
+        "tags" => ["alpha", "beta"],
+        "contacts" => %{
+          "0" => %{"name" => "Ada", "role" => "admin"},
+          "1" => %{"name" => "Lin", "role" => "editor"}
+        },
+        "settings" => %{"theme" => "dark"}
+      },
+      "duplicate" => "second"
+    }
+
+    expected =
+      if kind == "live",
+        do: %{event: "save", params: expected_params},
+        else: %{method: "POST", params: expected_params}
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "radio, omitted controls, and untouched defaults match the browser in LiveView" do
     compare_defaults("live")
   end

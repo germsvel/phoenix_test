@@ -67,6 +67,19 @@ defmodule PhoenixTest.WebApp.VerificationController do
           <input id="verification-delete-reason" name="reason" value="obsolete">
           <button type="submit">Remove Record</button>
         </form>
+        <form id="verification-nested-form" action="/verify/#{run_id}/static" method="post">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <input name="profile[tags][]" value="alpha">
+          <input name="profile[contacts][0][name]" value="Ada">
+          <input name="profile[contacts][0][role]" value="admin">
+          <input name="profile[tags][]" value="beta">
+          <input name="profile[contacts][1][name]" value="Lin">
+          <input name="profile[contacts][1][role]" value="editor">
+          <input name="profile[settings][theme]" value="dark">
+          <input name="duplicate" value="first">
+          <input name="duplicate" value="second">
+          <button type="submit">Save Nested Data</button>
+        </form>
         <form id="verification-defaults-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <label><input type="radio" name="person[choice]" value="ignored"> Ignored choice</label>

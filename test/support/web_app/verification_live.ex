@@ -34,6 +34,18 @@ defmodule PhoenixTest.WebApp.VerificationLive do
       </select>
       <button type="submit">Save Roles</button>
     </form>
+    <form id="verification-nested-form" phx-submit="save">
+      <input name="profile[tags][]" value="alpha" />
+      <input name="profile[contacts][0][name]" value="Ada" />
+      <input name="profile[contacts][0][role]" value="admin" />
+      <input name="profile[tags][]" value="beta" />
+      <input name="profile[contacts][1][name]" value="Lin" />
+      <input name="profile[contacts][1][role]" value="editor" />
+      <input name="profile[settings][theme]" value="dark" />
+      <input name="duplicate" value="first" />
+      <input name="duplicate" value="second" />
+      <button type="submit">Save Nested Data</button>
+    </form>
     <form id="verification-defaults-form" phx-submit="save">
       <label><input type="radio" name="person[choice]" value="ignored" /> Ignored choice</label>
       <label>

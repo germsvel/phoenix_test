@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +31,9 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "defaults") {
+  if (interaction === "nested") {
+    await page.getByRole("button", { name: "Save Nested Data" }).click();
+  } else if (interaction === "defaults") {
     await page.getByRole("button", { name: "Save Defaults" }).click();
   } else if (interaction?.startsWith("submit_")) {
     if (interaction === "submit_enter") {
