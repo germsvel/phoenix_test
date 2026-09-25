@@ -59,6 +59,57 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "static links and redirects reach the same controller paths and params" do
+    for {interaction, link, expected} <- [
+          {"static_link", "Visit Record",
+           [
+             %{method: "GET", path: "/verify/:run_id/static/destination", params: %{"origin" => "link", "empty" => ""}}
+           ]},
+          {"static_redirect", "Follow Record Redirect",
+           [
+             %{method: "GET", path: "/verify/:run_id/static/redirect", params: %{"step" => "first"}},
+             %{method: "GET", path: "/verify/:run_id/static/destination", params: %{"origin" => "redirect"}}
+           ]}
+        ] do
+      browser = browser_observations("static", interaction, length(expected))
+      run_id = run_id()
+
+      Phoenix.ConnTest.build_conn()
+      |> visit("/verify/#{run_id}/static")
+      |> click_link(link)
+
+      assert Enum.map(browser, &normalize/1) == expected
+      assert run_id |> Recorder.results(length(expected)) |> Enum.map(&normalize/1) == expected
+    end
+  end
+
+  test "static data-method link and button reach DELETE controller with browser params" do
+    for {interaction, target, click} <- [
+          {"static_delete", "Delete via Link", &click_link/2},
+          {"static_delete_button", "Delete via Button", &click_button/2}
+        ] do
+      browser = browser_observation("static", interaction)
+      run_id = run_id()
+
+      Phoenix.ConnTest.build_conn()
+      |> visit("/verify/#{run_id}/static")
+      |> click.(target)
+
+      phoenix = Recorder.result(run_id)
+      assert is_binary(browser.params["_csrf_token"])
+      assert is_binary(phoenix.params["_csrf_token"])
+
+      expected = %{
+        method: "DELETE",
+        path: "/verify/:run_id/static/data_action",
+        params: %{"_method" => "delete"}
+      }
+
+      assert normalize(browser) == expected
+      assert normalize(phoenix) == expected
+    end
+  end
+
   test "Live phx-click bound values and JS.push match browser event params" do
     for {interaction, button, expected} <- [
           {"click_event", "Record Click",

@@ -25,6 +25,9 @@ defmodule PhoenixTest.WebApp.Router do
   scope "/", PhoenixTest.WebApp do
     pipe_through([:browser])
 
+    get "/verify/:run_id/static/destination", VerificationController, :destination
+    get "/verify/:run_id/static/redirect", VerificationController, :redirect_link
+    delete "/verify/:run_id/static/data_action", VerificationController, :data_action
     post "/verify/:run_id/static/upload", VerificationController, :upload_submit
     post "/verify/:run_id/static/submitter", VerificationController, :submitter_submit
     put "/verify/:run_id/static/override", VerificationController, :override_submit

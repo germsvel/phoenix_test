@@ -6,9 +6,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic", "uploads", "live_uploads", "click_event", "push_event", "patch_link", "navigate_link", "redirect_button"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic", "uploads", "live_uploads", "click_event", "push_event", "patch_link", "navigate_link", "redirect_button", "static_link", "static_redirect", "static_delete", "static_delete_button"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic|uploads|live_uploads|click_event|push_event|patch_link|navigate_link|redirect_button]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic|uploads|live_uploads|click_event|push_event|patch_link|navigate_link|redirect_button|static_link|static_redirect|static_delete|static_delete_button]");
 }
 
 const deadline = setTimeout(() => {
@@ -32,7 +32,15 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "click_event") {
+  if (interaction === "static_link") {
+    await page.getByRole("link", { name: "Visit Record" }).click();
+  } else if (interaction === "static_redirect") {
+    await page.getByRole("link", { name: "Follow Record Redirect" }).click();
+  } else if (interaction === "static_delete") {
+    await page.getByRole("link", { name: "Delete via Link" }).click();
+  } else if (interaction === "static_delete_button") {
+    await page.getByRole("button", { name: "Delete via Button" }).click();
+  } else if (interaction === "click_event") {
     await page.getByRole("button", { name: "Record Click" }).click();
   } else if (interaction === "push_event") {
     await page.getByRole("button", { name: "Push Event" }).click();

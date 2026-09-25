@@ -8,7 +8,15 @@ defmodule PhoenixTest.WebApp.VerificationController do
     html(conn, """
     <!doctype html>
     <html lang="en">
+      <head>
+        <meta name="csrf-token" content="#{token}">
+        <script defer src="/assets/app.js"></script>
+      </head>
       <body>
+        <a href="/verify/#{run_id}/static/destination?origin=link&amp;empty=">Visit Record</a>
+        <a href="/verify/#{run_id}/static/redirect?step=first">Follow Record Redirect</a>
+        <a href="/verify/#{run_id}/static/data_action" data-method="delete" data-to="/verify/#{run_id}/static/data_action" data-csrf="#{token}">Delete via Link</a>
+        <button data-method="delete" data-to="/verify/#{run_id}/static/data_action" data-csrf="#{token}">Delete via Button</button>
         <form id="verification-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <label for="verification-name">Name</label>
@@ -137,4 +145,10 @@ defmodule PhoenixTest.WebApp.VerificationController do
   def override_submit(conn, _params), do: html(conn, "Saved")
   def submitter_submit(conn, _params), do: html(conn, "Saved")
   def upload_submit(conn, _params), do: html(conn, "Saved")
+  def destination(conn, _params), do: html(conn, "Saved")
+  def data_action(conn, _params), do: html(conn, "Saved")
+
+  def redirect_link(conn, %{"run_id" => run_id}) do
+    redirect(conn, to: "/verify/#{run_id}/static/destination?origin=redirect")
+  end
 end
