@@ -3,15 +3,19 @@ defmodule PhoenixTest.WebApp.VerificationLive do
   use Phoenix.LiveView
 
   def mount(%{"run_id" => run_id}, _session, socket) do
-    {:ok,
-     assign(socket,
-       run_id: run_id,
-       submitted: false,
-       change_count: 0,
-       change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"},
-       show_stale: true,
-       show_added: false
-     )}
+    socket =
+      socket
+      |> assign(
+        run_id: run_id,
+        submitted: false,
+        change_count: 0,
+        change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"},
+        show_stale: true,
+        show_added: false
+      )
+      |> allow_upload(:photos, accept: ~w(.jpg .png), max_entries: 2)
+
+    {:ok, socket}
   end
 
   def render(assigns) do
@@ -125,6 +129,11 @@ defmodule PhoenixTest.WebApp.VerificationLive do
     <button type="submit" form="verification-submitter-form" name="person[action]" value="external">
       External Action
     </button>
+    <form id="verification-upload-form" phx-change="upload_change" phx-submit="upload_save">
+      <label for={@uploads.photos.ref}>Photos</label>
+      <.live_file_input upload={@uploads.photos} />
+      <button type="submit">Save Photos</button>
+    </form>
     <form id="verification-dynamic-form" phx-submit="save">
       <div id="verification-dynamic-kept-wrapper" phx-update="ignore">
         <label for="verification-dynamic-kept">Kept field</label>
@@ -140,6 +149,13 @@ defmodule PhoenixTest.WebApp.VerificationLive do
     <button type="button" phx-click="add_field">Add Field</button>
     <p :if={@submitted} id="verification-done">Saved</p>
     """
+  end
+
+  def handle_event("upload_change", _params, socket), do: {:noreply, socket}
+
+  def handle_event("upload_save", _params, socket) do
+    consume_uploaded_entries(socket, :photos, fn _meta, entry -> {:ok, entry.client_name} end)
+    {:noreply, assign(socket, submitted: true)}
   end
 
   def handle_event("remove_stale", _params, socket) do

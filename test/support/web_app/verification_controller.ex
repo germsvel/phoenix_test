@@ -67,6 +67,14 @@ defmodule PhoenixTest.WebApp.VerificationController do
           <input id="verification-delete-reason" name="reason" value="obsolete">
           <button type="submit">Remove Record</button>
         </form>
+        <form id="verification-upload-form" action="/verify/#{run_id}/static/upload" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <label for="verification-upload-one">Upload one</label>
+          <input id="verification-upload-one" type="file" name="files[]">
+          <label for="verification-upload-two">Upload two</label>
+          <input id="verification-upload-two" type="file" name="files[]">
+          <button type="submit">Save Files</button>
+        </form>
         <form id="verification-nested-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <input name="profile[tags][]" value="alpha">
@@ -128,4 +136,5 @@ defmodule PhoenixTest.WebApp.VerificationController do
   def get_submit(conn, _params), do: html(conn, "Saved")
   def override_submit(conn, _params), do: html(conn, "Saved")
   def submitter_submit(conn, _params), do: html(conn, "Saved")
+  def upload_submit(conn, _params), do: html(conn, "Saved")
 end

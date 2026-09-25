@@ -59,6 +59,53 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "Live uploads match browser filename, type, and size" do
+    browser = browser_observations("live", "live_uploads", :upload_save)
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/live")
+    |> upload("Photos", "test/files/elixir.jpg")
+    |> upload("Photos", "test/files/phoenix.png")
+    |> click_button("Save Photos")
+
+    expected = %{
+      event: "upload_save",
+      params: %{},
+      uploads: [
+        %{filename: "elixir.jpg", content_type: "image/jpeg", size: File.stat!("test/files/elixir.jpg").size},
+        %{filename: "phoenix.png", content_type: "image/png", size: File.stat!("test/files/phoenix.png").size}
+      ]
+    }
+
+    assert normalize(browser) == expected
+    assert normalize(upload_result(run_id)) == expected
+  end
+
+  test "static multipart uploads match browser filename, type, and size" do
+    browser = browser_observation("static", "uploads")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/static")
+    |> upload("Upload one", "test/files/elixir.jpg")
+    |> upload("Upload two", "test/files/phoenix.png")
+    |> click_button("Save Files")
+
+    expected = %{
+      method: "POST",
+      params: %{
+        "files" => [
+          %{filename: "elixir.jpg", content_type: "image/jpeg", size: File.stat!("test/files/elixir.jpg").size},
+          %{filename: "phoenix.png", content_type: "image/png", size: File.stat!("test/files/phoenix.png").size}
+        ]
+      }
+    }
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "LiveView dynamic form excludes removed fields and retains other values" do
     browser = "live" |> browser_observations("dynamic", 3) |> List.last()
     run_id = run_id()
@@ -372,7 +419,14 @@ defmodule PhoenixTest.VerificationTest do
       )
 
     assert status == 0, "Playwright #{kind} case failed:\n#{output}"
-    Recorder.results(run_id, count)
+    if count == :upload_save, do: upload_result(run_id), else: Recorder.results(run_id, count)
+  end
+
+  defp upload_result(run_id) do
+    Enum.reduce_while(1..6, nil, fn _, _ ->
+      observation = Recorder.result(run_id)
+      if observation.event == "upload_save", do: {:halt, observation}, else: {:cont, nil}
+    end)
   end
 
   defp normalize(%{path: path} = observation) do

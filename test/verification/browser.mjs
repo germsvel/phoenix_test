@@ -1,13 +1,14 @@
 import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic", "uploads", "live_uploads"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic|uploads|live_uploads]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +32,19 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "dynamic") {
+  if (interaction === "live_uploads") {
+    if (kind !== "live") throw new Error("live_uploads requires a LiveView");
+    await page.getByLabel("Photos").setInputFiles([
+      fileURLToPath(new URL("../files/elixir.jpg", import.meta.url)),
+      fileURLToPath(new URL("../files/phoenix.png", import.meta.url)),
+    ]);
+    await page.getByRole("button", { name: "Save Photos" }).click();
+  } else if (interaction === "uploads") {
+    if (kind !== "static") throw new Error("uploads currently requires a static page");
+    await page.getByLabel("Upload one").setInputFiles(fileURLToPath(new URL("../files/elixir.jpg", import.meta.url)));
+    await page.getByLabel("Upload two").setInputFiles(fileURLToPath(new URL("../files/phoenix.png", import.meta.url)));
+    await page.getByRole("button", { name: "Save Files" }).click();
+  } else if (interaction === "dynamic") {
     if (kind !== "live") throw new Error("dynamic requires a LiveView");
     await page.getByLabel("Kept field").fill("Ada");
     await page.getByLabel("Stale field").fill("discard me");
