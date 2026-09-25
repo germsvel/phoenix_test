@@ -8,7 +8,9 @@ defmodule PhoenixTest.WebApp.VerificationLive do
        run_id: run_id,
        submitted: false,
        change_count: 0,
-       change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"}
+       change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"},
+       show_stale: true,
+       show_added: false
      )}
   end
 
@@ -123,8 +125,29 @@ defmodule PhoenixTest.WebApp.VerificationLive do
     <button type="submit" form="verification-submitter-form" name="person[action]" value="external">
       External Action
     </button>
+    <form id="verification-dynamic-form" phx-submit="save">
+      <div id="verification-dynamic-kept-wrapper" phx-update="ignore">
+        <label for="verification-dynamic-kept">Kept field</label>
+        <input id="verification-dynamic-kept" name="person[kept]" value="Initial" />
+      </div>
+      <label :if={@show_stale} for="verification-dynamic-stale">Stale field</label>
+      <input :if={@show_stale} id="verification-dynamic-stale" name="person[stale]" value="old" />
+      <label :if={@show_added} for="verification-dynamic-added">Added field</label>
+      <input :if={@show_added} id="verification-dynamic-added" name="person[added]" />
+      <button type="submit">Save Dynamic</button>
+    </form>
+    <button type="button" phx-click="remove_stale">Remove Stale</button>
+    <button type="button" phx-click="add_field">Add Field</button>
     <p :if={@submitted} id="verification-done">Saved</p>
     """
+  end
+
+  def handle_event("remove_stale", _params, socket) do
+    {:noreply, assign(socket, show_stale: false)}
+  end
+
+  def handle_event("add_field", _params, socket) do
+    {:noreply, assign(socket, show_added: true)}
   end
 
   def handle_event("validate", %{"person" => person}, socket) do

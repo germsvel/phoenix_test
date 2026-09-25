@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +31,17 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "nested") {
+  if (interaction === "dynamic") {
+    if (kind !== "live") throw new Error("dynamic requires a LiveView");
+    await page.getByLabel("Kept field").fill("Ada");
+    await page.getByLabel("Stale field").fill("discard me");
+    await page.getByRole("button", { name: "Remove Stale" }).click();
+    await page.getByLabel("Stale field").waitFor({ state: "detached" });
+    await page.getByRole("button", { name: "Add Field" }).click();
+    await page.getByLabel("Added field").waitFor();
+    await page.getByLabel("Added field").fill("fresh");
+    await page.getByRole("button", { name: "Save Dynamic" }).click();
+  } else if (interaction === "nested") {
     await page.getByRole("button", { name: "Save Nested Data" }).click();
   } else if (interaction === "defaults") {
     await page.getByRole("button", { name: "Save Defaults" }).click();

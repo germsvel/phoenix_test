@@ -59,6 +59,24 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "LiveView dynamic form excludes removed fields and retains other values" do
+    browser = "live" |> browser_observations("dynamic", 3) |> List.last()
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/live")
+    |> fill_in("Kept field", with: "Ada")
+    |> fill_in("Stale field", with: "discard me")
+    |> click_button("Remove Stale")
+    |> click_button("Add Field")
+    |> fill_in("Added field", with: "fresh")
+    |> click_button("Save Dynamic")
+
+    expected = %{event: "save", params: %{"person" => %{"kept" => "Ada", "added" => "fresh"}}}
+    assert normalize(browser) == expected
+    assert run_id |> Recorder.results(3) |> List.last() |> normalize() == expected
+  end
+
   test "nested, repeated, and indexed names match the browser in LiveView" do
     compare_nested("live")
   end
