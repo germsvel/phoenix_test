@@ -59,6 +59,35 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "Phoenix component-rendered form sends browser params to LiveView" do
+    browser = browser_observation("live", "component_form")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/live")
+    |> fill_in("Component Name", with: "Ada")
+    |> click_button("Save Component")
+
+    expected = %{event: "save", params: %{"person" => %{"name" => "Ada", "role" => "reader"}}}
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
+  test "changeset-backed component form sends browser params to LiveView" do
+    browser = browser_observation("live", "changeset_form")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/live")
+    |> fill_in("Profile Name", with: "Lin")
+    |> check("Profile Subscribed")
+    |> click_button("Save Profile")
+
+    expected = %{event: "save", params: %{"profile" => %{"name" => "Lin", "subscribed" => "true"}}}
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "static links and redirects reach the same controller paths and params" do
     for {interaction, link, expected} <- [
           {"static_link", "Visit Record",

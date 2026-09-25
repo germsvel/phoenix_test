@@ -3,6 +3,7 @@ defmodule PhoenixTest.WebApp.VerificationLive do
   use Phoenix.LiveView
 
   alias Phoenix.LiveView.JS
+  alias PhoenixTest.WebApp.VerificationProfile
 
   def mount(%{"run_id" => run_id} = params, _session, socket) do
     socket =
@@ -14,7 +15,9 @@ defmodule PhoenixTest.WebApp.VerificationLive do
         change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"},
         show_stale: true,
         show_added: false,
-        tab: Map.get(params, "tab", "home")
+        tab: Map.get(params, "tab", "home"),
+        component_form: to_form(%{"name" => "Original", "role" => "reader"}, as: :person),
+        changeset_form: to_form(VerificationProfile.changeset(%VerificationProfile{}), as: :profile)
       )
       |> allow_upload(:photos, accept: ~w(.jpg .png), max_entries: 2)
 
@@ -27,6 +30,38 @@ defmodule PhoenixTest.WebApp.VerificationLive do
 
   def render(assigns) do
     ~H"""
+    <.form for={@component_form} id="verification-component-form" phx-submit="save">
+      <label for={@component_form[:name].id}>Component Name</label>
+      <input
+        id={@component_form[:name].id}
+        name={@component_form[:name].name}
+        value={@component_form[:name].value}
+      />
+      <label for={@component_form[:role].id}>Component Role</label>
+      <input
+        id={@component_form[:role].id}
+        name={@component_form[:role].name}
+        value={@component_form[:role].value}
+      />
+      <button type="submit">Save Component</button>
+    </.form>
+    <.form for={@changeset_form} id="verification-changeset-form" phx-submit="save">
+      <label for={@changeset_form[:name].id}>Profile Name</label>
+      <input
+        id={@changeset_form[:name].id}
+        name={@changeset_form[:name].name}
+        value={@changeset_form[:name].value}
+      />
+      <input type="hidden" name={@changeset_form[:subscribed].name} value="false" />
+      <label for={@changeset_form[:subscribed].id}>Profile Subscribed</label>
+      <input
+        id={@changeset_form[:subscribed].id}
+        type="checkbox"
+        name={@changeset_form[:subscribed].name}
+        value="true"
+      />
+      <button type="submit">Save Profile</button>
+    </.form>
     <form id="verification-form" phx-submit="save">
       <label for="verification-name">Name</label>
       <input id="verification-name" name="person[name]" value="Original" />
