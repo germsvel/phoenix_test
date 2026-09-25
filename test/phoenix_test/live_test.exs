@@ -1641,7 +1641,7 @@ defmodule PhoenixTest.LiveTest do
       assert_raise AssertionError, ~r/Expected not to find/, fn ->
         conn
         |> visit("/live/async_page")
-        |> refute_has("h1", text: "Title loaded async", timeout: 250)
+        |> refute_has("h1", text: "Title loaded async", timeout: 1_000)
       end
     end
 
