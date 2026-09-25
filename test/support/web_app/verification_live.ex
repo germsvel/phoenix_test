@@ -3,7 +3,13 @@ defmodule PhoenixTest.WebApp.VerificationLive do
   use Phoenix.LiveView
 
   def mount(%{"run_id" => run_id}, _session, socket) do
-    {:ok, assign(socket, run_id: run_id, submitted: false)}
+    {:ok,
+     assign(socket,
+       run_id: run_id,
+       submitted: false,
+       change_count: 0,
+       change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"}
+     )}
   end
 
   def render(assigns) do
@@ -54,8 +60,34 @@ defmodule PhoenixTest.WebApp.VerificationLive do
       <textarea id="verification-readonly-notes" name="person[readonly_notes]" readonly>locked notes</textarea>
       <button type="submit">Save Controls</button>
     </form>
+    <form id="verification-change-form" phx-change="validate" phx-submit="save">
+      <label for="verification-change-name">Change name</label>
+      <input id="verification-change-name" name="person[name]" value={@change_person["name"]} />
+      <label for="verification-change-role">Change role</label>
+      <select id="verification-change-role" name="person[role]">
+        <option value="reader" selected={@change_person["role"] == "reader"}>Reader</option>
+        <option value="admin" selected={@change_person["role"] == "admin"}>Admin</option>
+      </select>
+      <input type="hidden" name="person[enabled]" value="false" />
+      <label for="verification-change-enabled">Change enabled</label>
+      <input
+        id="verification-change-enabled"
+        type="checkbox"
+        name="person[enabled]"
+        value="true"
+        checked={@change_person["enabled"] == "true"}
+      />
+    </form>
+    <p id="verification-change-count">{@change_count}</p>
     <p :if={@submitted} id="verification-done">Saved</p>
     """
+  end
+
+  def handle_event("validate", %{"person" => person}, socket) do
+    {:noreply,
+     socket
+     |> assign(:change_person, person)
+     |> update(:change_count, &(&1 + 1))}
   end
 
   def handle_event("save", _params, socket) do

@@ -490,12 +490,36 @@ defmodule PhoenixTest.Live do
 
   defp trigger_form_phx_change(session, form, field) do
     data_to_submit = merged_form_data(session, form)
-    additional_data = %{"_target" => field.name}
+
+    additional_data =
+      form
+      |> unused_fields(session.active_form.form_data)
+      |> FormPayload.new()
+      |> Map.put("_target", field.name)
 
     session.view
     |> form(form.selector, FormPayload.new(data_to_submit))
     |> render_change(additional_data)
     |> maybe_redirect(session)
+  end
+
+  defp unused_fields(form, touched_data) do
+    touched = MapSet.new(FormData.field_names(touched_data))
+
+    form
+    |> Form.changeable_field_names()
+    |> Enum.reject(&MapSet.member?(touched, &1))
+    |> Enum.reduce(FormData.new(), fn name, data ->
+      FormData.add_data(data, unused_field_name(name), "")
+    end)
+  end
+
+  defp unused_field_name(name) do
+    case String.split(name, "[", parts: 2) do
+      [field] -> "_unused_" <> field
+      [field, "]"] -> "_unused_" <> field <> "[]"
+      [parent, rest] -> parent <> "[" <> unused_field_name(rest)
+    end
   end
 
   defp merged_form_data(session, %Form{} = form) do

@@ -1471,6 +1471,19 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "_target: [email]")
     end
 
+    test "marks untouched fields as unused on phx-change but not on submit", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#pre-rendered-data-form", &fill_in(&1, "Comments", with: "hello"))
+      |> assert_has("#form-data", text: "_unused_input's value is empty")
+      |> refute_has("#form-data", text: "_unused_comments")
+      |> within("#pre-rendered-data-form", &fill_in(&1, "Pre Rendered Input", with: "changed"))
+      |> refute_has("#form-data", text: "_unused_input")
+      |> assert_has("#form-data", text: "_unused_select's value is empty")
+      |> submit()
+      |> refute_has("#form-data", text: "_unused_")
+    end
+
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = visit(conn, "/live/index")
 

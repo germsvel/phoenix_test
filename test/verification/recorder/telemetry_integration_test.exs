@@ -17,6 +17,28 @@ defmodule PhoenixTest.Verification.Recorder.TelemetryIntegrationTest do
              Recorder.result(run_id)
   end
 
+  test "LiveView change includes untouched-field markers" do
+    run_id = Integer.to_string(System.unique_integer([:positive]))
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/live")
+    |> select("Change role", option: "Admin")
+
+    assert Recorder.result(run_id) == %{
+             event: "validate",
+             params: %{
+               "_target" => ["person", "role"],
+               "person" => %{
+                 "name" => "Original",
+                 "role" => "admin",
+                 "enabled" => "false",
+                 "_unused_name" => "",
+                 "_unused_enabled" => ""
+               }
+             }
+           }
+  end
+
   test "static form submits to the observed controller" do
     run_id = Integer.to_string(System.unique_integer([:positive]))
 

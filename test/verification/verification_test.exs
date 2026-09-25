@@ -59,6 +59,51 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "LiveView change events send full params and targets in interaction order" do
+    browser = browser_observations("live", "changes", 3)
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/live")
+    |> select("Change role", option: "Admin")
+    |> check("Change enabled")
+    |> fill_in("Change name", with: "Ada")
+
+    expected = [
+      %{
+        event: "validate",
+        params: %{
+          "_target" => ["person", "role"],
+          "person" => %{
+            "name" => "Original",
+            "role" => "admin",
+            "enabled" => "false",
+            "_unused_name" => "",
+            "_unused_enabled" => ""
+          }
+        }
+      },
+      %{
+        event: "validate",
+        params: %{
+          "_target" => ["person", "enabled"],
+          "person" => %{"name" => "Original", "role" => "admin", "enabled" => "true", "_unused_name" => ""}
+        }
+      },
+      %{
+        event: "validate",
+        params: %{
+          "_target" => ["person", "name"],
+          "person" => %{"name" => "Ada", "role" => "admin", "enabled" => "true"}
+        }
+      }
+    ]
+
+    phoenix = run_id |> Recorder.results(3) |> Enum.map(&normalize/1)
+    assert phoenix == Enum.map(browser, &normalize/1)
+    assert Enum.map(browser, &normalize/1) == expected
+  end
+
   defp compare_disabled_readonly(kind) do
     browser = browser_observation(kind, "disabled_readonly")
     run_id = run_id()
@@ -110,6 +155,11 @@ defmodule PhoenixTest.VerificationTest do
   end
 
   defp browser_observation(kind, interaction \\ nil) do
+    [observation] = browser_observations(kind, interaction, 1)
+    observation
+  end
+
+  defp browser_observations(kind, interaction, count) do
     run_id = run_id()
     script = Path.expand("browser.mjs", __DIR__)
     args = [script, kind, run_id] ++ if(interaction, do: [interaction], else: [])
@@ -121,7 +171,7 @@ defmodule PhoenixTest.VerificationTest do
       )
 
     assert status == 0, "Playwright #{kind} case failed:\n#{output}"
-    Recorder.result(run_id)
+    Recorder.results(run_id, count)
   end
 
   defp normalize(%{params: params} = observation) do

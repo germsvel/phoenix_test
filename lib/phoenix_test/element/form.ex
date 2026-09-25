@@ -55,6 +55,13 @@ defmodule PhoenixTest.Element.Form do
     |> Enum.uniq()
   end
 
+  def changeable_field_names(%__MODULE__{} = form) do
+    form.parsed
+    |> Html.all(":is(input:not([type='hidden']), textarea, select):not([disabled])[name]")
+    |> Enum.map(&Html.attribute(&1, "name"))
+    |> Enum.uniq()
+  end
+
   def phx_change?(form) do
     form.parsed
     |> Html.attribute("phx-change")

@@ -1,6 +1,6 @@
 # Browser parity verification
 
-These tests compare callback parameters from a real Chromium browser against PhoenixTest for the same interactions. The two runs have unique IDs. `PhoenixTest.Verification.Telemetry` observes Phoenix's LiveView `handle_event` and router-dispatch `:stop` events and sends only the relevant event/method and params to `PhoenixTest.Verification.Recorder`. ExUnit waits for and compares those observations. The verification LiveView and controller contain no recording code. Only the session-specific CSRF token and route run ID are excluded from the comparison.
+These tests compare callback parameters from a real Chromium browser against PhoenixTest for the same interactions. The two runs have unique IDs. `PhoenixTest.Verification.Telemetry` observes Phoenix's LiveView `handle_event` and router-dispatch `:stop` events and sends only the relevant event/method and params to `PhoenixTest.Verification.Recorder`. ExUnit waits for and compares those observations. The recorder queues observations per run ID, so `Recorder.results(run_id, count)` can compare successive change events in order without losing earlier callbacks. The verification LiveView and controller contain no recording code. Only the session-specific CSRF token and route run ID are excluded from the comparison.
 
 The telemetry events reflect successful dispatch; lifecycle hooks or plugs that halt before reaching a callback would require a separate contract for what counts as "received."
 

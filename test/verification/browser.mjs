@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,21 +31,29 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "disabled_readonly") {
+  if (interaction === "changes") {
+    if (kind !== "live") throw new Error("changes requires a LiveView");
+    await page.getByLabel("Change role").selectOption("admin");
+    await page.locator("#verification-change-count").filter({ hasText: /^1$/ }).waitFor();
+    await page.getByRole("checkbox", { name: "Change enabled" }).check();
+    await page.locator("#verification-change-count").filter({ hasText: /^2$/ }).waitFor();
+    await page.getByLabel("Change name").fill("Ada");
+    await page.locator("#verification-change-count").filter({ hasText: /^3$/ }).waitFor();
+  } else if (interaction === "disabled_readonly") {
     await page.getByRole("button", { name: "Save Controls" }).click();
   } else if (interaction === "roles") {
     await page.getByLabel("Roles").selectOption(["reviewer", "admin"]);
     await page.getByRole("button", { name: "Save Roles" }).click();
   } else if (interaction?.startsWith("checkbox_")) {
     if (interaction === "checkbox_checked") {
-      await page.getByRole("checkbox", { name: "Enabled" }).check();
+      await page.getByRole("checkbox", { name: "Enabled", exact: true }).check();
     }
     await page.getByRole("button", { name: "Save Preference" }).click();
   } else {
-    await page.getByLabel("Name").fill("Ada");
+    await page.getByLabel("Name", { exact: true }).fill("Ada");
     await page.getByRole("button", { name: "Save", exact: true }).click();
   }
-  await page.getByText("Saved").waitFor();
+  if (interaction !== "changes") await page.getByText("Saved").waitFor();
 } finally {
   await browser.close();
   clearTimeout(deadline);
