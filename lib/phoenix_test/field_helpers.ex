@@ -2,6 +2,7 @@ defmodule PhoenixTest.FieldHelpers do
   @moduledoc false
 
   alias PhoenixTest.ActiveForm
+  alias PhoenixTest.Element.Select
   alias PhoenixTest.FormData
   alias PhoenixTest.Html
 
@@ -34,6 +35,23 @@ defmodule PhoenixTest.FieldHelpers do
           |> Enum.reject(&(&1 == checked_value))
         else
           current_field.value
+        end
+
+      {:select, %Select{name: name, parsed: select, value: values}} when is_list(values) ->
+        if multiple_values_name?(name) do
+          selected =
+            current_form_data
+            |> FormData.get_data(name)
+            |> List.wrap()
+            |> Kernel.++(values)
+
+          select
+          |> Html.all("option")
+          |> Enum.map(&Html.attribute(&1, "value"))
+          |> Enum.filter(&(&1 in selected))
+          |> Enum.uniq()
+        else
+          values
         end
 
       {_, %{name: name, value: values}} ->

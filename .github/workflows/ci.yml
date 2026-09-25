@@ -71,3 +71,21 @@ jobs:
 
     - name: Run tests & crap metric
       run: mix test.crap
+
+  browser-verification:
+    runs-on: ubuntu-latest
+    name: Verify browser parity
+    steps:
+    - uses: actions/checkout@v3
+    - uses: erlef/setup-beam@v1
+      with:
+        otp-version: '27.2'
+        elixir-version: '1.19'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - run: mix deps.get
+    - run: mix assets.build
+    - run: npm --prefix test/verification ci
+    - run: cd test/verification && npx playwright install --with-deps chromium
+    - run: mix test test/verification/verification_test.exs --include browser_verification

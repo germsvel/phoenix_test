@@ -25,6 +25,9 @@ defmodule PhoenixTest.WebApp.Router do
   scope "/", PhoenixTest.WebApp do
     pipe_through([:browser])
 
+    get "/verify/:run_id/static", VerificationController, :form
+    post "/verify/:run_id/static", VerificationController, :submit
+
     post "/page/create_record", PageController, :create
     put "/page/update_record", PageController, :update
     delete "/page/delete_record", PageController, :delete
@@ -37,6 +40,7 @@ defmodule PhoenixTest.WebApp.Router do
     get "/page/:page", PageController, :show
 
     live_session :live_pages, layout: {PhoenixTest.WebApp.LayoutView, :app} do
+      live "/verify/:run_id/live", VerificationLive
       live "/live/index", IndexLive
       live "/live/index/alias", IndexLive
       live "/live/page_2", Page2Live
