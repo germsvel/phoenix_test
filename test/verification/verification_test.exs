@@ -320,6 +320,25 @@ defmodule PhoenixTest.VerificationTest do
     end
   end
 
+  test "implicit Enter uses the first button's action and method overrides" do
+    browser = browser_observation("static", "implicit_override")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/static")
+    |> fill_in("Implicit override name", with: "Ada")
+    |> submit()
+
+    expected = %{
+      method: "GET",
+      path: "/verify/:run_id/static/get",
+      params: %{"person" => %{"name" => "Ada", "action" => "search"}}
+    }
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "static button-level action and method overrides match the browser" do
     for {action, button, method, path} <- [
           {"redirected", "Redirected Action", "POST", "/verify/:run_id/static/submitter"},

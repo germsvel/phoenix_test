@@ -87,7 +87,12 @@ defmodule PhoenixTest.Element.Form do
   def put_button_data(form, nil), do: form
 
   def put_button_data(form, %Button{} = button) do
-    Map.update!(form, :form_data, &FormData.add_data(&1, button))
+    %{
+      form
+      | form_data: FormData.add_data(form.form_data, button),
+        action: Html.attribute(button.parsed, "formaction") || form.action,
+        method: Html.attribute(button.parsed, "formmethod") || form.method
+    }
   end
 
   defp append_form_field(form_data, "input", element) do

@@ -99,6 +99,23 @@ defmodule PhoenixTest.Element.FormTest do
     end
   end
 
+  describe "put_button_data/2" do
+    test "applies the activated submitter's data and action/method overrides" do
+      html = """
+      <form id="form" action="/default" method="post">
+        <button name="action" value="search" formaction="/search" formmethod="get">Search</button>
+      </form>
+      """
+
+      button = Button.find!(html, "button", "Search")
+      form = html |> Form.find!("#form") |> Form.put_button_data(button)
+
+      assert form.action == "/search"
+      assert form.method == "get"
+      assert PhoenixTest.FormData.has_data?(form.form_data, "action", "search")
+    end
+  end
+
   describe "form.form_data" do
     alias PhoenixTest.FormData
 

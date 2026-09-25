@@ -194,6 +194,20 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record received")
     end
 
+    test "implicit submission applies the first button's action and method overrides", %{conn: conn} do
+      run_id = Integer.to_string(System.unique_integer([:positive]))
+
+      session =
+        conn
+        |> visit("/verify/#{run_id}/static")
+        |> fill_in("Implicit override name", with: "Ada")
+        |> submit()
+
+      assert session.conn.method == "GET"
+      assert session.conn.request_path == "/verify/#{run_id}/static/get"
+      assert session.conn.params["person"] == %{"name" => "Ada", "action" => "search"}
+    end
+
     test "formaction on a submitter overrides the form action", %{conn: conn} do
       run_id = Integer.to_string(System.unique_integer([:positive]))
 

@@ -50,6 +50,12 @@ defmodule PhoenixTest.WebApp.VerificationController do
           <input type="hidden" name="shared" value="new">
           <button type="submit">Search Records</button>
         </form>
+        <form id="verification-implicit-override-form" action="/verify/#{run_id}/static" method="post">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <label for="verification-implicit-override-name">Implicit override name</label>
+          <input id="verification-implicit-override-name" name="person[name]" value="Original">
+          <button type="submit" name="person[action]" value="search" formaction="/verify/#{run_id}/static/get" formmethod="get">Implicit Override</button>
+        </form>
         <form id="verification-submitter-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <label for="verification-submitter-name">Submitter name</label>

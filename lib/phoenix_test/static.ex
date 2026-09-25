@@ -113,13 +113,6 @@ defmodule PhoenixTest.Static do
         button
         |> Button.parent_form!(html)
         |> Form.put_button_data(button)
-        |> then(fn form ->
-          %{
-            form
-            | action: Html.attribute(button.parsed, "formaction") || form.action,
-              method: Html.attribute(button.parsed, "formmethod") || form.method
-          }
-        end)
 
       if active_form.selector == form.selector do
         submit_active_form(session, form)
