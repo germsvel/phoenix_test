@@ -78,6 +78,32 @@ defmodule PhoenixTest.VerificationTest do
     assert normalize(Recorder.result(run_id)) == expected
   end
 
+  test "static hidden _method submits PUT to the controller like the browser" do
+    compare_method_override("put", "Update name", "Ada", "Update Record", %{"person" => %{"name" => "Ada"}})
+  end
+
+  test "static hidden _method submits DELETE to the controller like the browser" do
+    compare_method_override("delete", "Delete reason", "duplicate", "Remove Record", %{"reason" => "duplicate"})
+  end
+
+  defp compare_method_override(method, label, value, button, form_params) do
+    browser = browser_observation("static", "method_#{method}")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/static")
+    |> fill_in(label, with: value)
+    |> click_button(button)
+
+    phoenix = Recorder.result(run_id)
+    assert is_binary(browser.params["_csrf_token"])
+    assert is_binary(phoenix.params["_csrf_token"])
+
+    expected = %{method: String.upcase(method), params: Map.put(form_params, "_method", method)}
+    assert normalize(browser) == expected
+    assert normalize(phoenix) == expected
+  end
+
   test "LiveView change events send full params and targets in interaction order" do
     browser = browser_observations("live", "changes", 3)
     run_id = run_id()

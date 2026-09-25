@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +31,16 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "get_form") {
+  if (interaction === "method_put" || interaction === "method_delete") {
+    if (kind !== "static") throw new Error("method overrides require a static page");
+    if (interaction === "method_put") {
+      await page.getByLabel("Update name").fill("Ada");
+      await page.getByRole("button", { name: "Update Record" }).click();
+    } else {
+      await page.getByLabel("Delete reason").fill("duplicate");
+      await page.getByRole("button", { name: "Remove Record" }).click();
+    }
+  } else if (interaction === "get_form") {
     if (kind !== "static") throw new Error("get_form requires a static page");
     await page.getByLabel("Query").fill("Ada & Bob");
     await page.getByRole("button", { name: "Search Records" }).click();

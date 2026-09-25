@@ -58,5 +58,20 @@ defmodule PhoenixTest.Verification.Telemetry do
     Recorder.record(run_id, %{method: method, path: path, params: params})
   end
 
+  def handle_event(
+        [:phoenix, :router_dispatch, :stop],
+        _measurements,
+        %{
+          conn: %Plug.Conn{
+            private: %{phoenix_controller: VerificationController, phoenix_action: :override_submit},
+            method: method,
+            params: %{"run_id" => run_id} = params
+          }
+        },
+        _config
+      ) do
+    Recorder.record(run_id, %{method: method, params: params})
+  end
+
   def handle_event(_event, _measurements, _metadata, _config), do: :ok
 end

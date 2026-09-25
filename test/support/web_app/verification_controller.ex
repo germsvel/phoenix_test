@@ -42,6 +42,20 @@ defmodule PhoenixTest.WebApp.VerificationController do
           <input type="hidden" name="shared" value="new">
           <button type="submit">Search Records</button>
         </form>
+        <form id="verification-put-form" action="/verify/#{run_id}/static/override" method="post">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <input type="hidden" name="_method" value="put">
+          <label for="verification-put-name">Update name</label>
+          <input id="verification-put-name" name="person[name]" value="Original">
+          <button type="submit">Update Record</button>
+        </form>
+        <form id="verification-delete-form" action="/verify/#{run_id}/static/override" method="post">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <input type="hidden" name="_method" value="delete">
+          <label for="verification-delete-reason">Delete reason</label>
+          <input id="verification-delete-reason" name="reason" value="obsolete">
+          <button type="submit">Remove Record</button>
+        </form>
         <form id="verification-disabled-readonly-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <label for="verification-active">Active</label>
@@ -69,4 +83,5 @@ defmodule PhoenixTest.WebApp.VerificationController do
 
   def submit(conn, _params), do: html(conn, "Saved")
   def get_submit(conn, _params), do: html(conn, "Saved")
+  def override_submit(conn, _params), do: html(conn, "Saved")
 end
