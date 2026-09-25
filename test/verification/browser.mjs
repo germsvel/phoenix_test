@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +31,9 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction?.startsWith("submit_")) {
+  if (interaction === "defaults") {
+    await page.getByRole("button", { name: "Save Defaults" }).click();
+  } else if (interaction?.startsWith("submit_")) {
     if (interaction === "submit_enter") {
       await page.getByLabel("Submitter name").fill("Ada");
       await page.getByLabel("Submitter name").press("Enter");
@@ -70,7 +72,7 @@ try {
   } else if (interaction === "disabled_readonly") {
     await page.getByRole("button", { name: "Save Controls" }).click();
   } else if (interaction === "roles") {
-    await page.getByLabel("Roles").selectOption(["reviewer", "admin"]);
+    await page.getByLabel("Roles", { exact: true }).selectOption(["reviewer", "admin"]);
     await page.getByRole("button", { name: "Save Roles" }).click();
   } else if (interaction?.startsWith("checkbox_")) {
     if (interaction === "checkbox_checked") {

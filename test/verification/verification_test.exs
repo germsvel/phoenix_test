@@ -59,6 +59,35 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "radio, omitted controls, and untouched defaults match the browser in LiveView" do
+    compare_defaults("live")
+  end
+
+  test "radio, omitted controls, and untouched defaults match the browser in Static" do
+    compare_defaults("static")
+  end
+
+  defp compare_defaults(kind) do
+    browser = browser_observation(kind, "defaults")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/#{kind}")
+    |> click_button("Save Defaults")
+
+    expected_params = %{
+      "person" => %{"choice" => "selected", "default_text" => "Original", "default_choice" => "first"}
+    }
+
+    expected =
+      if kind == "live",
+        do: %{event: "save", params: expected_params},
+        else: %{method: "POST", params: expected_params}
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "named, unnamed, external, and implicit submitters match the browser in LiveView" do
     for action <- ~w(first second unnamed external enter) do
       compare_submitter("live", action)

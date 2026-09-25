@@ -67,6 +67,25 @@ defmodule PhoenixTest.WebApp.VerificationController do
           <input id="verification-delete-reason" name="reason" value="obsolete">
           <button type="submit">Remove Record</button>
         </form>
+        <form id="verification-defaults-form" action="/verify/#{run_id}/static" method="post">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <label><input type="radio" name="person[choice]" value="ignored"> Ignored choice</label>
+          <label><input type="radio" name="person[choice]" value="selected" checked> Selected choice</label>
+          <label><input type="checkbox" name="person[standalone]" value="yes"> Standalone checkbox</label>
+          <label for="verification-default-roles">Default roles</label>
+          <select id="verification-default-roles" name="person[roles][]" multiple>
+            <option value="admin">Admin</option>
+            <option value="reader">Reader</option>
+          </select>
+          <label for="verification-default-text">Default text</label>
+          <input id="verification-default-text" name="person[default_text]" value="Original">
+          <label for="verification-default-choice">Default choice</label>
+          <select id="verification-default-choice" name="person[default_choice]">
+            <option value="first">First</option>
+            <option value="second">Second</option>
+          </select>
+          <button type="submit">Save Defaults</button>
+        </form>
         <form id="verification-disabled-readonly-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <label for="verification-active">Active</label>
