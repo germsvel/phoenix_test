@@ -1725,6 +1725,12 @@ defmodule PhoenixTest do
   |> click_link("Any User")
   |> assert_path("/users/*/profile")
 
+  # assert we're at a path matching a regex
+  conn
+  |> visit("/users")
+  |> click_link("Any User")
+  |> assert_path(~r"/users/\d+/profile")
+
   # assert the path after an async patch or navigation
   conn
   |> visit("/live/async_page")
@@ -1773,6 +1779,11 @@ defmodule PhoenixTest do
   conn
   |> visit("/users?name=aragorn")
   |> refute_path("/users", query_params: %{name: "frodo"})
+
+  # refute the current path matches a regex
+  conn
+  |> visit("/users")
+  |> refute_path(~r"/posts/\d+")
   ```
   """
   @doc group: "Assertions"

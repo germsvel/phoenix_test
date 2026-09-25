@@ -1050,6 +1050,20 @@ defmodule PhoenixTest.AssertionsTest do
       assert_path(session, "/user/*/profile")
     end
 
+    test "asserts regex against the current path" do
+      session = %Live{current_path: "/user/12345/profile"}
+
+      assert_path(session, ~r"/user/\d+/profile")
+    end
+
+    test "raises helpful error if regex does not match path" do
+      session = %Live{current_path: "/page/index"}
+
+      assert_raise AssertionError, ~r|Expected path to be .* but got "/page/index"|, fn ->
+        assert_path(session, ~r"/page/not-index")
+      end
+    end
+
     test "order of query params does not matter" do
       session = %Live{current_path: "/page/index?hello=world&foo=bar"}
 
@@ -1135,6 +1149,20 @@ defmodule PhoenixTest.AssertionsTest do
       session = %Live{current_path: "/page/index?hello=world"}
 
       refute_path(session, "/page/index", query_params: %{"hello" => "not-world"})
+    end
+
+    test "refutes a regex that does not match the current path" do
+      session = %Live{current_path: "/page/index"}
+
+      refute_path(session, ~r"/page/page_2")
+    end
+
+    test "raises helpful error if regex matches path" do
+      session = %Live{current_path: "/page/index"}
+
+      assert_raise AssertionError, ~r|Expected path not to be|, fn ->
+        refute_path(session, ~r"/page/index")
+      end
     end
 
     test "raises helpful error if path matches" do
