@@ -28,6 +28,32 @@ defmodule PhoenixTest.WebApp.VerificationLive do
       </select>
       <button type="submit">Save Roles</button>
     </form>
+    <form id="verification-disabled-readonly-form" phx-submit="save">
+      <label for="verification-active">Active</label>
+      <input id="verification-active" name="person[active]" value="included" />
+      <label for="verification-disabled-text">Disabled text</label>
+      <input id="verification-disabled-text" name="person[disabled_text]" value="excluded" disabled />
+      <label for="verification-disabled-notes">Disabled notes</label>
+      <textarea id="verification-disabled-notes" name="person[disabled_notes]" disabled>excluded notes</textarea>
+      <label for="verification-disabled-choice">Disabled choice</label>
+      <select id="verification-disabled-choice" name="person[disabled_choice]" disabled>
+        <option value="excluded" selected>Excluded</option>
+      </select>
+      <label for="verification-disabled-check">Disabled check</label>
+      <input
+        id="verification-disabled-check"
+        type="checkbox"
+        name="person[disabled_check]"
+        value="excluded"
+        checked
+        disabled
+      />
+      <label for="verification-readonly-text">Readonly text</label>
+      <input id="verification-readonly-text" name="person[readonly_text]" value="locked" readonly />
+      <label for="verification-readonly-notes">Readonly notes</label>
+      <textarea id="verification-readonly-notes" name="person[readonly_notes]" readonly>locked notes</textarea>
+      <button type="submit">Save Controls</button>
+    </form>
     <p :if={@submitted} id="verification-done">Saved</p>
     """
   end

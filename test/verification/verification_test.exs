@@ -51,6 +51,39 @@ defmodule PhoenixTest.VerificationTest do
     compare_roles("static")
   end
 
+  test "LiveView omits disabled controls and includes readonly controls like the browser" do
+    compare_disabled_readonly("live")
+  end
+
+  test "controller omits disabled controls and includes readonly controls like the browser" do
+    compare_disabled_readonly("static")
+  end
+
+  defp compare_disabled_readonly(kind) do
+    browser = browser_observation(kind, "disabled_readonly")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/#{kind}")
+    |> click_button("Save Controls")
+
+    expected_params = %{
+      "person" => %{
+        "active" => "included",
+        "readonly_text" => "locked",
+        "readonly_notes" => "locked notes"
+      }
+    }
+
+    expected =
+      if kind == "live",
+        do: %{event: "save", params: expected_params},
+        else: %{method: "POST", params: expected_params}
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   defp compare_roles(kind) do
     browser = browser_observation(kind, "roles")
     run_id = run_id()
