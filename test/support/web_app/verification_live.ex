@@ -2,7 +2,9 @@ defmodule PhoenixTest.WebApp.VerificationLive do
   @moduledoc false
   use Phoenix.LiveView
 
-  def mount(%{"run_id" => run_id}, _session, socket) do
+  alias Phoenix.LiveView.JS
+
+  def mount(%{"run_id" => run_id} = params, _session, socket) do
     socket =
       socket
       |> assign(
@@ -11,11 +13,16 @@ defmodule PhoenixTest.WebApp.VerificationLive do
         change_count: 0,
         change_person: %{"name" => "Original", "role" => "reader", "enabled" => "false"},
         show_stale: true,
-        show_added: false
+        show_added: false,
+        tab: Map.get(params, "tab", "home")
       )
       |> allow_upload(:photos, accept: ~w(.jpg .png), max_entries: 2)
 
     {:ok, socket}
+  end
+
+  def handle_params(params, _uri, socket) do
+    {:noreply, assign(socket, tab: Map.get(params, "tab", "home"))}
   end
 
   def render(assigns) do
@@ -147,8 +154,25 @@ defmodule PhoenixTest.WebApp.VerificationLive do
     </form>
     <button type="button" phx-click="remove_stale">Remove Stale</button>
     <button type="button" phx-click="add_field">Add Field</button>
+    <button type="button" phx-click="verify_click" phx-value-id="42" phx-value-origin="button">
+      Record Click
+    </button>
+    <button type="button" phx-click={JS.push("verify_push", value: %{id: "77", origin: "js"})}>
+      Push Event
+    </button>
+    <.link patch={"/verify/#{@run_id}/live?tab=details"}>Patch Verify</.link>
+    <.link navigate={"/verify/#{@run_id}/live/destination"}>Navigate Verify</.link>
+    <button type="button" phx-click="verify_redirect">Redirect Verify</button>
+    <p id="verification-tab">{@tab}</p>
     <p :if={@submitted} id="verification-done">Saved</p>
     """
+  end
+
+  def handle_event("verify_click", _params, socket), do: {:noreply, assign(socket, submitted: true)}
+  def handle_event("verify_push", _params, socket), do: {:noreply, assign(socket, submitted: true)}
+
+  def handle_event("verify_redirect", _params, socket) do
+    {:noreply, redirect(socket, to: "/verify/#{socket.assigns.run_id}/static")}
   end
 
   def handle_event("upload_change", _params, socket), do: {:noreply, socket}

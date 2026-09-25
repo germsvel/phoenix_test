@@ -38,6 +38,12 @@ defmodule PhoenixTest.WebApp.IndexLive do
     </div>
 
     <button phx-click="change-h3">Change h3</button>
+    <button phx-click="capture-click" phx-value-id="42">Capture click value</button>
+    <div :if={assigns[:captured_click]} id="captured-click">
+      <%= for {key, value} <- @captured_click do %>
+        {render_input_data(key, value)}
+      <% end %>
+    </div>
 
     <button phx-click="push-navigate">Button with push navigation</button>
     <button phx-click="push-patch">Button with push patch</button>
@@ -783,6 +789,10 @@ defmodule PhoenixTest.WebApp.IndexLive do
     else
       {:noreply, socket}
     end
+  end
+
+  def handle_event("capture-click", params, socket) do
+    {:noreply, assign(socket, :captured_click, params)}
   end
 
   def handle_event("change-h3", _, socket) do

@@ -6,9 +6,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic", "uploads", "live_uploads"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search", "defaults", "nested", "dynamic", "uploads", "live_uploads", "click_event", "push_event", "patch_link", "navigate_link", "redirect_button"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic|uploads|live_uploads]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search|defaults|nested|dynamic|uploads|live_uploads|click_event|push_event|patch_link|navigate_link|redirect_button]");
 }
 
 const deadline = setTimeout(() => {
@@ -32,7 +32,17 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "live_uploads") {
+  if (interaction === "click_event") {
+    await page.getByRole("button", { name: "Record Click" }).click();
+  } else if (interaction === "push_event") {
+    await page.getByRole("button", { name: "Push Event" }).click();
+  } else if (interaction === "patch_link") {
+    await page.getByRole("link", { name: "Patch Verify" }).click();
+  } else if (interaction === "navigate_link") {
+    await page.getByRole("link", { name: "Navigate Verify" }).click();
+  } else if (interaction === "redirect_button") {
+    await page.getByRole("button", { name: "Redirect Verify" }).click();
+  } else if (interaction === "live_uploads") {
     if (kind !== "live") throw new Error("live_uploads requires a LiveView");
     await page.getByLabel("Photos").setInputFiles([
       fileURLToPath(new URL("../files/elixir.jpg", import.meta.url)),
@@ -108,7 +118,17 @@ try {
     await page.getByLabel("Name", { exact: true }).fill("Ada");
     await page.getByRole("button", { name: "Save", exact: true }).click();
   }
-  if (interaction !== "changes") await page.getByText("Saved").waitFor();
+  const destinations = {
+    patch_link: `/verify/${runId}/live?tab=details`,
+    navigate_link: `/verify/${runId}/live/destination`,
+    redirect_button: `/verify/${runId}/static`,
+  };
+  if (interaction in destinations) {
+    await page.waitForURL((url) => url.pathname + url.search === destinations[interaction]);
+    console.log(`DESTINATION:${new URL(page.url()).pathname + new URL(page.url()).search}`);
+  } else if (interaction !== "changes") {
+    await page.getByText("Saved").waitFor();
+  }
 } finally {
   await browser.close();
   clearTimeout(deadline);

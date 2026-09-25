@@ -59,6 +59,44 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "Live phx-click bound values and JS.push match browser event params" do
+    for {interaction, button, expected} <- [
+          {"click_event", "Record Click",
+           %{event: "verify_click", params: %{"id" => "42", "origin" => "button", "value" => ""}}},
+          {"push_event", "Push Event", %{event: "verify_push", params: %{"id" => "77", "origin" => "js", "value" => ""}}}
+        ] do
+      browser = browser_observation("live", interaction)
+      run_id = run_id()
+
+      Phoenix.ConnTest.build_conn()
+      |> visit("/verify/#{run_id}/live")
+      |> click_button(button)
+
+      assert normalize(browser) == expected
+      assert normalize(Recorder.result(run_id)) == expected
+    end
+  end
+
+  test "Live patch, navigate, and redirect destinations match Chromium" do
+    for {interaction, target, expected} <- [
+          {"patch_link", "Patch Verify", "/verify/:run_id/live?tab=details"},
+          {"navigate_link", "Navigate Verify", "/verify/:run_id/live/destination"},
+          {"redirect_button", "Redirect Verify", "/verify/:run_id/static"}
+        ] do
+      browser = browser_destination(interaction)
+      run_id = run_id()
+      session = visit(Phoenix.ConnTest.build_conn(), "/verify/#{run_id}/live")
+
+      session =
+        if interaction == "redirect_button",
+          do: click_button(session, target),
+          else: click_link(session, target)
+
+      assert browser == expected
+      assert normalize_path(PhoenixTest.Driver.current_path(session)) == expected
+    end
+  end
+
   test "Live uploads match browser filename, type, and size" do
     browser = browser_observations("live", "live_uploads", :upload_save)
     run_id = run_id()
@@ -428,6 +466,19 @@ defmodule PhoenixTest.VerificationTest do
       if observation.event == "upload_save", do: {:halt, observation}, else: {:cont, nil}
     end)
   end
+
+  defp browser_destination(interaction) do
+    script = Path.expand("browser.mjs", __DIR__)
+
+    {output, status} =
+      System.cmd("node", [script, "live", run_id(), interaction], cd: Path.dirname(script), stderr_to_stdout: true)
+
+    assert status == 0, "Playwright navigation failed:\n#{output}"
+    [_, path] = Regex.run(~r/DESTINATION:(\S+)/, output)
+    normalize_path(path)
+  end
+
+  defp normalize_path(path), do: String.replace(path, ~r|^/verify/[^/]+/|, "/verify/:run_id/")
 
   defp normalize(%{path: path} = observation) do
     observation

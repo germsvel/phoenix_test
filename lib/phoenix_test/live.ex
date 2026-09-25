@@ -133,7 +133,7 @@ defmodule PhoenixTest.Live do
       click_action == :render_click ->
         session.view
         |> element(scope_selector(button.selector, session.within), button.text)
-        |> render_click()
+        |> render_click(%{"value" => Html.attribute(button.parsed, "value") || ""})
         |> maybe_redirect(session)
 
       Button.submits_form?(button, html) ->

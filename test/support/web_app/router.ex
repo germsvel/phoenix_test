@@ -46,6 +46,7 @@ defmodule PhoenixTest.WebApp.Router do
 
     live_session :live_pages, layout: {PhoenixTest.WebApp.LayoutView, :app} do
       live "/verify/:run_id/live", VerificationLive
+      live "/verify/:run_id/live/destination", VerificationLive
       live "/live/index", IndexLive
       live "/live/index/alias", IndexLive
       live "/live/page_2", Page2Live

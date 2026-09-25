@@ -202,6 +202,14 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#tab", text: "Tab title")
     end
 
+    test "phx-click on a button includes its empty value with bound values", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Capture click value")
+      |> assert_has("#captured-click", text: "id: 42")
+      |> assert_has("#captured-click", text: "value's value is empty")
+    end
+
     test "does not remove active form if button isn't form's submit button", %{conn: conn} do
       session =
         conn
