@@ -9,5 +9,4 @@ defmodule PhoenixTest.Verification.RecorderTest do
 
     assert Recorder.result(run_id) == %{params: %{"name" => "Ada"}}
   end
-
 end
