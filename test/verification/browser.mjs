@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +31,11 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "changes") {
+  if (interaction === "get_form") {
+    if (kind !== "static") throw new Error("get_form requires a static page");
+    await page.getByLabel("Query").fill("Ada & Bob");
+    await page.getByRole("button", { name: "Search Records" }).click();
+  } else if (interaction === "changes") {
     if (kind !== "live") throw new Error("changes requires a LiveView");
     await page.getByLabel("Change role").selectOption("admin");
     await page.locator("#verification-change-count").filter({ hasText: /^1$/ }).waitFor();

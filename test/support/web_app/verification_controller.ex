@@ -32,6 +32,16 @@ defmodule PhoenixTest.WebApp.VerificationController do
           </select>
           <button type="submit">Save Roles</button>
         </form>
+        <form id="verification-get-form" action="/verify/#{run_id}/static/get?seed=from-action&amp;shared=old" method="get">
+          <label for="verification-get-query">Query</label>
+          <input id="verification-get-query" name="q" value="original">
+          <label for="verification-get-blank">Blank</label>
+          <input id="verification-get-blank" name="blank" value="">
+          <input type="hidden" name="tag[]" value="first">
+          <input type="hidden" name="tag[]" value="second">
+          <input type="hidden" name="shared" value="new">
+          <button type="submit">Search Records</button>
+        </form>
         <form id="verification-disabled-readonly-form" action="/verify/#{run_id}/static" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <label for="verification-active">Active</label>
@@ -58,4 +68,5 @@ defmodule PhoenixTest.WebApp.VerificationController do
   end
 
   def submit(conn, _params), do: html(conn, "Saved")
+  def get_submit(conn, _params), do: html(conn, "Saved")
 end

@@ -299,9 +299,16 @@ defmodule PhoenixTest.Static do
   defp perform_submit(session, form, payload) do
     conn = session.conn
 
+    action =
+      if is_binary(form.action) and String.downcase(form.method) == "get" do
+        form.action |> URI.parse() |> Map.put(:query, nil) |> URI.to_string()
+      else
+        form.action
+      end
+
     conn
     |> ConnHandler.recycle_all_headers()
-    |> dispatch(EndpointHelpers.endpoint_from!(session.conn), form.method, form.action, payload)
+    |> dispatch(EndpointHelpers.endpoint_from!(session.conn), form.method, action, payload)
     |> maybe_redirect(session)
   end
 

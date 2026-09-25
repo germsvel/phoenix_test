@@ -59,6 +59,25 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "static GET form sends browser query params to its action path" do
+    browser = browser_observation("static", "get_form")
+    run_id = run_id()
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/static")
+    |> fill_in("Query", with: "Ada & Bob")
+    |> click_button("Search Records")
+
+    expected = %{
+      method: "GET",
+      path: "/verify/:run_id/static/get",
+      params: %{"q" => "Ada & Bob", "blank" => "", "tag" => ["first", "second"], "shared" => "new"}
+    }
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "LiveView change events send full params and targets in interaction order" do
     browser = browser_observations("live", "changes", 3)
     run_id = run_id()
@@ -172,6 +191,12 @@ defmodule PhoenixTest.VerificationTest do
 
     assert status == 0, "Playwright #{kind} case failed:\n#{output}"
     Recorder.results(run_id, count)
+  end
+
+  defp normalize(%{path: path} = observation) do
+    observation
+    |> Map.put(:path, String.replace(path, ~r|^/verify/[^/]+/|, "/verify/:run_id/"))
+    |> Map.update!(:params, &Map.drop(&1, ["_csrf_token", "run_id"]))
   end
 
   defp normalize(%{params: params} = observation) do

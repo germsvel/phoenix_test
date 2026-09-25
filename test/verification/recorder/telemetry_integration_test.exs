@@ -39,6 +39,27 @@ defmodule PhoenixTest.Verification.Recorder.TelemetryIntegrationTest do
            }
   end
 
+  test "static GET form replaces the action query with submitted fields" do
+    run_id = Integer.to_string(System.unique_integer([:positive]))
+
+    Phoenix.ConnTest.build_conn()
+    |> visit("/verify/#{run_id}/static")
+    |> fill_in("Query", with: "Ada & Bob")
+    |> click_button("Search Records")
+
+    assert Recorder.result(run_id) == %{
+             method: "GET",
+             path: "/verify/#{run_id}/static/get",
+             params: %{
+               "run_id" => run_id,
+               "q" => "Ada & Bob",
+               "blank" => "",
+               "tag" => ["first", "second"],
+               "shared" => "new"
+             }
+           }
+  end
+
   test "static form submits to the observed controller" do
     run_id = Integer.to_string(System.unique_integer([:positive]))
 
