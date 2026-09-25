@@ -79,6 +79,16 @@ defmodule PhoenixTest.WebApp.VerificationLive do
       />
     </form>
     <p id="verification-change-count">{@change_count}</p>
+    <form id="verification-submitter-form" phx-submit="save">
+      <label for="verification-submitter-name">Submitter name</label>
+      <input id="verification-submitter-name" name="person[name]" value="Original" />
+      <button type="submit" name="person[action]" value="first">First Action</button>
+      <button type="submit" name="person[action]" value="second">Second Action</button>
+      <button type="submit">Unnamed Action</button>
+    </form>
+    <button type="submit" form="verification-submitter-form" name="person[action]" value="external">
+      External Action
+    </button>
     <p :if={@submitted} id="verification-done">Saved</p>
     """
   end

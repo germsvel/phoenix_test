@@ -230,6 +230,23 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "user:no-phx-change-form-button: save")
     end
 
+    test "clicking an unnamed submitter does not send another button's name", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> click_button("Unnamed submitter choice")
+      |> assert_has("#form-data", text: "submitter_name: Original")
+      |> refute_has("#form-data", text: "submitter_action:")
+    end
+
+    test "implicit submission uses the first named submitter", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Submitter choice name", with: "Ada")
+      |> submit()
+      |> assert_has("#form-data", text: "submitter_name: Ada")
+      |> assert_has("#form-data", text: "submitter_action: first")
+    end
+
     test "includes default data if form is untouched", %{conn: conn} do
       conn
       |> visit("/live/index")

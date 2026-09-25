@@ -5,9 +5,9 @@ const [kind, runId, interaction] = process.argv.slice(2);
 if (
   !["live", "static"].includes(kind) ||
   !/^[A-Za-z0-9_-]+$/.test(runId ?? "") ||
-  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete"].includes(interaction)
+  ![undefined, "checkbox_checked", "checkbox_unchecked", "roles", "disabled_readonly", "changes", "get_form", "method_put", "method_delete", "submit_first", "submit_second", "submit_unnamed", "submit_external", "submit_enter", "submit_redirected", "submit_search"].includes(interaction)
 ) {
-  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete]");
+  throw new Error("Usage: node browser.mjs live|static RUN_ID [checkbox_checked|checkbox_unchecked|roles|disabled_readonly|changes|get_form|method_put|method_delete|submit_first|submit_second|submit_unnamed|submit_external|submit_enter|submit_redirected|submit_search]");
 }
 
 const deadline = setTimeout(() => {
@@ -31,7 +31,22 @@ try {
     await page.locator("[data-phx-session].phx-connected").waitFor();
   }
 
-  if (interaction === "method_put" || interaction === "method_delete") {
+  if (interaction?.startsWith("submit_")) {
+    if (interaction === "submit_enter") {
+      await page.getByLabel("Submitter name").fill("Ada");
+      await page.getByLabel("Submitter name").press("Enter");
+    } else {
+      const names = {
+        submit_first: "First Action",
+        submit_second: "Second Action",
+        submit_unnamed: "Unnamed Action",
+        submit_external: "External Action",
+        submit_redirected: "Redirected Action",
+        submit_search: "Search Action",
+      };
+      await page.getByRole("button", { name: names[interaction] }).click();
+    }
+  } else if (interaction === "method_put" || interaction === "method_delete") {
     if (kind !== "static") throw new Error("method overrides require a static page");
     if (interaction === "method_put") {
       await page.getByLabel("Update name").fill("Ada");

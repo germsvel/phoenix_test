@@ -42,6 +42,17 @@ defmodule PhoenixTest.WebApp.VerificationController do
           <input type="hidden" name="shared" value="new">
           <button type="submit">Search Records</button>
         </form>
+        <form id="verification-submitter-form" action="/verify/#{run_id}/static" method="post">
+          <input type="hidden" name="_csrf_token" value="#{token}">
+          <label for="verification-submitter-name">Submitter name</label>
+          <input id="verification-submitter-name" name="person[name]" value="Original">
+          <button type="submit" name="person[action]" value="first">First Action</button>
+          <button type="submit" name="person[action]" value="second">Second Action</button>
+          <button type="submit">Unnamed Action</button>
+          <button type="submit" name="person[action]" value="redirected" formaction="/verify/#{run_id}/static/submitter">Redirected Action</button>
+          <button type="submit" name="person[action]" value="search" formaction="/verify/#{run_id}/static/get" formmethod="get">Search Action</button>
+        </form>
+        <button type="submit" form="verification-submitter-form" name="person[action]" value="external">External Action</button>
         <form id="verification-put-form" action="/verify/#{run_id}/static/override" method="post">
           <input type="hidden" name="_csrf_token" value="#{token}">
           <input type="hidden" name="_method" value="put">
@@ -84,4 +95,5 @@ defmodule PhoenixTest.WebApp.VerificationController do
   def submit(conn, _params), do: html(conn, "Saved")
   def get_submit(conn, _params), do: html(conn, "Saved")
   def override_submit(conn, _params), do: html(conn, "Saved")
+  def submitter_submit(conn, _params), do: html(conn, "Saved")
 end

@@ -158,6 +158,13 @@ defmodule PhoenixTest.WebApp.IndexLive do
 
     <button type="button" phx-click={JS.toggle()} disabled>Disabled button 1</button>
 
+    <form id="submitter-choice-form" phx-submit="save-form">
+      <label for="submitter-choice-name">Submitter choice name</label>
+      <input id="submitter-choice-name" name="submitter_name" value="Original" />
+      <button name="submitter_action" value="first">Named submitter choice</button>
+      <button>Unnamed submitter choice</button>
+    </form>
+
     <form id="nested-form" phx-submit="save-form">
       <label for="user-name">User Name</label>
       <input id="user-name" name="user[name]" />

@@ -194,6 +194,32 @@ defmodule PhoenixTest.StaticTest do
       |> assert_has("h1", text: "Record received")
     end
 
+    test "formaction on a submitter overrides the form action", %{conn: conn} do
+      run_id = Integer.to_string(System.unique_integer([:positive]))
+
+      session =
+        conn
+        |> visit("/verify/#{run_id}/static")
+        |> click_button("Redirected Action")
+
+      assert session.conn.method == "POST"
+      assert session.conn.request_path == "/verify/#{run_id}/static/submitter"
+      assert session.conn.params["person"] == %{"name" => "Original", "action" => "redirected"}
+    end
+
+    test "formmethod on a submitter overrides the form method", %{conn: conn} do
+      run_id = Integer.to_string(System.unique_integer([:positive]))
+
+      session =
+        conn
+        |> visit("/verify/#{run_id}/static")
+        |> click_button("Search Action")
+
+      assert session.conn.method == "GET"
+      assert session.conn.request_path == "/verify/#{run_id}/static/get"
+      assert session.conn.params["person"] == %{"name" => "Original", "action" => "search"}
+    end
+
     test "handles a button clicks when button PUTs data (hidden input)", %{conn: conn} do
       conn
       |> visit("/page/index")

@@ -546,18 +546,15 @@ defmodule PhoenixTest.Live do
     }
   end
 
-  def submit_form(session, selector, form_data, additional_data \\ FormData.new()) do
+  def submit_form(session, selector, form_data, clicked_button_data \\ nil) do
     form = Form.find!(session.current_operation.html, selector)
 
     form_data = select_form_data_to_submit(form, form_data)
 
     additional_data =
-      if form.submit_button do
-        FormData.new()
-        |> FormData.add_data(form.submit_button)
-        |> FormData.merge(additional_data)
-      else
-        additional_data
+      case clicked_button_data do
+        nil -> if(form.submit_button, do: FormData.add_data(FormData.new(), form.submit_button), else: FormData.new())
+        data -> data
       end
 
     cond do

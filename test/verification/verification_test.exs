@@ -59,6 +59,78 @@ defmodule PhoenixTest.VerificationTest do
     compare_disabled_readonly("static")
   end
 
+  test "named, unnamed, external, and implicit submitters match the browser in LiveView" do
+    for action <- ~w(first second unnamed external enter) do
+      compare_submitter("live", action)
+    end
+  end
+
+  test "named, unnamed, external, and implicit submitters match the browser in Static" do
+    for action <- ~w(first second unnamed external enter) do
+      compare_submitter("static", action)
+    end
+  end
+
+  test "static button-level action and method overrides match the browser" do
+    for {action, button, method, path} <- [
+          {"redirected", "Redirected Action", "POST", "/verify/:run_id/static/submitter"},
+          {"search", "Search Action", "GET", "/verify/:run_id/static/get"}
+        ] do
+      browser = browser_observation("static", "submit_#{action}")
+      run_id = run_id()
+
+      Phoenix.ConnTest.build_conn()
+      |> visit("/verify/#{run_id}/static")
+      |> click_button(button)
+
+      expected = %{
+        method: method,
+        path: path,
+        params: %{"person" => %{"name" => "Original", "action" => action}}
+      }
+
+      assert normalize(browser) == expected
+      assert normalize(Recorder.result(run_id)) == expected
+    end
+  end
+
+  defp compare_submitter(kind, action) do
+    browser = browser_observation(kind, "submit_#{action}")
+    run_id = run_id()
+    session = visit(Phoenix.ConnTest.build_conn(), "/verify/#{run_id}/#{kind}")
+
+    session =
+      if action == "enter" do
+        session |> fill_in("Submitter name", with: "Ada") |> submit()
+      else
+        button = %{
+          "first" => "First Action",
+          "second" => "Second Action",
+          "unnamed" => "Unnamed Action",
+          "external" => "External Action"
+        }
+
+        click_button(session, button[action])
+      end
+
+    assert_has(session, if(kind == "live", do: "#verification-done", else: "body"), text: "Saved")
+
+    params = %{"person" => %{"name" => if(action == "enter", do: "Ada", else: "Original")}}
+
+    params =
+      if action == "unnamed",
+        do: params,
+        else: put_in(params, ["person", "action"], if(action == "enter", do: "first", else: action))
+
+    expected =
+      if kind == "live",
+        do: %{event: "save", params: params},
+        else: %{method: "POST", params: params}
+
+    assert normalize(browser) == expected
+    assert normalize(Recorder.result(run_id)) == expected
+  end
+
   test "static GET form sends browser query params to its action path" do
     browser = browser_observation("static", "get_form")
     run_id = run_id()
