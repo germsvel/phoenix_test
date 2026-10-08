@@ -26,7 +26,8 @@ defmodule PhoenixTest.MixProject do
       preferred_cli_env: [
         setup: :test,
         "assets.setup": :test,
-        "assets.build": :test
+        "assets.build": :test,
+        "benchmark.operations": :test
       ]
     ]
   end
@@ -87,13 +88,14 @@ defmodule PhoenixTest.MixProject do
       "assets.setup": ["esbuild.install --if-missing"],
       "assets.build": ["esbuild default"],
       "test.crap": ["test --cover --export-coverage default", "crap"],
-      benchmark: ["run bench/assertions.exs"]
+      benchmark: ["run bench/assertions.exs"],
+      "benchmark.operations": ["run bench/operations.exs"]
     ]
   end
 
   def cli do
     [
-      preferred_envs: [benchmark: :test, "test.crap": :test]
+      preferred_envs: [benchmark: :test, "benchmark.operations": :test, "test.crap": :test]
     ]
   end
 end
