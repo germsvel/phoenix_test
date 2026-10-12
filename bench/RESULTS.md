@@ -42,6 +42,54 @@ initial run recorded in the benchmark's introducing commit:
 scenarios may include event handling. Benchee printed LiveView values in ms,
 rounded to two decimal places; the μs values above reflect that precision.
 
+## Additional scenarios (baseline extension, before library changes)
+
+These scenarios were added after the initial commit. LiveView scenarios use
+separate mounted sessions so one event cannot change another scenario's input.
+Median timings from the same machine and runtime, with the same Benchee settings:
+
+| Operation | Median |
+| --- | ---: |
+| LiveView `click_link` (patch) | 739.21 μs |
+| LiveView `click_button` (event) | 843.83 μs |
+| LiveView `click_button` (submit) | 1,297.92 μs |
+| LiveView `submit` | 779.40 μs |
+| LiveView `check` (isolated session) | 1,714.90 μs |
+| LiveView `choose` (isolated session) | 1,702 μs |
+| LiveView `select` (isolated session) | 1,647.83 μs |
+| LiveView `check` (no change event, different form) | 882.27 μs |
+| LiveView `select` (no change event, different form) | 888 μs |
+
+The no-change-event scenarios use a smaller form than the original `check`
+and `select` scenarios, so their difference measures both the form/fixture
+and the event. Do not interpret that gap as the exact event cost.
+
+## Current result (parent-form lookup optimization)
+
+Measured on the same macOS Apple M3 / Elixir 1.19.5 / OTP 27.0 setup after
+using a single `form:has([id=...])` query to locate the containing form for
+fields with ids. Medians from a `mix benchmark.operations` run (1 s warmup,
+2 s sampling); the focused form-component benchmark measured parent-form
+lookup at ~226 μs before and ~115 μs after (the full operation includes
+other work).
+
+| Operation | Current median |
+| --- | ---: |
+| Static `fill_in` | 292.54 μs |
+| Static `check` | 365.25 μs |
+| Static `choose` | 355.17 μs |
+| Static `select` | 367.88 μs |
+| LiveView `check` | 1,538.37 μs |
+| LiveView `choose` | 1,528.29 μs |
+| LiveView `select` | 1,575.67 μs |
+| LiveView `check` (no change event) | 775.44 μs |
+| LiveView `select` (no change event) | 784.92 μs |
+
+The new LiveView scenarios run in separate sessions, unlike the initial
+baseline; use their own isolated-session baseline-extension rows above for
+before/after comparisons. Variation between runs can exceed small apparent
+gains.
+
 Use each row as a before/after reference for the **same scenario on the same
 machine**, preferably with repeated runs. Do not compare visit timings with
 Benchee timings, or use cross-operation rankings alone to choose what to

@@ -26,7 +26,19 @@ defmodule PhoenixTest.Element.Form do
     end
   end
 
-  def find_by_descendant!(html, descendant) do
+  def find_by_descendant!(html, %{id: id} = descendant) when is_binary(id) do
+    # When the field has an id, let the selector engine find its containing
+    # form in one pass rather than checking every form separately. Fall back
+    # to the original lookup for ambiguous/missing ids and its error messages.
+    case Query.find(html, "form:has([id=#{inspect(id)}])") do
+      {:found, form} -> build(form)
+      _ -> find_by_descendant_slow!(html, descendant)
+    end
+  end
+
+  def find_by_descendant!(html, descendant), do: find_by_descendant_slow!(html, descendant)
+
+  defp find_by_descendant_slow!(html, descendant) do
     html
     |> Query.find_ancestor!("form", descendant)
     |> build()

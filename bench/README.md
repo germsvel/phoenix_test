@@ -19,3 +19,8 @@ include `phx-change` handling. Results are machine- and fixture-dependent;
 compare before/after runs on the same machine. The initial measurements are
 recorded in [RESULTS.md](RESULTS.md); retain that baseline and add or update
 one current-result section after an improvement.
+
+For a breakdown of local form-helper costs (without the LiveView event), run
+`mix test bench/form_components_test.exs`. It measures rendering/parsing,
+field lookup, parent-form lookup and payload preparation independently; these
+stage measurements are diagnostic, not additive end-to-end times.

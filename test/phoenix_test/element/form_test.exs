@@ -54,6 +54,30 @@ defmodule PhoenixTest.Element.FormTest do
       assert form.selector == ~s|[id="user-form"]|
     end
 
+    test "finds the containing form among multiple forms for an input with an id" do
+      html = """
+      <form id="other-form"><input id="other" name="other" /></form>
+      <form id="user-form"><label for="email">Email</label><input id="email" name="email" /></form>
+      """
+
+      field = Field.find_input!(html, "input", "Email", exact: true)
+
+      assert Form.find_by_descendant!(html, field).id == "user-form"
+    end
+
+    test "retains the ambiguous-form error for duplicate input ids" do
+      html = """
+      <form id="first"><input id="email" name="email" /></form>
+      <form id="second"><input id="email" name="email" /></form>
+      """
+
+      field = %{id: "email", selector: ~s([id="email"])}
+
+      assert_raise ArgumentError, ~r/Found too many "form" matches/, fn ->
+        Form.find_by_descendant!(html, field)
+      end
+    end
+
     test "creates same form as `find!`" do
       html = """
       <form id="user-form">

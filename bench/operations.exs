@@ -78,18 +78,37 @@ defmodule PhoenixTest.OperationsBenchmark do
   test "LiveView operations" do
     conn = Phoenix.ConnTest.build_conn()
     session = PhoenixTest.visit(conn, "/live/index")
+    check_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    choose_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    select_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    no_change_select = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    no_change_check = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    patch_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    click_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    submit_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    button_session = PhoenixTest.visit(Phoenix.ConnTest.build_conn(), "/live/index")
+    filled = PhoenixTest.fill_in(submit_session, "User Name", with: "Aragorn")
+    button_filled = PhoenixTest.fill_in(button_session, "User Name", with: "Aragorn")
 
     Benchee.run(
       %{
         "live assert_has" => fn -> PhoenixTest.assert_has(session, "#title") end,
+        "live click_link (patch)" => fn -> PhoenixTest.click_link(patch_session, "Patch link") end,
+        "live click_button (event)" => fn -> PhoenixTest.click_button(click_session, "Change h3") end,
+        "live click_button (submit)" => fn -> PhoenixTest.click_button(button_filled, "Save Nested Form") end,
+        "live submit" => fn -> PhoenixTest.submit(filled) end,
         "live fill_in (no change event)" => fn ->
           PhoenixTest.within(session, "#no-phx-change-form", fn s ->
             PhoenixTest.fill_in(s, "Name", with: "Aragorn")
           end)
         end,
-        "live select" => fn -> PhoenixTest.select(session, "Race", option: "Elf") end,
-        "live check" => fn -> PhoenixTest.check(session, "Admin") end,
-        "live choose" => fn -> PhoenixTest.choose(session, "Email Choice") end
+        "live select" => fn -> PhoenixTest.select(select_session, "Race", option: "Elf") end,
+        "live select (no change event)" => fn ->
+          PhoenixTest.select(no_change_select, "User Admin", option: "True")
+        end,
+        "live check" => fn -> PhoenixTest.check(check_session, "Admin") end,
+        "live check (no change event)" => fn -> PhoenixTest.check(no_change_check, "Payer") end,
+        "live choose" => fn -> PhoenixTest.choose(choose_session, "Email Choice") end
       },
       warmup: 1,
       time: 2
