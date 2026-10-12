@@ -8,8 +8,10 @@ that benchmarks have access to the same testing LiveView application used by
 unit tests.
 
 Run `mix benchmark.operations` to compare representative public operations on
-static pages and LiveViews. The script uses Benchee for operations that can run
-in a worker process (1 s warmup, 2 s sampling). Both `visit/2` variants are
+static pages and LiveViews. The script disables the test endpoint's HTTP
+listener because requests are dispatched in-process, avoiding unrelated socket
+traffic during measurement. It uses Benchee for operations that can run in a
+worker process (1 s warmup, 2 s sampling). Both `visit/2` variants are
 sampled with the same timer in the ExUnit process (10 warmups + 50 calls each,
 alternating order), because LiveViewTest requires mounts to run there. Compare
 these two visit numbers with each other, not with the Benchee numbers. Visits

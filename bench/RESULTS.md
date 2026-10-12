@@ -64,31 +64,37 @@ The no-change-event scenarios use a smaller form than the original `check`
 and `select` scenarios, so their difference measures both the form/fixture
 and the event. Do not interpret that gap as the exact event cost.
 
-## Current result (parent-form lookup optimization)
+## Current result (parent-form and label-lookup optimizations)
 
 Measured on the same macOS Apple M3 / Elixir 1.19.5 / OTP 27.0 setup after
-using a single `form:has([id=...])` query to locate the containing form for
-fields with ids. Medians from a `mix benchmark.operations` run (1 s warmup,
-2 s sampling); the focused form-component benchmark measured parent-form
-lookup at ~226 μs before and ~115 μs after (the full operation includes
-other work).
+both optimizations. The focused form-component benchmark measured parent-form
+lookup at ~226 μs before and ~115 μs after the first change. It measured
+matching labels at ~200 μs with the original tree-only matcher versus ~57 μs
+with a native-text rejection filter **in the same run**; possible matches still
+use the original matching semantics. The full operation includes other work.
+
+Medians from one `mix benchmark.operations` run (1 s warmup, 2 s sampling).
+The benchmark now disables the endpoint's HTTP listener to reduce noise from
+unrelated socket traffic; older measurements above had it enabled, so treat
+before/after end-to-end comparisons as directional rather than controlled.
 
 | Operation | Current median |
 | --- | ---: |
-| Static `fill_in` | 292.54 μs |
-| Static `check` | 365.25 μs |
-| Static `choose` | 355.17 μs |
-| Static `select` | 367.88 μs |
-| LiveView `check` | 1,538.37 μs |
-| LiveView `choose` | 1,528.29 μs |
-| LiveView `select` | 1,575.67 μs |
-| LiveView `check` (no change event) | 775.44 μs |
-| LiveView `select` (no change event) | 784.92 μs |
+| Static `fill_in` | 214.46 μs |
+| Static `check` | 259.63 μs |
+| Static `choose` | 364.83 μs |
+| Static `select` | 270.46 μs |
+| LiveView `check` | 1,685.63 μs |
+| LiveView `choose` | 1,837.04 μs |
+| LiveView `select` | 1,468.83 μs |
+| LiveView `check` (no change event) | 647.42 μs |
+| LiveView `select` (no change event) | 808.35 μs |
 
-The new LiveView scenarios run in separate sessions, unlike the initial
-baseline; use their own isolated-session baseline-extension rows above for
-before/after comparisons. Variation between runs can exceed small apparent
-gains.
+The LiveView scenarios run in separate sessions, unlike the initial baseline;
+use their own isolated-session baseline-extension rows above for comparisons.
+There is considerable run-to-run variance, especially in LiveView event
+handling. No consistent end-to-end LiveView speedup has been established for
+this second change.
 
 Use each row as a before/after reference for the **same scenario on the same
 machine**, preferably with repeated runs. Do not compare visit timings with

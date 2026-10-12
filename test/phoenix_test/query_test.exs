@@ -147,6 +147,28 @@ defmodule PhoenixTest.QueryTest do
       assert {:not_found, _} = Query.find(html, "h1", "Hello", exact: true)
     end
 
+    test "matches text split across nested tags and whitespace" do
+      html = ~s(<label>User <span>Name</span></label>)
+
+      assert {:found, _} = Query.find(html, "label", "User Name", exact: true)
+      assert {:not_found, _} = Query.find(html, "label", "UserName", exact: true)
+    end
+
+    test "matches decoded HTML entities in whitespace-free text" do
+      html = ~s(<label>Ad&#109;in</label>)
+
+      assert {:found, _} = Query.find(html, "label", "Admin", exact: true)
+    end
+
+    test "does not match text in nested select or textarea elements" do
+      html = """
+      <label for="role">Role<select id="role"><option>Admin</option></select></label>
+      <label for="notes">Notes<textarea id="notes">Admin</textarea></label>
+      """
+
+      assert {:not_found, _} = Query.find(html, "label", "Admin")
+    end
+
     test "finds an element with attribute selector and text" do
       html = """
       <h1 id="title">Hello</h1>

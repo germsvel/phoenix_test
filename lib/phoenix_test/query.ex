@@ -547,11 +547,24 @@ defmodule PhoenixTest.Query do
   end
 
   defp filter_by_element_text(elements, text, opts) do
-    Enum.filter(elements, &text_match?(Html.element_text(&1), text, opts))
+    Enum.filter(elements, element_text_filter(text, opts))
   end
 
   defp find_first_by_element_text(elements, text, opts) do
-    Enum.find(elements, &text_match?(Html.element_text(&1), text, opts))
+    Enum.find(elements, element_text_filter(text, opts))
+  end
+
+  defp element_text_filter(text, opts) do
+    if String.match?(text, ~r/\s/) do
+      # Native text may omit the spaces inserted between tags by
+      # Html.element_text/1. Keep the original path for whitespace searches.
+      &text_match?(Html.element_text(&1), text, opts)
+    else
+      # Native text is cheaper but includes select/textarea content. Only use
+      # it to reject impossible matches; verify candidates with the existing
+      # browser-like text normalization.
+      &(String.contains?(LazyHTML.text(&1), text) and text_match?(Html.element_text(&1), text, opts))
+    end
   end
 
   defp text_match?(subject, text, opts) do

@@ -10,8 +10,14 @@ defmodule PhoenixTest.OperationsBenchmark do
   use ExUnit.Case, async: false
 
   setup_all do
+    # All requests are dispatched in-process. Avoid opening the endpoint's
+    # HTTP listener so unrelated socket traffic cannot skew measurements.
+    endpoint = PhoenixTest.WebApp.Endpoint
+    config = Application.fetch_env!(:phoenix_test, endpoint)
+    Application.put_env(:phoenix_test, endpoint, Keyword.put(config, :server, false))
+
     {:ok, _} = Supervisor.start_link([{Phoenix.PubSub, name: PhoenixTest.PubSub}], strategy: :one_for_one)
-    {:ok, _} = PhoenixTest.WebApp.Endpoint.start_link()
+    {:ok, _} = endpoint.start_link()
     :ok
   end
 
