@@ -49,10 +49,24 @@ defmodule PhoenixTest do
 
   PhoenixTest needs to know which endpoint to use for routing requests.
 
-  There are two ways of doing this:
+  There are three ways of doing this:
 
-  1. You can specify the endpoint at runtime in your `ConnCase` (or equivalent)
-  setup block:
+  1. You can set it per-test-process in your `ConnCase` (or equivalent) setup
+  block. This is the recommended approach for umbrella apps, multi-endpoint
+  setups, and compatibility with external drivers like `phoenix_test_playwright`:
+
+  ```elixir
+  setup do
+    PhoenixTest.Config.put_endpoint(MyAppWeb.Endpoint)
+    {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+  ```
+
+  This stores the endpoint in the process dictionary, so it's parallel-safe -
+  different test suites can use different endpoints without interfering with
+  each other.
+
+  2. You can specify the endpoint on the conn directly in your setup block:
 
   ```elixir
   setup tags do
@@ -62,13 +76,17 @@ defmodule PhoenixTest do
   end
   ```
 
-  NOTE that this opens the option for umbrella apps to have different endpoints.
+  NOTE: `put_endpoint/2` also sets the process-level config, so external
+  drivers can resolve the endpoint too.
 
-  2. You can set it at compile time in `config/test.exs`:
+  3. You can set a global fallback in `config/test.exs`:
 
   ```elixir
   config :phoenix_test, :endpoint, MyAppWeb.Endpoint
   ```
+
+  NOTE: This is a global setting shared across all tests. For umbrella apps or
+  multi-endpoint setups, prefer option 1 or 2 above.
 
   ### Getting `PhoenixTest` helpers
 
@@ -122,10 +140,54 @@ defmodule PhoenixTest do
       pid = Ecto.Adapters.SQL.Sandbox.start_owner!(MyApp.Repo, shared: not tags[:async])
       on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
 
-      {:ok, conn: Phoenix.ConnTest.build_conn() |> PhoenixTest.put_endpoint(MyAppWeb.Endpoint)}
+      PhoenixTest.Config.put_endpoint(MyAppWeb.Endpoint)
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
   end
   ```
+
+  ### Umbrella apps / multiple endpoints
+
+  In umbrella apps, each child application typically has its own endpoint.
+  Create a separate `FeatureCase` (or `ConnCase`) for each app, each calling
+  `PhoenixTest.Config.put_endpoint/1` with the correct endpoint:
+
+  ```elixir
+  # apps/app_a/test/support/feature_case.ex
+  defmodule AppAWeb.FeatureCase do
+    use ExUnit.CaseTemplate
+
+    using do
+      quote do
+        import PhoenixTest
+      end
+    end
+
+    setup do
+      PhoenixTest.Config.put_endpoint(AppAWeb.Endpoint)
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+  end
+
+  # apps/app_b/test/support/feature_case.ex
+  defmodule AppBWeb.FeatureCase do
+    use ExUnit.CaseTemplate
+
+    using do
+      quote do
+        import PhoenixTest
+      end
+    end
+
+    setup do
+      PhoenixTest.Config.put_endpoint(AppBWeb.Endpoint)
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+  end
+  ```
+
+  Since each test runs in its own process, these can run in parallel with
+  `async: true` without interfering with each other.
 
   Note that we assume your Phoenix project is using Ecto and its phenomenal
   `SQL.Sandbox`. If it doesn't, feel free to remove the `SQL.Sandbox` code
@@ -225,7 +287,9 @@ defmodule PhoenixTest do
   @doc """
   Sets the endpoint on the conn so PhoenixTest knows which endpoint to use.
 
-  Call this in your test setup with your app's endpoint module.
+  Also stores the endpoint in the process dictionary so that external drivers
+  (e.g. `phoenix_test_playwright`) can resolve the endpoint for the current
+  test process.
 
   ## Examples
 
@@ -236,6 +300,7 @@ defmodule PhoenixTest do
   ```
   """
   def put_endpoint(conn, endpoint) do
+    PhoenixTest.Config.put_endpoint(endpoint)
     Plug.Conn.put_private(conn, :phoenix_endpoint, endpoint)
   end
 
