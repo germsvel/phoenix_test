@@ -110,6 +110,46 @@ pages -- pages that were normal prior to the advent of LiveView and which are
 sometimes called "dead" views. Thus, we do not mean _static_ in the sense that
 static-site generators (such as Jekyll, Gatsby, etc.) mean it.
 
+## Development instructions
+
+If you want to contribute and test your changes, here are some helpful steps.
+
+### Prerequisites
+
+1. Install Erlang/OTP and Elixir with versions in [`.tool-versions`](.tool-versions).
+2. Run `mix setup`
+
+### Make and test changes
+
+To test your changes, before submitting a PR:
+
+```sh
+mix test
+OR
+mix test.crap
+```
+
+The `mix test.crap` alias runs the tests _and_ calculates CRAP scores.
+
+### Verifying with Phoenix's real payloads
+
+We have a set of tests that compare PhoenixTest's params with what Phoenix
+actually sends in requests.
+
+To run those browser parity tests, you'll need Node.js (see .tool-versions),
+then install the Playwright dependencies, and Chromium:
+
+```sh
+mix assets.build
+npm --prefix test/verification ci
+(cd test/verification && npx playwright install chromium)
+mix test test/verification/verification_test.exs --include browser_verification
+```
+
+These tests start the test endpoints locally on ports 4000 and 4001; ensure
+those ports are available. On Linux, if Chromium needs system libraries, use
+`npx playwright install --with-deps chromium` instead of the install command
+above.
 
 **Made with ❤️  by [German Velasco]**
 
