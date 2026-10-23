@@ -1,14 +1,84 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+if [[ $# -ne 1 ]]; then
+  echo "Usage: bin/publish RELEASE_VERSION" >&2
+  exit 1
+fi
 
-previous_version="${1}"
-release_version="${2}"
+release_version=$1
+if [[ ! $release_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Expected a major.minor.patch release version" >&2
+  exit 1
+fi
 
-sed -i '' "s/$previous_version/$release_version/" lib/phoenix_test.ex
-sed -i '' "s/$previous_version/$release_version/" mix.exs
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
 
-git add .
+# Only changelog edits may be pending; the release commit must not include unrelated changes.
+other_changes=$(git status --porcelain=v1 --untracked-files=all | grep -Ev '^.. CHANGELOG\.md$' || true)
+if [[ -n $other_changes ]]; then
+  echo "Only CHANGELOG.md may have uncommitted changes before publishing:" >&2
+  echo "$other_changes" >&2
+  exit 1
+fi
+
+if ! git remote get-url origin >/dev/null 2>&1; then
+  echo "An origin remote is required to publish" >&2
+  exit 1
+fi
+
+if [[ $(grep -Ec '^  @version "[0-9]+\.[0-9]+\.[0-9]+"$' mix.exs) -ne 1 ]]; then
+  echo "Expected exactly one version declaration in mix.exs" >&2
+  exit 1
+fi
+previous_version=$(sed -nE 's/^  @version "([0-9]+\.[0-9]+\.[0-9]+)"$/\1/p' mix.exs)
+if [[ $previous_version == "$release_version" ]]; then
+  echo "Release version must differ from the current version $previous_version" >&2
+  exit 1
+fi
+
+if [[ $(grep -Fxc "      {:phoenix_test, \"~> $previous_version\", only: :test, runtime: false}" lib/phoenix_test.ex) -ne 1 ]]; then
+  echo "Expected exactly one installation example for $previous_version in lib/phoenix_test.ex" >&2
+  exit 1
+fi
+
+if [[ ! -f CHANGELOG.md ]] || [[ $(grep -Fxc '## Unreleased' CHANGELOG.md) -ne 1 ]]; then
+  echo "Expected exactly one ## Unreleased heading in CHANGELOG.md" >&2
+  exit 1
+fi
+
+if git show-ref --verify --quiet "refs/tags/v$release_version"; then
+  echo "Tag v$release_version already exists" >&2
+  exit 1
+fi
+
+mix_temp=$(mktemp "mix.exs.tmp.XXXXXX")
+lib_temp=$(mktemp "lib/phoenix_test.ex.tmp.XXXXXX")
+changelog_temp=$(mktemp "CHANGELOG.md.tmp.XXXXXX")
+trap 'rm -f "$mix_temp" "$lib_temp" "$changelog_temp"' EXIT
+awk -v old="$previous_version" -v new="$release_version" '
+  $0 == "  @version \"" old "\"" { print "  @version \"" new "\""; next }
+  { print }
+' mix.exs > "$mix_temp"
+awk -v old="$previous_version" -v new="$release_version" '
+  $0 == "      {:phoenix_test, \"~> " old "\", only: :test, runtime: false}" {
+    print "      {:phoenix_test, \"~> " new "\", only: :test, runtime: false}"
+    next
+  }
+  { print }
+' lib/phoenix_test.ex > "$lib_temp"
+awk -v version="$release_version" -v released_on="$(date -u +%Y-%m-%d)" '
+  $0 == "## Unreleased" { print "## " version " - " released_on; next }
+  { print }
+' CHANGELOG.md > "$changelog_temp"
+# mktemp creates private files; restore the normal source-file permissions before moving them.
+chmod 644 "$mix_temp" "$lib_temp" "$changelog_temp"
+mv "$mix_temp" mix.exs
+mv "$lib_temp" lib/phoenix_test.ex
+mv "$changelog_temp" CHANGELOG.md
+
+git add -- mix.exs lib/phoenix_test.ex CHANGELOG.md
 git commit -m "Publish version $release_version"
 git tag "v$release_version"
 git push origin "v$release_version"
