@@ -7,6 +7,13 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.13.1 - 2026-10-23
+
+- Drop Elixir version in mix back to 1.18 for wider support [e22a8df]
+
+[e22a8df]: https://github.com/germsvel/phoenix_test/commit/e22a8df
+
+
 ## 0.13.0 - 2026-10-23
 
 ### Improvements
