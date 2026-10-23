@@ -7,6 +7,29 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## Unreleased
+
+### Improvements
+
+- Support regular expressions in `assert_path/2` and `refute_path/2` (#325) [ce4008f]
+- Submit multiple-select values in option DOM order, regardless of the order passed to `select/3` [72adf01]
+
+### Fixes
+
+- Include `_unused_*` parameters for untouched fields in LiveView `phx-change` events (but not form submissions) [97796b6]
+- Send only the activated submitter's data for LiveView forms; implicit submission uses the first submitter [ec53258]
+- Honor `formaction` and `formmethod` for static form submitters, including implicit submission [ec53258], [f6e13cc]
+- Replace the action URL's query string with submitted fields for static GET forms [956c33f]
+- Include an empty `value` in LiveView button `phx-click` events when the button has no value attribute [601ad81]
+
+[ce4008f]: https://github.com/germsvel/phoenix_test/commit/ce4008f
+[72adf01]: https://github.com/germsvel/phoenix_test/commit/72adf01
+[97796b6]: https://github.com/germsvel/phoenix_test/commit/97796b6
+[ec53258]: https://github.com/germsvel/phoenix_test/commit/ec53258
+[f6e13cc]: https://github.com/germsvel/phoenix_test/commit/f6e13cc
+[956c33f]: https://github.com/germsvel/phoenix_test/commit/956c33f
+[601ad81]: https://github.com/germsvel/phoenix_test/commit/601ad81
+
 ## 0.12.1
 
 - Fix double scoping of links (#323) [8596639]
