@@ -612,6 +612,11 @@ defmodule PhoenixTest.WebApp.IndexLive do
     >
       <input type="hidden" name="trigger_action_hidden_input" value="trigger_action_hidden_value" />
       <label>Trigger action <input type="text" name="trigger_action_input" /></label>
+      <label>Trigger password <input type="password" name="trigger_action_password" /></label>
+      <label>
+        <input type="checkbox" name="trigger_action_remember_me" value="true" /> Remember trigger
+      </label>
+      <button type="submit">Submit trigger action</button>
     </form>
 
     <button phx-click="trigger-form">Trigger from elsewhere</button>

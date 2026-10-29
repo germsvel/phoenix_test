@@ -149,8 +149,8 @@ defmodule PhoenixTest.Live do
           end
 
         session
-        |> Map.put(:active_form, ActiveForm.new())
         |> submit_form(form.selector, form_data, additional_data)
+        |> Map.put(:active_form, ActiveForm.new())
 
       Button.has_data_method?(button) ->
         %{session.conn | resp_body: html}

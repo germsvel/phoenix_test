@@ -1583,6 +1583,19 @@ defmodule PhoenixTest.LiveTest do
       |> assert_has("#form-data", text: "trigger_action_input: engage")
     end
 
+    test "phx-trigger-action preserves typed values when clicking the submit button", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> fill_in("Trigger action", with: "engage")
+      |> fill_in("Trigger password", with: "secret password")
+      |> check("Remember trigger")
+      |> click_button("Submit trigger action")
+      |> assert_has("#form-data", text: "trigger_action_hidden_input: trigger_action_hidden_value")
+      |> assert_has("#form-data", text: "trigger_action_input: engage")
+      |> assert_has("#form-data", text: "trigger_action_password: secret password")
+      |> assert_has("#form-data", text: "trigger_action_remember_me: true")
+    end
+
     test "phx-trigger-action from outside the form", %{conn: conn} do
       conn
       |> visit("/live/index")
