@@ -56,10 +56,24 @@ defmodule PhoenixTest.Element.Form do
   end
 
   def changeable_field_names(%__MODULE__{} = form) do
-    form.parsed
-    |> Html.all(":is(input:not([type='hidden']), textarea, select):not([disabled])[name]")
-    |> Enum.map(&Html.attribute(&1, "name"))
-    |> Enum.uniq()
+    if phx_no_unused_field?(form) do
+      []
+    else
+      opted_out_names =
+        form.parsed
+        |> Html.all(":is(input, textarea, select)[phx-no-unused-field][name]")
+        |> MapSet.new(&Html.attribute(&1, "name"))
+
+      form.parsed
+      |> Html.all(":is(input:not([type='hidden']), textarea, select):not([disabled])[name]")
+      |> Enum.map(&Html.attribute(&1, "name"))
+      |> Enum.uniq()
+      |> Enum.reject(&MapSet.member?(opted_out_names, &1))
+    end
+  end
+
+  def phx_no_unused_field?(form) do
+    Html.attribute(form.parsed, "phx-no-unused-field") != nil
   end
 
   def phx_change?(form) do

@@ -121,6 +121,26 @@ defmodule PhoenixTest.WebApp.IndexLive do
       </label>
     </form>
 
+    <form id="no-unused-form" phx-change="change-form" phx-submit="change-form" phx-no-unused-field>
+      <label for="no-unused-name">No unused name</label>
+      <input id="no-unused-name" name="demo[name]" value="Alice" />
+      <label for="no-unused-red">No unused red</label>
+      <input id="no-unused-red" type="radio" name="demo[color]" value="red" />
+    </form>
+
+    <form id="some-unused-form" phx-change="change-form" phx-submit="change-form">
+      <label for="opted-out-name">Opted out name</label>
+      <input id="opted-out-name" name="demo[name]" value="Alice" phx-no-unused-field />
+      <label for="tracked-name">Tracked name</label>
+      <input id="tracked-name" name="demo[tracked]" value="Still unused" />
+      <label for="opted-out-red">Opted out red</label>
+      <input id="opted-out-red" type="radio" name="demo[color]" value="red" phx-no-unused-field />
+      <label for="opted-out-blue">Opted out blue</label>
+      <input id="opted-out-blue" type="radio" name="demo[color]" value="blue" />
+      <label for="some-unused-comments">Some unused comments</label>
+      <input id="some-unused-comments" name="demo[comments]" value="" />
+    </form>
+
     <form id="country-form" phx-change="select-country">
       <label for="country">Country</label>
       <select id="country" name="country">
@@ -694,8 +714,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
         name="input-with-change"
         phx-change="input-changed"
       />
-      
-    <!-- Radio inputs -->
+
+      <!-- Radio inputs -->
       <input
         type="radio"
         id="radio-input-choice-1"
@@ -713,8 +733,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
         phx-change="input-changed"
       />
       <label for="radio-input-choice-2">Option 2</label>
-      
-    <!-- Checkboxes -->
+
+      <!-- Checkboxes -->
       <label for="checkbox-input-checkbox-1">Checkbox 1</label>
       <input
         id="checkbox-input-checkbox-1"
@@ -732,8 +752,8 @@ defmodule PhoenixTest.WebApp.IndexLive do
         value="Checkbox 2"
         phx-change="input-changed"
       />
-      
-    <!-- Select -->
+
+      <!-- Select -->
       <label for="select-with-change">Select with change</label>
       <select id="select-with-change" name="select-with-change" phx-change="input-changed">
         <option value="Option 1">Option 1</option>
