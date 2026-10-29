@@ -1509,6 +1509,37 @@ defmodule PhoenixTest.LiveTest do
       |> refute_has("#form-data", text: "_unused_")
     end
 
+    test "form-wide phx-no-unused-field omits unused markers but sends values", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#no-unused-form", &choose(&1, "No unused red"))
+      |> assert_has("#form-data", text: "demo:name: Alice")
+      |> assert_has("#form-data", text: "demo:color: red")
+      |> refute_has("#form-data", text: "_unused_")
+      |> within("#no-unused-form", &fill_in(&1, "No unused name", with: "Bob"))
+      |> assert_has("#form-data", text: "demo:name: Bob")
+      |> refute_has("#form-data", text: "_unused_")
+      |> submit()
+      |> refute_has("#form-data", text: "_unused_")
+    end
+
+    test "field-level phx-no-unused-field skips that name, including radio groups", %{conn: conn} do
+      conn
+      |> visit("/live/index")
+      |> within("#some-unused-form", &fill_in(&1, "Some unused comments", with: "hello"))
+      |> assert_has("#form-data", text: "demo:name: Alice")
+      |> assert_has("#form-data", text: "demo:tracked: Still unused")
+      |> assert_has("#form-data", text: "demo:_unused_tracked's value is empty")
+      |> refute_has("#form-data", text: "_unused_name")
+      |> refute_has("#form-data", text: "_unused_color")
+      |> within("#some-unused-form", &choose(&1, "Opted out blue"))
+      |> assert_has("#form-data", text: "demo:color: blue")
+      |> assert_has("#form-data", text: "demo:_unused_tracked's value is empty")
+      |> refute_has("#form-data", text: "_unused_name")
+      |> submit()
+      |> refute_has("#form-data", text: "_unused_")
+    end
+
     test "does not trigger phx-change event if one isn't present", %{conn: conn} do
       session = visit(conn, "/live/index")
 
