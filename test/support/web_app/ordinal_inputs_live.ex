@@ -50,7 +50,7 @@ defmodule PhoenixTest.WebApp.OrdinalInputsLive do
 
   def render(assigns) do
     ~H"""
-    <.form for={@form} phx-change="validate" phx-submit="submit">
+    <.form for={@form} id="ordinal-inputs-form" phx-change="validate" phx-submit="submit">
       <.input field={@form[:title]} label="Title" />
       <.inputs_for :let={ef} field={@form[:emails]}>
         <input type="hidden" name="mailing_list[emails_sort][]" value={ef.index} />

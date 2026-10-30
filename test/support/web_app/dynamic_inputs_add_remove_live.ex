@@ -47,7 +47,7 @@ defmodule PhoenixTest.WebApp.DynamicInputsAddRemoveLive do
 
   def render(assigns) do
     ~H"""
-    <.form for={@form} phx-change="validate" phx-submit="submit">
+    <.form for={@form} id="dynamic-inputs-form" phx-change="validate" phx-submit="submit">
       <.input field={@form[:title]} label="Title" />
 
       <.inputs_for :let={ef} field={@form[:emails]}>

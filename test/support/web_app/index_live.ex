@@ -712,7 +712,7 @@ defmodule PhoenixTest.WebApp.IndexLive do
       </span>
     </div>
 
-    <form phx-change="dummy-change">
+    <form id="input-change-form" phx-change="dummy-change">
       <label for="input-with-change">Input with change</label>
       <input
         id="input-with-change"
