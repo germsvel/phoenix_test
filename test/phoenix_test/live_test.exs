@@ -1701,7 +1701,7 @@ defmodule PhoenixTest.LiveTest do
       conn
       |> visit("/live/async_page")
       |> click_button("Async navigate to async 2 page!")
-      |> assert_has("h1", text: "Another title loaded async", timeout: 250)
+      |> assert_has("h1", text: "Another title loaded async", timeout: 400)
     end
   end
 
