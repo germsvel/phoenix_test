@@ -5,7 +5,12 @@ defmodule PhoenixTest.LiveViewTimeout do
   alias PhoenixTest.Live
   alias PhoenixTest.Static
 
-  def interval_wait_time, do: 100
+  def interval_wait_time do
+    case Application.get_env(:phoenix_test, :timeout_interval_wait_time, 100) do
+      interval when is_integer(interval) and interval > 0 -> interval
+      other -> raise ArgumentError, ":timeout_interval_wait_time must be a positive integer, got: #{inspect(other)}"
+    end
+  end
 
   def with_timeout(session, timeout, action, fetch_redirect_info \\ &via_assert_redirect/1)
 
@@ -30,8 +35,8 @@ defmodule PhoenixTest.LiveViewTimeout do
   end
 
   defp handle_watched_messages_with_timeout(session, timeout, action, fetch_redirect_info) do
-    wait_time = interval_wait_time()
-    new_timeout = max(timeout - wait_time, 0)
+    wait_time = min(timeout, interval_wait_time())
+    new_timeout = timeout - wait_time
     view_pid = session.view.pid
 
     receive do

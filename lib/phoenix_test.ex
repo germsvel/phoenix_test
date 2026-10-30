@@ -131,6 +131,17 @@ defmodule PhoenixTest do
   `SQL.Sandbox`. If it doesn't, feel free to remove the `SQL.Sandbox` code
   above.
 
+  ### LiveView assertion timeouts
+
+  When a LiveView `assert_has`, `refute_has`, `assert_path`, or `refute_path`
+  call uses a positive `:timeout` option, it retries every 100 ms by default.
+  To use a different interval (in milliseconds), configure a positive integer
+  in `config/test.exs`:
+
+  ```elixir
+  config :phoenix_test, :timeout_interval_wait_time, 20
+  ```
+
   ## Usage
 
   Now that we have all the setup out of the way, we can create tests like
@@ -1442,10 +1453,12 @@ defmodule PhoenixTest do
 
   - `at`: (integer) position of the element to be asserted against
 
-  - `timeout`: currently only works with LiveViews. If you pass a positive
-  `timeout`, PhoenixTest will wait for any async operations (i.e. LiveView's
-  `assign_async` and `start_async`) and handle redirects that happen as result
-  of a `handle_async` or `handle_info`. (defaults to `0`)
+  - `timeout`: (defaults to `0`) currently only works with LiveViews. If you
+  pass a positive `timeout`, PhoenixTest will wait for any async operations
+  (i.e. LiveView's `assign_async` and `start_async`) and handle redirects that
+  happen as result of a `handle_async` or `handle_info`.
+  To configure the retry interval, see
+  [LiveView assertion timeouts](#module-liveview-assertion-timeouts).
 
   ## Examples
 
@@ -1586,10 +1599,12 @@ defmodule PhoenixTest do
 
   - `at`: (integer) position of the element to be refuted against
 
-  - `timeout`: experimental option that only works with LiveViews. If you pass a
-  positive `timeout`, PhoenixTest will wait for any async operations (i.e.
-  LiveView's `assign_async` and `start_async`) and handle redirects that happen
-  as result of a `handle_async` or `handle_info`. (defaults to `0`)
+  - `timeout`: (defaults to `0`) experimental option that only works with
+  LiveViews. If you pass a positive `timeout`, PhoenixTest will wait for any
+  async operations (i.e. LiveView's `assign_async` and `start_async`) and handle
+  redirects that happen as result of a `handle_async` or `handle_info`.
+  To configure the retry interval, see
+  [LiveView assertion timeouts](#module-liveview-assertion-timeouts).
 
   ## Examples
 
@@ -1703,9 +1718,11 @@ defmodule PhoenixTest do
 
   - `query_params`: map of query params to match exactly
 
-  - `timeout`: currently only works with LiveViews. If you pass a positive
-  `timeout`, PhoenixTest will wait for async navigation and patch updates before
-  asserting on the current path. (defaults to `0`)
+  - `timeout`: (defaults to `0`) currently only works with LiveViews. If you
+  pass a positive `timeout`, PhoenixTest will wait for async navigation and
+  patch updates before asserting on the current path.
+  To configure the retry interval, see
+  [LiveView assertion timeouts](#module-liveview-assertion-timeouts).
 
   ## Examples
 
@@ -1764,9 +1781,11 @@ defmodule PhoenixTest do
 
   - `query_params`: map of query params to refute
 
-  - `timeout`: currently only works with LiveViews. If you pass a positive
-  `timeout`, PhoenixTest will wait for async navigation and patch updates before
-  refuting the current path. (defaults to `0`)
+  - `timeout`: (defaults to `0`) currently only works with LiveViews. If you
+  pass a positive `timeout`, PhoenixTest will wait for async navigation and
+  patch updates before refuting the current path.
+  To configure the retry interval, see
+  [LiveView assertion timeouts](#module-liveview-assertion-timeouts).
 
   ## Examples
 
