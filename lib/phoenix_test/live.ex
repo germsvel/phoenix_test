@@ -230,6 +230,7 @@ defmodule PhoenixTest.Live do
 
     session.current_operation.html
     |> Field.find_input!(input_selector, label, opts)
+    |> Field.validate_fillable!()
     |> Map.put(:value, to_string(value))
     |> then(&fill_in_field_data(session, &1))
   end

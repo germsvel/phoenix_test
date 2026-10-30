@@ -26,6 +26,28 @@ defmodule PhoenixTest.Element.Field do
     }
   end
 
+  @readonly_input_types ~w(text search tel url email password date month week time datetime-local number)
+
+  def validate_fillable!(field) do
+    if readonly?(field.parsed) do
+      raise ArgumentError, "Cannot fill in #{inspect(field.label)} because it is readonly."
+    end
+
+    field
+  end
+
+  defp readonly?(element) do
+    Html.attribute(element, "readonly") != nil and supports_readonly?(element)
+  end
+
+  defp supports_readonly?(element) do
+    case Html.tag(element) do
+      "textarea" -> true
+      "input" -> String.downcase(Html.attribute(element, "type") || "text") in @readonly_input_types
+      _ -> false
+    end
+  end
+
   def find_checkbox!(html, input_selector, label, opts) do
     field = Query.find_by_label!(html, input_selector, label, opts)
 

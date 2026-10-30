@@ -70,6 +70,40 @@ defmodule PhoenixTest.Element.FieldTest do
     end
   end
 
+  describe "validate_fillable!/1" do
+    test "rejects readonly inputs with an empty boolean attribute" do
+      html = ~s(<label for="name">Name</label><input id="name" name="name" readonly>)
+      field = Field.find_input!(html, "input", "Name", exact: true)
+
+      assert_raise ArgumentError, ~r/Cannot fill in "Name" because it is readonly/, fn ->
+        Field.validate_fillable!(field)
+      end
+    end
+
+    test "rejects readonly textareas" do
+      html = ~s(<label for="notes">Notes</label><textarea id="notes" name="notes" readonly></textarea>)
+      field = Field.find_input!(html, "textarea", "Notes", exact: true)
+
+      assert_raise ArgumentError, ~r/because it is readonly/, fn ->
+        Field.validate_fillable!(field)
+      end
+    end
+
+    test "allows editable inputs" do
+      html = ~s(<label for="name">Name</label><input id="name" name="name">)
+      field = Field.find_input!(html, "input", "Name", exact: true)
+
+      assert Field.validate_fillable!(field) == field
+    end
+
+    test "ignores readonly on input types where the attribute has no effect" do
+      html = ~s(<label for="color">Color</label><input id="color" name="color" type="color" readonly>)
+      field = Field.find_input!(html, "input", "Color", exact: true)
+
+      assert Field.validate_fillable!(field) == field
+    end
+  end
+
   describe "find_checkbox!" do
     test "finds a checkbox and defaults value to 'on'" do
       html = """
