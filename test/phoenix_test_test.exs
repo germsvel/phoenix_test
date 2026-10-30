@@ -8,6 +8,14 @@ defmodule PhoenixTestTest do
   end
 
   describe "select/3" do
+    test "does not accept both :option and deprecated :from", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert_raise ArgumentError, ~r/:from/, fn ->
+        select(session, "Race", option: "Elf", from: "Race")
+      end
+    end
+
     test "shows deprecation warning when using :from", %{conn: conn} do
       message =
         ExUnit.CaptureIO.capture_io(:stderr, fn ->
@@ -21,6 +29,14 @@ defmodule PhoenixTestTest do
   end
 
   describe "select/4" do
+    test "does not accept both :option and deprecated :from", %{conn: conn} do
+      session = visit(conn, "/live/index")
+
+      assert_raise ArgumentError, ~r/:from/, fn ->
+        select(session, "select", "Race", option: "Elf", from: "Race")
+      end
+    end
+
     test "shows deprecation warning if passing `:from`", %{conn: conn} do
       message =
         ExUnit.CaptureIO.capture_io(:stderr, fn ->
