@@ -7,6 +7,26 @@ history.
 To see dates a version was published, see the [hex package
 page](https://hex.pm/packages/phoenix_test)
 
+## 0.14.0 - 2026-10-30
+
+### Improvements
+
+- Make LiveView timeout intervals configurable (#333) [e0766fb]
+- Reject unsupported assertion options (#332) [80e3b30]
+
+### Fixes
+
+- Do not allow filling readonly form fields (#331) [3ecd81d]
+- Preserve typed values through LiveView trigger-action submits (#330) [c243de4]
+- Respect phx-no-unused-field in LiveView change payloads (#329) [3b8f5c2]
+
+[e0766fb]: https://github.com/germsvel/phoenix_test/commit/e0766fb
+[80e3b30]: https://github.com/germsvel/phoenix_test/commit/80e3b30
+[3ecd81d]: https://github.com/germsvel/phoenix_test/commit/3ecd81d
+[c243de4]: https://github.com/germsvel/phoenix_test/commit/c243de4
+[3b8f5c2]: https://github.com/germsvel/phoenix_test/commit/3b8f5c2
+
+
 ## 0.13.1 - 2026-10-23
 
 - Drop Elixir version in mix back to 1.18 for wider support [e22a8df]
