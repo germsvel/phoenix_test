@@ -673,6 +673,7 @@ defmodule PhoenixTest do
 
   - `from` (deprecated): the label of the select dropdown. Label is now a
   positional argument and use the `:option` option to pass the option text.
+  Do not pass `:from` and `:option` together.
 
   - `exact`: whether to match label text exactly. (Defaults to `true`)
 
@@ -1403,7 +1404,7 @@ defmodule PhoenixTest do
   state using `:checked` (with an optional `:label`).
 
   NOTE that you cannot specify more than one of `:text`, `:value`, `:selected`,
-  and `:checked` as options.
+  and `:checked` as options. You also cannot combine `:label` with `:text`.
 
   The `:text`, `:value`, or `:selected` option can be a binary or anything for which
   there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
@@ -1547,7 +1548,7 @@ defmodule PhoenixTest do
   It'll raise an error if any elements that match selector and options.
 
   NOTE that you cannot specify more than one of `:text`, `:value`, `:selected`,
-  and `:checked` as options.
+  and `:checked` as options. You also cannot combine `:label` with `:text`.
 
   The `:text`, `:value`, or `:selected` option can be a binary or anything for which
   there is an implementation of the `Phoenix.HTML.Safe` protocol. PhoenixTest
@@ -1802,7 +1803,7 @@ defmodule PhoenixTest do
   defdelegate reload_page(session), to: Driver
 
   defp validate_no_duplicate_text_opt!(opts, function_name, selector, text) do
-    if opts[:text] do
+    if Keyword.has_key?(opts, :text) do
       opts_without_text = Keyword.drop(opts, [:text])
       opts_message = Enum.map_join(opts_without_text, ", ", fn {k, v} -> "#{k}: #{v}" end)
 

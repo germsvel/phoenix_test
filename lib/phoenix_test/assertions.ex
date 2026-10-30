@@ -23,6 +23,7 @@ defmodule PhoenixTest.Assertions do
     ]
 
     def parse(opts) when is_list(opts) do
+      opts = Keyword.validate!(opts, [:at, :checked, :count, :exact, :label, :selected, :text, :value, :timeout])
       at = Keyword.get(opts, :at, :any)
 
       checked =
@@ -99,6 +100,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_has(session, "title", opts) do
+    opts = Keyword.validate!(opts, [:text, :exact, :timeout])
     text = Keyword.fetch!(opts, :text)
     exact = Keyword.get(opts, :exact, false)
     title = PhoenixTest.Driver.render_page_title(session)
@@ -201,6 +203,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_has(session, "title", opts) do
+    opts = Keyword.validate!(opts, [:text, :exact, :timeout])
     text = Keyword.fetch!(opts, :text)
     exact = Keyword.get(opts, :exact, false)
     title = PhoenixTest.Driver.render_page_title(session)
@@ -281,6 +284,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def assert_path(session, path, opts \\ []) do
+    opts = Keyword.validate!(opts, [:query_params, :timeout])
     session = set_operation(session, :assert_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
     params = opts[:query_params] && Utils.stringify_keys_and_values(opts[:query_params])
@@ -341,6 +345,7 @@ defmodule PhoenixTest.Assertions do
   end
 
   def refute_path(session, path, opts \\ []) do
+    opts = Keyword.validate!(opts, [:query_params, :timeout])
     session = set_operation(session, :refute_path, "")
     uri = URI.parse(PhoenixTest.Driver.current_path(session))
     params = opts[:query_params] && Utils.stringify_keys_and_values(opts[:query_params])

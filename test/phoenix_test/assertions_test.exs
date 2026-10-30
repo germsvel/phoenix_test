@@ -12,6 +12,67 @@ defmodule PhoenixTest.AssertionsTest do
     %{conn: PhoenixTest.put_endpoint(Phoenix.ConnTest.build_conn(), PhoenixTest.WebApp.Endpoint)}
   end
 
+  describe "assertion option validation" do
+    test "rejects unknown options for selectors on static and LiveView pages", %{conn: conn} do
+      for path <- ["/page/index", "/live/index"] do
+        session = visit(conn, path)
+
+        assert_raise ArgumentError, ~r/:with/, fn ->
+          assert_has(session, "h1", with: "Missing text")
+        end
+
+        assert_raise ArgumentError, ~r/:with/, fn ->
+          assert_has(session, "h1", "Main page", with: "ignored")
+        end
+
+        assert_raise ArgumentError, ~r/:with/, fn ->
+          refute_has(session, "h1", with: "Missing text")
+        end
+
+        assert_raise ArgumentError, ~r/:with/, fn ->
+          refute_has(session, "h1", "Missing text", with: "ignored")
+        end
+      end
+    end
+
+    test "rejects positional text alongside :text even if the option is falsy", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      for text <- [nil, false], assertion <- [&assert_has/4, &refute_has/4] do
+        assert_raise ArgumentError, ~r/Cannot specify `text` as the third argument and `:text` as an option/, fn ->
+          assertion.(session, "h1", "Main page", text: text)
+        end
+      end
+    end
+
+    test "rejects unsupported title options without changing text and exact matching", %{conn: conn} do
+      session = visit(conn, "/page/index")
+
+      assert_has(session, "title", text: "PhoenixTest is the best!", exact: true)
+      refute_has(session, "title", text: "Other title", exact: true)
+
+      assert_raise ArgumentError, ~r/:with/, fn ->
+        assert_has(session, "title", text: "PhoenixTest", with: "ignored")
+      end
+
+      assert_raise ArgumentError, ~r/:count/, fn ->
+        refute_has(session, "title", text: "Other title", count: 2)
+      end
+    end
+
+    test "accepts documented timeout on both kinds of session", %{conn: conn} do
+      for path <- ["/page/index", "/live/index"] do
+        session = visit(conn, path)
+        assert_has(session, "h1", timeout: 0)
+        refute_has(session, "h2", timeout: 0)
+        assert_has(session, "title", text: "PhoenixTest", timeout: 0)
+        refute_has(session, "title", text: "Other title", timeout: 0)
+        assert_path(session, path, timeout: 0)
+        refute_path(session, "/other", timeout: 0)
+      end
+    end
+  end
+
   describe "assert_has/2" do
     test "succeeds if single element is found with CSS selector", %{conn: conn} do
       conn
@@ -1032,6 +1093,18 @@ defmodule PhoenixTest.AssertionsTest do
   end
 
   describe "assert_path" do
+    test "rejects unknown path options" do
+      session = %Live{current_path: "/page/index"}
+
+      assert_raise ArgumentError, ~r/:text/, fn ->
+        assert_path(session, "/page/index", text: "ignored")
+      end
+
+      assert_raise ArgumentError, ~r/:text/, fn ->
+        refute_path(session, "/other", text: "ignored")
+      end
+    end
+
     test "asserts the session's current path" do
       session = %Live{current_path: "/page/index"}
 
